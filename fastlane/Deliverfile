@@ -1,0 +1,19 @@
+# Deliverfile — App Store Connect delivery configuration
+# https://docs.fastlane.tools/actions/deliver/
+#
+# NOTE: All sensitive credentials and lane logic live in the Fastfile.
+# This file just sets defaults that deliver (upload_to_app_store) reads.
+
+app_identifier("rpn.calculator.WatchCalc32")
+
+# No username needed — we authenticate exclusively via API key in the Fastfile
+# username("your-apple-id@example.com")  # <-- NOT required with api_key auth
+
+screenshots_path("./fastlane/screenshots")
+metadata_path("./fastlane/metadata")
+
+# Don't auto-submit; controlled per-lane in the Fastfile
+submit_for_review(false)
+automatic_release(false)
+app_version("1.0")
+force(true)

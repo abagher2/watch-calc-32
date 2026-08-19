@@ -1,0 +1,130 @@
+units:
+  kx_top: 11.5
+  kx_bot: 11.5
+  ky: 12
+
+points:
+  zones:
+    upper:
+      anchor:
+        shift: [15, 80]
+      key:
+        padding: ky
+        spread: kx_top
+      columns:
+        c1:
+          key:
+            column_net: P7
+          rows:
+            r1:
+              shift: [7.25, 0] # Center the ENTER key between c1 and c2
+            r2:
+              shift: [-7.25, 0] # Undo shift so the rest of column is normal
+        c2:
+          key:
+            column_net: P8
+          rows:
+            r1:
+              skip: true # ENTER key spans c1 and c2
+        c3:
+          key:
+            column_net: P9
+        c4:
+          key:
+            column_net: P15
+        c5:
+          key:
+            column_net: P14
+        c6:
+          key:
+            column_net: P16
+      rows:
+        r1:
+          row_net: P1
+        r2:
+          row_net: P0
+        r3:
+          row_net: P4
+          
+    lower:
+      anchor:
+        ref: upper_c1_r3
+        shift: [6.25, -45] # Place it below r3
+      key:
+        padding: -ky
+        spread: kx_bot
+      columns:
+        c1:
+          key:
+            column_net: P7
+        c2:
+          key:
+            column_net: P8
+        c3:
+          key:
+            column_net: P9
+        c4:
+          key:
+            column_net: P15
+        c5:
+          key:
+            column_net: P14
+      rows:
+        r4:
+          row_net: P5
+        r5:
+          row_net: P6
+        r6:
+          row_net: P10
+        r7:
+          row_net: P21
+
+outlines:
+  raw:
+    - what: rectangle
+      where: true
+      size: [11, 11] # Smaller than keys to prevent JLCPCB edge clearance errors
+  board:
+    - what: polygon
+      operation: stack
+      points:
+        - ref: upper_c1_r3
+          shift: [-5, -95]
+        - ref: upper_c6_r3
+          shift: [8, -95]
+        - ref: upper_c6_r3
+          shift: [8, 48]
+        - ref: upper_c1_r3
+          shift: [-5, 48]
+      fillet: 5
+
+pcbs:
+  calculator:
+    outlines:
+      main:
+        outline: board
+    footprints:
+      # ProMicro footprint
+      promicro:
+        what: promicro
+        where:
+          ref: upper_c3_r3
+          shift: [6.5, 35] # Positioned in the forehead
+          
+      # JST Battery Connector
+      jst:
+        what: jstph
+        where:
+          ref: upper_c3_r3
+          shift: [30, 35] # Next to the ProMicro
+        params:
+          pos: VCC
+          neg: GND
+          
+      # Switches (all points in both zones)
+      switches:
+        what: button
+        where: true
+        params:
+          from: "{{row_net}}"
+          to: "{{column_net}}"

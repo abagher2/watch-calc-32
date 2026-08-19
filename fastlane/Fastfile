@@ -1,0 +1,85 @@
+default_platform(:ios)
+
+# Shared API key helper — used by all lanes
+def api_key
+  app_store_connect_api_key(
+    key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"] || "5A7DYKGBA4",
+    issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"] || "d4102100-0c9f-451e-94ce-a926058db568",
+    key_filepath: File.expand_path(
+      ENV["APP_STORE_CONNECT_API_KEY_KEY_FILEPATH"] || "~/Downloads/AuthKey_5A7DYKGBA4.p8"
+    ),
+    in_house: false
+  )
+end
+
+platform :ios do
+
+  # ─────────────────────────────────────────────────────────────────
+  # beta: Build + upload a new binary to TestFlight
+  # ─────────────────────────────────────────────────────────────────
+  desc "Build and push a new build to TestFlight"
+  lane :beta do
+    key = api_key
+
+    increment_build_number(
+      build_number: latest_testflight_build_number + 1
+    )
+
+    build_app(
+      project: "WatchCalc32.xcodeproj",
+      scheme: "WatchCalc32Container",
+      xcargs: "-allowProvisioningUpdates " \
+              "-authenticationKeyPath '/Users/abagher/Downloads/AuthKey_5A7DYKGBA4.p8' " \
+              "-authenticationKeyID '5A7DYKGBA4' " \
+              "-authenticationKeyIssuerID 'd4102100-0c9f-451e-94ce-a926058db568'",
+      export_method: "app-store",
+      # exportOptions.plist includes both iOS container + Watch app bundle IDs
+      # so that the Watch app is bundled in the IPA and appears in TestFlight
+      export_options: File.expand_path("../exportOptions.plist", __dir__)
+    )
+
+    upload_to_testflight(
+      api_key: key,
+      app_platform: "ios",
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  # ─────────────────────────────────────────────────────────────────
+  # metadata: Upload App Store listing — title, subtitle, description,
+  #           keywords, screenshots, and preview video
+  # ─────────────────────────────────────────────────────────────────
+  desc "Upload App Store metadata, screenshots, and preview video"
+  lane :metadata do
+    # fastlane deliver (upload_to_app_store) crashes under Ruby 4.0 due to a
+    # Spaceship::Tunes.client nil dereference in detect_values.rb.
+    # We work around it by calling App Store Connect REST API directly.
+    script = File.expand_path("upload_metadata.rb", __dir__)
+    sh "ruby '#{script}'"
+  end
+
+  # ─────────────────────────────────────────────────────────────────
+  # release: Full pipeline — screenshots → build → upload binary →
+  #          upload metadata & screenshots
+  # ─────────────────────────────────────────────────────────────────
+  desc "Full release: capture screenshots, build, upload binary + metadata"
+  lane :release do
+    # 1. Capture fresh screenshots via UI tests
+    snapshot(
+      scheme: "WatchCalc32Container",
+      project: "WatchCalc32.xcodeproj",
+      devices: ["iPhone 17 Pro Max", "iPad Pro 13-inch (M5)"],
+      languages: ["en-US"],
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: true,
+      stop_after_first_error: false
+    )
+
+    # 2. Build + upload binary to TestFlight
+    beta
+
+    # 3. Upload metadata + screenshots to App Store listing
+    metadata
+  end
+
+end

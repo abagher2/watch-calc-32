@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="fastlane.lanes">
+    
+    
+    
+      
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.001819">
+        
+      </testcase>
+    
+      
+      <testcase classname="fastlane.lanes" name="1: ruby &apos;/Users/abagher/Documents/GitHub/watch-calc-32/fastlane/upload_metadata.rb&apos;" time="20.174767">
+        
+      </testcase>
+    
+  </testsuite>
+</testsuites>

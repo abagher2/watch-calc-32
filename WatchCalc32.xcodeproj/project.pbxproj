@@ -1,0 +1,1188 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0199220AC36FFCEAE6E2ACC4 /* iPad Pro 13-inch (M5)-2-Equation.png in Resources */ = {isa = PBXBuildFile; fileRef = 8AB8E6B9594FF229CEAC56A3 /* iPad Pro 13-inch (M5)-2-Equation.png */; };
+		039B528A371CBF3C7144A0CA /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */; };
+		047EEFCCA2FBDD94B5998163 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587C3E00D19968F12AC41028 /* iOSContentView.swift */; };
+		1052295782310EEA7D89D6F4 /* iPad_1_main.png in Resources */ = {isa = PBXBuildFile; fileRef = C5133EB5F391F2B3BC59A3C7 /* iPad_1_main.png */; };
+		10E6DE4C0461FCE03D3B51F2 /* upload_metadata.rb in Resources */ = {isa = PBXBuildFile; fileRef = F5A0AC47CC93A1CBA1D92E0D /* upload_metadata.rb */; };
+		12910CCEEEA26781E8FDA50C /* marketing_url.txt in Resources */ = {isa = PBXBuildFile; fileRef = 57B0A8C4797E49E0505FA054 /* marketing_url.txt */; };
+		1C7C3A2352869537FDE0172E /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */; };
+		1E67954DE8275D9057D4CF74 /* iPhone_1_main.png in Resources */ = {isa = PBXBuildFile; fileRef = D404FF5AF28AAF9AC974A9C7 /* iPhone_1_main.png */; };
+		213042356BA1A34FE72AFC0D /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 203CA19B9100ADCABC7E6EC4 /* RPNCore */; };
+		223EF314BE5B4116D8F5EC90 /* iPad_2_eqn.png in Resources */ = {isa = PBXBuildFile; fileRef = D66F6B13DB5FBDF5EB31229F /* iPad_2_eqn.png */; };
+		23076683D9A81F0287AC19D4 /* iPhone_3_plot.png in Resources */ = {isa = PBXBuildFile; fileRef = AA876FCA76618D7983B8C5E1 /* iPhone_3_plot.png */; };
+		285827D94FC3561C37B725CF /* keywords.txt in Resources */ = {isa = PBXBuildFile; fileRef = F57E6D261F81BA2A10A1EED2 /* keywords.txt */; };
+		29DD67D1DA47A705BD28283D /* HapticNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CE381DA1230052F591DA43 /* HapticNumpadView.swift */; };
+		2B323B6CA221D10EAC7CE7FE /* ProgramEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC57601B2A1F45AACECF2A1 /* ProgramEditorView.swift */; };
+		2E19AF56A6420AF45BC735AA /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4F6B69E0A8BEA8AE3B3005FF /* RPNCore */; };
+		2EAF54B432682E6FE226E4E5 /* name.txt in Resources */ = {isa = PBXBuildFile; fileRef = F36205B545486B19646296F2 /* name.txt */; };
+		3267FBE80593F31BEA8E64EE /* watch_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 16341E3DEB932B0EAA642286 /* watch_1.png */; };
+		34B6203780FBC5F8ED14E0B2 /* report.xml in Resources */ = {isa = PBXBuildFile; fileRef = 1C657E8C3CF636928B431D50 /* report.xml */; };
+		34D508DBB61A456B9333AEF4 /* BottomNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6146AE77BD8D1226DEF56B0A /* BottomNumpadView.swift */; };
+		3716C1495A7616DC6474EE93 /* support_url.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04B5025DFC2DBB6C2D2A292F /* support_url.txt */; };
+		37B28A590D87E6640DD3E14C /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 326A3CCF9F9E8912FD99C0A2 /* README.md */; };
+		37C34E0A66161F64D91640E5 /* IntegratePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304C9C58EBAA51A1ACFB6ADC /* IntegratePromptView.swift */; };
+		37C50B336B000503004AEFD1 /* ShowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58DAAEAFE7C5D2AA32CF01FD /* ShowView.swift */; };
+		38CBA4D981F8D19A2BAE017F /* RegsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8EF5BCC7D97E870A5D10C8 /* RegsMenuView.swift */; };
+		3A22F67D29CCC6143FCC2E7E /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8AFADF70A2E45FF0D41407 /* VariablePromptView.swift */; };
+		3A2E071289E7861A1C377F8C /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867C279760D0F90BED087D9 /* MemMenuView.swift */; };
+		3C313C98D6C288B5E3573374 /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */; };
+		3F3270604771C95BC03FE1F9 /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */; };
+		406E6AF58601F11C3B68601C /* LCDDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */; };
+		4308E7A8AA17370A1161571D /* WatchCalc32UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BE4E9B0484A292A2FEA4F5 /* WatchCalc32UITests.swift */; };
+		447AF5DE61D6487FB7139D43 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3B2728A7BBFA718A645C82 /* ThemeManager.swift */; };
+		46C6656203A9103F7D7F1208 /* iPad_4_stats.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C8B67ACD73E9FA8B42ECF9F /* iPad_4_stats.png */; };
+		4BB2D614BACAD8297D867C3C /* iPhone_4_stats.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0413826CCF1AEE204E29FE /* iPhone_4_stats.png */; };
+		4C14445080D80DDE19B4E16E /* TestBasicEnter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D76C5134CF3F1B68652A1B /* TestBasicEnter.swift */; };
+		4C8A2817D0573DB535BC8D42 /* upload_metadata.rb in Resources */ = {isa = PBXBuildFile; fileRef = F5A0AC47CC93A1CBA1D92E0D /* upload_metadata.rb */; };
+		4EEA7E46B93C0CF1C06F6D4E /* privacy_url.txt in Resources */ = {isa = PBXBuildFile; fileRef = F8DA68965420327774740AC8 /* privacy_url.txt */; };
+		4FE1A1C68417F2D69C5E9D4E /* description.txt in Resources */ = {isa = PBXBuildFile; fileRef = 65DA2081F1E701AB0E560BFE /* description.txt */; };
+		504DA611E292101CA2BD6831 /* subtitle.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9A1184A095348AD0407B2B3D /* subtitle.txt */; };
+		5325CFA8847C1812E0AC8075 /* watch_2.png in Resources */ = {isa = PBXBuildFile; fileRef = D23C28EA43B8AA631705D4B7 /* watch_2.png */; };
+		56CACE0045D64A880AD59D6B /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8AFADF70A2E45FF0D41407 /* VariablePromptView.swift */; };
+		58042BB8A9D3B0BE07055FFB /* iPad_4_stats.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C8B67ACD73E9FA8B42ECF9F /* iPad_4_stats.png */; };
+		586A08015EAF6BD50409CDBC /* PlotPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90AE59D4DDFB0F88AAC9C9BA /* PlotPromptView.swift */; };
+		5D0E7AF1181024B666BDE34C /* FullScreenPlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E6AECD717221530EF79254 /* FullScreenPlotView.swift */; };
+		5DA738D93F8F71331EC557F5 /* watch_3.png in Resources */ = {isa = PBXBuildFile; fileRef = D796D28FEF0C5E7C8F0F2C7D /* watch_3.png */; };
+		5DE21B558991956EC89DD558 /* watch_2.png in Resources */ = {isa = PBXBuildFile; fileRef = D23C28EA43B8AA631705D4B7 /* watch_2.png */; };
+		637AB68C57B7DA2F17D7D0C5 /* marketing_url.txt in Resources */ = {isa = PBXBuildFile; fileRef = 57B0A8C4797E49E0505FA054 /* marketing_url.txt */; };
+		6387DCCC9B650D8315E71851 /* iPad_3_plot.png in Resources */ = {isa = PBXBuildFile; fileRef = 7EA3427A28C4E951867D8BD2 /* iPad_3_plot.png */; };
+		6511C0A0FFC4155D5FE55A14 /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */; };
+		65A717BCD759B177D1A5462D /* iPad_2_eqn.png in Resources */ = {isa = PBXBuildFile; fileRef = D66F6B13DB5FBDF5EB31229F /* iPad_2_eqn.png */; };
+		6A5D15B5C3D6B48D3F584D44 /* watch_3.png in Resources */ = {isa = PBXBuildFile; fileRef = D796D28FEF0C5E7C8F0F2C7D /* watch_3.png */; };
+		6C1E62B8385E46571925B8F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7541CC53D8F82834A670AFE7 /* Assets.xcassets */; };
+		72ECD03A595D841FAAEC94C1 /* name.txt in Resources */ = {isa = PBXBuildFile; fileRef = F36205B545486B19646296F2 /* name.txt */; };
+		73CB96AF5E2F72B5AE07DEDE /* UILBenchmarkData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DF658A03B03870932682A4 /* UILBenchmarkData.swift */; };
+		73CCCA71F91F64AE9B52822F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CC1AD914F15BABCE14AD05 /* AppDelegate.swift */; };
+		7459875E3FC9D5366DC59789 /* TopNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27EE043F713CA870829FFD11 /* TopNumpadView.swift */; };
+		7A219E24A08061B9FD35C0A7 /* FullScreenPlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E6AECD717221530EF79254 /* FullScreenPlotView.swift */; };
+		7AF2271B2B58A23F1C44425A /* subtitle.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9A1184A095348AD0407B2B3D /* subtitle.txt */; };
+		7C9D3B6C18EB55CE4E903817 /* screenshots.html in Resources */ = {isa = PBXBuildFile; fileRef = AF09A5263E929A6A24DDD941 /* screenshots.html */; };
+		7D918461400B97562D32B84A /* RegsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8EF5BCC7D97E870A5D10C8 /* RegsMenuView.swift */; };
+		7DFE479B1F669ADFD164A83A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7380E9EA77A2B09D2F69B947 /* ContentView.swift */; };
+		7EA8BA5A9C2930B08B4081AC /* support_url.txt in Resources */ = {isa = PBXBuildFile; fileRef = 04B5025DFC2DBB6C2D2A292F /* support_url.txt */; };
+		800F3398EB0AF55BED8C10DF /* report.xml in Resources */ = {isa = PBXBuildFile; fileRef = 1C657E8C3CF636928B431D50 /* report.xml */; };
+		80907DE1AA8E0D0475B66445 /* iPhone_4_stats.png in Resources */ = {isa = PBXBuildFile; fileRef = CC0413826CCF1AEE204E29FE /* iPhone_4_stats.png */; };
+		81262546734AC53D1827E5B0 /* ShiftedLayoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9A74E288B6BF828B9D1B43F /* ShiftedLayoutView.swift */; };
+		8139FE82CACC52F8DCA66ACA /* LCDDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */; };
+		83DAF518DC9A76D1E8607409 /* iPhone_2_eqn.png in Resources */ = {isa = PBXBuildFile; fileRef = A620CA4130A14274225F1E67 /* iPhone_2_eqn.png */; };
+		83DD7B9FC261130AFAD78F79 /* SolvePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D9AD73C4C1D638AC6CC4BF0 /* SolvePromptView.swift */; };
+		8598631283513AE626B8282B /* KeyActionDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF83BE2D0F249D71CC64E42 /* KeyActionDispatcher.swift */; };
+		86F21CB19014ED8884873D4F /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3B2728A7BBFA718A645C82 /* ThemeManager.swift */; };
+		89D1A41CA9C8C51417CDEC3B /* iPad Pro 13-inch (M5)-4-Exam.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F3283D6ECC33ABEAFD4781 /* iPad Pro 13-inch (M5)-4-Exam.png */; };
+		8B8F531E293B37BEFB756384 /* KeyActionDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BF83BE2D0F249D71CC64E42 /* KeyActionDispatcher.swift */; };
+		8BCEA9AD4BE3FDC82F67D010 /* ConstantsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */; };
+		8E133F9F14E8CAB073E46BE7 /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867C279760D0F90BED087D9 /* MemMenuView.swift */; };
+		8F2CD154257150221461C64A /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D33BB3B4DA42ECDFA2BE965 /* iOSApp.swift */; };
+		8FE62259763C898CF00EEADA /* iPad Pro 13-inch (M5)-3-Plot.png in Resources */ = {isa = PBXBuildFile; fileRef = 05DC20727A271ACE326A1B02 /* iPad Pro 13-inch (M5)-3-Plot.png */; };
+		91694BC2F84C905F308F120E /* iPad_3_plot.png in Resources */ = {isa = PBXBuildFile; fileRef = 7EA3427A28C4E951867D8BD2 /* iPad_3_plot.png */; };
+		92180CF7DE4452C649BF780B /* iPhone_3_plot.png in Resources */ = {isa = PBXBuildFile; fileRef = AA876FCA76618D7983B8C5E1 /* iPhone_3_plot.png */; };
+		925F96B973FF20A60DED3084 /* description.txt in Resources */ = {isa = PBXBuildFile; fileRef = 65DA2081F1E701AB0E560BFE /* description.txt */; };
+		930B9EBAF5C04B648B9A582A /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFB9D54733526F37B234936 /* ClearMenuView.swift */; };
+		9360AB268B172C1789DE2996 /* Preview.html in Resources */ = {isa = PBXBuildFile; fileRef = 90067FA9D618BDFE1DE0E444 /* Preview.html */; };
+		98C360714FECD3A7BDB15162 /* iPad Pro 13-inch (M5)-4-Exam.png in Resources */ = {isa = PBXBuildFile; fileRef = F1F3283D6ECC33ABEAFD4781 /* iPad Pro 13-inch (M5)-4-Exam.png */; };
+		9B792CDE5DDE6C438A39E1FE /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */; };
+		9B8CC1E2050EE6AE52829CB5 /* EquationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43437D0D28BC0EDF2F8C80AD /* EquationListView.swift */; };
+		9C7F5F16B2E92C1C559CB339 /* WatchCalc32UXTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59371E82AFF11F8FFCEBB6CD /* WatchCalc32UXTests.swift */; };
+		9EAC180664AB0B3097C2D6AE /* iPhone_1_main.png in Resources */ = {isa = PBXBuildFile; fileRef = D404FF5AF28AAF9AC974A9C7 /* iPhone_1_main.png */; };
+		9FBD4556D8BDCFAB24F48352 /* screenshots.html in Resources */ = {isa = PBXBuildFile; fileRef = 5F45B8AFFCD657830DC9E09F /* screenshots.html */; };
+		A02384DF194CC93B8988C53E /* TestTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EF4C53DB8402D815C29B65 /* TestTap.swift */; };
+		A0F71D94903B30CAFD7E29D3 /* SolvePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D9AD73C4C1D638AC6CC4BF0 /* SolvePromptView.swift */; };
+		A129C0A12537790E9E7D6772 /* ProgramEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC57601B2A1F45AACECF2A1 /* ProgramEditorView.swift */; };
+		A1E25162C8E010F70C266DC5 /* WatchCalc32.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 9113082685473D1416D00106 /* WatchCalc32.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AC72CD70B174AF8CB18028BE /* EquationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43437D0D28BC0EDF2F8C80AD /* EquationListView.swift */; };
+		AE9968AE71093B5CD1586133 /* screenshots.html in Resources */ = {isa = PBXBuildFile; fileRef = AF09A5263E929A6A24DDD941 /* screenshots.html */; };
+		B13779147A905AECF821E4E3 /* iPhone_2_eqn.png in Resources */ = {isa = PBXBuildFile; fileRef = A620CA4130A14274225F1E67 /* iPhone_2_eqn.png */; };
+		B6577A7174DAA43E4397A20A /* Preview.html in Resources */ = {isa = PBXBuildFile; fileRef = 90067FA9D618BDFE1DE0E444 /* Preview.html */; };
+		B9D5721548DFF864607459EA /* ConstantsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */; };
+		BBC17A3E3DAA0B69E4D3A91A /* iPad Pro 13-inch (M5)-3-Plot.png in Resources */ = {isa = PBXBuildFile; fileRef = 05DC20727A271ACE326A1B02 /* iPad Pro 13-inch (M5)-3-Plot.png */; };
+		C3373A4B3A4D8ADA0A7E57B3 /* WatchCalc32MenusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622952E15D4BA66BA40C145B /* WatchCalc32MenusTests.swift */; };
+		C6F2F9C0C36490AC03ADB80F /* PioneerButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF192A74FFF113EE59586474 /* PioneerButtonStyle.swift */; };
+		D2A9EC8D34F9B566AACE79A5 /* PlotPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90AE59D4DDFB0F88AAC9C9BA /* PlotPromptView.swift */; };
+		D561A664897EC9DFF60EAF01 /* IntegratePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304C9C58EBAA51A1ACFB6ADC /* IntegratePromptView.swift */; };
+		D57F9CCF5A224D168E527C79 /* privacy_url.txt in Resources */ = {isa = PBXBuildFile; fileRef = F8DA68965420327774740AC8 /* privacy_url.txt */; };
+		D75CFB0CAFA34BF7CEFC4F9C /* iOSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6258D960746EE50013A006D4 /* iOSUITests.swift */; };
+		DA99B67FD0F70008C84C5845 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 326A3CCF9F9E8912FD99C0A2 /* README.md */; };
+		DBA4D84D6FB8B8259EEBF518 /* WatchCalc32App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EA20C7632AAC2FF0C51C4E /* WatchCalc32App.swift */; };
+		DC08F6B37073995773E7260E /* iPad_1_main.png in Resources */ = {isa = PBXBuildFile; fileRef = C5133EB5F391F2B3BC59A3C7 /* iPad_1_main.png */; };
+		DEA3E04F2269EBC99B777A1E /* keywords.txt in Resources */ = {isa = PBXBuildFile; fileRef = F57E6D261F81BA2A10A1EED2 /* keywords.txt */; };
+		DF0A48DEF4F748B9060702B0 /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFB9D54733526F37B234936 /* ClearMenuView.swift */; };
+		E0FFBF5DFAB29F2C25AC8F10 /* PioneerButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF192A74FFF113EE59586474 /* PioneerButtonStyle.swift */; };
+		E2C5D5B0C49CC977951EBAB0 /* iPad Pro 13-inch (M5)-1-Main.png in Resources */ = {isa = PBXBuildFile; fileRef = 9C66F4D65B56A2821FDEC5C9 /* iPad Pro 13-inch (M5)-1-Main.png */; };
+		EBFF1352BB8199A314F3A59A /* CalcButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A603ECAFE549C00B0F724057 /* CalcButton.swift */; };
+		EDEB2AB3D1E318D0D96E3E6A /* screenshots.html in Resources */ = {isa = PBXBuildFile; fileRef = 5F45B8AFFCD657830DC9E09F /* screenshots.html */; };
+		EE07C283B7A69C7CBB44238C /* watch_1.png in Resources */ = {isa = PBXBuildFile; fileRef = 16341E3DEB932B0EAA642286 /* watch_1.png */; };
+		EE3CDD51880ED63702FCF356 /* TestEquationEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F0F53804807111845D7AF /* TestEquationEntry.swift */; };
+		F08B8D73732959DF2930E4AD /* UpperMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD288C4367AE97EE044B621 /* UpperMatrixView.swift */; };
+		F1D0CA11E3656E3DA267D1BB /* TestMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42DA4D6580B0F6B971CC5E3A /* TestMath.swift */; };
+		F7B282C4E30B8C114786BF72 /* iPad Pro 13-inch (M5)-2-Equation.png in Resources */ = {isa = PBXBuildFile; fileRef = 8AB8E6B9594FF229CEAC56A3 /* iPad Pro 13-inch (M5)-2-Equation.png */; };
+		F9F9E62262549DB1AABB4A4A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDC4DD47C54DD18B29053681 /* Assets.xcassets */; };
+		FE56640BECE47B0F93F033C1 /* iPad Pro 13-inch (M5)-1-Main.png in Resources */ = {isa = PBXBuildFile; fileRef = 9C66F4D65B56A2821FDEC5C9 /* iPad Pro 13-inch (M5)-1-Main.png */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2207B4908ED42BA8F418AAC8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3EEB2B268BA3C9DF9236B221 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E6A8F1D2238006B1F79BF478;
+			remoteInfo = WatchCalc32;
+		};
+		5B73031E71236FF4DFB4FE4F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3EEB2B268BA3C9DF9236B221 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34F80AA4FF3FE28033600166;
+			remoteInfo = WatchCalc32Container;
+		};
+		6129C13EF7E8AB948FC13FAC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3EEB2B268BA3C9DF9236B221 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E6A8F1D2238006B1F79BF478;
+			remoteInfo = WatchCalc32;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C092247D08500C8DA1ECDB21 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				A1E25162C8E010F70C266DC5 /* WatchCalc32.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BezelButtonStyle.swift; sourceTree = "<group>"; };
+		03BE4E9B0484A292A2FEA4F5 /* WatchCalc32UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCalc32UITests.swift; sourceTree = "<group>"; };
+		04B5025DFC2DBB6C2D2A292F /* support_url.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = support_url.txt; sourceTree = "<group>"; };
+		05DC20727A271ACE326A1B02 /* iPad Pro 13-inch (M5)-3-Plot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iPad Pro 13-inch (M5)-3-Plot.png"; sourceTree = "<group>"; };
+		0D33BB3B4DA42ECDFA2BE965 /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		16341E3DEB932B0EAA642286 /* watch_1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = watch_1.png; sourceTree = "<group>"; };
+		1867C279760D0F90BED087D9 /* MemMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemMenuView.swift; sourceTree = "<group>"; };
+		19DF658A03B03870932682A4 /* UILBenchmarkData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UILBenchmarkData.swift; sourceTree = "<group>"; };
+		1B3B2728A7BBFA718A645C82 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		1C657E8C3CF636928B431D50 /* report.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = report.xml; sourceTree = "<group>"; };
+		24CE381DA1230052F591DA43 /* HapticNumpadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticNumpadView.swift; sourceTree = "<group>"; };
+		27EE043F713CA870829FFD11 /* TopNumpadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopNumpadView.swift; sourceTree = "<group>"; };
+		304C9C58EBAA51A1ACFB6ADC /* IntegratePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegratePromptView.swift; sourceTree = "<group>"; };
+		326A3CCF9F9E8912FD99C0A2 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		36EA20C7632AAC2FF0C51C4E /* WatchCalc32App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCalc32App.swift; sourceTree = "<group>"; };
+		3E8EF5BCC7D97E870A5D10C8 /* RegsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegsMenuView.swift; sourceTree = "<group>"; };
+		41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HP32KeyMap.swift; sourceTree = "<group>"; };
+		42DA4D6580B0F6B971CC5E3A /* TestMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMath.swift; sourceTree = "<group>"; };
+		43437D0D28BC0EDF2F8C80AD /* EquationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquationListView.swift; sourceTree = "<group>"; };
+		4BF83BE2D0F249D71CC64E42 /* KeyActionDispatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyActionDispatcher.swift; sourceTree = "<group>"; };
+		4D9AD73C4C1D638AC6CC4BF0 /* SolvePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolvePromptView.swift; sourceTree = "<group>"; };
+		57B0A8C4797E49E0505FA054 /* marketing_url.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = marketing_url.txt; sourceTree = "<group>"; };
+		587C3E00D19968F12AC41028 /* iOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSContentView.swift; sourceTree = "<group>"; };
+		58DAAEAFE7C5D2AA32CF01FD /* ShowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowView.swift; sourceTree = "<group>"; };
+		58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotHelper.swift; sourceTree = "<group>"; };
+		59371E82AFF11F8FFCEBB6CD /* WatchCalc32UXTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCalc32UXTests.swift; sourceTree = "<group>"; };
+		5B6F0F53804807111845D7AF /* TestEquationEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestEquationEntry.swift; sourceTree = "<group>"; };
+		5E8AFADF70A2E45FF0D41407 /* VariablePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VariablePromptView.swift; sourceTree = "<group>"; };
+		5F45B8AFFCD657830DC9E09F /* screenshots.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = screenshots.html; sourceTree = "<group>"; };
+		6146AE77BD8D1226DEF56B0A /* BottomNumpadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNumpadView.swift; sourceTree = "<group>"; };
+		622952E15D4BA66BA40C145B /* WatchCalc32MenusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCalc32MenusTests.swift; sourceTree = "<group>"; };
+		6258D960746EE50013A006D4 /* iOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSUITests.swift; sourceTree = "<group>"; };
+		64E6AECD717221530EF79254 /* FullScreenPlotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenPlotView.swift; sourceTree = "<group>"; };
+		65DA2081F1E701AB0E560BFE /* description.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = description.txt; sourceTree = "<group>"; };
+		6BD6449ECC228D3D7796FF31 /* Deliverfile */ = {isa = PBXFileReference; path = Deliverfile; sourceTree = "<group>"; };
+		6C8B67ACD73E9FA8B42ECF9F /* iPad_4_stats.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPad_4_stats.png; sourceTree = "<group>"; };
+		6FFB9D54733526F37B234936 /* ClearMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearMenuView.swift; sourceTree = "<group>"; };
+		7380E9EA77A2B09D2F69B947 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7541CC53D8F82834A670AFE7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7A4B42E509174B5BA172A473 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7CC57601B2A1F45AACECF2A1 /* ProgramEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramEditorView.swift; sourceTree = "<group>"; };
+		7EA3427A28C4E951867D8BD2 /* iPad_3_plot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPad_3_plot.png; sourceTree = "<group>"; };
+		7F052485D497EB57FF5517A5 /* WatchCalc32Container.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WatchCalc32Container.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		83DB61D67A7DBEC21EE4B046 /* WatchCalc32ContainerUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WatchCalc32ContainerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCDDisplayView.swift; sourceTree = "<group>"; };
+		86513C8C092CF799D433B5AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8869FFBAFCD814FA507BFBF7 /* WatchCalc32UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WatchCalc32UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8AB8E6B9594FF229CEAC56A3 /* iPad Pro 13-inch (M5)-2-Equation.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iPad Pro 13-inch (M5)-2-Equation.png"; sourceTree = "<group>"; };
+		90067FA9D618BDFE1DE0E444 /* Preview.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = Preview.html; sourceTree = "<group>"; };
+		90AE59D4DDFB0F88AAC9C9BA /* PlotPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlotPromptView.swift; sourceTree = "<group>"; };
+		9113082685473D1416D00106 /* WatchCalc32.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchCalc32.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A1184A095348AD0407B2B3D /* subtitle.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = subtitle.txt; sourceTree = "<group>"; };
+		9C66F4D65B56A2821FDEC5C9 /* iPad Pro 13-inch (M5)-1-Main.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iPad Pro 13-inch (M5)-1-Main.png"; sourceTree = "<group>"; };
+		A603ECAFE549C00B0F724057 /* CalcButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcButton.swift; sourceTree = "<group>"; };
+		A620CA4130A14274225F1E67 /* iPhone_2_eqn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPhone_2_eqn.png; sourceTree = "<group>"; };
+		AA876FCA76618D7983B8C5E1 /* iPhone_3_plot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPhone_3_plot.png; sourceTree = "<group>"; };
+		AF09A5263E929A6A24DDD941 /* screenshots.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = screenshots.html; sourceTree = "<group>"; };
+		AF192A74FFF113EE59586474 /* PioneerButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PioneerButtonStyle.swift; sourceTree = "<group>"; };
+		B876EC405C324FC278571D5E /* Snapfile */ = {isa = PBXFileReference; path = Snapfile; sourceTree = "<group>"; };
+		BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantsMenuView.swift; sourceTree = "<group>"; };
+		C46410C6EAFEF5493EC3B26E /* Appfile */ = {isa = PBXFileReference; path = Appfile; sourceTree = "<group>"; };
+		C5133EB5F391F2B3BC59A3C7 /* iPad_1_main.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPad_1_main.png; sourceTree = "<group>"; };
+		CAD288C4367AE97EE044B621 /* UpperMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperMatrixView.swift; sourceTree = "<group>"; };
+		CC0413826CCF1AEE204E29FE /* iPhone_4_stats.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPhone_4_stats.png; sourceTree = "<group>"; };
+		CC2AB8CA33EA5A8B87229FEF /* Fastfile */ = {isa = PBXFileReference; path = Fastfile; sourceTree = "<group>"; };
+		CDC4DD47C54DD18B29053681 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D23C28EA43B8AA631705D4B7 /* watch_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = watch_2.png; sourceTree = "<group>"; };
+		D404FF5AF28AAF9AC974A9C7 /* iPhone_1_main.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPhone_1_main.png; sourceTree = "<group>"; };
+		D4D76C5134CF3F1B68652A1B /* TestBasicEnter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestBasicEnter.swift; sourceTree = "<group>"; };
+		D66F6B13DB5FBDF5EB31229F /* iPad_2_eqn.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = iPad_2_eqn.png; sourceTree = "<group>"; };
+		D796D28FEF0C5E7C8F0F2C7D /* watch_3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = watch_3.png; sourceTree = "<group>"; };
+		D9A74E288B6BF828B9D1B43F /* ShiftedLayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftedLayoutView.swift; sourceTree = "<group>"; };
+		E6EF4C53DB8402D815C29B65 /* TestTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTap.swift; sourceTree = "<group>"; };
+		EF5D0087FE66817734BD9B42 /* RPNCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RPNCore; path = RPNCore; sourceTree = SOURCE_ROOT; };
+		F1F3283D6ECC33ABEAFD4781 /* iPad Pro 13-inch (M5)-4-Exam.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "iPad Pro 13-inch (M5)-4-Exam.png"; sourceTree = "<group>"; };
+		F36205B545486B19646296F2 /* name.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = name.txt; sourceTree = "<group>"; };
+		F4CC1AD914F15BABCE14AD05 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F57E6D261F81BA2A10A1EED2 /* keywords.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = keywords.txt; sourceTree = "<group>"; };
+		F5A0AC47CC93A1CBA1D92E0D /* upload_metadata.rb */ = {isa = PBXFileReference; lastKnownFileType = text.script.ruby; path = upload_metadata.rb; sourceTree = "<group>"; };
+		F8DA68965420327774740AC8 /* privacy_url.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = privacy_url.txt; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		42DAF53E42C590BBCE762221 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				213042356BA1A34FE72AFC0D /* RPNCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		58682FF8286FC0BC4DA5EE6D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E19AF56A6420AF45BC735AA /* RPNCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		07BB37454D0491F209307D76 /* Keypads */ = {
+			isa = PBXGroup;
+			children = (
+				6146AE77BD8D1226DEF56B0A /* BottomNumpadView.swift */,
+				A603ECAFE549C00B0F724057 /* CalcButton.swift */,
+				D9A74E288B6BF828B9D1B43F /* ShiftedLayoutView.swift */,
+				27EE043F713CA870829FFD11 /* TopNumpadView.swift */,
+				CAD288C4367AE97EE044B621 /* UpperMatrixView.swift */,
+			);
+			path = Keypads;
+			sourceTree = "<group>";
+		};
+		0EDF5084DCF35E43BBBD071F /* WatchCalc32-iOS */ = {
+			isa = PBXGroup;
+			children = (
+				24CE381DA1230052F591DA43 /* HapticNumpadView.swift */,
+				0D33BB3B4DA42ECDFA2BE965 /* iOSApp.swift */,
+				587C3E00D19968F12AC41028 /* iOSContentView.swift */,
+			);
+			path = "WatchCalc32-iOS";
+			sourceTree = "<group>";
+		};
+		13CD7713C093DFB84C3D253E /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */,
+				41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */,
+				4BF83BE2D0F249D71CC64E42 /* KeyActionDispatcher.swift */,
+				8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */,
+				1B3B2728A7BBFA718A645C82 /* ThemeManager.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		26D79A26A5F0F87BFBCF59CA = {
+			isa = PBXGroup;
+			children = (
+				D8E9C3EE43E6C0A3D1C5BD2F /* fastlane */,
+				94B24ABAA25EA1248B801481 /* Packages */,
+				13CD7713C093DFB84C3D253E /* Shared */,
+				B60258525ED18D309AC6E3EA /* WatchCalc32 */,
+				0EDF5084DCF35E43BBBD071F /* WatchCalc32-iOS */,
+				2C48882E60B43D580BB99DAE /* WatchCalc32Container */,
+				BF70DE023790FB5A53DE74D0 /* WatchCalc32ContainerUITests */,
+				5B45ED136A121285C5D5E9B4 /* WatchCalc32UITests */,
+				8B0D8FB1298D4DA0EE9D9EFF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2C48882E60B43D580BB99DAE /* WatchCalc32Container */ = {
+			isa = PBXGroup;
+			children = (
+				F4CC1AD914F15BABCE14AD05 /* AppDelegate.swift */,
+				7541CC53D8F82834A670AFE7 /* Assets.xcassets */,
+				86513C8C092CF799D433B5AA /* Info.plist */,
+			);
+			path = WatchCalc32Container;
+			sourceTree = "<group>";
+		};
+		414FBA5984AD0FACCE9A74AC /* Styles */ = {
+			isa = PBXGroup;
+			children = (
+				AF192A74FFF113EE59586474 /* PioneerButtonStyle.swift */,
+			);
+			path = Styles;
+			sourceTree = "<group>";
+		};
+		41FAA115006E3907E8C72C30 /* en-US */ = {
+			isa = PBXGroup;
+			children = (
+				65DA2081F1E701AB0E560BFE /* description.txt */,
+				F57E6D261F81BA2A10A1EED2 /* keywords.txt */,
+				57B0A8C4797E49E0505FA054 /* marketing_url.txt */,
+				F36205B545486B19646296F2 /* name.txt */,
+				F8DA68965420327774740AC8 /* privacy_url.txt */,
+				9A1184A095348AD0407B2B3D /* subtitle.txt */,
+				04B5025DFC2DBB6C2D2A292F /* support_url.txt */,
+			);
+			path = "en-US";
+			sourceTree = "<group>";
+		};
+		472CE72EE1788B5B6A729F57 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				7380E9EA77A2B09D2F69B947 /* ContentView.swift */,
+				304C9C58EBAA51A1ACFB6ADC /* IntegratePromptView.swift */,
+				58DAAEAFE7C5D2AA32CF01FD /* ShowView.swift */,
+				4D9AD73C4C1D638AC6CC4BF0 /* SolvePromptView.swift */,
+				E6EF4C53DB8402D815C29B65 /* TestTap.swift */,
+				86A7FBB9C29AE7418245F825 /* Equations */,
+				07BB37454D0491F209307D76 /* Keypads */,
+				F7E7F5F6AD36C75C6FB4D345 /* Menus */,
+				EA5FE8F48F917A05BFA00964 /* Plotting */,
+				414FBA5984AD0FACCE9A74AC /* Styles */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		5471D2AD8ECF04D293C5B6D7 /* metadata */ = {
+			isa = PBXGroup;
+			children = (
+				41FAA115006E3907E8C72C30 /* en-US */,
+			);
+			path = metadata;
+			sourceTree = "<group>";
+		};
+		5B45ED136A121285C5D5E9B4 /* WatchCalc32UITests */ = {
+			isa = PBXGroup;
+			children = (
+				D4D76C5134CF3F1B68652A1B /* TestBasicEnter.swift */,
+				5B6F0F53804807111845D7AF /* TestEquationEntry.swift */,
+				42DA4D6580B0F6B971CC5E3A /* TestMath.swift */,
+				19DF658A03B03870932682A4 /* UILBenchmarkData.swift */,
+				622952E15D4BA66BA40C145B /* WatchCalc32MenusTests.swift */,
+				03BE4E9B0484A292A2FEA4F5 /* WatchCalc32UITests.swift */,
+				59371E82AFF11F8FFCEBB6CD /* WatchCalc32UXTests.swift */,
+			);
+			path = WatchCalc32UITests;
+			sourceTree = "<group>";
+		};
+		86A7FBB9C29AE7418245F825 /* Equations */ = {
+			isa = PBXGroup;
+			children = (
+				43437D0D28BC0EDF2F8C80AD /* EquationListView.swift */,
+				90AE59D4DDFB0F88AAC9C9BA /* PlotPromptView.swift */,
+				7CC57601B2A1F45AACECF2A1 /* ProgramEditorView.swift */,
+				5E8AFADF70A2E45FF0D41407 /* VariablePromptView.swift */,
+			);
+			path = Equations;
+			sourceTree = "<group>";
+		};
+		8B0D8FB1298D4DA0EE9D9EFF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9113082685473D1416D00106 /* WatchCalc32.app */,
+				7F052485D497EB57FF5517A5 /* WatchCalc32Container.app */,
+				83DB61D67A7DBEC21EE4B046 /* WatchCalc32ContainerUITests.xctest */,
+				8869FFBAFCD814FA507BFBF7 /* WatchCalc32UITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		94B24ABAA25EA1248B801481 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				EF5D0087FE66817734BD9B42 /* RPNCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		B60258525ED18D309AC6E3EA /* WatchCalc32 */ = {
+			isa = PBXGroup;
+			children = (
+				CDC4DD47C54DD18B29053681 /* Assets.xcassets */,
+				7A4B42E509174B5BA172A473 /* Info.plist */,
+				36EA20C7632AAC2FF0C51C4E /* WatchCalc32App.swift */,
+				472CE72EE1788B5B6A729F57 /* Views */,
+			);
+			path = WatchCalc32;
+			sourceTree = "<group>";
+		};
+		BF70DE023790FB5A53DE74D0 /* WatchCalc32ContainerUITests */ = {
+			isa = PBXGroup;
+			children = (
+				6258D960746EE50013A006D4 /* iOSUITests.swift */,
+			);
+			path = WatchCalc32ContainerUITests;
+			sourceTree = "<group>";
+		};
+		C2014141302539EDB500DDBA /* en-US */ = {
+			isa = PBXGroup;
+			children = (
+				9C66F4D65B56A2821FDEC5C9 /* iPad Pro 13-inch (M5)-1-Main.png */,
+				8AB8E6B9594FF229CEAC56A3 /* iPad Pro 13-inch (M5)-2-Equation.png */,
+				05DC20727A271ACE326A1B02 /* iPad Pro 13-inch (M5)-3-Plot.png */,
+				F1F3283D6ECC33ABEAFD4781 /* iPad Pro 13-inch (M5)-4-Exam.png */,
+			);
+			path = "en-US";
+			sourceTree = "<group>";
+		};
+		C3A525B10EAFB2C1F3CCE67F /* screenshots */ = {
+			isa = PBXGroup;
+			children = (
+				5F45B8AFFCD657830DC9E09F /* screenshots.html */,
+				EBE5ED96F51DEAC547119169 /* en-US */,
+			);
+			path = screenshots;
+			sourceTree = "<group>";
+		};
+		D8E9C3EE43E6C0A3D1C5BD2F /* fastlane */ = {
+			isa = PBXGroup;
+			children = (
+				C46410C6EAFEF5493EC3B26E /* Appfile */,
+				6BD6449ECC228D3D7796FF31 /* Deliverfile */,
+				CC2AB8CA33EA5A8B87229FEF /* Fastfile */,
+				90067FA9D618BDFE1DE0E444 /* Preview.html */,
+				326A3CCF9F9E8912FD99C0A2 /* README.md */,
+				1C657E8C3CF636928B431D50 /* report.xml */,
+				B876EC405C324FC278571D5E /* Snapfile */,
+				58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */,
+				F5A0AC47CC93A1CBA1D92E0D /* upload_metadata.rb */,
+				5471D2AD8ECF04D293C5B6D7 /* metadata */,
+				C3A525B10EAFB2C1F3CCE67F /* screenshots */,
+				DF5C9D9B9882B1924DE5973B /* screenshots_raw */,
+			);
+			path = fastlane;
+			sourceTree = "<group>";
+		};
+		DF5C9D9B9882B1924DE5973B /* screenshots_raw */ = {
+			isa = PBXGroup;
+			children = (
+				AF09A5263E929A6A24DDD941 /* screenshots.html */,
+				C2014141302539EDB500DDBA /* en-US */,
+			);
+			path = screenshots_raw;
+			sourceTree = "<group>";
+		};
+		EA5FE8F48F917A05BFA00964 /* Plotting */ = {
+			isa = PBXGroup;
+			children = (
+				64E6AECD717221530EF79254 /* FullScreenPlotView.swift */,
+			);
+			path = Plotting;
+			sourceTree = "<group>";
+		};
+		EBE5ED96F51DEAC547119169 /* en-US */ = {
+			isa = PBXGroup;
+			children = (
+				C5133EB5F391F2B3BC59A3C7 /* iPad_1_main.png */,
+				D66F6B13DB5FBDF5EB31229F /* iPad_2_eqn.png */,
+				7EA3427A28C4E951867D8BD2 /* iPad_3_plot.png */,
+				6C8B67ACD73E9FA8B42ECF9F /* iPad_4_stats.png */,
+				D404FF5AF28AAF9AC974A9C7 /* iPhone_1_main.png */,
+				A620CA4130A14274225F1E67 /* iPhone_2_eqn.png */,
+				AA876FCA76618D7983B8C5E1 /* iPhone_3_plot.png */,
+				CC0413826CCF1AEE204E29FE /* iPhone_4_stats.png */,
+				16341E3DEB932B0EAA642286 /* watch_1.png */,
+				D23C28EA43B8AA631705D4B7 /* watch_2.png */,
+				D796D28FEF0C5E7C8F0F2C7D /* watch_3.png */,
+			);
+			path = "en-US";
+			sourceTree = "<group>";
+		};
+		F7E7F5F6AD36C75C6FB4D345 /* Menus */ = {
+			isa = PBXGroup;
+			children = (
+				6FFB9D54733526F37B234936 /* ClearMenuView.swift */,
+				BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */,
+				1867C279760D0F90BED087D9 /* MemMenuView.swift */,
+				3E8EF5BCC7D97E870A5D10C8 /* RegsMenuView.swift */,
+			);
+			path = Menus;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1895A0E717E1BB937A0D581F /* WatchCalc32UITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 733FF94E5AE48888F38CF092 /* Build configuration list for PBXNativeTarget "WatchCalc32UITests" */;
+			buildPhases = (
+				90427866A991EE31FCDFCD79 /* Sources */,
+				7BC5077132F512D7ED3613E7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D14A224765F845CB2D5CA5F7 /* PBXTargetDependency */,
+			);
+			name = WatchCalc32UITests;
+			packageProductDependencies = (
+			);
+			productName = WatchCalc32UITests;
+			productReference = 8869FFBAFCD814FA507BFBF7 /* WatchCalc32UITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		34F80AA4FF3FE28033600166 /* WatchCalc32Container */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BACDCB77DE5FBD5D77B63336 /* Build configuration list for PBXNativeTarget "WatchCalc32Container" */;
+			buildPhases = (
+				F6B6CC888FB41F0A3CE77D9A /* Sources */,
+				42579BC9DD62E3A19C8CA221 /* Resources */,
+				42DAF53E42C590BBCE762221 /* Frameworks */,
+				C092247D08500C8DA1ECDB21 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FC91E81AD700F69F89ECCCBF /* PBXTargetDependency */,
+			);
+			name = WatchCalc32Container;
+			packageProductDependencies = (
+				203CA19B9100ADCABC7E6EC4 /* RPNCore */,
+			);
+			productName = WatchCalc32Container;
+			productReference = 7F052485D497EB57FF5517A5 /* WatchCalc32Container.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E6A8F1D2238006B1F79BF478 /* WatchCalc32 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA8838AD9919D5EA633EF785 /* Build configuration list for PBXNativeTarget "WatchCalc32" */;
+			buildPhases = (
+				72091A71AB287D57A7540EC8 /* Sources */,
+				9881687C9A79AB7CE69950EA /* Resources */,
+				58682FF8286FC0BC4DA5EE6D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WatchCalc32;
+			packageProductDependencies = (
+				4F6B69E0A8BEA8AE3B3005FF /* RPNCore */,
+			);
+			productName = WatchCalc32;
+			productReference = 9113082685473D1416D00106 /* WatchCalc32.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FA11EB90F50FCED4FFD99FA1 /* WatchCalc32ContainerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 06994EF3E9EE429EFA801786 /* Build configuration list for PBXNativeTarget "WatchCalc32ContainerUITests" */;
+			buildPhases = (
+				CA0DC42E00F703CD77F93CCC /* Sources */,
+				E1A2DFC67B7647CB0F351BE0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E891E6838AAA42419E60FDF /* PBXTargetDependency */,
+			);
+			name = WatchCalc32ContainerUITests;
+			packageProductDependencies = (
+			);
+			productName = WatchCalc32ContainerUITests;
+			productReference = 83DB61D67A7DBEC21EE4B046 /* WatchCalc32ContainerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3EEB2B268BA3C9DF9236B221 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					1895A0E717E1BB937A0D581F = {
+						TestTargetID = E6A8F1D2238006B1F79BF478;
+					};
+					34F80AA4FF3FE28033600166 = {
+						DevelopmentTeam = UNXVA46694;
+						ProvisioningStyle = Automatic;
+					};
+					E6A8F1D2238006B1F79BF478 = {
+						DevelopmentTeam = UNXVA46694;
+						ProvisioningStyle = Automatic;
+					};
+					FA11EB90F50FCED4FFD99FA1 = {
+						TestTargetID = 34F80AA4FF3FE28033600166;
+					};
+				};
+			};
+			buildConfigurationList = FD9D3D55EA24EA3CD97334EF /* Build configuration list for PBXProject "WatchCalc32" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 26D79A26A5F0F87BFBCF59CA;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				73D22318B38F1EC818702A19 /* XCLocalSwiftPackageReference "RPNCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8B0D8FB1298D4DA0EE9D9EFF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E6A8F1D2238006B1F79BF478 /* WatchCalc32 */,
+				34F80AA4FF3FE28033600166 /* WatchCalc32Container */,
+				FA11EB90F50FCED4FFD99FA1 /* WatchCalc32ContainerUITests */,
+				1895A0E717E1BB937A0D581F /* WatchCalc32UITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		42579BC9DD62E3A19C8CA221 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C1E62B8385E46571925B8F3 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7BC5077132F512D7ED3613E7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9360AB268B172C1789DE2996 /* Preview.html in Resources */,
+				37B28A590D87E6640DD3E14C /* README.md in Resources */,
+				4FE1A1C68417F2D69C5E9D4E /* description.txt in Resources */,
+				E2C5D5B0C49CC977951EBAB0 /* iPad Pro 13-inch (M5)-1-Main.png in Resources */,
+				F7B282C4E30B8C114786BF72 /* iPad Pro 13-inch (M5)-2-Equation.png in Resources */,
+				BBC17A3E3DAA0B69E4D3A91A /* iPad Pro 13-inch (M5)-3-Plot.png in Resources */,
+				89D1A41CA9C8C51417CDEC3B /* iPad Pro 13-inch (M5)-4-Exam.png in Resources */,
+				DC08F6B37073995773E7260E /* iPad_1_main.png in Resources */,
+				65A717BCD759B177D1A5462D /* iPad_2_eqn.png in Resources */,
+				6387DCCC9B650D8315E71851 /* iPad_3_plot.png in Resources */,
+				58042BB8A9D3B0BE07055FFB /* iPad_4_stats.png in Resources */,
+				1E67954DE8275D9057D4CF74 /* iPhone_1_main.png in Resources */,
+				B13779147A905AECF821E4E3 /* iPhone_2_eqn.png in Resources */,
+				92180CF7DE4452C649BF780B /* iPhone_3_plot.png in Resources */,
+				80907DE1AA8E0D0475B66445 /* iPhone_4_stats.png in Resources */,
+				285827D94FC3561C37B725CF /* keywords.txt in Resources */,
+				637AB68C57B7DA2F17D7D0C5 /* marketing_url.txt in Resources */,
+				72ECD03A595D841FAAEC94C1 /* name.txt in Resources */,
+				D57F9CCF5A224D168E527C79 /* privacy_url.txt in Resources */,
+				34B6203780FBC5F8ED14E0B2 /* report.xml in Resources */,
+				EDEB2AB3D1E318D0D96E3E6A /* screenshots.html in Resources */,
+				7C9D3B6C18EB55CE4E903817 /* screenshots.html in Resources */,
+				504DA611E292101CA2BD6831 /* subtitle.txt in Resources */,
+				3716C1495A7616DC6474EE93 /* support_url.txt in Resources */,
+				10E6DE4C0461FCE03D3B51F2 /* upload_metadata.rb in Resources */,
+				3267FBE80593F31BEA8E64EE /* watch_1.png in Resources */,
+				5DE21B558991956EC89DD558 /* watch_2.png in Resources */,
+				6A5D15B5C3D6B48D3F584D44 /* watch_3.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9881687C9A79AB7CE69950EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F9F9E62262549DB1AABB4A4A /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1A2DFC67B7647CB0F351BE0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6577A7174DAA43E4397A20A /* Preview.html in Resources */,
+				DA99B67FD0F70008C84C5845 /* README.md in Resources */,
+				925F96B973FF20A60DED3084 /* description.txt in Resources */,
+				FE56640BECE47B0F93F033C1 /* iPad Pro 13-inch (M5)-1-Main.png in Resources */,
+				0199220AC36FFCEAE6E2ACC4 /* iPad Pro 13-inch (M5)-2-Equation.png in Resources */,
+				8FE62259763C898CF00EEADA /* iPad Pro 13-inch (M5)-3-Plot.png in Resources */,
+				98C360714FECD3A7BDB15162 /* iPad Pro 13-inch (M5)-4-Exam.png in Resources */,
+				1052295782310EEA7D89D6F4 /* iPad_1_main.png in Resources */,
+				223EF314BE5B4116D8F5EC90 /* iPad_2_eqn.png in Resources */,
+				91694BC2F84C905F308F120E /* iPad_3_plot.png in Resources */,
+				46C6656203A9103F7D7F1208 /* iPad_4_stats.png in Resources */,
+				9EAC180664AB0B3097C2D6AE /* iPhone_1_main.png in Resources */,
+				83DAF518DC9A76D1E8607409 /* iPhone_2_eqn.png in Resources */,
+				23076683D9A81F0287AC19D4 /* iPhone_3_plot.png in Resources */,
+				4BB2D614BACAD8297D867C3C /* iPhone_4_stats.png in Resources */,
+				DEA3E04F2269EBC99B777A1E /* keywords.txt in Resources */,
+				12910CCEEEA26781E8FDA50C /* marketing_url.txt in Resources */,
+				2EAF54B432682E6FE226E4E5 /* name.txt in Resources */,
+				4EEA7E46B93C0CF1C06F6D4E /* privacy_url.txt in Resources */,
+				800F3398EB0AF55BED8C10DF /* report.xml in Resources */,
+				9FBD4556D8BDCFAB24F48352 /* screenshots.html in Resources */,
+				AE9968AE71093B5CD1586133 /* screenshots.html in Resources */,
+				7AF2271B2B58A23F1C44425A /* subtitle.txt in Resources */,
+				7EA8BA5A9C2930B08B4081AC /* support_url.txt in Resources */,
+				4C8A2817D0573DB535BC8D42 /* upload_metadata.rb in Resources */,
+				EE07C283B7A69C7CBB44238C /* watch_1.png in Resources */,
+				5325CFA8847C1812E0AC8075 /* watch_2.png in Resources */,
+				5DA738D93F8F71331EC557F5 /* watch_3.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		72091A71AB287D57A7540EC8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3F3270604771C95BC03FE1F9 /* BezelButtonStyle.swift in Sources */,
+				34D508DBB61A456B9333AEF4 /* BottomNumpadView.swift in Sources */,
+				EBFF1352BB8199A314F3A59A /* CalcButton.swift in Sources */,
+				DF0A48DEF4F748B9060702B0 /* ClearMenuView.swift in Sources */,
+				B9D5721548DFF864607459EA /* ConstantsMenuView.swift in Sources */,
+				7DFE479B1F669ADFD164A83A /* ContentView.swift in Sources */,
+				9B8CC1E2050EE6AE52829CB5 /* EquationListView.swift in Sources */,
+				7A219E24A08061B9FD35C0A7 /* FullScreenPlotView.swift in Sources */,
+				3C313C98D6C288B5E3573374 /* HP32KeyMap.swift in Sources */,
+				37C34E0A66161F64D91640E5 /* IntegratePromptView.swift in Sources */,
+				8598631283513AE626B8282B /* KeyActionDispatcher.swift in Sources */,
+				406E6AF58601F11C3B68601C /* LCDDisplayView.swift in Sources */,
+				8E133F9F14E8CAB073E46BE7 /* MemMenuView.swift in Sources */,
+				E0FFBF5DFAB29F2C25AC8F10 /* PioneerButtonStyle.swift in Sources */,
+				586A08015EAF6BD50409CDBC /* PlotPromptView.swift in Sources */,
+				A129C0A12537790E9E7D6772 /* ProgramEditorView.swift in Sources */,
+				38CBA4D981F8D19A2BAE017F /* RegsMenuView.swift in Sources */,
+				81262546734AC53D1827E5B0 /* ShiftedLayoutView.swift in Sources */,
+				37C50B336B000503004AEFD1 /* ShowView.swift in Sources */,
+				A0F71D94903B30CAFD7E29D3 /* SolvePromptView.swift in Sources */,
+				A02384DF194CC93B8988C53E /* TestTap.swift in Sources */,
+				447AF5DE61D6487FB7139D43 /* ThemeManager.swift in Sources */,
+				7459875E3FC9D5366DC59789 /* TopNumpadView.swift in Sources */,
+				F08B8D73732959DF2930E4AD /* UpperMatrixView.swift in Sources */,
+				56CACE0045D64A880AD59D6B /* VariablePromptView.swift in Sources */,
+				DBA4D84D6FB8B8259EEBF518 /* WatchCalc32App.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90427866A991EE31FCDFCD79 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1C7C3A2352869537FDE0172E /* SnapshotHelper.swift in Sources */,
+				4C14445080D80DDE19B4E16E /* TestBasicEnter.swift in Sources */,
+				EE3CDD51880ED63702FCF356 /* TestEquationEntry.swift in Sources */,
+				F1D0CA11E3656E3DA267D1BB /* TestMath.swift in Sources */,
+				73CB96AF5E2F72B5AE07DEDE /* UILBenchmarkData.swift in Sources */,
+				C3373A4B3A4D8ADA0A7E57B3 /* WatchCalc32MenusTests.swift in Sources */,
+				4308E7A8AA17370A1161571D /* WatchCalc32UITests.swift in Sources */,
+				9C7F5F16B2E92C1C559CB339 /* WatchCalc32UXTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA0DC42E00F703CD77F93CCC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				039B528A371CBF3C7144A0CA /* SnapshotHelper.swift in Sources */,
+				D75CFB0CAFA34BF7CEFC4F9C /* iOSUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F6B6CC888FB41F0A3CE77D9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				73CCCA71F91F64AE9B52822F /* AppDelegate.swift in Sources */,
+				9B792CDE5DDE6C438A39E1FE /* BezelButtonStyle.swift in Sources */,
+				930B9EBAF5C04B648B9A582A /* ClearMenuView.swift in Sources */,
+				8BCEA9AD4BE3FDC82F67D010 /* ConstantsMenuView.swift in Sources */,
+				AC72CD70B174AF8CB18028BE /* EquationListView.swift in Sources */,
+				5D0E7AF1181024B666BDE34C /* FullScreenPlotView.swift in Sources */,
+				6511C0A0FFC4155D5FE55A14 /* HP32KeyMap.swift in Sources */,
+				29DD67D1DA47A705BD28283D /* HapticNumpadView.swift in Sources */,
+				D561A664897EC9DFF60EAF01 /* IntegratePromptView.swift in Sources */,
+				8B8F531E293B37BEFB756384 /* KeyActionDispatcher.swift in Sources */,
+				8139FE82CACC52F8DCA66ACA /* LCDDisplayView.swift in Sources */,
+				3A2E071289E7861A1C377F8C /* MemMenuView.swift in Sources */,
+				C6F2F9C0C36490AC03ADB80F /* PioneerButtonStyle.swift in Sources */,
+				D2A9EC8D34F9B566AACE79A5 /* PlotPromptView.swift in Sources */,
+				2B323B6CA221D10EAC7CE7FE /* ProgramEditorView.swift in Sources */,
+				7D918461400B97562D32B84A /* RegsMenuView.swift in Sources */,
+				83DD7B9FC261130AFAD78F79 /* SolvePromptView.swift in Sources */,
+				86F21CB19014ED8884873D4F /* ThemeManager.swift in Sources */,
+				3A22F67D29CCC6143FCC2E7E /* VariablePromptView.swift in Sources */,
+				8F2CD154257150221461C64A /* iOSApp.swift in Sources */,
+				047EEFCCA2FBDD94B5998163 /* iOSContentView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4E891E6838AAA42419E60FDF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34F80AA4FF3FE28033600166 /* WatchCalc32Container */;
+			targetProxy = 5B73031E71236FF4DFB4FE4F /* PBXContainerItemProxy */;
+		};
+		D14A224765F845CB2D5CA5F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E6A8F1D2238006B1F79BF478 /* WatchCalc32 */;
+			targetProxy = 6129C13EF7E8AB948FC13FAC /* PBXContainerItemProxy */;
+		};
+		FC91E81AD700F69F89ECCCBF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E6A8F1D2238006B1F79BF478 /* WatchCalc32 */;
+			targetProxy = 2207B4908ED42BA8F418AAC8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		02C74F4B9CC7D9654283FDF2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32UITests;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = WatchCalc32;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		1295B897EF853B002411C561 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = UNXVA46694;
+				INFOPLIST_FILE = WatchCalc32Container/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		29276D8316B3258F217ADE6C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = UNXVA46694;
+				INFOPLIST_FILE = WatchCalc32Container/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		4E777CFDA4D4F6EC8BB386D4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		59A860806B764B3D9416064E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32ContainerUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WatchCalc32Container;
+			};
+			name = Release;
+		};
+		AD9B323DEAD58982242F6365 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32UITests;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = WatchCalc32;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		B1803B07527BF7E2508CCC01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = UNXVA46694;
+				INFOPLIST_FILE = WatchCalc32/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		C22E28F996A6FEAA6544F90C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32ContainerUITests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = WatchCalc32Container;
+			};
+			name = Debug;
+		};
+		C7F933632AF7C06BE47C3E1C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F712D89479B89C2ED3FAB29D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = UNXVA46694;
+				INFOPLIST_FILE = WatchCalc32/Info.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = rpn.calculator.WatchCalc32.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		06994EF3E9EE429EFA801786 /* Build configuration list for PBXNativeTarget "WatchCalc32ContainerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C22E28F996A6FEAA6544F90C /* Debug */,
+				59A860806B764B3D9416064E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		733FF94E5AE48888F38CF092 /* Build configuration list for PBXNativeTarget "WatchCalc32UITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD9B323DEAD58982242F6365 /* Debug */,
+				02C74F4B9CC7D9654283FDF2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BACDCB77DE5FBD5D77B63336 /* Build configuration list for PBXNativeTarget "WatchCalc32Container" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1295B897EF853B002411C561 /* Debug */,
+				29276D8316B3258F217ADE6C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DA8838AD9919D5EA633EF785 /* Build configuration list for PBXNativeTarget "WatchCalc32" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1803B07527BF7E2508CCC01 /* Debug */,
+				F712D89479B89C2ED3FAB29D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FD9D3D55EA24EA3CD97334EF /* Build configuration list for PBXProject "WatchCalc32" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C7F933632AF7C06BE47C3E1C /* Debug */,
+				4E777CFDA4D4F6EC8BB386D4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		73D22318B38F1EC818702A19 /* XCLocalSwiftPackageReference "RPNCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = RPNCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		203CA19B9100ADCABC7E6EC4 /* RPNCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RPNCore;
+		};
+		4F6B69E0A8BEA8AE3B3005FF /* RPNCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RPNCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 3EEB2B268BA3C9DF9236B221 /* Project object */;
+}

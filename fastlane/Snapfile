@@ -1,0 +1,11 @@
+devices([
+  
+  "iPad Pro 13-inch (M5)"
+])
+languages([
+  "en-US"
+])
+scheme("WatchCalc32Container")
+output_directory("./fastlane/screenshots_raw")
+clear_previous_screenshots(true)
+only_testing("WatchCalc32ContainerUITests/iOSFullMathUITests/testAppStoreScreenshots")

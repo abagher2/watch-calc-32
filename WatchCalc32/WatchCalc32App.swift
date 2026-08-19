@@ -1,0 +1,16 @@
+import SwiftUI
+import RPNCore
+
+@main
+struct WatchCalc32App: App {
+    @State private var engine = CalculatorEngine()
+    @StateObject private var themeManager = ThemeManager()
+    
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environment(engine)
+                .environmentObject(themeManager)
+        }
+    }
+}

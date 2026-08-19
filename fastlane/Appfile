@@ -1,0 +1,5 @@
+app_identifier("rpn.calculator.WatchCalc32")
+apple_id("developer@thenice.life")
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile
