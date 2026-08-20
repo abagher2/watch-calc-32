@@ -27,7 +27,7 @@ public class Renderer {
     }
     
     public enum FontSize {
-        case tiny, small, medium, large
+        case tiny, small, display, medium, large
     }
     
     public func drawChar(_ c: Character, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
@@ -44,6 +44,10 @@ public class Renderer {
             width = FontData.Small.charWidth
             height = FontData.Small.charHeight
             glyph = FontData.Small.glyph(for: c)
+        case .display:
+            width = FontData.Display.charWidth
+            height = FontData.Display.charHeight
+            glyph = FontData.Display.glyph(for: c)
         case .medium:
             width = FontData.Medium.charWidth
             height = FontData.Medium.charHeight
@@ -78,18 +82,40 @@ public class Renderer {
         switch size {
         case .tiny: width = FontData.Tiny.charWidth
         case .small: width = FontData.Small.charWidth
+        case .display: width = FontData.Display.charWidth
         case .medium: width = FontData.Medium.charWidth
         case .large: width = FontData.Large.charWidth
         }
         return str.count * width
     }
     
+    
+    public func drawString(_ buffer: UnsafePointer<UInt8>, length: Int, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
+        var cursorX = x
+        let width: Int
+        switch size {
+        case .tiny: width = FontData.Tiny.charWidth
+        case .small: width = FontData.Small.charWidth
+        case .display: width = FontData.Display.charWidth
+        case .medium: width = FontData.Medium.charWidth
+        case .large: width = FontData.Large.charWidth
+        }
+        
+        for i in 0..<length {
+            let scalar = UnicodeScalar(buffer[i])
+            let char = Character(scalar)
+            drawChar(char, x: cursorX, y: y, size: size, color: color)
+            cursorX += width
+        }
+    }
+
     public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
         var cursorX = x
         let width: Int
         switch size {
         case .tiny: width = FontData.Tiny.charWidth
         case .small: width = FontData.Small.charWidth
+        case .display: width = FontData.Display.charWidth
         case .medium: width = FontData.Medium.charWidth
         case .large: width = FontData.Large.charWidth
         }
@@ -136,6 +162,18 @@ public class Renderer {
             let textW = item.label.count * FontData.Tiny.charWidth
             let textX = xOffset + (segmentWidth - textW) / 2
             drawString(item.label, x: textX, y: 55, size: .tiny, color: true)
+        }
+    }
+    
+    public func renderLFU(manager: LFUManager) {
+        let segmentWidth = 128 / 6
+        for i in 0..<6 {
+            guard let funcName = manager.slots[i] else { continue }
+            let xOffset = i * segmentWidth
+            
+            let textW = funcName.count * FontData.Tiny.charWidth
+            let textX = xOffset + (segmentWidth - textW) / 2
+            drawString(funcName, x: textX, y: 55, size: .tiny, color: true)
         }
     }
 }

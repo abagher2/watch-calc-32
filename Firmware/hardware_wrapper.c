@@ -2,7 +2,9 @@
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
 #include "hardware/gpio.h"
+#include "hardware/watchdog.h"
 #include <string.h>
+#include <stdio.h>
 
 #define I2C_PORT i2c1
 #define I2C_SDA 2
@@ -14,6 +16,7 @@ const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 18};
 
 void hw_init(void) {
     stdio_init_all();
+    watchdog_enable(2000, 1);
     printf("C Booted!\\n");
     void* ptr = malloc(32);
     printf("Malloc: %p\\n", ptr);
@@ -66,6 +69,7 @@ void hw_init(void) {
 }
 
 void display_send_buffer(const uint8_t* buffer) {
+    watchdog_update();
     uint8_t payload[1025];
     payload[0] = 0x40; // Data control byte
     for (int i = 0; i < 1024; i++) {
@@ -106,4 +110,8 @@ int get_uart_char_c(void) {
 
 uint64_t hw_time_us(void) {
     return time_us_64();
+}
+
+void format_double_c(double val, uint8_t* buffer, int max_len) {
+    snprintf((char*)buffer, max_len, "%.10g", val);
 }

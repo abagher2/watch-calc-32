@@ -151,15 +151,33 @@ internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 
 #endif
 
+#if hasFeature(Embedded)
+@_silgen_name("format_double_c")
+func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32)
+#endif
 
 #if !hasFeature(Embedded)
 @Observable
 #endif
+
 public class CalculatorEngine {
     public let lfuManager = LFUManager()
     
     // Standard Display State
-    public var displayX: String = "0"
+    public var displayXBuffer: [UInt8] = Array(repeating: 0, count: 64)
+    public var displayXLength: Int = 1
+    
+    public var displayX: String {
+        get { return String(decoding: displayXBuffer[0..<displayXLength], as: UTF8.self) }
+        set {
+            displayXLength = 0
+            for c in newValue.utf8 {
+                if displayXLength >= 64 { break }
+                displayXBuffer[displayXLength] = c
+                displayXLength += 1
+            }
+        }
+    }
     public var promptString: String? = nil
     
     // Stack status
@@ -206,7 +224,15 @@ public class CalculatorEngine {
     public var isBuildingNumber: Bool = false
     private var hasDecimal: Bool = false
     private var isBuildingExponent: Bool = false
-    public var currentInput: String = "0"
+    public var currentInputBuffer: [UInt8] = Array(repeating: 0, count: 64)
+    public var currentInputLength: Int = 1
+    private func appendInputByte(_ b: UInt8) {
+        if currentInputLength < 64 {
+            currentInputBuffer[currentInputLength] = b
+            currentInputLength += 1
+        }
+    }
+
     private var currentExponent: String = ""
     private var isBuildingImaginary: Bool = false
     
@@ -478,7 +504,7 @@ public class CalculatorEngine {
         displayMode = .all
         shiftState = 0
         isBuildingNumber = false
-        currentInput = ""
+        currentInputLength = 0
         updateDisplay()
     }
     
@@ -498,7 +524,7 @@ public class CalculatorEngine {
             isProgrammingMode = false
             isEquationMode = false
             currentProgramSteps.removeAll()
-            currentInput = ""
+            currentInputLength = 0
             isBuildingNumber = false
             shiftState = 0
             
@@ -557,16 +583,16 @@ public class CalculatorEngine {
                     pushToStack(stack[0]) // Push stack
                 }
                 isBuildingNumber = true
-                currentInput = "\(d)"
+                currentInputBuffer[0] = UInt8(d + 48); currentInputLength = 1
                 hasDecimal = false
                 isBuildingExponent = false
             } else {
-                if currentInput == "0" && d == 0 { return }
+                if currentInputLength == 1 && currentInputBuffer[0] == 48 && d == 0 { return }
                 
-                if currentInput == "0" {
-                    currentInput = "\(d)"
+                if currentInputLength == 1 && currentInputBuffer[0] == 48 {
+                    currentInputBuffer[0] = UInt8(d + 48); currentInputLength = 1
                 } else {
-                    currentInput += "\(d)"
+                    appendInputByte(UInt8(d + 48))
                 }
             }
         }
@@ -580,9 +606,9 @@ public class CalculatorEngine {
         } else if baseMode == .hex {
             if !isBuildingNumber {
                 isBuildingNumber = true
-                currentInput = l
+                currentInputBuffer[0] = l.utf8.first!; currentInputLength = 1
             } else {
-                currentInput += l
+                appendInputByte(l.utf8.first!)
             }
             updateCurrentInputDisplay()
         }
@@ -601,7 +627,7 @@ public class CalculatorEngine {
         }
         if !isBuildingNumber {
             isBuildingNumber = true
-            currentInput = "1"
+            currentInputBuffer[0] = 49; currentInputLength = 1
         }
         isBuildingExponent = true
         currentExponent = "0"
@@ -624,15 +650,15 @@ public class CalculatorEngine {
         if isBuildingExponent { return }
         if !isBuildingNumber {
             isBuildingNumber = true
-            currentInput = "0."
+            currentInputBuffer[0] = 48; currentInputBuffer[1] = 46; currentInputLength = 2
             hasDecimal = true
         } else if !hasDecimal {
-            currentInput += "."
+            appendInputByte(46)
             hasDecimal = true
         } else {
             // Support HP 32sii fraction input (e.g. 1.2.3 for 1 2/3)
             // Allow multiple decimals
-            currentInput += "."
+            appendInputByte(46)
             isFractionMode = true // Auto-enable fraction display
         }
         updateCurrentInputDisplay()
@@ -646,7 +672,7 @@ public class CalculatorEngine {
         isBuildingImaginary = true
         // Start building imaginary part
         isBuildingNumber = true
-        currentInput = "0"
+        currentInputBuffer[0] = 48; currentInputLength = 1
         hasDecimal = false
         isBuildingExponent = false
         currentExponent = ""
@@ -688,11 +714,14 @@ public class CalculatorEngine {
                     currentExponent = "-" + currentExponent
                 }
             } else {
-                if currentInput.hasPrefix("-") {
-                    currentInput.removeFirst()
+                                if currentInputLength > 0 && currentInputBuffer[0] == 45 {
+                    for i in 1..<currentInputLength { currentInputBuffer[i-1] = currentInputBuffer[i] }
+                    currentInputLength -= 1
                 } else {
-                    if currentInput != "0" {
-                        currentInput = "-" + currentInput
+                    if !(currentInputLength == 1 && currentInputBuffer[0] == 48) {
+                        for i in (0..<currentInputLength).reversed() { currentInputBuffer[i+1] = currentInputBuffer[i] }
+                        currentInputBuffer[0] = 45
+                        currentInputLength += 1
                     }
                 }
             }
@@ -707,7 +736,27 @@ public class CalculatorEngine {
     }
     
     private func updateCurrentInputDisplay() {
-        var str = currentInput
+        #if hasFeature(Embedded)
+        displayXLength = currentInputLength
+        for i in 0..<currentInputLength {
+            displayXBuffer[i] = currentInputBuffer[i]
+        }
+        if isBuildingExponent {
+            displayXBuffer[displayXLength] = 69 // 'E'
+            displayXLength += 1
+            for c in currentExponent.utf8 {
+                if displayXLength >= 64 { break }
+                displayXBuffer[displayXLength] = c
+                displayXLength += 1
+            }
+        }
+        if isBuildingImaginary {
+            // Simplification for Embedded to avoid allocations during imaginary building
+            displayXBuffer[displayXLength] = 105 // 'i'
+            displayXLength += 1
+        }
+        #else
+        var str = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
         if isBuildingExponent {
             str += "E\(currentExponent.isEmpty ? "0" : currentExponent)"
         }
@@ -717,6 +766,7 @@ public class CalculatorEngine {
             displayX = str
         }
         updateStackStrings()
+        #endif
     }
     
     private func parseFractionString(_ input: String) -> Double {
@@ -738,7 +788,7 @@ public class CalculatorEngine {
     
     public func commitInput() {
         if isBuildingNumber {
-            var valString = currentInput
+            var valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
             var val = 0.0
             if valString.split(separator: Character(".")).map({ String($0) }).count == 3 {
                  val = parseFractionString(valString)
@@ -847,7 +897,7 @@ public class CalculatorEngine {
         if !stack.isEmpty {
             stack[0] = CalculatorValue()
         }
-        currentInput = "0"
+        currentInputBuffer[0] = 48; currentInputLength = 1
         isBuildingNumber = false
         hasDecimal = false
         isBuildingImaginary = false
@@ -883,15 +933,17 @@ public class CalculatorEngine {
                     currentExponent = ""
                 }
             } else {
-                if currentInput.count > 1 {
-                    let last = currentInput.removeLast()
-                    if last == "." { hasDecimal = false }
-                    if currentInput == "-" {
-                        currentInput = "0"
-                        isBuildingNumber = false
+                if currentInputLength > 1 {
+                    let last = currentInputBuffer[currentInputLength - 1]
+                    currentInputLength -= 1
+                    if last == 46 { hasDecimal = false }
+                    
+                    if currentInputLength == 1 && currentInputBuffer[0] == 45 {
+                        currentInputBuffer[0] = 48
                     }
                 } else {
-                    currentInput = "0"
+                    currentInputBuffer[0] = 48
+                    currentInputLength = 1
                     isBuildingNumber = false
                 }
             }
@@ -1230,14 +1282,14 @@ public class CalculatorEngine {
             if wasProgramming {
                 // Do not clear input or stack, just exit programming mode
             } else if isBuildingNumber { 
-                currentInput = "0"
+                currentInputBuffer[0] = 48; currentInputLength = 1
                 isBuildingNumber = false 
             } else {
                 if stack.count > 0 { stack[0] = CalculatorValue() }
             }
         case "CLEAR":
             stack = [CalculatorValue(), CalculatorValue(), CalculatorValue(), CalculatorValue()]
-            currentInput = ""
+            currentInputLength = 0
             isBuildingNumber = false
         case "x<>y", "𝑥><𝑦":
             swapXY()
@@ -1639,7 +1691,8 @@ public class CalculatorEngine {
         let savedDisplayX = self.displayX
         let savedProgMode = self.isProgrammingMode
         let savedEqMode = self.isEquationMode
-        let savedInput = self.currentInput
+        let savedInputBuffer = self.currentInputBuffer
+        let savedInputLength = self.currentInputLength
         let savedIsBuildingNum = self.isBuildingNumber
         let savedShift = self.shiftState
         let savedLiftEnabled = self.stackLiftEnabled
@@ -1672,7 +1725,9 @@ public class CalculatorEngine {
                     }
                     self.isBuildingNumber = true
                 }
-                self.currentInput = step
+                                let bytes = Array(step.utf8)
+                self.currentInputLength = min(bytes.count, 64)
+                for j in 0..<self.currentInputLength { self.currentInputBuffer[j] = bytes[j] }
             } else if let val = variables[step] {
                 self.push(val)
                 self.stackLiftEnabled = true
@@ -1706,7 +1761,8 @@ public class CalculatorEngine {
         self.displayX = savedDisplayX
         self.isProgrammingMode = savedProgMode
         self.isEquationMode = savedEqMode
-        self.currentInput = savedInput
+        self.currentInputBuffer = savedInputBuffer
+        self.currentInputLength = savedInputLength
         self.isBuildingNumber = savedIsBuildingNum
         self.shiftState = savedShift
         self.stackLiftEnabled = savedLiftEnabled
@@ -2259,12 +2315,52 @@ public class CalculatorEngine {
         }
         if !isBuildingNumber {
             if stack[0].isComplex {
+                #if hasFeature(Embedded)
+                displayXBuffer.withUnsafeMutableBufferPointer { ptr in
+                    format_double_c(stack[0].real, ptr.baseAddress!, 32)
+                }
+                var len = 0
+                while len < 64 && displayXBuffer[len] != 0 { len += 1 }
+                
+                if len < 60 {
+                    displayXBuffer[len] = 32 // space
+                    displayXBuffer[len+1] = 43 // +
+                    displayXBuffer[len+2] = 32 // space
+                    len += 3
+                    
+                    displayXBuffer.withUnsafeMutableBufferPointer { ptr in
+                        format_double_c(stack[0].imag, ptr.baseAddress!.advanced(by: len), Int32(64 - len))
+                    }
+                    while len < 64 && displayXBuffer[len] != 0 { len += 1 }
+                    
+                    if len < 64 {
+                        displayXBuffer[len] = 105 // i
+                        displayXLength = len + 1
+                    } else {
+                        displayXLength = 64
+                    }
+                } else {
+                    displayXLength = len
+                }
+                #else
                 displayX = "\(formatNumber(stack[0].real)) + \(formatNumber(stack[0].imag))i"
+                #endif
             } else {
+                #if hasFeature(Embedded)
+                displayXBuffer.withUnsafeMutableBufferPointer { ptr in
+                    format_double_c(stack[0].real, ptr.baseAddress!, 64)
+                }
+                var len = 0
+                while len < 64 && displayXBuffer[len] != 0 { len += 1 }
+                displayXLength = len
+                #else
                 displayX = formatNumber(stack[0].real)
+                #endif
             }
         }
+        #if !hasFeature(Embedded)
         updateStackStrings()
+        #endif
     }
     
     private func updateStackStrings() {

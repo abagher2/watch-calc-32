@@ -267,24 +267,21 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 renderer.renderMenu(menu: menu, query: menuAlphaQuery)
             } else if let pending = waitingForMenuDigit {
                 renderer.drawString("\(pending.action) _", x: 2, y: 52, size: .small, color: true)
+            } else if !menuActive && !engine.isGeneratingPlot && !engine.isPlotLoading {
+                renderer.renderLFU(manager: lfuManager)
             }
             
             // 2. Draw X register (dynamic font size)
-            var xStr = engine.displayX
-            if engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha {
-                xStr += "_"
+            let displayFont: Renderer.FontSize = .small
+            let startX = 2
+            
+            // Centered vertically always, even when menu is active
+            engine.displayXBuffer.withUnsafeBufferPointer { ptr in
+                renderer.drawString(ptr.baseAddress!, length: engine.displayXLength, x: startX, y: 28, size: displayFont, color: true)
             }
-            
-            let displayFont: Renderer.FontSize = xStr.count <= 9 ? .medium : .small
-            let xStrWidth = renderer.getStringWidth(xStr, size: displayFont)
-            let startX = max(0, 128 - xStrWidth - 2)
-            
-            if menuActive {
-                // Squeeze X above the menu (Indicators end at y=14)
-                renderer.drawString(xStr, x: startX, y: 14, size: displayFont)
-            } else {
-                // Centered vertically when no menu
-                renderer.drawString(xStr, x: startX, y: 28, size: displayFont)
+            if engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha {
+                let cursorX = startX + (engine.displayXLength * FontData.Small.charWidth)
+                renderer.drawChar(Character(UnicodeScalar(95)!), x: cursorX, y: 28, size: displayFont, color: true) // '_' is ASCII 95
             }
             
             // 3. Draw Indicators
@@ -292,12 +289,23 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             let indY = 2
             if engine.shiftState == 1 {
                 renderer.drawString("f", x: indX, y: indY, size: .small)
-                indX += 10
+                indX += 12
             } else if engine.shiftState == 2 {
                 renderer.drawString("g", x: indX, y: indY, size: .small)
-                indX += 10
+                indX += 12
             }
-            // Future indicators like 'rad', 'hyp' go here
+            if engine.angleMode == .rad {
+                renderer.drawString("RAD", x: indX, y: indY, size: .small)
+                indX += 30
+            }
+            if engine.isHypPending {
+                renderer.drawString("HYP", x: indX, y: indY, size: .small)
+                indX += 30
+            }
+            if engine.isProgrammingMode {
+                renderer.drawString("PRGM", x: indX, y: indY, size: .small)
+                indX += 38
+            }
             
             renderer.buffer.withUnsafeBufferPointer { ptr in
                 display_send_buffer(ptr.baseAddress!)
