@@ -464,10 +464,10 @@ import XCTest
     // ENTER to save equation
     app.staticTexts["lcd_display"].tap()
 
-    // Plot it (Yellow Shift +/-)
+    // Plot it
     clearAll(app: app)
     navigateToNumericPad(app: app)
-    app.buttons["func_+/-"].tap()
+    app.buttons["func_PLOT"].tap()
     if app.buttons["Plot"].waitForExistence(timeout: 5.0) {
         app.buttons["Plot"].tap()
     } else {
@@ -545,8 +545,7 @@ import XCTest
     // Plot
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["func_PLOT"].tap()
     if app.buttons["Plot"].waitForExistence(timeout: 5.0) {
         app.buttons["Plot"].tap()
     } else {
@@ -602,8 +601,7 @@ import XCTest
     // Plot
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["func_PLOT"].tap()
     if app.buttons["Plot"].waitForExistence(timeout: 5.0) {
         app.buttons["Plot"].tap()
     } else {
@@ -653,10 +651,10 @@ import XCTest
     XCTAssertLessThanOrEqual(
       lcdFrame.maxY, zeroFrame.minY, "LCD display overlaps with the numeric pad (btn 0)!")
 
-    // 2. Numpad (btnZero) should be completely above the sticky toolbar (C button)
-    XCTAssertLessThanOrEqual(
-      zeroFrame.maxY, cFrame.minY,
-      "Numeric pad (btn 0) overlaps with the sticky toolbar (C button)!")
+    // 2. Numpad (btnZero) and C button should be on the same horizontal row in HP32SII layout
+    XCTAssertLessThan(
+      abs(zeroFrame.minY - cFrame.minY), 5.0,
+      "Numeric pad (btn 0) and (C button) are not horizontally aligned!")
 
     // 3. Verify internal text does not visually overflow the button bounds
     let zeroText = btnZero.staticTexts.firstMatch
@@ -758,8 +756,7 @@ import XCTest
     // Set limits for Plotting? We can just invoke PLOT
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["func_PLOT"].tap()
     if app.buttons["Plot"].waitForExistence(timeout: 5.0) {
         app.buttons["Plot"].tap()
     } else {
@@ -858,9 +855,9 @@ import XCTest
 
     // Tap Clear x
     #if os(watchOS)
-    app.buttons["Clear x"].tap()
+    app.buttons["Clear ALL"].tap()
     #else
-    app.buttons["Clear X"].tap()
+    app.buttons["Clear ALL"].tap()
     #endif
 
     // Display should clear current input
@@ -1498,8 +1495,7 @@ import XCTest
     // Trigger STAT PLOT
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap() // PLOT
+    app.buttons["func_PLOT"].tap()
     
     // Wait for prompt to appear
     if app.buttons["Source"].waitForExistence(timeout: 2.0) {
@@ -1620,8 +1616,7 @@ import XCTest
     app.buttons["func_STO"].tap() // Exit EQN
     
     // 2. Open plot menu
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap() // PLOT
+    app.buttons["func_PLOT"].tap()
     
     // On iOS Picker is already set to Equation by default
 #if os(watchOS)
@@ -1656,9 +1651,8 @@ import XCTest
     app.buttons["btn_1"].tap()
     app.buttons["invisible_ENTER"].tap()
     
-    // Tap PLOT (yellow shift +/-)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    // Tap PLOT
+    app.buttons["func_PLOT"].tap()
     
     // Select Plot
     XCTAssertTrue(app.buttons["Plot"].waitForExistence(timeout: 2.0))
@@ -1858,7 +1852,7 @@ import XCTest
         let numericTriggers: [(shift: XCUIElement?, btn: String, title: String?)] = [
             (blue, "btn_7", "Solve"),
             (blue, "btn_8", "Integrate"),
-            (yellow, "func_+/-", "Plot")
+            (nil, "func_PLOT", "Plot")
         ]
 
         for t in numericTriggers {

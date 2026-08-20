@@ -8,6 +8,7 @@ struct SolvePromptView: View {
     @State private var variables: [String] = []
     @State private var selectedProgramLabel = ""
     @State private var selectedVar = ""
+    @State private var targetSelection = "0"
     
     private func updateVariables() {
         if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
@@ -48,14 +49,23 @@ struct SolvePromptView: View {
                         .textInputAutocapitalization(.characters)
                         .disableAutocorrection(true)
                     
+                    Picker("Target Value", selection: $targetSelection) {
+                        Text("0").tag("0")
+                        Text("X Register").tag("X")
+                    }
+#if os(iOS)
+                    .pickerStyle(.segmented)
+#endif
+                    
                     Button {
                         if !selectedProgramLabel.isEmpty {
                             engine.currentProgramLabel = selectedProgramLabel
                         }
                         if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
                             engine.statusMessage = "CALCULATING"
+                            let targetValue = targetSelection == "X" ? (engine.stack.first?.real ?? 0.0) : 0.0
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                _ = engine.solve(for: selectedVar.uppercased(), program: program)
+                                _ = engine.solve(for: selectedVar.uppercased(), program: program, target: targetValue)
                                 engine.statusMessage = nil
                             }
                         }

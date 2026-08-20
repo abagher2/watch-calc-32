@@ -113,5 +113,5 @@ uint64_t hw_time_us(void) {
 }
 
 void format_double_c(double val, uint8_t* buffer, int max_len) {
-    snprintf((char*)buffer, max_len, "%.10g", val);
+    snprintf((char*)buffer, max_len, "%.7g", val);
 }

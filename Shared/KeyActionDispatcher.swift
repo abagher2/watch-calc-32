@@ -3,137 +3,112 @@ import RPNCore
 
 // MARK: - Shared key label → engine command mapping
 
-/// Translates key face labels (▸ prefix, unicode math, arrow symbols) into
-/// the canonical engine operation strings used by CalculatorEngine.executeMath().
-///
-/// Identical mapping table used by both the watchOS CalcButton and the iOS
-/// HapticNumpadView — single source of truth.
-public func mapOp(_ opToExecute: String) -> String {
+public func mapOp(_ opToExecute: String) -> CalculatorOperation {
     switch opToExecute {
-
-    // ── Backspace ──────────────────────────────────────────────────────────
-    case "<-":              return "BACKSPACE"
-
-    // ── Unit conversions (▸ prefix) ────────────────────────────────────────
-    case "▸km":            return "->km"
-    case "▸mi":            return "->mi"
-    case "▸kg":            return "->kg"
-    case "▸lb":            return "->lb"
-    case "▸°C":            return "->°C"
-    case "▸°F":            return "->°F"
-    case "▸cm":            return "->cm"
-    case "▸in":            return "->in"
-    case "▸l":             return "->l"
-    case "▸gal":           return "->gal"
-
-    // ── Polar / rectangular conversion ─────────────────────────────────────
-    case "▸θ,r":           return ">θ,r"
-    case "▸𝑦,𝑥":          return ">y,x"
-
-    // ── Time conversion ────────────────────────────────────────────────────
-    case "▸HR":            return ">HR"
-    case "▸HMS":           return ">HMS"
-
-    // ── Angle-mode conversion ──────────────────────────────────────────────
-    case "▸DEG":           return ">DEG"
-    case "▸RAD":           return ">RAD"
-
-    // ── Stack-roll arrow keys (Voyager layout) ─────────────────────────────
-    case "↓":              return "R↓"
-    case "↑":              return "R↑"
-
-    // ── Conditional tests (italic unicode → ascii) ─────────────────────────
-    case "𝑥?𝑦":           return "x?y"
-    case "𝑥?0":           return "x?0"
-
-    // ── Stack / last-x ─────────────────────────────────────────────────────
-    case "LAST𝑥":         return "LASTx"
-    case "𝑥⟷𝑦":          return "x<>y"
-    case "𝑥⟷?":          return "x<>?"
-    case "𝑥><𝑦":         return "x<>y"    // alternate glyph on some key maps
-    case "𝑥><?":          return "x<>?"
-
-    // ── Integral shorthand (unicode → engine tag) ──────────────────────────
-    case "∫":              return "∫FN"
-
-    // ── Statistics symbols (pass-through, kept for clarity) ───────────────
-    case "Σ+":             return "Σ+"
-    case "Σ-":             return "Σ-"
-    case "x̄,ȳ":           return "x̄,ȳ"
-    case "s,σ":            return "s,σ"
-    case "L.R.":           return "L.R."
-    case "SUMS":           return "SUMS"
-
-    // ── Math unicode → ASCII engine keys ──────────────────────────────────
-    case "𝑦ˣ":            return "y^x"
-    case "ˣ√𝑦":           return "xVy"
-    case "𝑥,𝑦":           return "x,y"
-    case "¹/𝑥":           return "1/x"
-    case "𝑥!":            return "x!"
-    case "√𝑥":            return "√x"
-    case "𝑥²":            return "x^2"
-    case "𝑒ˣ":            return "e^x"
-    case "10ˣ":            return "10^x"
-
-    default:               return opToExecute
+    case "<-":              return .backspace
+    case "▸km":            return .toKm
+    case "▸mi":            return .toMi
+    case "▸kg":            return .toKg
+    case "▸lb":            return .toLb
+    case "▸°C":            return .toCelsius
+    case "▸°F":            return .toFahrenheit
+    case "▸cm":            return .toCm
+    case "▸in":            return .toIn
+    case "▸l":             return .toLiters
+    case "▸gal":           return .toGal
+    case "▸θ,r":           return .toPolar
+    case "▸𝑦,𝑥":          return .toRectangular
+    case "▸HR":            return .toHr
+    case "▸HMS":           return .toHms
+    case "▸DEG":           return .toDeg
+    case "▸RAD":           return .toRad
+    case "↓":              return .rollDown
+    case "↑":              return .rollUp
+    case "𝑥?𝑦":           return .testXY
+    case "𝑥?0":           return .testX0
+    case "LAST𝑥":         return .lastx
+    case "𝑥⟷𝑦", "𝑥><𝑦":  return .swapXY
+    case "𝑥⟷?", "𝑥><?":  return .swapXYPrompt
+    case "∫":              return .integrate
+    case "Σ+":             return .statAdd
+    case "Σ-":             return .statSub
+    case "x̄,ȳ":           return .statMean
+    case "s,σ":            return .statStdDev
+    case "L.R.":           return .lr
+    case "SUMS":           return .sums
+    case "𝑦ˣ":            return .power
+    case "ˣ√𝑦":           return .xRootY
+    case "𝑥,𝑦":           return .cmplx
+    case "¹/𝑥":           return .reciprocal
+    case "𝑥!":            return .factorial
+    case "√𝑥":            return .sqrt
+    case "𝑥²":            return .square
+    case "𝑒ˣ":            return .exp
+    case "10ˣ":            return .exp10
+    case "+/-":            return .toggleSign
+    default:
+        // Try to find a matching stringValue
+        if let op = CalculatorOperation.allCases.first(where: { $0.stringValue == opToExecute }) {
+            return op
+        }
+        // Fallbacks
+        if opToExecute == "." { return .decimal }
+        if let _ = Int(opToExecute) {
+            // Find the digit
+            return CalculatorOperation.allCases.first(where: { $0.stringValue == opToExecute }) ?? .decimal
+        }
+        return .enter
     }
 }
 
+
 // MARK: - Commands that open a menu rather than executing directly
 
-/// The complete set of mapped operation strings that should be routed to the
+/// The complete set of mapped operations that should be routed to the
 /// platform menu handler rather than passed to engine.executeMath().
-/// Used by both CalcButton (watchOS) and HapticNumpadView (iOS).
-public let menuCommands: Set<String> = [
-    "DISP", "MODES", "L.R.", "SUMS", "FN=", "EQN", "PRGM",
-    "SOLVE", "∫FN", "SHOW", "PLOT", "VIEW", "CLEAR",
-    "x?y", "x?0", "BASE", "FLAGS", "XEQ",
-    "PROB", "PARTS", "MEM", "REGS", "x̄,ȳ", "s,σ", "CONST",
+public let menuCommands: Set<CalculatorOperation> = [
+    .disp, .modes, .lr, .sums, .fnEq, .eqn, .prgm,
+    .solve, .integrate, .show, .plot, .view, .clear,
+    .testXY, .testX0, .base, .flags, .xeq,
+    .prob, .parts, .mem, .regs, .statMean, .statStdDev, .const
 ]
 
 // MARK: - Core action dispatch
 
-/// Executes the action for a resolved (already mapOp-translated) key command.
-///
-/// - Parameters:
-///   - command:       The engine command string, already passed through `mapOp()`.
-///   - engine:        The shared `CalculatorEngine` instance.
-///   - onMenuAction:  Platform-specific callback invoked for menu-triggering commands
-///                    (e.g. opens a sheet on iOS, sets a @State binding on watchOS).
-///                    When `nil`, menu commands are silently ignored.
+/// Executes the action for a resolved key command.
 public func dispatchKey(
-    _ command: String,
+    _ command: CalculatorOperation,
     engine: CalculatorEngine,
-    onMenuAction: ((String) -> Void)?
+    onMenuAction: ((CalculatorOperation) -> Void)?
 ) {
     if engine.isWaitingForAlpha {
-        if command == "BACKSPACE" {
+        if command == .backspace {
             engine.submitAlpha("<-")
-        } else if command == "ENTER" {
+        } else if command == .enter {
             engine.submitAlpha("ENTER")
         } else {
-            let alpha = alphaLabel(for: command) ?? command
+            let alpha = alphaLabel(for: command) ?? command.stringValue
             engine.submitAlpha(alpha)
         }
     } else {
-        if command == "BACKSPACE" {
+        if command == .backspace {
             engine.backspace()
-        } else if command == "ENTER" {
+        } else if command == .enter {
             engine.enter()
-        } else if command == "+/-" {
+        } else if command == .toggleSign {
             engine.toggleSign()
-        } else if command == "." {
+        } else if command == .decimal {
             engine.decimal()
-        } else if command == "E" {
+        } else if command == .exp {
             engine.startExponent()
         } else if menuCommands.contains(command) {
             onMenuAction?(command)
-        } else if let d = Int(command) {
-            engine.digit(d)
-        } else if command.count == 1 && command.first!.isASCII && command.first!.isLetter && command.uppercased() == command {
-            engine.submitAlpha(command)
+        } else if command.stringValue.count == 1 && command.stringValue.first!.isNumber {
+            engine.digit(Int(command.stringValue)!)
+        } else if command.stringValue.count == 1 && command.stringValue.first!.isASCII && command.stringValue.first!.isLetter && command.stringValue.uppercased() == command.stringValue {
+            engine.submitAlpha(command.stringValue)
         } else {
-            engine.executeMath(command)
+            engine.executeMath(command.stringValue)
         }
     }
 }

@@ -195,18 +195,15 @@ class WatchCalc32MenusTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.0)
         
         app.buttons["func_STO"].tap()
-        // Should navigate to Alpha Entry sheet
-        let textField = app.textFields.firstMatch
-        XCTAssertTrue(textField.waitForExistence(timeout: 2.0), "Alpha entry sheet should appear for STO")
+        // Should navigate to Alpha Entry pad
+        XCTAssertTrue(app.buttons["func_A"].waitForExistence(timeout: 2.0), "Alpha pad should appear for STO")
         
-        // Store in A (Submit defaults to "A")
-        app.buttons["Submit"].tap()
+        // Store in A
+        app.buttons["func_A"].tap()
         Thread.sleep(forTimeInterval: 0.5)
         
         // Should auto-return
-        let notHittable = NSPredicate(format: "exists == false")
-        expectation(for: notHittable, evaluatedWith: textField, handler: nil)
-        waitForExpectations(timeout: 2.0, handler: nil)
+        XCTAssertFalse(app.buttons["func_A"].exists, "Alpha pad should dismiss after STO")
         Thread.sleep(forTimeInterval: 1.0)
         
         // RCL is on Matrix2 (swipe up up)
@@ -214,13 +211,13 @@ class WatchCalc32MenusTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.0)
         
         app.buttons["func_RCL"].tap()
-        XCTAssertTrue(textField.waitForExistence(timeout: 2.0), "Alpha entry sheet should appear for RCL")
+        XCTAssertTrue(app.buttons["func_A"].waitForExistence(timeout: 2.0), "Alpha pad should appear for RCL")
         
-        // Recall A (Submit defaults to "A")
-        app.buttons["Submit"].tap()
+        // Recall A
+        app.buttons["func_A"].tap()
         Thread.sleep(forTimeInterval: 1.0)
         
-        XCTAssertFalse(textField.exists, "Variables pad should dismiss after RCL")
+        XCTAssertFalse(app.buttons["func_A"].exists, "Alpha pad should dismiss after RCL")
     }
 
   private func navigateToLFUPad(app: XCUIApplication) {

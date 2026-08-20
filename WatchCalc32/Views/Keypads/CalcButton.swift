@@ -16,7 +16,7 @@ struct CalcButton: View {
 #else
     @AppStorage("hapticsMode") private var hapticsMode: Int = 0
 #endif
-    let action: (String) -> Void
+    let action: (CalculatorOperation) -> Void
     
     init(
         _ title: String,
@@ -25,7 +25,7 @@ struct CalcButton: View {
         isDigit: Bool = false,
         isAlpha: Bool = false,
         textColor: Color? = nil,
-        action: @escaping (String) -> Void = { _ in }
+        action: @escaping (CalculatorOperation) -> Void = { _ in }
     ) {
         self.title = title
         self.yellow = yellow
@@ -53,10 +53,14 @@ struct CalcButton: View {
             
             let mappedOp = mapOp(opToExecute)
             
-            dispatchKey(mappedOp, engine: engine, onMenuAction: { cmd in
-                // Watch: let the action closure handle menu routing
-                _ = cmd
-            })
+            if mappedOp == .enter && opToExecute != "ENTER" && opToExecute.count == 1 && opToExecute.first!.isLetter {
+                engine.submitAlpha(opToExecute)
+            } else {
+                dispatchKey(mappedOp, engine: engine, onMenuAction: { cmd in
+                    // Watch: let the action closure handle menu routing
+                    _ = cmd
+                })
+            }
             
             engine.shiftState = 0
             action(mappedOp)

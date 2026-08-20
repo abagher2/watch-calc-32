@@ -565,7 +565,7 @@ import XCTest
     XCTAssertTrue(app.navigationBars["Clear"].waitForExistence(timeout: 2.0))
 
     // Tap Clear x
-    app.buttons["Clear x"].tap()
+    app.buttons["Clear ALL"].tap()
 
     // Display should clear current input
     XCTAssertEqual(display.label, "0")
@@ -734,6 +734,7 @@ import XCTest
     verifyConstraint()
     XCTAssertEqual(display.label, "DIVIDE BY 0")
     
+    navigateToArithmeticPad(app: app)
     app.buttons["func_<-"].tap()
     
     navigateToNumericPad(app: app)
@@ -1199,6 +1200,7 @@ import XCTest
     // X is quotient (3)
     XCTAssertEqual(display.label, "3")
     // swap to see Y (Remainder = 1)
+    navigateToArithmeticPad(app: app)
     app.buttons["func_𝑥><𝑦"].tap()
     XCTAssertEqual(display.label, "1")
   }

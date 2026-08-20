@@ -22,139 +22,12 @@ struct WatchCalcFirmware {
     static var waitingForMenuDigit: MenuItem? = nil
     static var menuItemsDisplayCache: [MenuItem] = []
 
-    static func processAction(_ action: String, engine: CalculatorEngine, lfuManager: LFUManager) {
-        var finalAction = action
-        
-        if finalAction == "SHIFT_YELLOW" {
-            engine.setShift(1)
-            return
-        }
-        if finalAction == "SHIFT_BLUE" {
-            engine.setShift(2)
-            return
-        }
-        
-        if engine.shiftState > 0 {
-            for key in HP32KeyMap.standardGrid {
-                if key.action == action {
-                    if engine.shiftState == 1 { finalAction = key.yellowLabel }
-                    else if engine.shiftState == 2 { finalAction = key.blueLabel }
-                    break
-                }
-            }
-            engine.setShift(0) // Consume shift
-        }
-        
-        if finalAction.isEmpty { return }
-        
-        // 1. Check if we are waiting for a numeric parameter (e.g. FIX 4)
-        if let pendingItem = waitingForMenuDigit {
-            if let digit = parseUInt(finalAction) {
-                engine.executeMath("\(pendingItem.action) \(digit)")
-            }
-            waitingForMenuDigit = nil
-            return
-        }
-        
-        // 2. Check if a Menu is active
-        if let menu = activeMenu {
-            if finalAction.hasPrefix("LFU_") {
-                let index = parseUInt(String(finalAction.dropFirst(4))) ?? 0
-                if index < menuItemsDisplayCache.count {
-                    let selected = menuItemsDisplayCache[index]
-                    
-                    if selected.requiresDigit {
-                        waitingForMenuDigit = selected
-                        activeMenu = nil
-                    } else {
-                        engine.executeMath(selected.action)
-                        activeMenu = nil
-                    }
-                }
-                return
-            }
-            
-            // Handle Alpha typing for menu search
-            if engine.isWaitingForAlpha {
-                if finalAction.count == 1 { // crude alpha check
-                    menuAlphaQuery.append(finalAction)
-                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
-                    return
-                }
-            }
-            
-            if finalAction == "<-" || finalAction == "CLEAR" || finalAction == "C" {
-                if !menuAlphaQuery.isEmpty {
-                    menuAlphaQuery.removeLast()
-                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
-                } else {
-                    activeMenu = nil // Dismiss
-                }
-                return
-            }
-        }
-        
-        // 3. Intercept Menu Activation
-        if let newMenu = CalculatorMenu(rawValue: finalAction) {
-            activeMenu = newMenu
-            menuAlphaQuery = ""
-            menuItemsDisplayCache = newMenu.items
-        }
-        // 4. Handle standard LFU Execution
-        else if finalAction.hasPrefix("LFU_") {
-            let index = parseUInt(String(finalAction.dropFirst(4))) ?? 0
-            if let funcName = lfuManager.slots[index] {
-                engine.executeMath(funcName)
-                lfuManager.recordUsage(of: funcName)
-            }
-        }
-        // 5. Dispatch to RPNCore
-        else if let digit = parseUInt(finalAction) {
-            engine.digit(digit)
-        } else if finalAction == "." {
-            engine.decimal()
-        } else if finalAction == "+/-" {
-            engine.toggleSign()
-        } else if finalAction == "ENTER" {
-            engine.enter()
-        } else if finalAction == "<-" || finalAction == "CLEAR" || finalAction == "C" {
-            engine.backspace()
-        } else {
-            engine.executeMath(finalAction)
-        }
-    }
-    
-    
-    
 
 @inline(never)
 static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: CalculatorEngine, _ lfu: LFUManager) {
-    var str = ""
-    str.reserveCapacity(len)
-    var i = 0
-    while i < len {
-        let c = buf[i]
-        if c < 0x80 {
-            str.append(Character(UnicodeScalar(c)))
-            i += 1
-        } else if c >= 0xC0 && c < 0xE0 {
-            if i + 1 < len {
-                let code = ((UInt32(c) & 0x1F) << 6) | (UInt32(buf[i+1]) & 0x3F)
-                if let scalar = UnicodeScalar(code) { str.append(Character(scalar)) }
-                i += 2
-            } else { i += 1 }
-        } else if c >= 0xE0 && c < 0xF0 {
-            if i + 2 < len {
-                let code = ((UInt32(c) & 0x0F) << 12) | ((UInt32(buf[i+1]) & 0x3F) << 6) | (UInt32(buf[i+2]) & 0x3F)
-                if let scalar = UnicodeScalar(code) { str.append(Character(scalar)) }
-                i += 3
-            } else { i += 1 }
-        } else {
-            i += 1
-        }
-    }
+    let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
     
-    if str == "C" {
+    if str == "50" { // "C"
         WatchCalcFirmware.isSleeping = false
     }
     
@@ -162,37 +35,224 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         return
     }
     
-    if str == "OFF" {
-        WatchCalcFirmware.isSleeping = true
+    if let op = CalculatorOperation.allCases.first(where: { $0.stringValue == str }) {
+        processAction(op, engine: engine, lfuManager: lfu)
+    } else if let id = parseUInt(str), let op = CalculatorOperation(rawValue: id) {
+        processAction(op, engine: engine, lfuManager: lfu)
+    } else {
+        engine.executeMath(str)
+    }
+}
+
+@inline(never)
+static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, lfuManager: LFUManager) {
+    var finalOp = op
+    
+    if finalOp == .show {
+        isShowingFullPrecision = true
+        needsDisplay = true
         return
     }
     
-    if str.hasPrefix("SET_FLAG_") {
-        let parts = str.split(separator: "_")
-        if parts.count == 4, let flagIdx = parseUInt(String(parts[2])), let flagVal = parseUInt(String(parts[3])) {
-            if flagIdx >= 0 && flagIdx < 12 {
-                engine.flags[flagIdx] = (flagVal == 1)
+    if isShowingFullPrecision {
+        isShowingFullPrecision = false
+        needsDisplay = true
+        // consume the key that dismisses SHOW
+        return
+    }
+
+    if isShowingRegisters {
+        if engine.shiftState == 1 && finalOp == .digit8 { // Up arrow
+            regsOffset = max(0, regsOffset - 1)
+            engine.shiftState = 0
+            needsDisplay = true
+            return
+        }
+        if engine.shiftState == 1 && finalOp == .digit7 { // Down arrow
+            regsOffset += 1
+            engine.shiftState = 0
+            needsDisplay = true
+            return
+        }
+        if finalOp == .c || finalOp == .clear || finalOp == .backspace || finalOp == .enter {
+            isShowingRegisters = false
+            needsDisplay = true
+            return
+        }
+        isShowingRegisters = false
+    }
+    
+    if finalOp == .regs {
+        isShowingRegisters = true
+        regsOffset = 0
+        activeMenu = nil
+        needsDisplay = true
+        return
+    }
+    
+    // C47 Modes
+    if finalOp == .solve || finalOp == .integrate || finalOp == .plot || finalOp == .xeq {
+        if finalOp == .solve { c47Mode = .solve }
+        if finalOp == .integrate { c47Mode = .integrate }
+        if finalOp == .plot { c47Mode = .plot }
+        if finalOp == .xeq { c47Mode = .xeq }
+        c47Program = nil
+        activeMenu = nil
+        needsDisplay = true
+        return
+    }
+    
+    if c47Mode != .none {
+        if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+            c47Mode = .none
+            c47Program = nil
+            needsDisplay = true
+            return
+        }
+        
+        if finalOp.stringValue.hasPrefix("C47_PRG_") {
+            let progLabel = String(finalOp.stringValue.dropFirst(8))
+            c47Program = engine.programs.first(where: { $0.label == progLabel })
+            needsDisplay = true
+            return
+        }
+        
+        if finalOp.stringValue.hasPrefix("C47_VAR_") {
+            let varName = String(finalOp.stringValue.dropFirst(8))
+            if engine.isBuildingNumber {
+                engine.commitInput()
+                engine.variables[varName] = engine.stack.first ?? CalculatorValue()
+            } else {
+                if c47Mode == .solve, let prog = c47Program {
+                    let target = engine.stack.first?.real ?? 0.0
+                    engine.statusMessage = "CALCULATING"
+                    // Execute solve
+                    _ = engine.solve(for: varName, program: prog, target: target)
+                    engine.statusMessage = nil
+                    c47Mode = .none
+                    c47Program = nil
+                } else if c47Mode == .integrate, let prog = c47Program {
+                    let upper = engine.stack.count > 0 ? engine.stack[0].real : 0.0
+                    let lower = engine.stack.count > 1 ? engine.stack[1].real : 0.0
+                    engine.statusMessage = "CALCULATING"
+                    _ = engine.integrate(for: varName, program: prog, lowerBound: lower, upperBound: upper)
+                    engine.statusMessage = nil
+                    c47Mode = .none
+                    c47Program = nil
+                }
+            }
+            needsDisplay = true
+            return
+        }
+        
+        if finalOp.stringValue == "C47_EXEC" {
+            if c47Mode == .plot {
+                engine.generatePlot(variable: "X", xmin: -10, xmax: 10)
+                engine.requestPlot = true
+            } else if c47Mode == .xeq, let prog = c47Program {
+                engine.currentProgramLabel = prog.label
+                _ = engine.evaluateProgram(prog, variables: engine.variables)
+            }
+            c47Mode = .none
+            c47Program = nil
+            needsDisplay = true
+            return
+        }
+    }
+    
+    if finalOp == .shiftYellow {
+        engine.setShift(1)
+        return
+    }
+    if finalOp == .shiftBlue {
+        engine.setShift(2)
+        return
+    }
+    
+    if engine.shiftState > 0 {
+        for key in HP32KeyMap.standardGrid {
+            if key.primaryAction == op {
+                if engine.shiftState == 1, let yellow = key.yellowAction { finalOp = yellow }
+                else if engine.shiftState == 2, let blue = key.blueAction { finalOp = blue }
+                break
             }
         }
-        return
+        engine.setShift(0)
     }
     
-    if str.hasPrefix("SET_STACK_") {
-        if let stackVal = parseUInt(String(str.dropFirst("SET_STACK_".count))) {
-            engine.stackSizeLimit = max(4, stackVal)
+    if let pendingItem = waitingForMenuDigit {
+        if let digit = parseUInt(finalOp.stringValue) {
+            engine.executeMath("\(pendingItem.action) \(digit)")
         }
+        waitingForMenuDigit = nil
         return
     }
     
-    if str.hasPrefix("SET_EXAM_") {
-        if let examVal = parseUInt(String(str.dropFirst("SET_EXAM_".count))) {
-            engine.isExamMode = (examVal == 1)
+    if let menu = activeMenu {
+        if finalOp.stringValue.hasPrefix("LFU_") {
+            let index = parseUInt(String(finalOp.stringValue.dropFirst(4))) ?? 0
+            if index < menuItemsDisplayCache.count {
+                let selected = menuItemsDisplayCache[index]
+                
+                if selected.requiresDigit {
+                    waitingForMenuDigit = selected
+                    activeMenu = nil
+                } else {
+                    engine.executeMath(selected.action)
+                    activeMenu = nil
+                }
+            }
+            return
         }
-        return
+        
+        if engine.isWaitingForAlpha {
+            if finalOp.stringValue.count == 1 {
+                menuAlphaQuery.append(finalOp.stringValue)
+                menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
+                return
+            }
+        }
+        
+        if finalOp == .backspace || finalOp == .clear || finalOp == .c {
+            if !menuAlphaQuery.isEmpty {
+                menuAlphaQuery.removeLast()
+                menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
+            } else {
+                activeMenu = nil
+            }
+            return
+        }
     }
     
-    WatchCalcFirmware.processAction(str, engine: engine, lfuManager: lfu)
+    if let newMenu = CalculatorMenu(rawValue: finalOp.stringValue) {
+        activeMenu = newMenu
+        menuAlphaQuery = ""
+        menuItemsDisplayCache = newMenu.items
+    }
+    else if finalOp.stringValue.hasPrefix("LFU_") {
+        let index = parseUInt(String(finalOp.stringValue.dropFirst(4))) ?? 0
+        if let funcName = lfuManager.slots[index] {
+            engine.executeMath(funcName)
+            lfuManager.recordUsage(of: funcName)
+        }
+    }
+    else {
+        if finalOp.stringValue.count == 1, let digit = parseUInt(finalOp.stringValue) {
+            engine.digit(digit)
+        } else if finalOp == .decimal {
+            engine.decimal()
+        } else if finalOp == .toggleSign {
+            engine.toggleSign()
+        } else if finalOp == .enter {
+            engine.enter()
+        } else if finalOp == .backspace || finalOp == .clear || finalOp == .c {
+            engine.backspace()
+        } else {
+            engine.executeMath(finalOp.stringValue)
+        }
+    }
 }
+
 
     static let engine = CalculatorEngine()
     static let lfuManager = LFUManager()
@@ -202,6 +262,17 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     static var needsDisplay = true
     static var lastActivityTime: UInt64 = 0
     static var isSleeping = false
+
+    // UI States
+    static var isShowingFullPrecision = false
+    static var isShowingRegisters = false
+    static var regsOffset = 0
+    
+    enum C47Mode {
+        case none, solve, integrate, plot, xeq
+    }
+    static var c47Mode: C47Mode = .none
+    static var c47Program: Program? = nil
 
     @inline(never)
     static func loopIteration() {
@@ -222,20 +293,23 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                     needsDisplay = true
                 }
                 
-                print("X: ", terminator: "")
-                for ch in engine.displayX.utf8 {
-                    putchar_c(Int32(ch))
+                putchar_c(88); putchar_c(58); putchar_c(32) // "X: "
+                engine.displayXBuffer.withUnsafeBufferPointer { ptr in
+                    for i in 0..<engine.displayXLength {
+                        putchar_c(Int32(ptr[i]))
+                    }
                 }
                 putchar_c(10) // \n
-                
                 let yValue = engine.stack.count > 1 ? engine.stack[1].real : 0.0
+                
                 print("Y: ", terminator: "")
                 for ch in engine.formatNumber(yValue).utf8 {
                     putchar_c(Int32(ch))
                 }
                 putchar_c(10) // \n
                 
-                print("================================")
+                for _ in 0..<32 { putchar_c(61) } // "================================"
+                putchar_c(10) // \n
             } else if ch == 8 || ch == 127 {
                 if uartLen > 0 {
                     uartLen -= 1
@@ -260,13 +334,105 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 return
             }
             
-            let menuActive = activeMenu != nil || waitingForMenuDigit != nil
+
+            let yBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
+            defer { yBuffer.deallocate() }
             
-            // 1. Draw Menu (bottom area)
+            if isShowingFullPrecision {
+                let valStr = String(engine.stack.first?.real ?? 0.0)
+                var lineY = 4
+                var i = 0
+                let maxChars = 14
+                while i < valStr.count {
+                    let start = valStr.index(valStr.startIndex, offsetBy: i)
+                    let end = valStr.index(start, offsetBy: min(maxChars, valStr.count - i))
+                    renderer.drawString(String(valStr[start..<end]), x: 2, y: lineY, size: .medium, color: true)
+                    lineY += 12
+                    i += maxChars
+                }
+                renderer.buffer.withUnsafeBufferPointer { ptr in display_send_buffer(ptr.baseAddress!) }
+                needsDisplay = false
+                return
+            }
+            
+            if isShowingRegisters {
+                let getRegVal: (Int) -> Double = { idx in
+                    if idx < 4 {
+                        return engine.stack.count > idx ? engine.stack[idx].real : 0.0
+                    } else {
+                        let vIdx = idx - 4
+                        if vIdx < 26 {
+                            let c = String(Character(UnicodeScalar(65 + vIdx)!))
+                            return engine.variables[c]?.real ?? 0.0
+                        }
+                        return 0.0
+                    }
+                }
+                let getRegName: (Int) -> String = { idx in
+                    if idx == 0 { return "X:" }
+                    if idx == 1 { return "Y:" }
+                    if idx == 2 { return "Z:" }
+                    if idx == 3 { return "T:" }
+                    let vIdx = idx - 4
+                    if vIdx < 26 { return "\(String(Character(UnicodeScalar(65 + vIdx)!))):" }
+                    return "?:"
+                }
+                
+                for i in 0..<4 {
+                    let regIdx = regsOffset + (3 - i)
+                    let name = getRegName(regIdx)
+                    let val = getRegVal(regIdx)
+                    format_double_c(val, yBuffer, 64)
+                    var len = 0
+                    while len < 64 && yBuffer[len] != 0 { len += 1 }
+                    let valStr = String(decoding: UnsafeBufferPointer(start: yBuffer, count: len), as: UTF8.self)
+                    renderer.drawString("\(name) \(valStr)", x: 2, y: 4 + (i * 12), size: .small, color: true)
+                }
+                
+                renderer.buffer.withUnsafeBufferPointer { ptr in display_send_buffer(ptr.baseAddress!) }
+                needsDisplay = false
+                return
+            }
+            
+            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none
+            
+            // 1. Draw Menu (bottom area y=53)
             if let menu = activeMenu {
                 renderer.renderMenu(menu: menu, query: menuAlphaQuery)
+            } else if c47Mode != .none {
+                var items: [MenuItem] = []
+                if c47Program == nil {
+                    for prog in engine.programs {
+                        items.append(MenuItem(label: prog.label, action: "C47_PRG_\(prog.label)"))
+                    }
+                } else {
+                    var vars = Set<String>()
+                    for step in c47Program!.steps {
+                        if step.count == 1 && step.first!.isLetter { vars.insert(step) }
+                        else if step.hasPrefix("STO ") { vars.insert(String(step.dropFirst(4))) }
+                        else if step.hasPrefix("RCL ") { vars.insert(String(step.dropFirst(4))) }
+                    }
+                    for v in vars.sorted() {
+                        let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
+                        let label = hasVal ? "✓\(v)" : ">\(v)"
+                        items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
+                    }
+                    if c47Mode == .plot || c47Mode == .xeq {
+                        items.append(MenuItem(label: "EXEC", action: "C47_EXEC"))
+                    }
+                }
+                
+                let segmentWidth = items.count > 0 ? 128 / min(6, items.count) : 128
+                for i in 0..<min(6, items.count) {
+                    let item = items[i]
+                    let xOffset = i * segmentWidth
+                    renderer.drawRect(x: xOffset + 1, y: 53, w: segmentWidth - 2, h: 10, color: true)
+                    let textW = item.label.count * FontData.Tiny.charWidth
+                    let textX = xOffset + (segmentWidth - textW) / 2
+                    renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: true)
+                }
             } else if let pending = waitingForMenuDigit {
-                renderer.drawString("\(pending.action) _", x: 2, y: 52, size: .small, color: true)
+                renderer.drawString("\(pending.action) _", x: 2, y: 53, size: .tiny, color: true)
             } else if !menuActive && !engine.isGeneratingPlot && !engine.isPlotLoading {
                 renderer.renderLFU(manager: lfuManager)
             }
@@ -281,7 +447,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             }
             if engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha {
                 let cursorX = startX + (engine.displayXLength * FontData.Small.charWidth)
-                renderer.drawChar(Character(UnicodeScalar(95)!), x: cursorX, y: 28, size: displayFont, color: true) // '_' is ASCII 95
+                _ = renderer.drawChar(95, x: cursorX, y: 28, size: displayFont, color: true) // '_' is ASCII 95
             }
             
             // 3. Draw Indicators
@@ -297,6 +463,23 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             if engine.angleMode == .rad {
                 renderer.drawString("RAD", x: indX, y: indY, size: .small)
                 indX += 30
+            } else if engine.angleMode == .grad {
+                renderer.drawString("GRAD", x: indX, y: indY, size: .small)
+                indX += 36
+            }
+            if engine.baseMode == .hex {
+                renderer.drawString("HEX", x: indX, y: indY, size: .small)
+                indX += 30
+            } else if engine.baseMode == .oct {
+                renderer.drawString("OCT", x: indX, y: indY, size: .small)
+                indX += 30
+            } else if engine.baseMode == .bin {
+                renderer.drawString("BIN", x: indX, y: indY, size: .small)
+                indX += 30
+            }
+            if engine.complexMode {
+                renderer.drawString("CMPLX", x: indX, y: indY, size: .small)
+                indX += 42
             }
             if engine.isHypPending {
                 renderer.drawString("HYP", x: indX, y: indY, size: .small)

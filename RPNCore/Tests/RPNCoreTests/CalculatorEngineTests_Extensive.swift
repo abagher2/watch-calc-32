@@ -95,7 +95,7 @@ final class CalculatorEngineTests_Extensive: XCTestCase {
         engine.executeMath("HEX")
         engine.submitAlpha("A")
         engine.submitAlpha("B")
-        XCTAssertEqual(engine.currentInput, "AB")
+        XCTAssertEqual(engine.displayX, "AB")
         engine.commitInput()
         XCTAssertEqual(engine.stack[0].real, 171.0) // 0xAB is 171
     }

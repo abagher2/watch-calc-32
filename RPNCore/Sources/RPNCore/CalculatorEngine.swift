@@ -1,3 +1,10 @@
+#if hasFeature(Embedded)
+@_silgen_name("strtod")
+func strtod(_ nptr: UnsafePointer<CChar>, _ endptr: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Double
+#else
+import Foundation
+#endif
+
 #if !hasFeature(Embedded)
 import Foundation
 import Observation
@@ -195,6 +202,7 @@ public class CalculatorEngine {
     public var requestPlotPrompt: Bool = false
     public var isPlotLoading: Bool = false
     public var plotData: [(Double, Double)] = []
+    public var plotMarkers: [(Double, Double)] = []
     public var isStatPlot: Bool = false
     public var isPlotSRequested: Bool = false
     public var autoReturnToMainPad: Bool = true
@@ -232,6 +240,7 @@ public class CalculatorEngine {
             currentInputLength += 1
         }
     }
+
 
     private var currentExponent: String = ""
     private var isBuildingImaginary: Bool = false
@@ -788,12 +797,18 @@ public class CalculatorEngine {
     
     public func commitInput() {
         if isBuildingNumber {
-            var valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
+            var decimalCount = 0
+            for i in 0..<currentInputLength {
+                if currentInputBuffer[i] == 46 { decimalCount += 1 }
+            }
             var val = 0.0
-            if valString.split(separator: Character(".")).map({ String($0) }).count == 3 {
-                 val = parseFractionString(valString)
+            
+            if decimalCount == 2 {
+                let valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
+                val = parseFractionString(valString)
             } else {
                 if baseMode != .dec {
+                    let valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
                     let radix: Int
                     switch baseMode {
                     case .hex: radix = 16
@@ -801,16 +816,36 @@ public class CalculatorEngine {
                     case .bin: radix = 2
                     default: radix = 10
                     }
-                    if let parsedInt = parseInt64(valString, radix: radix) {
+                    if let parsedInt = Int64(valString, radix: radix) {
                         val = Double(parsedInt)
                     } else {
                         val = 0.0
                     }
                 } else {
+                    #if hasFeature(Embedded)
+                    var tempBuffer = currentInputBuffer
+                    var tempLength = currentInputLength
+                    if isBuildingExponent {
+                        tempBuffer[tempLength] = 101 // 'e'
+                        for char in currentExponent.utf8 {
+                            tempLength += 1
+                            tempBuffer[tempLength] = char
+                        }
+                        tempLength += 1
+                    }
+                    tempBuffer[tempLength] = 0
+                    val = tempBuffer.withUnsafeBufferPointer { ptr in
+                        ptr.baseAddress!.withMemoryRebound(to: CChar.self, capacity: tempLength + 1) { cptr in
+                            strtod(cptr, nil)
+                        }
+                    }
+                    #else
+                    var valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
                     if isBuildingExponent {
                         valString += "e\(currentExponent)"
                     }
                     val = parseDouble(valString) ?? 0.0
+                    #endif
                 }
             }
             
@@ -1012,7 +1047,22 @@ public class CalculatorEngine {
         }
     }
 
+    public func executeOp(_ operation: CalculatorOperation) {
+        executeMath(operation.stringValue)
+    }
+
     public func executeMath(_ operation: String) {
+        if isWaitingForLabel {
+            if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
+                cancelAlpha()
+            }
+            return
+        }
+        
+        handleCommand(operation)
+    }
+    
+    public func handleCommand(_ operation: String) {
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
@@ -1045,6 +1095,22 @@ public class CalculatorEngine {
         }
         
         lfuManager.recordUsage(of: operation)
+        if operation.hasPrefix("SF ") {
+            if let f = Int(operation.dropFirst(3)), f >= 0 && f < 12 { flags[f] = true }
+            return
+        }
+        if operation.hasPrefix("CF ") {
+            if let f = Int(operation.dropFirst(3)), f >= 0 && f < 12 { flags[f] = false }
+            return
+        }
+        if operation.hasPrefix("FS? ") {
+            if let f = Int(operation.dropFirst(4)), f >= 0 && f < 12 { performTest(flags[f]) }
+            return
+        }
+        if operation.hasPrefix("FC? ") {
+            if let f = Int(operation.dropFirst(4)), f >= 0 && f < 12 { performTest(!flags[f]) }
+            return
+        }
         
         if operation == "PRGM" {
             if isEquationMode {
@@ -1131,6 +1197,9 @@ public class CalculatorEngine {
                 updateDisplay()
             } else if operation == "RCL" {
                 startRcl()
+            } else {
+                appendToEquation(operation)
+                updateDisplay()
             }
             return
         }
@@ -1207,6 +1276,13 @@ public class CalculatorEngine {
         }
         
         switch operation {
+        case "e": push(CalculatorValue(real: 2.718281828459045))
+        case "c": push(CalculatorValue(real: 299792458))
+        case "h": push(CalculatorValue(real: 6.62607015e-34))
+        case "k": push(CalculatorValue(real: 1.380649e-23))
+        case "G": push(CalculatorValue(real: 6.67430e-11))
+        case "Na": push(CalculatorValue(real: 6.02214076e23))
+        case "R": push(CalculatorValue(real: 8.314462618))
         case ">DEG":
             if stack.count > 0 { stack[0].real = stack[0].real * 180.0 / .pi }
         case ">RAD":
@@ -1288,9 +1364,29 @@ public class CalculatorEngine {
                 if stack.count > 0 { stack[0] = CalculatorValue() }
             }
         case "CLEAR":
-            stack = [CalculatorValue(), CalculatorValue(), CalculatorValue(), CalculatorValue()]
+            if stack.count > 0 {
+                stack[0] = CalculatorValue()
+            }
             currentInputLength = 0
             isBuildingNumber = false
+        case "CLALL":
+            clearAll()
+            return
+        case "CLREGS":
+            clearVars()
+            return
+        case "CLΣ":
+            clearStats()
+            return
+        case "RTN":
+            if isProgrammingMode {
+                currentProgramSteps.append("RTN")
+                updateProgramDisplay()
+            }
+            return
+        case "SCRL":
+            // Scroll logic handled by UI, no-op for engine
+            return
         case "x<>y", "𝑥><𝑦":
             swapXY()
             return
@@ -1442,20 +1538,30 @@ public class CalculatorEngine {
         case "->mi": unaryOp { CalculatorValue(real: $0.real / 1.609344) }
         
         // Advanced Math (HP-32SII Parity)
-        case "Pn,r": 
+        case "Pn,r", "nPr": 
             if stack.count > 1 {
-                if stack[0].real < 0 || stack[1].real < 0 || stack[0].real != floor(stack[0].real) || stack[1].real != floor(stack[1].real) { errorMessage = "INVALID DATA"; return }
+                let y = stack[1].real
+                let x = stack[0].real
+                if y < 0 || x < 0 || y < x || y != floor(y) || x != floor(x) { 
+                    errorMessage = "INVALID DATA"
+                    return 
+                }
             }
             binaryOp { CalculatorValue(real: tgamma($1.real + 1) / tgamma($1.real - $0.real + 1)) }
-        case "Cn,r": 
+        case "Cn,r", "nCr": 
             if stack.count > 1 {
-                if stack[0].real < 0 || stack[1].real < 0 || stack[0].real != floor(stack[0].real) || stack[1].real != floor(stack[1].real) { errorMessage = "INVALID DATA"; return }
+                let y = stack[1].real
+                let x = stack[0].real
+                if y < 0 || x < 0 || y < x || y != floor(y) || x != floor(x) { 
+                    errorMessage = "INVALID DATA"
+                    return 
+                }
             }
             binaryOp { CalculatorValue(real: tgamma($1.real + 1) / (tgamma($0.real + 1) * tgamma($1.real - $0.real + 1))) }
             
         case "MOD":
             if stack.count > 0 && stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
-            binaryOp { CalculatorValue(real: $1.real.truncatingRemainder(dividingBy: $0.real)) }
+            binaryOp { CalculatorValue(real: $1.real - $0.real * floor($1.real / $0.real)) }
             
         case "INT÷":
             if stack.count > 0 && stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
@@ -1469,8 +1575,8 @@ public class CalculatorEngine {
             stackLiftEnabled = true
             updateDisplay()
             
-        case "R#": commitInput(); pushToStack(CalculatorValue(real: Double.random(in: 0..<1)))
-        case "SD":
+        case "RAND", "R#": commitInput(); pushToStack(CalculatorValue(real: Double.random(in: 0..<1)))
+        case "SEED", "SD":
             if stack.count > 0 { srand48(Int(stack[0].real)); drop() }
         
         case "m": calculateSlope()
@@ -1530,6 +1636,7 @@ public class CalculatorEngine {
         stackLiftEnabled = true
     }
 
+    @inline(__always)
     private func binaryOp(_ op: (CalculatorValue, CalculatorValue) -> CalculatorValue) {
         let x = stack.count > 0 ? stack[0] : CalculatorValue()
         let y = stack.count > 1 ? stack[1] : CalculatorValue()
@@ -1587,6 +1694,7 @@ public class CalculatorEngine {
         return true
     }
     
+    @inline(__always)
     private func complexUnaryOp(_ op: (CalculatorValue) -> CalculatorValue) {
         let xr = stack.count > 0 ? stack[0].real : 0.0
         let yi = stack.count > 1 ? stack[1].real : 0.0
@@ -1601,6 +1709,7 @@ public class CalculatorEngine {
         stack[1] = CalculatorValue(real: result.imag)
     }
     
+    @inline(__always)
     private func complexBinaryOp(_ op: (CalculatorValue, CalculatorValue) -> CalculatorValue) {
         let x1r = stack.count > 0 ? stack[0].real : 0.0
         let y1i = stack.count > 1 ? stack[1].real : 0.0
@@ -1645,32 +1754,79 @@ public class CalculatorEngine {
             
             // plotData.removeAll()
             plotData.removeAll()
+            plotMarkers.removeAll()
+            
+            let prog: Program?
+            if let label = currentProgramLabel.isEmpty ? nil : currentProgramLabel,
+               let p = programs.first(where: { $0.label == label }) {
+                prog = p
+            } else if let firstProgram = programs.first {
+                prog = firstProgram
+            } else {
+                prog = nil
+            }
+            
+            let evalFunc: (Double) -> Double? = { xVal in
+                if let program = prog {
+                    var vars = self.variables
+                    vars[variable] = CalculatorValue(real: xVal)
+                    return self.evaluateProgram(program, variables: vars)?.real
+                } else {
+                    return (1.0 / sqrt(2.0 * Double.pi)) * exp(-pow(xVal, 2) / 2.0)
+                }
+            }
+            
+            // Senary Search for Roots
+            let senarySegments = 6
+            let senaryStep = (xmax - xmin) / Double(senarySegments)
+            var prevX = xmin
+            var prevY = evalFunc(prevX)
+            
+            if let pY = prevY, abs(pY) < 1e-10 {
+                plotMarkers.append((prevX, pY))
+            }
+            
+            for i in 1...senarySegments {
+                let currX = xmin + Double(i) * senaryStep
+                let currY = evalFunc(currX)
+                
+                if let pY = prevY, let cY = currY {
+                    if pY * cY < 0 {
+                        // Sign change -> Binary Search
+                        var low = prevX
+                        var high = currX
+                        var rootY = 0.0
+                        var rootX = (low + high) / 2.0
+                        for _ in 0..<30 { // up to 30 iterations for precision
+                            rootX = (low + high) / 2.0
+                            if let midY = evalFunc(rootX) {
+                                rootY = midY
+                                if abs(midY) < 1e-10 { break }
+                                if pY * midY < 0 {
+                                    high = rootX
+                                } else {
+                                    low = rootX
+                                    prevY = midY // Update prevY logic contextually for bounds
+                                }
+                            } else {
+                                break
+                            }
+                        }
+                        plotMarkers.append((rootX, rootY))
+                    } else if abs(cY) < 1e-10 {
+                        plotMarkers.append((currX, cY))
+                    }
+                }
+                prevX = currX
+                prevY = currY
+            }
             
             let steps = 100
             let stepSize = (xmax - xmin) / Double(steps)
             
             for i in 0...steps {
                 let x = xmin + Double(i) * stepSize
-                var vars = variables
-                vars[variable] = CalculatorValue(real: x)
-                
-                let prog: Program?
-                if let label = currentProgramLabel.isEmpty ? nil : currentProgramLabel,
-                   let p = programs.first(where: { $0.label == label }) {
-                    prog = p
-                } else if let firstProgram = programs.first {
-                    prog = firstProgram
-                } else {
-                    prog = nil
-                }
-                
-                if let program = prog {
-                    if let result = self.evaluateProgram(program, variables: vars) {
-                        plotData.append((x, result.real))
-                    }
-                } else {
-                    // Demo fallback: Normal PDF
-                    let y = (1.0 / sqrt(2.0 * Double.pi)) * exp(-pow(x, 2) / 2.0)
+                if let y = evalFunc(x) {
                     plotData.append((x, y))
                 }
             }
@@ -1703,7 +1859,7 @@ public class CalculatorEngine {
         self.stackLiftEnabled = true
         
         // Clear stack for the program
-        self.stack.removeAll()
+        self.stack = Array(repeating: CalculatorValue(), count: self.stackSizeLimit)
         
         if let emptyVar = variables[""] {
             self.push(emptyVar)
@@ -1724,10 +1880,14 @@ public class CalculatorEngine {
                         self.pushToStack(self.stack[0]) // Push stack
                     }
                     self.isBuildingNumber = true
+                    self.currentInputLength = 0
                 }
-                                let bytes = Array(step.utf8)
-                self.currentInputLength = min(bytes.count, 64)
-                for j in 0..<self.currentInputLength { self.currentInputBuffer[j] = bytes[j] }
+                let bytes = Array(step.utf8)
+                let lengthToAdd = min(bytes.count, 64 - self.currentInputLength)
+                for j in 0..<lengthToAdd {
+                    self.currentInputBuffer[self.currentInputLength + j] = bytes[j]
+                }
+                self.currentInputLength += lengthToAdd
             } else if let val = variables[step] {
                 self.push(val)
                 self.stackLiftEnabled = true
@@ -1790,6 +1950,7 @@ public class CalculatorEngine {
         }
     }
     
+    @inline(__always)
     private func unaryOp(_ op: (CalculatorValue) -> CalculatorValue) {
         let x = stack.count > 0 ? stack[0] : CalculatorValue()
         lastX = x
@@ -2364,8 +2525,10 @@ public class CalculatorEngine {
     }
     
     private func updateStackStrings() {
+        #if !hasFeature(Embedded)
         let logicalStack = getLogicalStack()
         stackStrings = logicalStack.map { $0.isComplex ? "\(formatNumber($0.real)) + \(formatNumber($0.imag))i" : formatNumber($0.real) }
+        #endif
     }
 
     public func getLogicalStack() -> [CalculatorValue] {
@@ -2430,7 +2593,7 @@ public class CalculatorEngine {
         return derivative
     }
 
-    public func solve(for variable: String, program: Program) -> Double? {
+    public func solve(for variable: String, program: Program, target: Double = 0.0) -> Double? {
         let maxIterations = 100
         let tolerance = 1e-7
         var x0 = variables[variable]?.real ?? 0.0
@@ -2438,10 +2601,10 @@ public class CalculatorEngine {
         var vars = variables
         
         vars[variable] = CalculatorValue(real: x0)
-        var f0 = evaluateProgram(program, variables: vars)?.real ?? 0.0
+        var f0 = (evaluateProgram(program, variables: vars)?.real ?? 0.0) - target
         
         vars[variable] = CalculatorValue(real: x1)
-        var f1 = evaluateProgram(program, variables: vars)?.real ?? 0.0
+        var f1 = (evaluateProgram(program, variables: vars)?.real ?? 0.0) - target
         
         for _ in 0..<maxIterations {
             if abs(f1 - f0) < 1e-14 { break }
@@ -2456,7 +2619,7 @@ public class CalculatorEngine {
             x1 = x2
             
             vars[variable] = CalculatorValue(real: x1)
-            f1 = evaluateProgram(program, variables: vars)?.real ?? 0.0
+            f1 = (evaluateProgram(program, variables: vars)?.real ?? 0.0) - target
         }
         
         return nil

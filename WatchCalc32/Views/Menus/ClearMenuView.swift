@@ -24,7 +24,7 @@ struct ClearMenuView: View {
                 }
                 
                 Button("Clear Stack (STK)") {
-                    engine.executeMath("CLEAR")
+                    engine.executeOp(.clear)
                     dismiss()
                 }
             }

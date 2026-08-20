@@ -14,7 +14,7 @@ struct HapticNumpadView: View {
     @State private var lastTextureLocation: CGPoint = .zero
     @State private var hasPlayedCenterPopForCurrentKey: Bool = false
     
-    var onMenuAction: ((String) -> Void)?
+    var onMenuAction: ((CalculatorOperation) -> Void)?
     var keys: [HP32Key] = HP32KeyMap.standardGrid
     
     var body: some View {
@@ -49,7 +49,7 @@ struct HapticNumpadView: View {
                     ButtonView(key: key, isHovered: hoveredKey == key, width: w, height: buttonHeight)
                         .frame(width: w, height: buttonHeight)
                         .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(key.label.isEmpty ? key.action : key.label)
+                        .accessibilityLabel(key.label.isEmpty ? (key.primaryAction?.stringValue ?? "") : key.label)
                         .accessibilityAddTraits(.isButton)
                         .accessibilityIdentifier(identifier(for: key))
                         .accessibilityAction {
@@ -80,11 +80,12 @@ struct HapticNumpadView: View {
     }
     
     private func identifier(for key: HP32Key) -> String {
-        if key.action == "SHIFT_YELLOW" { return "btn_yellow_shift" }
-        if key.action == "SHIFT_BLUE" { return "btn_blue_shift" }
-        if key.action == "ENTER" { return "invisible_ENTER" }
-        if Int(key.action) != nil || key.action == "." { return "btn_\(key.action)" }
-        return "func_\(key.action)"
+        if key.primaryAction == .shiftYellow { return "btn_yellow_shift" }
+        if key.primaryAction == .shiftBlue { return "btn_blue_shift" }
+        if key.primaryAction == .enter { return "invisible_ENTER" }
+        let actStr = key.primaryAction?.stringValue ?? ""
+        if Int(actStr) != nil || actStr == "." { return "btn_\(actStr)" }
+        return "func_\(actStr)"
     }
     
     private func handleDrag(location: CGPoint, size: CGSize) {
@@ -189,34 +190,22 @@ struct HapticNumpadView: View {
         if Date().timeIntervalSince(lastActionTime) < 0.1 { return }
         lastActionTime = Date()
         
-        print("UI_TEST_DEBUG: executing action for key: \(key.action) label: \(key.label)")
-        if key.action == "SHIFT_YELLOW" {
+        let opToExecute: CalculatorOperation?
+        switch engine.shiftState {
+        case 1: opToExecute = key.yellowAction ?? key.primaryAction
+        case 2: opToExecute = key.blueAction ?? key.primaryAction
+        default: opToExecute = key.primaryAction
+        }
+        
+        guard let command = opToExecute else { return }
+        
+        print("UI_TEST_DEBUG: executing action for key: \(command) label: \(key.label)")
+        if command == .shiftYellow {
             engine.shiftState = (engine.shiftState == 1) ? 0 : 1
-        } else if key.action == "SHIFT_BLUE" {
+        } else if command == .shiftBlue {
             engine.shiftState = (engine.shiftState == 2) ? 0 : 2
         } else {
-            var command = key.action
-            if engine.isWaitingForAlpha && !key.alphaLabel.isEmpty {
-                command = key.alphaLabel
-            } else if engine.shiftState == 1 && !key.yellowLabel.isEmpty {
-                command = key.yellowLabel
-            } else if engine.shiftState == 2 && !key.blueLabel.isEmpty {
-                command = key.blueLabel
-            }
-            
-            // Resolve LFU functions before executing
-            if command.hasPrefix("LFU_") {
-                let slot = Int(command.dropFirst(4)) ?? 0
-                command = engine.lfuManager.getFunction(for: slot)
-            }
-
-            // Normalize "invisible_ENTER" (accessibility alias) → "ENTER"
-            if command == "invisible_ENTER" || command == "ENT" { command = "ENTER" }
-
-            // mapOp + dispatchKey are in Shared/KeyActionDispatcher.swift
-            let mapped = mapOp(command)
-            dispatchKey(mapped, engine: engine, onMenuAction: onMenuAction)
-
+            dispatchKey(command, engine: engine, onMenuAction: onMenuAction)
             engine.shiftState = 0
         }
     }
@@ -248,24 +237,24 @@ struct ButtonView: View {
     }
     
     var resolvedLabel: String {
-        if key.action.hasPrefix("LFU_") {
-            let slot = Int(key.action.dropFirst(4)) ?? 0
+        if let primary = key.primaryAction, primary.rawValue >= CalculatorOperation.lfu0.rawValue && primary.rawValue <= CalculatorOperation.lfu5.rawValue {
+            let slot = primary.rawValue - CalculatorOperation.lfu0.rawValue
             return uiLabel(for: engine.lfuManager.getFunction(for: slot))
         }
         return key.label
     }
     
     var resolvedYellowLabel: String {
-        if key.yellowLabel.hasPrefix("LFU_") {
-            let slot = Int(key.yellowLabel.dropFirst(4)) ?? 0
+        if let yellow = key.yellowAction, yellow.rawValue >= CalculatorOperation.lfu0.rawValue && yellow.rawValue <= CalculatorOperation.lfu5.rawValue {
+            let slot = yellow.rawValue - CalculatorOperation.lfu0.rawValue
             return uiLabel(for: engine.lfuManager.getFunction(for: slot))
         }
         return key.yellowLabel
     }
 
     var resolvedBlueLabel: String {
-        if key.blueLabel.hasPrefix("LFU_") {
-            let slot = Int(key.blueLabel.dropFirst(4)) ?? 0
+        if let blue = key.blueAction, blue.rawValue >= CalculatorOperation.lfu0.rawValue && blue.rawValue <= CalculatorOperation.lfu5.rawValue {
+            let slot = blue.rawValue - CalculatorOperation.lfu0.rawValue
             return uiLabel(for: engine.lfuManager.getFunction(for: slot))
         }
         return key.blueLabel
@@ -273,11 +262,11 @@ struct ButtonView: View {
 
     var body: some View {
         let _ = engine.lfuManager.slots
-        let isYellowShift = key.action == "SHIFT_YELLOW"
-        let isBlueShift = key.action == "SHIFT_BLUE"
-        let isClear = key.action == "CLEAR"
+        let isYellowShift = key.primaryAction == .shiftYellow
+        let isBlueShift = key.primaryAction == .shiftBlue
+        let isClear = key.primaryAction == .clear
         
-        let isDigit = Int(key.action) != nil || key.action == "."
+        let isDigit = key.primaryAction?.stringValue.count == 1 && key.primaryAction?.stringValue.first?.isNumber == true || key.primaryAction == .decimal
         let baseColor = isDigit ? themeManager.theme.digitKeyColor : themeManager.theme.functionKeyColor
         
         let bgColor = isYellowShift ? themeManager.theme.yellowShiftColor :

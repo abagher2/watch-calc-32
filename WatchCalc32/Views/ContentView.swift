@@ -8,7 +8,6 @@ struct ContentView: View {
     @AppStorage("hasSeenEnterTip") private var hasSeenEnterTip = false
     @State private var showingPlot = false
     @State private var showEquations = false
-    @State private var showStack = false
     @State private var showClearMenu = false
     @State private var showProbMenu = false
     @State private var showPartsMenu = false
@@ -96,8 +95,6 @@ struct ContentView: View {
                                     showProgramEditor = true
                                 } else if engine.isEquationMode {
                                     showEquations = true
-                                } else {
-                                    showStack = true
                                 }
                                 engine.lastCrownValue = new
                             }
@@ -111,7 +108,7 @@ struct ContentView: View {
                             .opacity(0.01)
                         }
                         
-                    BottomNumpadView(showDisp: $showDisp, showModes: $showModes, showTestXY: $showTestXY, showTestX0: $showTestX0, showBaseMenu: $showBaseMenu, showFlagsMenu: $showFlagsMenu, showingPlot: $showingPlot, showPlotPrompt: $showPlotPrompt, showEquations: $showEquations, showShow: $showShow, showFN: $showFN, showSolve: $showSolve, showIntegrate: $showIntegrate, showClearMenu: $showClearMenu, showProbMenu: $showProbMenu, showPartsMenu: $showPartsMenu, showLRMenu: $showLRMenu, showSumsMenu: $showSumsMenu, showMeanMenu: $showMeanMenu, showStdDevMenu: $showStdDevMenu, showMemMenu: $showMemMenu, showXEQ: $showXEQ, showConstMenu: $showConstMenu, showStack: $showStack, horizontalPage: $horizontalPage, verticalPage: $verticalPage)
+                    BottomNumpadView(showDisp: $showDisp, showModes: $showModes, showTestXY: $showTestXY, showTestX0: $showTestX0, showBaseMenu: $showBaseMenu, showFlagsMenu: $showFlagsMenu, showingPlot: $showingPlot, showPlotPrompt: $showPlotPrompt, showEquations: $showEquations, showShow: $showShow, showFN: $showFN, showSolve: $showSolve, showIntegrate: $showIntegrate, showClearMenu: $showClearMenu, showProbMenu: $showProbMenu, showPartsMenu: $showPartsMenu, showLRMenu: $showLRMenu, showSumsMenu: $showSumsMenu, showMeanMenu: $showMeanMenu, showStdDevMenu: $showStdDevMenu, showMemMenu: $showMemMenu, showXEQ: $showXEQ, showConstMenu: $showConstMenu, horizontalPage: $horizontalPage, verticalPage: $verticalPage)
                         .frame(height: totalHeight - (totalHeight * 0.2864) - 8 - toolbarHeight)
                         .clipped()
                 }
@@ -230,10 +227,6 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingPlot) {
             FullScreenPlotView()
-        }
-        .sheet(isPresented: $showStack) {
-            StackPadView { showStack = false }
-                .environment(engine)
         }
         .sheet(isPresented: $showPlotPrompt) {
             PlotPromptView()
@@ -355,10 +348,10 @@ struct ContentView: View {
                         Button("Binary (BIN)") { engine.executeMath("BIN"); showBaseMenu = false }
                     }
                     Section("Bitwise Logic") {
-                        Button("AND") { engine.executeMath("AND"); showBaseMenu = false }
-                        Button("OR") { engine.executeMath("OR"); showBaseMenu = false }
-                        Button("XOR") { engine.executeMath("XOR"); showBaseMenu = false }
-                        Button("NOT") { engine.executeMath("NOT"); showBaseMenu = false }
+                        Button("AND") { engine.executeOp(.and); showBaseMenu = false }
+                        Button("OR") { engine.executeOp(.or); showBaseMenu = false }
+                        Button("XOR") { engine.executeOp(.xor); showBaseMenu = false }
+                        Button("NOT") { engine.executeOp(.not); showBaseMenu = false }
                     }
                 }
                 .navigationTitle("Base")
@@ -460,7 +453,7 @@ struct ContentView: View {
                     engine.shiftState = 0
                 } else {
                     if engine.shiftState == 1 {
-                        engine.executeMath("CLEAR")
+                        engine.executeOp(.clear)
                         engine.shiftState = 0
                     } else {
                         engine.executeMath("C")
@@ -712,9 +705,9 @@ struct PartsMenuSheetView: View {
     var body: some View {
         NavigationStack {
             List {
-                Button("IP (Integer Part)") { engine.executeMath("INTG"); showPartsMenu = false }
-                Button("FP (Fractional Part)") { engine.executeMath("FRAC"); showPartsMenu = false }
-                Button("ABS (Absolute Value)") { engine.executeMath("ABS"); showPartsMenu = false }
+                Button("IP (Integer Part)") { engine.executeOp(.intg); showPartsMenu = false }
+                Button("FP (Fractional Part)") { engine.executeOp(.frac); showPartsMenu = false }
+                Button("ABS (Absolute Value)") { engine.executeOp(.abs); showPartsMenu = false }
             }
             .navigationTitle("PARTS")
             .toolbar {
@@ -733,8 +726,8 @@ struct ProbMenuSheetView: View {
     var body: some View {
         NavigationStack {
             List {
-                Button("Cn,r (Combinations)") { engine.executeMath("Cn,r"); showProbMenu = false }
-                Button("Pn,r (Permutations)") { engine.executeMath("Pn,r"); showProbMenu = false }
+                Button("Cn,r (Combinations)") { engine.executeOp(.nCr); showProbMenu = false }
+                Button("Pn,r (Permutations)") { engine.executeOp(.nPr); showProbMenu = false }
                 Button("SD (Seed Random)") { engine.executeMath("SD"); showProbMenu = false }
                 Button("R# (Random Number)") { engine.executeMath("R#"); showProbMenu = false }
             }
@@ -756,7 +749,7 @@ struct ClearMenuSheetView: View {
         NavigationStack {
             Form {
                 Button("Clear x") { 
-                    engine.executeMath("CLEAR"); 
+                    engine.executeOp(.clear); 
                     showClearMenu = false 
                 }
                 Button("Clear VARS") { 

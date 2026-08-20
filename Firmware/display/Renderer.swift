@@ -30,40 +30,66 @@ public class Renderer {
         case tiny, small, display, medium, large
     }
     
-    public func drawChar(_ c: Character, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
+    public func drawChar(_ scalarValue: UInt32, x: Int, y: Int, size: FontSize = .small, color: Bool = true) -> Int {
         let width: Int
         let height: Int
-        let glyph: [UInt8]?
         
         switch size {
         case .tiny:
             width = FontData.Tiny.charWidth
             height = FontData.Tiny.charHeight
-            glyph = FontData.Tiny.glyph(for: c)
+            if var glyph = FontData.Tiny.glyph(forScalar: scalarValue) {
+                withUnsafeBytes(of: &glyph) { ptr in
+                    let bytes = ptr.bindMemory(to: UInt8.self)
+                    drawGlyphBytes(bytes, width: width, height: height, x: x, y: y, color: color)
+                }
+            }
         case .small:
             width = FontData.Small.charWidth
             height = FontData.Small.charHeight
-            glyph = FontData.Small.glyph(for: c)
+            if var glyph = FontData.Small.glyph(forScalar: scalarValue) {
+                withUnsafeBytes(of: &glyph) { ptr in
+                    let bytes = ptr.bindMemory(to: UInt8.self)
+                    drawGlyphBytes(bytes, width: width, height: height, x: x, y: y, color: color)
+                }
+            }
         case .display:
             width = FontData.Display.charWidth
             height = FontData.Display.charHeight
-            glyph = FontData.Display.glyph(for: c)
+            if var glyph = FontData.Display.glyph(forScalar: scalarValue) {
+                withUnsafeBytes(of: &glyph) { ptr in
+                    let bytes = ptr.bindMemory(to: UInt8.self)
+                    drawGlyphBytes(bytes, width: width, height: height, x: x, y: y, color: color)
+                }
+            }
         case .medium:
             width = FontData.Medium.charWidth
             height = FontData.Medium.charHeight
-            glyph = FontData.Medium.glyph(for: c)
+            if var glyph = FontData.Medium.glyph(forScalar: scalarValue) {
+                withUnsafeBytes(of: &glyph) { ptr in
+                    let bytes = ptr.bindMemory(to: UInt8.self)
+                    drawGlyphBytes(bytes, width: width, height: height, x: x, y: y, color: color)
+                }
+            }
         case .large:
             width = FontData.Large.charWidth
             height = FontData.Large.charHeight
-            glyph = FontData.Large.glyph(for: c)
+            if var glyph = FontData.Large.glyph(forScalar: scalarValue) {
+                withUnsafeBytes(of: &glyph) { ptr in
+                    let bytes = ptr.bindMemory(to: UInt8.self)
+                    drawGlyphBytes(bytes, width: width, height: height, x: x, y: y, color: color)
+                }
+            }
         }
         
-        guard let glyph = glyph else { return }
-        
+        return width
+    }
+    
+    private func drawGlyphBytes(_ bytes: UnsafeBufferPointer<UInt8>, width: Int, height: Int, x: Int, y: Int, color: Bool) {
         let bytesPerRow = (width + 7) / 8
         for row in 0..<height {
             for byteIdx in 0..<bytesPerRow {
-                let rowByte = glyph[row * bytesPerRow + byteIdx]
+                let rowByte = bytes[row * bytesPerRow + byteIdx]
                 for bitIdx in 0..<8 {
                     let col = byteIdx * 8 + bitIdx
                     if col < width {
@@ -102,9 +128,7 @@ public class Renderer {
         }
         
         for i in 0..<length {
-            let scalar = UnicodeScalar(buffer[i])
-            let char = Character(scalar)
-            drawChar(char, x: cursorX, y: y, size: size, color: color)
+            _ = drawChar(UInt32(buffer[i]), x: cursorX, y: y, size: size, color: color)
             cursorX += width
         }
     }
@@ -120,8 +144,8 @@ public class Renderer {
         case .large: width = FontData.Large.charWidth
         }
         
-        for c in str {
-            drawChar(c, x: cursorX, y: y, size: size, color: color)
+        for scalar in str.unicodeScalars {
+            _ = drawChar(scalar.value, x: cursorX, y: y, size: size, color: color)
             cursorX += width
         }
     }
@@ -168,8 +192,12 @@ public class Renderer {
     public func renderLFU(manager: LFUManager) {
         let segmentWidth = 128 / 6
         for i in 0..<6 {
-            guard let funcName = manager.slots[i] else { continue }
             let xOffset = i * segmentWidth
+            
+            // Always show the LFU keys even if blank
+            drawRect(x: xOffset + 1, y: 53, w: segmentWidth - 2, h: 10, color: true)
+            
+            guard let funcName = manager.slots[i] else { continue }
             
             let textW = funcName.count * FontData.Tiny.charWidth
             let textX = xOffset + (segmentWidth - textW) / 2

@@ -143,4 +143,36 @@ final class CalculatorEngineTests_Math: XCTestCase {
         XCTAssertEqual(engine.stack[0].real, 25.0, accuracy: 0.0001)
         XCTAssertEqual(engine.stack[1].real, 40.0, accuracy: 0.0001)
     }
+    
+    func testMathPermutationsAndCombinations() {
+        // 5 P 2 = 20
+        typeAndEnter("5")
+        type("2")
+        engine.executeMath("nPr")
+        XCTAssertEqual(engine.stack[0].real, 20.0, accuracy: 0.0001)
+        
+        // 5 C 2 = 10
+        typeAndEnter("5")
+        type("2")
+        engine.executeMath("nCr")
+        XCTAssertEqual(engine.stack[0].real, 10.0, accuracy: 0.0001)
+        
+        // Test INVALID DATA
+        typeAndEnter("2")
+        type("5")
+        engine.executeMath("nPr")
+        XCTAssertEqual(engine.errorMessage, "INVALID DATA")
+        engine.errorMessage = nil
+    }
+    
+    func testMathRandom() {
+        engine.executeMath("RAND")
+        let val = engine.stack[0].real
+        XCTAssertTrue(val >= 0 && val < 1)
+        
+        // Seed test
+        typeAndEnter("42")
+        engine.executeMath("SEED")
+        XCTAssertEqual(engine.stack[0].real, 0.0) // seed drops it
+    }
 }

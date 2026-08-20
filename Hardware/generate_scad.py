@@ -70,22 +70,28 @@ for r_idx, row in enumerate(rows):
         b['h']     = 5.0
 
 # ─────────────────────────────────────────────────────────
-# Global constants
+# Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
-fp_w   = pcb_width  + 8    # faceplate width
+WALL   = 1.7   # Base wall thickness
+cw     = pcb_width  + 8    # chassis width (78.65)
+fp_w   = cw - 2*WALL       # faceplate width matches inner cavity (75.25)
 fp_h   = pcb_height + 8    # faceplate height
 corner = 6.0
+
+# Internal Component Heights (mm)
+TACTILE_H = 1.5   # Tactile switch height above PCB (Switch Gap)
+PCB_T     = 1.6   # PCB thickness
+BATT_H    = 3.2   # Battery thickness (e.g. CR2032)
+plate_t   = 4.0   # Faceplate base thickness
+
+# Calculate required chassis depth to securely fit all components
+# Total Depth = Faceplate(4.0) + Switch Gap(1.5) + PCB(1.6) + Battery Clearance(3.2) + Back Wall(1.7) = 12.0mm
+CHASSIS_D = plate_t + TACTILE_H + PCB_T + BATT_H + WALL
 
 EINK_W = 65.0   # module width  (mm)
 EINK_H = 30.2   # module height (mm)
 disp_x = fp_w / 2
 disp_y = (disp['y'] + 4) if disp else (fp_h - EINK_H / 2 - 5)
-
-H_TOP  = 10.0    # chassis depth (flat, uniform — no taper)
-H_BOT  = 10.0    # same as H_TOP (flat chassis)
-WALL   = 2.0
-CHASSIS_D = 10.0  # chassis depth shorthand
-
 PCB_SCREW_INSET = 5.0
 chassis_screws = [
     (5.0, 5.0), (fp_w - 5.0, 5.0),
@@ -102,8 +108,7 @@ def generate_scad():
     # Plungers are at Z=0 (printing directly on bed).
     # Micro-supports bridge plunger and faceplate wall at Z=0.
     # ═══════════════════════════════════════════════════════
-    gap         = 0.35   # print-in-place clearance
-    plate_t     = 4.0    # faceplate base thickness
+    gap         = 0.40   # print-in-place clearance (0.40mm for FDM)
     rim_h       = 4.0    # protective rim wall height above plate surface (keeps buttons safe)
     plunger_h   = 1.0    # Z=0.0 to 1.0
     stem_h      = 0.5    # Z=1.0 to 1.5
@@ -119,7 +124,7 @@ def generate_scad():
 // WatchCalc 32 Faceplate — Print FACE-UP
 // Back of faceplate is on Z=0 (build plate). Keys face up.
 // Micro-supports connect plungers to faceplate for stability.
-$fn = 60;
+$fn = 24;
 fp_w = {fp_w:.3f};
 fp_h = {fp_h:.3f};
 cr   = {corner};
@@ -144,10 +149,11 @@ module key_button(w, h, label) {{
     button_flange(w, h, 0);
 
     // Z=4.5 to 6.0 : Upper Stem (rounded)
+    // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
     translate([0, 0, {plunger_h + stem_h + diamond_h}])
         hull() {{
-            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                translate([x, y, 0]) cylinder(r=1.0, h={up_stem_h});
+            for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
+                translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
         }}
     // Z=6.0 to 8.5 : Key Cap (Flat, rounded chiclet style)
     translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
@@ -185,10 +191,10 @@ module button_flange(w, h, gap) {{
     // Upper half contracts smoothly to rounded rectangle
     translate([0, 0, {plunger_h + stem_h + diamond_h/2}])
         hull() {{
-            cube([dw, dh, 0.01], center=true);
+            cube([dw, dh, 0.1], center=true);
             translate([0, 0, {diamond_h/2}])
                 for(x=[-bw/2+1.0, bw/2-1.0], y=[-bh/2+1.0, bh/2-1.0])
-                    translate([x, y, 0]) cylinder(r=1.0 + gap, h=0.01);
+                    translate([x, y, 0]) cylinder(r=1.0 + gap, h=0.1);
         }}
 }}
 
@@ -201,17 +207,20 @@ module button_pocket(x, y, w, h) {{
         translate([0, 0, {(plunger_h + stem_h)/2}])
             cube([{pw} + GAP*2, {ph} + GAP*2, {plunger_h + stem_h}], center=true);
 
-        // Flange cavity: Hull of unpressed and pressed (-1.0mm) states
-        hull() {{
-            button_flange(w, h, GAP);
-            translate([0, 0, -1.0]) button_flange(w, h, GAP);
-        }}
-
-        // Upper hole: Must cut all the way through faceplate top
-        translate([0, 0, {plunger_h + stem_h + diamond_h}])
+        // Flange cavity: Simplified straight extrusion from Z=0.5 to Z=3.0
+        // Avoids computationally explosive CSG hulling of multiple button_flange states.
+        translate([0, 0, 0.5])
             hull() {{
                 for(dx=[-(w)/2+1.0, (w)/2-1.0], dy=[-(h)/2+1.0, (h)/2-1.0])
-                    translate([dx, dy, 0]) cylinder(r=1.0 + GAP, h={up_stem_h + 1.0}); // Extra height to break through
+                    translate([dx, dy, 0]) cylinder(r=1.5 + GAP, h=2.5);
+            }}
+
+        // Upper hole: Must cut all the way through faceplate top
+        // Matches the 1.5mm inset of the up_stem to create a thick retention lip.
+        translate([0, 0, {plunger_h + stem_h + diamond_h}])
+            hull() {{
+                for(dx=[-(w)/2+1.5, (w)/2-1.5], dy=[-(h)/2+1.5, (h)/2-1.5])
+                    translate([dx, dy, 0]) cylinder(r=0.5 + GAP, h={up_stem_h + 1.0}); // Extra height to break through
             }}
     }}
 }}
@@ -268,10 +277,12 @@ faceplate();
 // Render buttons and micro-supports
 color("Silver") {
 """
+    pad_x = (fp_w - pcb_width) / 2
+    pad_y = (fp_h - pcb_height) / 2
     for row in rows:
         for b in row:
-            ox = b['x'] + 4
-            oy = b['y'] + 4
+            ox = b['x'] + pad_x
+            oy = b['y'] + pad_y
             faceplate += f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
             faceplate += f"    micro_supports({ox:.3f}, {oy:.3f}, {b['w']}, {b['h']});\n"
 
@@ -282,31 +293,28 @@ color("Silver") {
 
 
     # ═══════════════════════════════════════════════════════
-    # CHASSIS — FLAT SLEEVE STYLE
+    # CHASSIS — CLOSED-TOP, BOTTOM-LOADING
     # ═══════════════════════════════════════════════════════
-    # Print orientation: stand on the keypad (bottom) edge.
-    #   Z=0 = keypad end (on build plate), Z=ch = display/top end
-    #   Front face (Y=0) open for faceplate. Back face (Y=D) solid + battery door.
-    #   PCB slides in from top (Z=ch). Cradled by left/right PCB rails.
-    #   Side grooves on left (X=0) and right (X=cw) walls accept sliding cover rails.
-    #   M3 corner screw posts: straight holes (no angle — chassis is flat).
+    # Print orientation: display end (Z=ch) face-down on build plate.
+    #   Z=0 = keypad end (OPEN — end cap seals here)
+    #   Z=ch = display end (SOLID ceiling — sits on build plate)
+    #   Front face (Y=0) open for faceplate. Back face (Y=D) solid.
+    #   PCB slides in from bottom (Z=0). Cradled by left/right PCB rails.
+    #   End cap at Z=0 secures assembly with lateral M3 screws.
     #
-    #   Total assembled thickness: CHASSIS_D(10) + plate_t(4) = 14mm target.
+    #   Total assembled thickness: CHASSIS_D(12) + plate_t(4) front = ~16mm.
 
     import math
     D        = CHASSIS_D
-    STANDOFF = 1.2
-    PCB_T    = 1.6
-    plate_t  = 4.0
     GCW = 2.0; GCD = 1.5; GR = 1.5; GY = 3.0
     junc_z = fp_h / 3.0
     batt_w = 40; batt_h = 25
     batt_z = fp_h - WALL - 30
 
     chassis = f"""
-// WatchCalc 32 Chassis — v7
-$fn = 40;
-cw   = {fp_w:.3f};
+// WatchCalc 32 Chassis — v8 (Closed Top, Bottom-Loading)
+$fn = 24;
+cw   = {cw:.3f};
 ch   = {fp_h:.3f};
 D    = {D:.3f};
 wall = {WALL:.3f};
@@ -317,87 +325,84 @@ junc = {junc_z:.2f};
 module chassis_shell() {{
     difference() {{
         cube([cw, D, ch]);
+        
+        // 1. Tier 1: Faceplate Cavity (Y = 0 to plate_t)
+        // Faceplate sits entirely in this front pocket.
+        // Open at Z=0 (bottom) for loading. Stops at Z=ch-wall (ceiling).
         translate([wall, -0.1, -0.1])
-            cube([cw - 2*wall, D - wall + 0.1, ch - wall + 0.1]);
+            cube([cw - 2*wall, {plate_t} + 0.1, ch - wall + 0.1]);
+            
+        // 2. Tier 2: Switch Gap (Y = plate_t to plate_t + TACTILE_H)
+        // Narrower to provide a backstop ledge for Faceplate and front-stop for PCB.
+        translate([wall + 6.0, {plate_t}, -0.1])
+            cube([cw - 2*wall - 12.0, {TACTILE_H}, ch - wall + 0.1]);
+            
+        // 3. Tier 3: PCB Slot (Y = plate_t + TACTILE_H to + PCB_T)
+        // Wider than Tier 2/4 to create a captive rail for the PCB to slide down into.
+        // PCB width is exactly fp_w - 8 (which is cw - 2*wall - 8).
+        translate([wall + 4.0, {plate_t} + {TACTILE_H}, -0.1])
+            cube([cw - 2*wall - 8.0, {PCB_T}, ch - wall + 0.1]);
+            
+        // 4. Tier 4: Battery & Component Clearance (Y = PCB end to back wall)
+        // Narrower again to provide the backstop rail for the PCB.
+        translate([wall + 6.0, {plate_t} + {TACTILE_H} + {PCB_T}, -0.1])
+            cube([cw - 2*wall - 12.0, D - wall - ({plate_t} + {TACTILE_H} + {PCB_T}) + 0.1, ch - wall + 0.1]);
     }}
-}}
-module pcb_rails() {{
-    rl = 1.5; 
-    // 1. Faceplate Rail (Back of faceplate)
-    fp_y = {plate_t:.1f};
-    translate([wall, fp_y, 0])
-        cube([rl, 1.0, ch - wall]);
-    translate([cw - wall - rl, fp_y, 0])
-        cube([rl, 1.0, ch - wall]);
-
-    // 2. PCB Rail (Back of PCB)
-    // Starts at Z=22.0 to safely clear the cap_posts (screw receivers)
-    pcb_y = fp_y + {PCB_T:.1f};
-    translate([wall, pcb_y, 22.0])
-        cube([rl, 1.0, ch - wall - 22.0]);
-    translate([cw - wall - rl, pcb_y, 22.0])
-        cube([rl, 1.0, ch - wall - 22.0]);
-}}
-module pcb_standoff() {{
-    // Removed to allow bottom access for PCB/Faceplate sliding
 }}
 module rim_walls() {{
-    rim_d = 4.0;
+    // DM32/HP32SII-style protective bezel around front face.
+    // Extends forward from Y=0 by rim_d (4mm) — flush with faceplate surface.
+    // Buttons are recessed ~1.2mm below the rim top (2.8mm vs 4mm).
+    // Calculator can lie face-down without buttons touching surface.
+    rim_d = {plate_t};   // 4.0mm — matches faceplate thickness
+    lip_w = 1.5;         // inner retention lip width (overlaps faceplate edge)
+    // Left rim wall (full height)
     translate([0, -rim_d, 0])        cube([wall, rim_d, ch]);
+    // Right rim wall (full height)
     translate([cw-wall, -rim_d, 0])  cube([wall, rim_d, ch]);
-    // Bottom rim removed for full slide access
+    // Top crossbar (display end) — completes the bezel
     translate([0, -rim_d, ch-wall])  cube([cw, rim_d, wall]);
-}}
-module cap_posts() {{
-    py = D - wall - 1.5;
-    // Left post tapers into the wall to prevent overhangs when printed inverted
-    hull() {{
-        translate([wall + 4, py, 0]) cylinder(d=7, h=14);
-        translate([wall, py + 1.5, 14 + 7]) cube([0.1, 0.1, 0.1]);
-    }}
-    // Right post tapers into the wall
-    hull() {{
-        translate([cw - wall - 4, py, 0]) cylinder(d=7, h=14);
-        translate([cw - wall, py + 1.5, 14 + 7]) cube([0.1, 0.1, 0.1]);
-    }}
+    // Bottom is OPEN — end cap provides the bottom lip of the bezel.
+
+    // ── INNER RETENTION LIPS (picture-frame rabbet) ─────────────
+    // These lips overlap the faceplate front edge by lip_w (1.5mm),
+    // preventing the faceplate from falling forward out of the cavity.
+    // They sit at Y=-lip_w to Y=0 (behind the rim, in front of faceplate).
+    // Left inner lip (Z=0 to Z=ch-wall, full faceplate height)
+    translate([wall, -lip_w, 0])        cube([lip_w, lip_w, ch - wall]);
+    // Right inner lip
+    translate([cw-wall-lip_w, -lip_w, 0])  cube([lip_w, lip_w, ch - wall]);
+    // Top inner lip (Z=ch-wall-lip_w to Z=ch-wall, full width minus walls)
+    translate([wall, -lip_w, ch-wall-lip_w])  cube([cw - 2*wall, lip_w, lip_w]);
 }}
 module railway_grooves() {{
     // 2 straight grooves for the sliding cover
-    translate([-0.1, GY, 0])          cube([GCD+0.1, GCW, ch]);
-    translate([cw-GCD, GY, 0])        cube([GCD+0.1, GCW, ch]);
-}}
-module battery_door_rails() {{
-    // Replaced with simple interior ledge in chassis hole
-}}
+    translate([-0.1, GY, 0])          cube([GCD+0.1, GCW, ch]);\n    translate([cw-GCD, GY, 0])        cube([GCD+0.1, GCW, ch]);\n}}
 module chassis() {{
     difference() {{
         union() {{
-            chassis_shell(); pcb_rails(); pcb_standoff();
-            cap_posts(); rim_walls();
-            // Screw post tab inside battery cavity
-            // Provides solid plastic behind the inset ledge for the top screw
-            translate([cw/2 - 5, D - wall - 2.0, batt_z + 17])
-                cube([10, 2.5, 8]);
+            chassis_shell();
+            rim_walls();
         }}
-        // Battery opening (Outer recess for door, 1.5mm deep from outer face D)
-        translate([cw/2 - batt_w/2, D - 1.5, batt_z])
-            cube([batt_w, 1.6, batt_h]);
-        // Battery opening (Inner hole for battery, passes through wall)
-        // Leaves 1mm support ledge all around
-        translate([cw/2 - batt_w/2 + 1.0, D - 2.1, batt_z + 1.0])
-            cube([batt_w - 2.0, 2.2, batt_h - 2.0]);
-        // Bottom sliding rail slot (tuck tab under bottom ledge)
-        translate([cw/2 - (batt_w-4)/2, D - 1.5, batt_z - 1.0])
-            cube([batt_w - 4, 1.0, 1.1]);
-
-        py = D - wall - 1.5;
-        translate([wall + 4,      py, -0.1]) cylinder(d=2.6, h=15);
-        translate([cw - wall - 4, py, -0.1]) cylinder(d=2.6, h=15);
-        railway_grooves();
         
-        // Pilot hole for battery door screw
-        translate([cw/2, D - 1.5, batt_z + 21.08])
-            rotate([-90,0,0]) cylinder(d=1.8, h=5);
+        // ── END CAP SIDE-SCREWS ──────────────────────────────────────────────
+        // Secure the end cap from below. Screws enter laterally through the
+        // chassis side walls near the bottom (Z=1.5) and engage bosses
+        // that project upward from the end cap into the chassis cavity.
+        // Y = 2.0 (within Tier 1 faceplate cavity, Y=0 to 4.0)
+        
+        // Left side screw (X=0): countersink + through-bore into boss
+        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=3.4, h=wall+5);   // bore through wall into boss
+        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d1=6.0, d2=3.4, h=1.5);  // countersink
+        
+        // Right side screw (X=cw): countersink + through-bore into boss
+        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d=3.4, h=wall+5);  // bore through wall into boss
+        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d1=6.0, d2=3.4, h=1.5);  // countersink
+        
+        // ── CLOSED TOP ──────────────────────────────────────────────────────
+        // Display end (Z=ch) is now solid. No opening.
+        // PCB + Faceplate slide in from the keypad end (Z=0).
+        // End cap sits below (Z=-3 to Z=0), secured by lateral M3 screws.
     }}
 }}
 chassis();
@@ -416,51 +421,47 @@ chassis();
     # Retention lips on front (Y=0) and back (Y=D) edges grip the edges
     # of the faceplate and PCB to prevent them sliding back out.
 
+    cap_t_val = 3.0      # end cap plate thickness
+    bezel_lip = plate_t   # front lip extends 4mm forward to match bezel
+
     top_cap = f"""
-// WatchCalc 32 Top Cap — v4, keypad end (Z=0)
-// ONE connected body (hull). Retention lips on inner front/back edges.
-// 2x M3 clearance holes in +Z direction matching chassis cap posts.
-// Print flat (this face down on bed).
-$fn = 60;
-cw = {fp_w:.3f};
-D  = {CHASSIS_D:.3f};
-cap_t = 3.0;
-lip_d = 1.5;   // retention lip depth (downward, into chassis)
-lip_t = 1.5;   // retention lip thickness
+// WatchCalc 32 End Cap — v7 (sits BELOW chassis at Z=0)
+// Cap extends from Z=-cap_t to Z=0. Top face flush with chassis bottom.
+// Front lip extends forward to complete DM32-style bezel.
+// Secured by lateral M3 screws through chassis side walls.
+$fn = 24;
+cw    = {cw:.3f};
+D     = {CHASSIS_D:.3f};
+wall  = {WALL:.3f};
+cap_t = {cap_t_val};
+lip_h = {bezel_lip};   // front bezel lip height (matches rim_d)
 
 module top_cap() {{
-    difference() {{
-        union() {{
-            // ── MAIN PLATE (single hull, fully rounded corners) ───────────
+    union() {{
+        difference() {{
+            // ── MAIN PLATE (below chassis, Z=-cap_t to Z=0) ─────────
             hull() {{
                 for(x=[3, cw-3], y=[3, D-3])
-                    translate([x, y, 0]) cylinder(r=3, h=cap_t);
-            }}
-            // ── FRONT RETENTION LIP (grips faceplate bottom edge) ─────────
-            // Lip projects -Z (downward into chassis) from plate underside.
-            // Sits at Y=0 (front face of chassis).
-            hull() {{
-                translate([3, lip_t/2, -lip_d+0.5])   cylinder(r=0.5, h=lip_d);
-                translate([cw-3, lip_t/2, -lip_d+0.5]) cylinder(r=0.5, h=lip_d);
-                translate([3, lip_t/2, -0.5])          cylinder(r=0.5, h=0.5);
-                translate([cw-3, lip_t/2, -0.5])        cylinder(r=0.5, h=0.5);
-            }}
-            // ── BACK RETENTION LIP (grips PCB bottom edge) ────────────────
-            hull() {{
-                translate([3, D-lip_t/2, -lip_d+0.5])   cylinder(r=0.5, h=lip_d);
-                translate([cw-3, D-lip_t/2, -lip_d+0.5]) cylinder(r=0.5, h=lip_d);
-                translate([3, D-lip_t/2, -0.5])           cylinder(r=0.5, h=0.5);
-                translate([cw-3, D-lip_t/2, -0.5])         cylinder(r=0.5, h=0.5);
+                    translate([x, y, -cap_t]) cylinder(r=3, h=cap_t);
             }}
         }}
-        // ── M3 CLEARANCE HOLES (+Z direction, match chassis cap posts) ────
-        translate([6.0,    6.5, -0.1]) cylinder(d=3.4, h=cap_t+1);
-        translate([cw-6.0, 6.5, -0.1]) cylinder(d=3.4, h=cap_t+1);
-        // Countersinks (from the bottom face of the cap, Z=0)
-        translate([6.0,    6.5, -3])   cylinder(d1=6.5, d2=3.4, h=3);
-        translate([cw-6.0, 6.5, -3])   cylinder(d1=6.5, d2=3.4, h=3);
-        // ── Ribbon cable relief notch (display side) ──────────────────────
-        translate([cw/2-10, -0.1, cap_t-1.2]) cube([20, D+0.2, 1.3]);
+        // ── SCREW BOSSES (project upward into Tier 1 cavity) ────────
+        // Positioned within Tier 1 (Y=0 to 4.0) where full inner width is available.
+        // They engage the M3 lateral screws at Z=1.5, Y=2.0.
+        // Left boss
+        difference() {{
+            translate([wall, 0, 0]) cube([4, 4, 3]);
+            translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=wall+5);
+        }}
+        // Right boss
+        difference() {{
+            translate([cw-wall-4, 0, 0]) cube([4, 4, 3]);
+            translate([cw-wall-4-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=wall+5);
+        }}
+        // ── FRONT BEZEL LIP (completes DM32-style rim) ──────────────
+        // Extends forward in -Y, from Z=-wall to Z=0.
+        // This sits flush with the chassis rim_walls at Z=0.
+        translate([0, -lip_h, -wall]) cube([cw, lip_h, wall]);
     }}
 }}
 top_cap();
@@ -496,8 +497,8 @@ top_cap();
 // Full height {cov_h:.1f}mm — slides onto chassis from display end.
 // Wedge foot at keypad end (Z=0) creates 10° desk tilt.
 // Rail tabs inside flanges engage chassis side grooves.
-$fn = 40;
-cw       = {fp_w:.3f};   // chassis width
+$fn = 24;
+cw       = {cw:.3f};   // chassis width
 ch       = {fp_h:.3f};   // chassis height
 D        = {CHASSIS_D:.3f};   // chassis depth
 cov_wall = {cov_wall:.1f};
@@ -569,7 +570,7 @@ c_cover();
     # ═══════════════════════════════════════════════════════
     back_cover = f"""
 // WatchCalc 32 Battery Door (Flat rear sliding track)
-$fn = 60;
+$fn = 24;
 
 module battery_door() {{
     // Print FACE-DOWN: outer visible face is Z=2 (on the bed), lip at Z=0-1 sticks up
@@ -608,7 +609,7 @@ battery_door();
     # ═══════════════════════════════════════════════════════
     buttons_scad = f"""
 // Standalone Keycaps
-$fn = 40;
+$fn = 24;
 module keycap(w, h, label) {{
     // Plunger (Z=-1 to 0)
     translate([0, 0, -0.5]) cube([w - 1.0, h - 1.0, 1.0], center=true);
@@ -653,7 +654,6 @@ if __name__ == "__main__":
         ("faceplate",      "designs/faceplate.scad",      "designs/stl/faceplate.stl"),
         ("chassis",        "designs/chassis.scad",        "designs/stl/chassis.stl"),
         ("top_cap",        "designs/top_cap.scad",        "designs/stl/top_cap.stl"),
-        ("battery_door",   "designs/battery_door.scad",   "designs/stl/battery_door.stl"),
         ("sliding_cover",  "designs/sliding_cover.scad",  "designs/stl/sliding_cover.stl"),
         ("buttons",        "designs/buttons.scad",        "designs/stl/buttons.stl"),
     ]

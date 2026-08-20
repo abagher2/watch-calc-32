@@ -390,7 +390,7 @@ class KeyCommandViewController: UIViewController {
         if cmd == "e" { cmd = "E" }
         if cmd == "*" { cmd = "×" }
         
-        NotificationCenter.default.post(name: NSNotification.Name("iOSMenuTrigger"), object: nil, userInfo: ["command": cmd])
+        NotificationCenter.default.post(name: NSNotification.Name("iOSMenuTrigger"), object: nil, userInfo: ["command": mapOp(cmd)])
     }
 }
 
@@ -410,7 +410,7 @@ struct iOSMenuModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("iOSMenuTrigger"))) { notification in
-                if let command = notification.userInfo?["command"] as? String {
+                if let command = notification.userInfo?["command"] as? CalculatorOperation {
                     handleMenuCommand(command)
                 }
             }
@@ -517,10 +517,10 @@ struct iOSMenuModifier: ViewModifier {
                         }
                     }
                     Section("Bitwise Logic") {
-                        Button("AND") { engine.executeMath("AND"); activeMenu = nil }
-                        Button("OR") { engine.executeMath("OR"); activeMenu = nil }
-                        Button("XOR") { engine.executeMath("XOR"); activeMenu = nil }
-                        Button("NOT") { engine.executeMath("NOT"); activeMenu = nil }
+                        Button("AND") { engine.executeOp(.and); activeMenu = nil }
+                        Button("OR") { engine.executeOp(.or); activeMenu = nil }
+                        Button("XOR") { engine.executeOp(.xor); activeMenu = nil }
+                        Button("NOT") { engine.executeOp(.not); activeMenu = nil }
                     }
                 }.navigationTitle("Base"))
             } else { return AnyView(EmptyView()) }
@@ -578,23 +578,23 @@ struct iOSMenuModifier: ViewModifier {
             .navigationTitle("Linear Reg"))
         case .parts:
             return AnyView(List {
-                Button("Integer Part") { engine.executeMath("INTG"); activeMenu = nil }
-                Button("Fractional Part") { engine.executeMath("FRAC"); activeMenu = nil }
-                Button("Absolute Value") { engine.executeMath("ABS"); activeMenu = nil }
-                Button("Round") { engine.executeMath("RND"); activeMenu = nil }
+                Button("Integer Part") { engine.executeOp(.intg); activeMenu = nil }
+                Button("Fractional Part") { engine.executeOp(.frac); activeMenu = nil }
+                Button("Absolute Value") { engine.executeOp(.abs); activeMenu = nil }
+                Button("Round") { engine.executeOp(.rnd); activeMenu = nil }
             }
             .navigationTitle("Parts"))
         case .prob:
             return AnyView(List {
-                Button("Cn,r (Combinations)") { engine.executeMath("Cn,r"); activeMenu = nil }
-                Button("Pn,r (Permutations)") { engine.executeMath("Pn,r"); activeMenu = nil }
+                Button("Cn,r (Combinations)") { engine.executeOp(.nCr); activeMenu = nil }
+                Button("Pn,r (Permutations)") { engine.executeOp(.nPr); activeMenu = nil }
                 Button("SD (Seed Random)") { engine.executeMath("SD"); activeMenu = nil }
                 Button("R# (Random Number)") { engine.executeMath("R#"); activeMenu = nil }
             }
             .navigationTitle("Probability"))
         case .clear:
             return AnyView(List {
-                Button("Clear X") { engine.executeMath("CLEAR"); activeMenu = nil }
+                Button("Clear X") { engine.executeOp(.clear); activeMenu = nil }
                 Button("Clear Statistics (Σ)") { engine.executeMath("CLΣ"); activeMenu = nil }
                 Button("Clear ALL") { engine.executeMath("CLALL"); activeMenu = nil }
             }
@@ -606,31 +606,31 @@ struct iOSMenuModifier: ViewModifier {
         }
     }
     
-    private func handleMenuCommand(_ command: String) {
+    private func handleMenuCommand(_ command: CalculatorOperation) {
         switch command {
-        case "BASE": activeMenu = .base
-        case "FLAGS": activeMenu = .flags
-        case "x?y": activeMenu = .testXY
-        case "x?0": activeMenu = .testX0
-        case "CLEAR": activeMenu = .clear
-        case "PROB": activeMenu = .prob
-        case "PARTS": activeMenu = .parts
-        case "L.R.": activeMenu = .lr
-        case "SUMS": activeMenu = .sums
-        case "x̄,ȳ": activeMenu = .mean
-        case "s,σ": activeMenu = .stdDev
-        case "REGS": activeMenu = .regs
-        case "MEM": activeMenu = .mem
-        case "CONST": activeMenu = .const
-        case "DISP": activeMenu = .disp
-        case "MODES": activeMenu = .modes
-        case "EQN": activeMenu = .eqn
-        case "FN=": activeMenu = .eqn
-        case "PLOT": activeMenu = .plot
-        case "SHOW": activeMenu = .show
-        case "∫FN": activeMenu = .integrate
-        case "SOLVE": activeMenu = .solve
-        case "XEQ": activeMenu = .xeq
+        case .base: activeMenu = .base
+        case .flags: activeMenu = .flags
+        case .testXY: activeMenu = .testXY
+        case .testX0: activeMenu = .testX0
+        case .clear: activeMenu = .clear
+        case .prob: activeMenu = .prob
+        case .parts: activeMenu = .parts
+        case .lr: activeMenu = .lr
+        case .sums: activeMenu = .sums
+        case .statMean: activeMenu = .mean
+        case .statStdDev: activeMenu = .stdDev
+        case .regs: activeMenu = .regs
+        case .mem: activeMenu = .mem
+        case .const: activeMenu = .const
+        case .disp: activeMenu = .disp
+        case .modes: activeMenu = .modes
+        case .eqn: activeMenu = .eqn
+        case .fnEq: activeMenu = .eqn
+        case .plot: activeMenu = .plot
+        case .show: activeMenu = .show
+        case .integrate: activeMenu = .integrate
+        case .solve: activeMenu = .solve
+        case .xeq: activeMenu = .xeq
         default:
             print("Unhandled iOS Menu: \(command)")
         }

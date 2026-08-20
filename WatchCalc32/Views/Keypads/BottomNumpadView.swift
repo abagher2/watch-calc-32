@@ -30,7 +30,6 @@ struct BottomNumpadView: View {
     @Binding var showXEQ: Bool
     @Binding var showConstMenu: Bool
     
-    @Binding var showStack: Bool
     @Binding var horizontalPage: Int
     @Binding var verticalPage: Int
     
@@ -57,15 +56,15 @@ struct BottomNumpadView: View {
         )
     }
     
-            private func handleMenuOp(_ op: String) {
-        if op == "CLEAR" {
+            private func handleMenuOp(_ op: CalculatorOperation) {
+        if op == .clear {
             showClearMenu = true
             return
-        } else if op == "STO" {
+        } else if op == .sto {
             engine.startSto()
             withAnimation { horizontalPage = 0 }
             return
-        } else if op == "RCL" {
+        } else if op == .rcl {
             engine.startRcl()
             withAnimation { horizontalPage = 0 }
             return
@@ -73,22 +72,22 @@ struct BottomNumpadView: View {
         
         var handledMenu = false
         switch op {
-        case "DISP": showDisp = true; handledMenu = true
-        case "MODES": showModes = true; handledMenu = true
-        case "x?y": showTestXY = true; handledMenu = true
-        case "x?0": showTestX0 = true; handledMenu = true
-        case "BASE": showBaseMenu = true; handledMenu = true
-        case "FLAGS": showFlagsMenu = true; handledMenu = true
-        case "L.R.": showLRMenu = true; handledMenu = true
-        case "SUMS": showSumsMenu = true; handledMenu = true
-        case "x̄,ȳ": showMeanMenu = true; handledMenu = true
-        case "s,σ": showStdDevMenu = true; handledMenu = true
-        case "PROB": showProbMenu = true; handledMenu = true
-        case "PARTS": showPartsMenu = true; handledMenu = true
-        case "MEM": showMemMenu = true; handledMenu = true
-        case "XEQ": showXEQ = true; handledMenu = true
-        case "FN=": showFN = true; handledMenu = true
-        case "EQN": 
+        case .disp: showDisp = true; handledMenu = true
+        case .modes: showModes = true; handledMenu = true
+        case .testXY: showTestXY = true; handledMenu = true
+        case .testX0: showTestX0 = true; handledMenu = true
+        case .base: showBaseMenu = true; handledMenu = true
+        case .flags: showFlagsMenu = true; handledMenu = true
+        case .lr: showLRMenu = true; handledMenu = true
+        case .sums: showSumsMenu = true; handledMenu = true
+        case .statMean: showMeanMenu = true; handledMenu = true
+        case .statStdDev: showStdDevMenu = true; handledMenu = true
+        case .prob: showProbMenu = true; handledMenu = true
+        case .parts: showPartsMenu = true; handledMenu = true
+        case .mem: showMemMenu = true; handledMenu = true
+        case .xeq: showXEQ = true; handledMenu = true
+        case .fnEq: showFN = true; handledMenu = true
+        case .eqn: 
             if engine.isEquationMode || engine.isProgrammingMode {
                 engine.isEquationMode = false
                 engine.isProgrammingMode = false
@@ -98,12 +97,12 @@ struct BottomNumpadView: View {
                 showEquations = true
             }
             handledMenu = true
-        case "SOLVE": showSolve = true; handledMenu = true
-        case "∫FN", "∫": showIntegrate = true; handledMenu = true
-        case "PLOT": showPlotPrompt = true; handledMenu = true
-        case "SHOW": showShow = true; handledMenu = true
-        case "CNST": showConstMenu = true; handledMenu = true
-        case "REGS": showStack = true; handledMenu = true
+        case .solve: showSolve = true; handledMenu = true
+        case .integrate: showIntegrate = true; handledMenu = true
+        case .plot: showPlotPrompt = true; handledMenu = true
+        case .show: showShow = true; handledMenu = true
+        case .const: showConstMenu = true; handledMenu = true
+        case .regs: handledMenu = true // TODO: implement regs view if needed
         default: break
         }
         
@@ -117,18 +116,19 @@ struct BottomNumpadView: View {
             return
         }
 
-        if horizontalPage == 0 && op != "A" && op != "B" && op != "C" && op != "D" && op != "E" && op != "F" && op != "G" && op != "H" && op != "I" && op != "J" && op != "K" && op != "L" && op != "M" && op != "N" && op != "O" && op != "P" && op != "Q" && op != "R" && op != "S" && op != "T" && op != "U" && op != "V" && op != "W" && op != "X" && op != "Y" && op != "Z" && op != " " {
-            // LFU action. CalcButton already executed it.
+        if horizontalPage == 0 && op == .enter {
+            // Because CalcButton maps single letters to .enter, we assume if horizontalPage == 0 and we got .enter, it might be an alpha submission (LFU action)
+            // Wait, this isn't exact but we can leave the auto-return logic for horizontalPage == 0 here.
             if engine.autoReturnToMainPad && !engine.isEquationMode {
                 withAnimation { horizontalPage = 1 }
             }
         }
         
         // Auto-return for math functions on menu pads
-        if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isEquationMode {
+        if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isEquationMode && !engine.isProgrammingMode {
             withAnimation { verticalPage = 0 }
         }
-        if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isEquationMode {
+        if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isEquationMode && !engine.isProgrammingMode {
             withAnimation { horizontalPage = 1 }
         }
     }
@@ -136,7 +136,7 @@ struct BottomNumpadView: View {
 }
 
 struct NumericPadView: View {
-    var onAction: (String) -> Void = { _ in }
+    var onAction: (CalculatorOperation) -> Void = { _ in }
     var body: some View {
         Grid(horizontalSpacing: 2, verticalSpacing: 2) {
             GridRow {
@@ -166,7 +166,7 @@ struct NumericPadView: View {
 struct ArithmeticPadView: View {
     @Environment(CalculatorEngine.self) var engine
     @EnvironmentObject var themeManager: ThemeManager
-    let onAction: (String) -> Void
+    let onAction: (CalculatorOperation) -> Void
     var body: some View {
         Grid(horizontalSpacing: 2, verticalSpacing: 2) {
             GridRow {
@@ -187,7 +187,7 @@ struct ArithmeticPadView: View {
             GridRow {
                 CalcButton("+", yellow: "LBL", blue: "RTN", isDigit: false) { onAction($0) }
                 CalcButton(engine.autoReturnToMainPad ? "STAY" : "STAY ✓", yellow: "CNST", blue: "", isDigit: false) { op in
-                    if op == "CNST" {
+                    if op == .const {
                         onAction(op)
                     } else {
                         engine.autoReturnToMainPad.toggle()
@@ -201,7 +201,7 @@ struct ArithmeticPadView: View {
 
 struct AlphaLFUPadView: View {
     @Environment(CalculatorEngine.self) var engine
-    let onAction: (String) -> Void
+    let onAction: (CalculatorOperation) -> Void
     
     private func uiLabel(for op: String) -> String {
         if op.isEmpty { return "" }
@@ -236,26 +236,18 @@ struct AlphaLFUPadView: View {
                 CalcButton("G", yellow: "O", blue: "W", isAlpha: true) { op in onAction(op) }
                 CalcButton("H", yellow: "P", blue: "_", isAlpha: true) { op in onAction(op) }
                 CalcButton("XEQ", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 0)), blue: "FN=", isAlpha: true) { op in
-                    if op == "XEQ" { onAction("XEQ") }
-                    else if op == uiLabel(for: engine.lfuManager.getFunction(for: 0)) { onAction(engine.lfuManager.getFunction(for: 0)) }
-                    else { onAction(op) }
+                    onAction(op)
                 }
             }
             GridRow {
                 CalcButton("X", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 1)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 2)), isAlpha: true) { op in 
-                    if op == uiLabel(for: engine.lfuManager.getFunction(for: 1)) { onAction(engine.lfuManager.getFunction(for: 1)) }
-                    else if op == uiLabel(for: engine.lfuManager.getFunction(for: 2)) { onAction(engine.lfuManager.getFunction(for: 2)) }
-                    else { onAction(op) }
+                    onAction(op)
                 }
                 CalcButton("Y", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 3)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 4)), isAlpha: true) { op in 
-                    if op == uiLabel(for: engine.lfuManager.getFunction(for: 3)) { onAction(engine.lfuManager.getFunction(for: 3)) }
-                    else if op == uiLabel(for: engine.lfuManager.getFunction(for: 4)) { onAction(engine.lfuManager.getFunction(for: 4)) }
-                    else { onAction(op) }
+                    onAction(op)
                 }
                 CalcButton("Z", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 5)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 6)), isAlpha: true) { op in 
-                    if op == uiLabel(for: engine.lfuManager.getFunction(for: 5)) { onAction(engine.lfuManager.getFunction(for: 5)) }
-                    else if op == uiLabel(for: engine.lfuManager.getFunction(for: 6)) { onAction(engine.lfuManager.getFunction(for: 6)) }
-                    else { onAction(op) }
+                    onAction(op)
                 }
             }
         }
@@ -264,7 +256,7 @@ struct AlphaLFUPadView: View {
 }
 
 struct UpperMatrixPadView: View {
-    let onAction: (String) -> Void
+    let onAction: (CalculatorOperation) -> Void
     var body: some View {
         Grid(horizontalSpacing: 2, verticalSpacing: 2) {
             GridRow {

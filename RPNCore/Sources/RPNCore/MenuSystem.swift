@@ -29,6 +29,9 @@ public enum CalculatorMenu: String, CaseIterable {
     case mem = "MEM"
     case testXY = "x?y"
     case testX0 = "x?0"
+    case statMean = "x̄,ȳ"
+    case statStdDev = "s,σ"
+    case lr = "L.R."
     
     public var items: [MenuItem] {
         switch self {
@@ -66,10 +69,10 @@ public enum CalculatorMenu: String, CaseIterable {
             MenuItem(label: "REGS", action: "CLREGS"), MenuItem(label: "ALL", action: "CLALL")
         ]
         case .parts: return [
-            MenuItem(label: "INT"), MenuItem(label: "FRAC"), MenuItem(label: "ABS"), MenuItem(label: "SGN")
+            MenuItem(label: "INT", action: "INTG"), MenuItem(label: "FRAC"), MenuItem(label: "ABS"), MenuItem(label: "SGN")
         ]
         case .prob: return [
-            MenuItem(label: "nPr"), MenuItem(label: "nCr"), MenuItem(label: "!"), MenuItem(label: "RAND")
+            MenuItem(label: "nPr"), MenuItem(label: "nCr"), MenuItem(label: "!", action: "x!"), MenuItem(label: "RAND")
         ]
         case .sums: return [
             MenuItem(label: "Σx"), MenuItem(label: "Σy"), MenuItem(label: "Σx²"), MenuItem(label: "Σy²"), MenuItem(label: "Σxy"), MenuItem(label: "n")
@@ -82,6 +85,15 @@ public enum CalculatorMenu: String, CaseIterable {
         ]
         case .testXY: return [
             MenuItem(label: "x=y"), MenuItem(label: "x≠y"), MenuItem(label: "x>y"), MenuItem(label: "x<y"), MenuItem(label: "x≥y"), MenuItem(label: "x≤y")
+        ]
+        case .statMean: return [
+            MenuItem(label: "x̄", action: "x-bar"), MenuItem(label: "ȳ", action: "y-bar"), MenuItem(label: "x̄w", action: "xw")
+        ]
+        case .statStdDev: return [
+            MenuItem(label: "sx", action: "s"), MenuItem(label: "sy"), MenuItem(label: "σx", action: "σ"), MenuItem(label: "σy", action: "σy")
+        ]
+        case .lr: return [
+            MenuItem(label: "ŷ", action: "ŷ,r"), MenuItem(label: "x̂", action: "x̂"), MenuItem(label: "r", action: "ŷ,r"), MenuItem(label: "m"), MenuItem(label: "b")
         ]
         case .testX0: return [
             MenuItem(label: "x=0"), MenuItem(label: "x≠0"), MenuItem(label: "x>0"), MenuItem(label: "x<0"), MenuItem(label: "x≥0"), MenuItem(label: "x≤0")
