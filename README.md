@@ -30,25 +30,26 @@ While the basic math and variable storage functions mirror the classic HP-32SII,
 
 ### 1. RPN Equation Editor (Like Programming)
 *Unlike the algebraic equation entry on the HP-32SII, WatchCalc32 equations are entered as raw RPN sequences—providing the power of programming without the overhead of full program memory management.*
-*Note on display formatting: `A 04- RCL X` means you are editing Equation/Label **A**, on step/line **04**, and the instruction is **RCL X**.*
+*Note on display formatting: The display shows the step number followed by the instruction (e.g., `3 RCL X` means step 3 is RCL X).*
 
 *Example: Enter the equation `Y = 56 × X + 3`*
 
 | Keystrokes | Display | Explanation |
 | :--- | :--- | :--- |
-| `[Blue Shift]` `[EQN]` | `EQN List` | Opens the Equation Editor. |
-| `[+]` *(New)* `[A]` | `A 01- _` | Starts a new equation and assigns it to label A. |
-| `5` `6` `[ENTER]` | `A 03- ENTER` | Enters 56 into the RPN sequence. |
-| `[RCL]` `[X]` | `A 04- RCL X` | Recalls variable X. |
-| `[×]` | `A 05- ×` | Multiplies 56 by X. |
-| `3` `[+]` | `A 07- +` | Adds 3 to complete the RPN equation. |
+| `[Blue Shift]` `[EQN]` | `EQN List` | Opens the Equation Editor list. |
+| `[+]` *(New Eq)* | `LBL _` | Starts a new equation and prompts for a label. |
+| `[A]` | `00 LBL A` | Assigns the equation to label A. |
+| `5` `6` `[ENTER]` | `1 56` | Enters 56 into the sequence (step 1). |
+| `[RCL]` `[X]` | `2 RCL X` | Recalls variable X (step 2). |
+| `[×]` | `3 ×` | Multiplies 56 by X (step 3). |
+| `3` `[+]` | `5 +` | Adds 3 to complete the RPN equation (steps 4 and 5). |
 
 ### 2. Equation Plotting
 *Plot the equation you just entered to analyze its behavior visually.*
 
 | Keystrokes | Display | Explanation |
 | :--- | :--- | :--- |
-| `[Blue Shift]` `[EQN]` | `A 01- 56` | Select the equation from the list. |
+| `[Blue Shift]` `[EQN]` | `A 56 RCL X × 3 +` | Select the equation from the list (it displays the full sequence). |
 | `[Yellow Shift]` `[PLOT]` | `Plot Y(X)?` | Prompts for the independent variable to sweep (default X). |
 | `[ENTER]` | `Plotting...` | Renders a high-res, pan/zoomable plot of the equation. |
 
