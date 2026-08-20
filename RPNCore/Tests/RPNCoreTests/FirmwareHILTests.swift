@@ -75,6 +75,23 @@ final class FirmwareHILTests: XCTestCase {
         return output
     }
     
+    func takeScreenshot(name: String) {
+        var cmdStream: Unmanaged<CFWriteStream>?
+        CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault,
+                                           "localhost" as CFString,
+                                           4446,
+                                           nil,
+                                           &cmdStream)
+        if let cfStream = cmdStream?.takeRetainedValue() {
+            let outStream: OutputStream = cfStream
+            outStream.open()
+            let command = "DUMP_SCREEN:\(name)\n"
+            let data = [UInt8](command.utf8)
+            outStream.write(data, maxLength: data.count)
+            outStream.close()
+        }
+    }
+    
     func testMathCorrectness_BasicAddition() {
         sendCommand("3")
         sendCommand("ENTER")
@@ -85,6 +102,8 @@ final class FirmwareHILTests: XCTestCase {
         
         let screen = readScreen(expecting: "X: 7")
         print("SCREEN OUTPUT: \(screen)")
+        
+        takeScreenshot(name: "testMathCorrectness_BasicAddition")
         
         // The VTY display outputs strings like "X: 7" or "X: 7.0000" depending on format
         // We assert the physical display screen received the correct number
@@ -97,6 +116,8 @@ final class FirmwareHILTests: XCTestCase {
         Thread.sleep(forTimeInterval: 0.5) // Wait for output
         let screen = readScreen(expecting: "X: 0")
         print("SCREEN OUTPUT HEX: \(screen)")
+        
+        takeScreenshot(name: "testMenuUsage_ChangeToHex")
         
         // Since HEX mode formats X differently
         // We can just verify the menu interaction didn't crash and returned to normal

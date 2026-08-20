@@ -207,23 +207,16 @@ module button_pocket(x, y, w, h) {{
 }}
 
 module faceplate_body() {{
-    // Base plate
+    // Base plate — rim walls are on chassis now (DM32 style protection)
+    // 0.3mm clearance on all edges allows smooth slide-in from display end
     hull() {{
         translate([cr, cr, 0])           cylinder(r=cr, h=pt);
         translate([fp_w-cr, cr, 0])      cylinder(r=cr, h=pt);
         translate([cr, fp_h-cr, 0])      cylinder(r=cr, h=pt);
         translate([fp_w-cr, fp_h-cr, 0]) cylinder(r=cr, h=pt);
     }}
-    // Protective rim walls (like DM32) — buttons sit recessed inside
-    // Left rim
-    translate([0, 0, pt]) cube([{WALL:.1f}, fp_h, {rim_h}]);
-    // Right rim
-    translate([fp_w - {WALL:.1f}, 0, pt]) cube([{WALL:.1f}, fp_h, {rim_h}]);
-    // Bottom rim
-    translate([0, 0, pt]) cube([fp_w, {WALL:.1f}, {rim_h}]);
-    // Top rim
-    translate([0, fp_h - {WALL:.1f}, pt]) cube([fp_w, {WALL:.1f}, {rim_h}]);
 }}
+
 
 module faceplate() {{
     difference() {{
@@ -252,13 +245,8 @@ module faceplate() {{
             oy = b['y'] + 4
             faceplate += f"        button_pocket({ox:.3f}, {oy:.3f}, {b['w']}, {b['h']});\n"
 
-    faceplate += f"""
-        // Screw holes — chassis to faceplate
-        // Screw holes — chassis to faceplate (M3 threaded hole, blind from front)
-"""
-    for sx, sy in chassis_screws:
-        # Straight M3 tap holes — chassis is flat, no angle needed
-        faceplate += f"        translate([{sx:.3f}, {sy:.3f}, -0.1]) cylinder(d=2.6, h=4.5); // M3 tap\n"
+    # No screw holes in faceplate — top cap lip retains faceplate and PCB
+
 
     faceplate += """
     }
@@ -296,171 +284,154 @@ color("Silver") {
     #   Total assembled thickness: CHASSIS_D(10) + plate_t(4) = 14mm target.
 
     import math
-    D      = CHASSIS_D    # 10.0mm uniform depth
-    RAIL_W = 1.5          # PCB cradle rail width (1.5mm gives 0.5mm clearance each side)
-    STANDOFF = 1.2        # Bottom SMD clearance
+    D        = CHASSIS_D
+    STANDOFF = 1.2
     PCB_T    = 1.6
-    GROOVE_W = 2.5        # Cover rail groove width
-    GROOVE_D = 2.0        # Cover rail groove depth
-    GROOVE_Z = 3.0        # Groove inset from front face
+    plate_t  = 4.0
+    GCW = 2.0; GCD = 1.5; GR = 1.5; GY = 3.0
+    junc_z = fp_h / 3.0
+    batt_w = 40; batt_h = 25
+    batt_z = fp_h - WALL - 30
 
     chassis = f"""
-// WatchCalc 32 Chassis — FLAT SLEEVE
-// Print STANDING on keypad (bottom) edge.
-// Front face open (faceplate covers it). Back face solid with battery door.
-// Side grooves on left/right walls for sliding TPU cover.
-$fn = 60;
-cw   = {fp_w:.3f};   // X width
-ch   = {fp_h:.3f};   // Z height
-D    = {D:.3f};      // Y depth (uniform)
+// WatchCalc 32 Chassis — v7
+$fn = 40;
+cw   = {fp_w:.3f};
+ch   = {fp_h:.3f};
+D    = {D:.3f};
 wall = {WALL:.3f};
-cr   = {corner:.3f};
-PCB_W  = {pcb_width:.3f};
-PCB_H  = {pcb_height:.3f};
-PCB_T  = 1.6;
-STANDOFF = 1.2;
-RAIL_W   = {RAIL_W:.1f};
-GROOVE_W = {GROOVE_W:.1f};  // Cover rail groove width
-GROOVE_D = {GROOVE_D:.1f};  // Cover rail groove depth
-GROOVE_Z = {GROOVE_Z:.1f};  // Groove inset from front face (Y direction)
+batt_w = {batt_w}; batt_h = {batt_h}; batt_z = {batt_z:.2f};
+GCW = {GCW:.1f}; GCD = {GCD:.1f}; GR = {GR:.1f}; GY = {GY:.1f};
+junc = {junc_z:.2f};
 
-// ── OUTER BODY ───────────────────────────────────────────────────────────────
-module chassis_outer() {{
-    hull() {{
-        translate([cr,    cr,    0])     cylinder(r=cr, h=0.01);
-        translate([cw-cr, cr,    0])     cylinder(r=cr, h=0.01);
-        translate([cr,    D-cr,  0])     cylinder(r=cr, h=0.01);
-        translate([cw-cr, D-cr,  0])     cylinder(r=cr, h=0.01);
-        translate([cr,    cr,    ch-cr]) cylinder(r=cr, h=cr);
-        translate([cw-cr, cr,    ch-cr]) cylinder(r=cr, h=cr);
-        translate([cr,    D-cr,  ch-cr]) cylinder(r=cr, h=cr);
-        translate([cw-cr, D-cr,  ch-cr]) cylinder(r=cr, h=cr);
+module chassis_shell() {{
+    difference() {{
+        cube([cw, D, ch]);
+        translate([wall, -0.1, -0.1])
+            cube([cw - 2*wall, D - wall + 0.1, ch - wall + 0.1]);
     }}
 }}
-
-// ── INTERIOR VOID ────────────────────────────────────────────────────────────
-module chassis_interior() {{
-    hull() {{
-        translate([wall+cr,    wall+cr,   wall]) cylinder(r=cr, h=0.01);
-        translate([cw-wall-cr, wall+cr,   wall]) cylinder(r=cr, h=0.01);
-        translate([wall+cr,    D-wall,    wall]) cylinder(r=cr, h=0.01);
-        translate([cw-wall-cr, D-wall,    wall]) cylinder(r=cr, h=0.01);
-        translate([wall+cr,    wall+cr,   ch-wall]) cylinder(r=cr, h=0.01);
-        translate([cw-wall-cr, wall+cr,   ch-wall]) cylinder(r=cr, h=0.01);
-        translate([wall+cr,    D-wall,    ch-wall]) cylinder(r=cr, h=0.01);
-        translate([cw-wall-cr, D-wall,    ch-wall]) cylinder(r=cr, h=0.01);
-    }}
-}}
-
-// ── PCB CRADLE RAILS ─────────────────────────────────────────────────────────
 module pcb_rails() {{
-    // Left rail — 0.5mm clearance each side (RAIL_W=1.5, inner w = PCB_W + 1mm total)
-    translate([wall, wall, wall + STANDOFF])
-        cube([RAIL_W, D - 2*wall, PCB_H + PCB_T + 1.0]);
-    // Right rail
-    translate([cw - wall - RAIL_W, wall, wall + STANDOFF])
-        cube([RAIL_W, D - 2*wall, PCB_H + PCB_T + 1.0]);
+    rl = 1.5; yoff = {plate_t:.1f} + 0.5;
+    translate([wall, yoff, {STANDOFF:.1f}])
+        cube([rl, D - wall - yoff, ch - wall - {STANDOFF:.1f}]);
+    translate([cw - wall - rl, yoff, {STANDOFF:.1f}])
+        cube([rl, D - wall - yoff, ch - wall - {STANDOFF:.1f}]);
 }}
-
-// ── BOTTOM STANDOFF ──────────────────────────────────────────────────────────
-module bottom_standoff() {{
-    translate([wall + RAIL_W, wall, wall])
-        cube([cw - 2*(wall + RAIL_W), D - 2*wall, STANDOFF]);
+module pcb_standoff() {{
+    translate([wall + 1.5, {plate_t:.1f} + 0.5, 0])
+        cube([cw - 2*(wall + 1.5), D - wall - ({plate_t:.1f} + 0.5), {STANDOFF:.1f}]);
 }}
-
-// ── CORNER SCREW POSTS (front rim) ───────────────────────────────────────────
-module screw_posts() {{
-    // 4 solid posts on front rim (Y=0 face), M3 clearance holes drilled in chassis()
-    translate([5.0,    0, 5.0])    cylinder(d=9.0, h=wall + 0.1);
-    translate([cw-5.0, 0, 5.0])   cylinder(d=9.0, h=wall + 0.1);
-    translate([5.0,    0, ch-5.0]) cylinder(d=9.0, h=wall + 0.1);
-    translate([cw-5.0, 0, ch-5.0]) cylinder(d=9.0, h=wall + 0.1);
+module rim_walls() {{
+    rim_d = 4.0;
+    translate([0, -rim_d, 0])        cube([wall, rim_d, ch]);
+    translate([cw-wall, -rim_d, 0])  cube([wall, rim_d, ch]);
+    translate([0, -rim_d, 0])        cube([cw, rim_d, wall]);
+    translate([0, -rim_d, ch-wall])  cube([cw, rim_d, wall]);
 }}
-
-// ── CAP POSTS (top rim) ─────────────────────────────────────────────────────────
 module cap_posts() {{
-    translate([cw/2 - 12, 0, ch-wall]) cylinder(d=7.0, h=wall + 3);
-    translate([cw/2 + 12, 0, ch-wall]) cylinder(d=7.0, h=wall + 3);
+    py = D - wall - 1.5;
+    translate([wall + 4,      py, 0]) cylinder(d=7, h=14);
+    translate([cw - wall - 4, py, 0]) cylinder(d=7, h=14);
 }}
-
-// ── MAIN CHASSIS ───────────────────────────────────────────────────────────────
+module railway_grooves() {{
+    translate([-0.1, GY, 0])          cube([GCD+0.1, GCW, ch]);
+    translate([-0.1, GY+GCW+GR, 0])  cube([GCD+0.1, GCW, ch]);
+    translate([0, GY, junc]) rotate([10,0,0])
+        translate([-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
+    translate([0, GY+GCW+GR, junc]) rotate([10,0,0])
+        translate([-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
+    translate([cw-GCD, GY, 0])          cube([GCD+0.1, GCW, ch]);
+    translate([cw-GCD, GY+GCW+GR, 0])  cube([GCD+0.1, GCW, ch]);
+    translate([cw, GY, junc]) rotate([10,0,0])
+        translate([-GCD-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
+    translate([cw, GY+GCW+GR, junc]) rotate([10,0,0])
+        translate([-GCD-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
+}}
+module battery_door_rails() {{
+    rail_w = 1.0; rail_d = 1.0;
+    translate([cw/2 - batt_w/2 - rail_w, D - wall - rail_d, batt_z - 2])
+        cube([rail_w, rail_d, batt_h + 4]);
+    translate([cw/2 + batt_w/2, D - wall - rail_d, batt_z - 2])
+        cube([rail_w, rail_d, batt_h + 4]);
+}}
 module chassis() {{
     difference() {{
         union() {{
-            difference() {{ chassis_outer(); chassis_interior(); }}
-            pcb_rails();
-            bottom_standoff();
-            screw_posts();
-            cap_posts();
+            chassis_shell(); pcb_rails(); pcb_standoff();
+            cap_posts(); rim_walls(); battery_door_rails();
         }}
-
-        // Battery door slot (back face at Y=D)
-        // Outer slot: 50mm wide, 2mm deep, Z=10 to Z=ch*0.85
-        translate([cw/2 - 25, D - 2.1, 10.0])
-            cube([50, 2.2, ch*0.85 - 10.0]);
-        // Rail groove: 52mm wide, 1mm deep, Z=15 to Z=ch*0.85
-        translate([cw/2 - 26, D - 1.1, 15.0])
-            cube([52, 1.2, ch*0.85 - 15.0]);
-
-        // M2 pilot hole for battery door screw (horizontal through back wall)
-        translate([cw/2, D - 0.1, ch * 0.6])
-            rotate([90, 0, 0]) cylinder(d=2.0, h=wall + 2);
-        // M2 boss countersink (exterior)
-        translate([cw/2, D + 0.1, ch * 0.6])
-            rotate([90, 0, 0]) cylinder(d=6.0, h=3);
-
-        // Faceplate M3 clearance holes (straight — flat chassis, no angle needed)
-        translate([5.0,    0, 5.0])    cylinder(d=3.4, h=wall + 2);
-        translate([cw-5.0, 0, 5.0])   cylinder(d=3.4, h=wall + 2);
-        translate([5.0,    0, ch-5.0]) cylinder(d=3.4, h=wall + 2);
-        translate([cw-5.0, 0, ch-5.0]) cylinder(d=3.4, h=wall + 2);
-
-        // Top cap M3 pilot holes
-        translate([cw/2 - 12, wall/2, ch+1]) rotate([90,0,0]) cylinder(d=2.6, h=wall+5);
-        translate([cw/2 + 12, wall/2, ch+1]) rotate([90,0,0]) cylinder(d=2.6, h=wall+5);
-
-        // Sliding cover rail grooves — on left and right OUTER side walls
-        // Run full height of chassis (Z). Groove at Y=GROOVE_Z from front face.
-        // Left wall groove (at X=0, into +X)
-        translate([-0.1, GROOVE_Z, 0])
-            cube([GROOVE_D + 0.1, GROOVE_W, ch]);
-        // Right wall groove (at X=cw, into -X)
-        translate([cw - GROOVE_D, GROOVE_Z, 0])
-            cube([GROOVE_D + 0.1, GROOVE_W, ch]);
+        translate([cw/2 - batt_w/2, D - wall - 0.1, batt_z])
+            cube([batt_w, wall + 0.2, batt_h]);
+        translate([cw/2 - 5, D - wall - 0.1, ch - wall - 5])
+            cube([10, wall + 0.2, 6]);
+        py = D - wall - 1.5;
+        translate([wall + 4,      py, -0.1]) cylinder(d=2.6, h=15);
+        translate([cw - wall - 4, py, -0.1]) cylinder(d=2.6, h=15);
+        railway_grooves();
     }}
 }}
-
 chassis();
 """
 
     with open("designs/chassis.scad", "w") as f:
         f.write(chassis)
 
+
     # ═══════════════════════════════════════════════════════
-    # TOP CAP (updated for flat chassis — D=10mm uniform)
+    # TOP CAP — at keypad end (Z=0), seals faceplate + PCB
     # ═══════════════════════════════════════════════════════
+    # The cap is placed at the KEYPAD END (bottom of device, Z=0).
+    # Faceplate and PCB slide UP from Z=0, cap seals them in.
+    # 2× M3 screws through cap plate in +Z direction into chassis cap posts.
+    # Retention lips on front (Y=0) and back (Y=D) edges grip the edges
+    # of the faceplate and PCB to prevent them sliding back out.
+
     top_cap = f"""
-// WatchCalc 32 Top Cap — flat chassis version
-// Seals the display end (Z=ch) of the chassis after PCB insertion.
-// Plate: {fp_w:.2f}mm wide × {CHASSIS_D:.1f}mm deep × 3mm thick.
-// Print flat. 2× M3 countersunk screws into chassis cap posts.
+// WatchCalc 32 Top Cap — v4, keypad end (Z=0)
+// ONE connected body (hull). Retention lips on inner front/back edges.
+// 2x M3 clearance holes in +Z direction matching chassis cap posts.
+// Print flat (this face down on bed).
 $fn = 60;
+cw = {fp_w:.3f};
+D  = {CHASSIS_D:.3f};
+cap_t = 3.0;
+lip_d = 1.5;   // retention lip depth (downward, into chassis)
+lip_t = 1.5;   // retention lip thickness
+
 module top_cap() {{
     difference() {{
-        hull() {{
-            translate([3, 3, 0])                            cylinder(r=3, h=3);
-            translate([{fp_w:.3f}-3, 3, 0])                cylinder(r=3, h=3);
-            translate([3, {CHASSIS_D:.3f}-3, 0])           cylinder(r=3, h=3);
-            translate([{fp_w:.3f}-3, {CHASSIS_D:.3f}-3, 0]) cylinder(r=3, h=3);
+        union() {{
+            // ── MAIN PLATE (single hull, fully rounded corners) ───────────
+            hull() {{
+                for(x=[3, cw-3], y=[3, D-3])
+                    translate([x, y, 0]) cylinder(r=3, h=cap_t);
+            }}
+            // ── FRONT RETENTION LIP (grips faceplate bottom edge) ─────────
+            // Lip projects -Z (downward into chassis) from plate underside.
+            // Sits at Y=0 (front face of chassis).
+            hull() {{
+                translate([3, lip_t/2, -lip_d+0.5])   cylinder(r=0.5, h=lip_d);
+                translate([cw-3, lip_t/2, -lip_d+0.5]) cylinder(r=0.5, h=lip_d);
+                translate([3, lip_t/2, -0.5])          cylinder(r=0.5, h=0.5);
+                translate([cw-3, lip_t/2, -0.5])        cylinder(r=0.5, h=0.5);
+            }}
+            // ── BACK RETENTION LIP (grips PCB bottom edge) ────────────────
+            hull() {{
+                translate([3, D-lip_t/2, -lip_d+0.5])   cylinder(r=0.5, h=lip_d);
+                translate([cw-3, D-lip_t/2, -lip_d+0.5]) cylinder(r=0.5, h=lip_d);
+                translate([3, D-lip_t/2, -0.5])           cylinder(r=0.5, h=0.5);
+                translate([cw-3, D-lip_t/2, -0.5])         cylinder(r=0.5, h=0.5);
+            }}
         }}
-        // Center notch for display ribbon cable (20mm wide)
-        translate([{fp_w/2 - 10:.3f}, -0.1, -0.1]) cube([20, {CHASSIS_D + 0.2:.3f}, 1.5]);
-        // M3 clearance holes
-        translate([{fp_w/2 - 12:.3f}, {CHASSIS_D/2:.3f}, -0.1]) cylinder(d=3.4, h=4.0);
-        translate([{fp_w/2 + 12:.3f}, {CHASSIS_D/2:.3f}, -0.1]) cylinder(d=3.4, h=4.0);
-        // Countersinks
-        translate([{fp_w/2 - 12:.3f}, {CHASSIS_D/2:.3f}, 1.5]) cylinder(d1=3.4, d2=6.5, h=1.5);
-        translate([{fp_w/2 + 12:.3f}, {CHASSIS_D/2:.3f}, 1.5]) cylinder(d1=3.4, d2=6.5, h=1.5);
+        // ── M3 CLEARANCE HOLES (+Z direction, match chassis cap posts) ────
+        translate([8,      {CHASSIS_D/2 - 3:.3f}, -0.1]) cylinder(d=3.4, h=cap_t+1);
+        translate([cw-8.5, {CHASSIS_D/2 - 3:.3f}, -0.1]) cylinder(d=3.4, h=cap_t+1);
+        // Countersinks (from the bottom face of the cap, Z=0)
+        translate([8,      {CHASSIS_D/2 - 3:.3f}, -3])   cylinder(d1=6.5, d2=3.4, h=3);
+        translate([cw-8.5, {CHASSIS_D/2 - 3:.3f}, -3])   cylinder(d1=6.5, d2=3.4, h=3);
+        // ── Ribbon cable relief notch (display side) ──────────────────────
+        translate([cw/2-10, -0.1, cap_t-1.2]) cube([20, D+0.2, 1.3]);
     }}
 }}
 top_cap();
@@ -468,100 +439,99 @@ top_cap();
     with open("designs/top_cap.scad", "w") as f:
         f.write(top_cap)
 
-    # ═══════════════════════════════════════════════════════
-    # SLIDING COVER (TPU, full-length flip-sleeve)
-    # ═══════════════════════════════════════════════════════
-    # The cover is a TPU sleeve that fits over the full calculator.
-    # STORAGE: Calculator slides in from the top. Front wall protects buttons.
-    # DESK STAND (flip operation):
-    #   1. Slide calculator UP and out of the cover.
-    #   2. Flip the cover 180° end-over-end.
-    #   3. Slide calculator back DOWN into the now-inverted cover.
-    #   4. The 10° wedge bevel on the cover FOOT now rests on the desk,
-    #      angling the calculator back at ~10° for comfortable desk viewing.
-    #
-    # Print flat (on the front wall face). PLA filament (v1).
-    # Cover total outer height = fp_h + 4mm (2mm overhang each end).
-    # PLA sliding fit: 0.4mm clearance per side (more than TPU due to rigidity).
-    # No snap detents in v1 — friction fit only (detents require flex).
 
-    cov_wall   = 2.0       # cover wall thickness (thicker for PLA rigidity)
-    cov_clear  = 0.4       # PLA sliding fit clearance per side
-    cov_h      = fp_h + 4  # full length + 2mm each end
-    cov_ow     = fp_w + 2 * (cov_wall + cov_clear)   # outer width
-    cov_od     = CHASSIS_D + 2 * (cov_wall + cov_clear)  # outer depth
-    rail_w     = GROOVE_W - 0.2   # rail tab width (0.1mm clearance per side)
-    rail_d     = GROOVE_D - 0.1   # rail tab depth
-    wedge_len  = 30         # length of wedge foot zone (mm)
-    # At 10 degrees over wedge_len, height difference = wedge_len * tan(10)
+
+
+    # ═══════════════════════════════════════════════════════
+    # C-COVER (back panel + two side flanges, open front)
+    # ═══════════════════════════════════════════════════════
+    # Full-height PLA cover. Protects back + sides of calculator.
+    # In pencil case: snaps over the back (rail tabs in chassis grooves).
+    # On desk: wedge foot at keypad end tilts calculator ~10° toward user.
+    # Screen is protected by chassis rim walls (recessed 4mm).
+
     import math
-    wedge_rise = wedge_len * math.tan(math.radians(10))
+    cov_wall  = 2.0        # wall thickness (PLA)
+    cov_clear = 0.4        # fit clearance per side
+    cov_h     = fp_h + 4   # 155mm — 2mm overhang each end
+    GROOVE_W  = 2.5;  GROOVE_D = 2.0;  GROOVE_Z = 3.0
+    rail_w    = GROOVE_W - 0.2   # rail tab width (0.2mm total clearance)
+    rail_d    = GROOVE_D - 0.1   # rail tab depth (0.1mm clearance)
+    wedge_len = 30
+    wedge_rise = wedge_len * math.tan(math.radians(10))  # 5.29mm at 10°
+    cov_ow    = fp_w + 2 * (cov_wall + cov_clear)        # 83.45mm
 
     cover = f"""
-// WatchCalc 32 Sliding Cover — v1 PRINT IN PLA
-// Full-length sleeve. Flip end-over-end for 10° desk stand.
-// PLA: 0.4mm clearance each side for smooth sliding fit.
-// No snap detents in v1 — friction fit in rail grooves.
-// Print laying flat on the FRONT WALL face.
+// WatchCalc 32 C-Cover — v3 PLA BACK COVER
+// C-shaped: back panel + two side flanges. Open FRONT (buttons/screen accessible).
+// Full height {cov_h:.1f}mm — slides onto chassis from display end.
+// Wedge foot at keypad end (Z=0) creates 10° desk tilt.
+// Rail tabs inside flanges engage chassis side grooves.
 $fn = 40;
-cov_ow   = {cov_ow:.3f};  // outer width
-cov_od   = {cov_od:.3f};  // outer depth
-cov_h    = {cov_h:.3f};  // outer height (full length)
-cov_wall = {cov_wall:.1f};   // wall thickness
-rail_w   = {rail_w:.2f};   // rail tab width
-rail_d   = {rail_d:.2f};   // rail tab depth
-wedge_len = {wedge_len};   // wedge foot zone length (mm)
-wedge_rise = {wedge_rise:.3f};  // height difference across wedge foot
+cw       = {fp_w:.3f};   // chassis width
+ch       = {fp_h:.3f};   // chassis height
+D        = {CHASSIS_D:.3f};   // chassis depth
+cov_wall = {cov_wall:.1f};
+cov_clear= {cov_clear:.1f};
+cov_ow   = {cov_ow:.3f};  // total outer width (including flanges)
+cov_h    = {cov_h:.3f};  // total height
+rail_w   = {rail_w:.2f};  // rail tab width
+rail_d   = {rail_d:.2f};  // rail tab depth
+GROOVE_Z = {GROOVE_Z:.1f};  // groove Y-offset from front face
+wedge_len  = {wedge_len};
+wedge_rise = {wedge_rise:.3f};
 
-module cover() {{
+module c_cover() {{
     difference() {{
         union() {{
-            // ── MAIN SHELL (hollow box, open top and bottom) ──────────────────────
-            difference() {{
-                // Outer shell
-                hull() {{
-                    translate([3, 3, 0])                cylinder(r=3, h=cov_h);
-                    translate([cov_ow-3, 3, 0])         cylinder(r=3, h=cov_h);
-                    translate([3, cov_od-3, 0])         cylinder(r=3, h=cov_h);
-                    translate([cov_ow-3, cov_od-3, 0])  cylinder(r=3, h=cov_h);
-                }}
-                // Inner void: open top and bottom (Z clearance)
-                translate([cov_wall, cov_wall, -0.1])
-                    cube([cov_ow - 2*cov_wall, cov_od - 2*cov_wall, cov_h + 0.2]);
-            }}
+            // ── BACK PANEL ─────────────────────────────────────────────────────
+            // Sits flush against chassis back face (Y=D)
+            translate([-(cov_wall + cov_clear), D + cov_clear, -2])
+                cube([cov_ow, cov_wall, cov_h]);
 
-            // ── INTERIOR RAIL TABS (left and right) ───────────────────────────
-            // Rail tab projects inward from side walls.
-            // Sits at Y = cov_wall + {cov_clear:.2f} + {GROOVE_Z:.1f} to match chassis groove.
-            // Left rail tab
-            translate([cov_wall, cov_wall + {cov_clear + GROOVE_Z:.3f}, 0])
-                cube([rail_d, rail_w, cov_h]);
-            // Right rail tab
-            translate([cov_ow - cov_wall - rail_d, cov_wall + {cov_clear + GROOVE_Z:.3f}, 0])
-                cube([rail_d, rail_w, cov_h]);
+            // ── LEFT FLANGE ────────────────────────────────────────────────────
+            // Wraps around left side of chassis (X<0)
+            translate([-(cov_wall + cov_clear), -cov_clear, -2])
+                cube([cov_wall, D + cov_clear + cov_wall, cov_h]);
+
+            // ── RIGHT FLANGE ───────────────────────────────────────────────────
+            // Wraps around right side of chassis (X=cw)
+            translate([cw + cov_clear, -cov_clear, -2])
+                cube([cov_wall, D + cov_clear + cov_wall, cov_h]);
+
+            // ── BOTTOM END CAP (keypad end, Z=-2) ─────────────────────────────
+            // Solid end cap — becomes the desk stand foot.
+            translate([-(cov_wall + cov_clear), -cov_clear, -2])
+                cube([cov_ow, D + cov_clear + cov_wall, cov_wall]);
         }}
 
-        // ── WEDGE FOOT BEVEL (bottom end, Z=0 to wedge_len) ───────────────────
-        // Cut a 10° bevel off the BACK face of the bottom end only.
-        // When cover is flipped and used as a stand, this face contacts the desk,
-        // angling the calculator ~10° back toward the user.
-        // The bevel is a prism: zero cut at Z=0 (front edge), wedge_rise cut at Z=wedge_len (back edge).
-        translate([0, cov_od - cov_wall - 0.1, 0])
-            rotate([-atan(wedge_rise/wedge_len), 0, 0])
-                translate([0, 0, -0.5])
-                    cube([cov_ow, wedge_rise + 1, wedge_len + 2]);
+        // ── WEDGE FOOT BEVEL ────────────────────────────────────────────────
+        // 10° bevel cut from BACK face of end cap only.
+        // When cover sits on desk, back corner lifts {wedge_rise:.1f}mm → 10° tilt.
+        translate([-(cov_wall + cov_clear + 1),
+                   D + cov_clear - 0.1,
+                   -2 - 1])
+            rotate([-atan(wedge_rise / wedge_len), 0, 0])
+                cube([cov_ow + 2, wedge_rise + 2, wedge_len + 3]);
 
-        // NOTE: Snap detents removed for PLA v1 — friction fit only.
-        // (Detents will be added back for TPU v2 where rail tabs can flex)
+        // ── LEFT RAIL TAB SLOT ──────────────────────────────────────────────
+        // Subtracted from left flange interior — creates inward-facing rail tab.
+        // Rail tab is what remains after the slot is cut.
+        // (Build the tab by geometry, not subtraction — handled in union above)
     }}
+
+    // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
+    // Left flange rail tab
+    translate([-(cov_clear) + cov_wall - cov_wall, GROOVE_Z - cov_clear, -2])
+        cube([rail_d, rail_w, cov_h]);
+    // Right flange rail tab
+    translate([cw + cov_clear, GROOVE_Z - cov_clear, -2])
+        cube([rail_d, rail_w, cov_h]);
 }}
-cover();
+c_cover();
 """
     with open("designs/sliding_cover.scad", "w") as f:
         f.write(cover)
-
-
-
 
 
 

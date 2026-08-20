@@ -69,6 +69,16 @@ public class Renderer {
         }
     }
     
+    public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
+        let width: Int
+        switch size {
+        case .small: width = FontData.Small.charWidth
+        case .medium: width = FontData.Medium.charWidth
+        case .large: width = FontData.Large.charWidth
+        }
+        return str.count * width
+    }
+    
     public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
         var cursorX = x
         let width: Int

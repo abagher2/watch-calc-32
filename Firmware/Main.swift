@@ -23,9 +23,33 @@ struct WatchCalcFirmware {
     static var menuItemsDisplayCache: [MenuItem] = []
 
     static func processAction(_ action: String, engine: CalculatorEngine, lfuManager: LFUManager) {
+        var finalAction = action
+        
+        if finalAction == "SHIFT_YELLOW" {
+            engine.setShift(1)
+            return
+        }
+        if finalAction == "SHIFT_BLUE" {
+            engine.setShift(2)
+            return
+        }
+        
+        if engine.shiftState > 0 {
+            for key in HP32KeyMap.standardGrid {
+                if key.action == action {
+                    if engine.shiftState == 1 { finalAction = key.yellowLabel }
+                    else if engine.shiftState == 2 { finalAction = key.blueLabel }
+                    break
+                }
+            }
+            engine.setShift(0) // Consume shift
+        }
+        
+        if finalAction.isEmpty { return }
+        
         // 1. Check if we are waiting for a numeric parameter (e.g. FIX 4)
         if let pendingItem = waitingForMenuDigit {
-            if let digit = parseUInt(action) {
+            if let digit = parseUInt(finalAction) {
                 engine.executeMath("\(pendingItem.action) \(digit)")
             }
             waitingForMenuDigit = nil
@@ -34,8 +58,8 @@ struct WatchCalcFirmware {
         
         // 2. Check if a Menu is active
         if let menu = activeMenu {
-            if action.hasPrefix("LFU_") {
-                let index = parseUInt(String(action.dropFirst(4))) ?? 0
+            if finalAction.hasPrefix("LFU_") {
+                let index = parseUInt(String(finalAction.dropFirst(4))) ?? 0
                 if index < menuItemsDisplayCache.count {
                     let selected = menuItemsDisplayCache[index]
                     
@@ -52,14 +76,14 @@ struct WatchCalcFirmware {
             
             // Handle Alpha typing for menu search
             if engine.isWaitingForAlpha {
-                if action.count == 1 { // crude alpha check
-                    menuAlphaQuery.append(action)
+                if finalAction.count == 1 { // crude alpha check
+                    menuAlphaQuery.append(finalAction)
                     menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
                     return
                 }
             }
             
-            if action == "<-" || action == "CLEAR" || action == "C" {
+            if finalAction == "<-" || finalAction == "CLEAR" || finalAction == "C" {
                 if !menuAlphaQuery.isEmpty {
                     menuAlphaQuery.removeLast()
                     menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
@@ -71,32 +95,32 @@ struct WatchCalcFirmware {
         }
         
         // 3. Intercept Menu Activation
-        if let newMenu = CalculatorMenu(rawValue: action) {
+        if let newMenu = CalculatorMenu(rawValue: finalAction) {
             activeMenu = newMenu
             menuAlphaQuery = ""
             menuItemsDisplayCache = newMenu.items
         }
         // 4. Handle standard LFU Execution
-        else if action.hasPrefix("LFU_") {
-            let index = parseUInt(String(action.dropFirst(4))) ?? 0
+        else if finalAction.hasPrefix("LFU_") {
+            let index = parseUInt(String(finalAction.dropFirst(4))) ?? 0
             if let funcName = lfuManager.slots[index] {
                 engine.executeMath(funcName)
                 lfuManager.recordUsage(of: funcName)
             }
         }
         // 5. Dispatch to RPNCore
-        else if let digit = parseUInt(action) {
+        else if let digit = parseUInt(finalAction) {
             engine.digit(digit)
-        } else if action == "." {
+        } else if finalAction == "." {
             engine.decimal()
-        } else if action == "+/-" {
+        } else if finalAction == "+/-" {
             engine.toggleSign()
-        } else if action == "ENTER" {
+        } else if finalAction == "ENTER" {
             engine.enter()
-        } else if action == "<-" || action == "CLEAR" || action == "C" {
+        } else if finalAction == "<-" || finalAction == "CLEAR" || finalAction == "C" {
             engine.backspace()
         } else {
-            engine.executeMath(action)
+            engine.executeMath(finalAction)
         }
     }
     
@@ -109,6 +133,44 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     for i in 0..<len {
         str.append(Character(UnicodeScalar(buf[i])))
     }
+    
+    if str == "C" {
+        WatchCalcFirmware.isSleeping = false
+    }
+    
+    if WatchCalcFirmware.isSleeping {
+        return
+    }
+    
+    if str == "OFF" {
+        WatchCalcFirmware.isSleeping = true
+        return
+    }
+    
+    if str.hasPrefix("SET_FLAG_") {
+        let parts = str.split(separator: "_")
+        if parts.count == 4, let flagIdx = parseUInt(String(parts[2])), let flagVal = parseUInt(String(parts[3])) {
+            if flagIdx >= 0 && flagIdx < 12 {
+                engine.flags[flagIdx] = (flagVal == 1)
+            }
+        }
+        return
+    }
+    
+    if str.hasPrefix("SET_STACK_") {
+        if let stackVal = parseUInt(String(str.dropFirst("SET_STACK_".count))) {
+            engine.stackSizeLimit = max(4, stackVal)
+        }
+        return
+    }
+    
+    if str.hasPrefix("SET_EXAM_") {
+        if let examVal = parseUInt(String(str.dropFirst("SET_EXAM_".count))) {
+            engine.isExamMode = (examVal == 1)
+        }
+        return
+    }
+    
     WatchCalcFirmware.processAction(str, engine: engine, lfuManager: lfu)
 }
 
@@ -118,11 +180,21 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     static let uartBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
     static var uartLen = 0
     static var needsDisplay = true
+    static var lastActivityTime: UInt64 = 0
+    static var isSleeping = false
 
     @inline(never)
     static func loopIteration() {
+        let now = hw_time_us()
+        
+        if !isSleeping && now - lastActivityTime > 60_000_000 {
+            isSleeping = true
+            needsDisplay = true
+        }
+        
         let ch = get_uart_char_c()
         if ch >= 0 {
+            lastActivityTime = now
             if ch == 13 || ch == 10 {
                 if uartLen > 0 {
                     dispatchUART(uartBuf, uartLen, engine, lfuManager)
@@ -159,8 +231,40 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         }
         if needsDisplay {
             renderer.clear()
-            renderer.drawString("X: ", x: 2, y: 20, size: .large)
-            renderer.drawString(engine.displayX, x: 30, y: 20, size: .large)
+            
+            if isSleeping {
+                renderer.buffer.withUnsafeBufferPointer { ptr in
+                    display_send_buffer(ptr.baseAddress!)
+                }
+                needsDisplay = false
+                return
+            }
+            
+            // 1. Draw Menu (top area)
+            if let menu = activeMenu {
+                renderer.renderMenu(menu: menu, query: menuAlphaQuery)
+            } else if let pending = waitingForMenuDigit {
+                renderer.drawString("\(pending.action) _", x: 2, y: 5, size: .small, color: true)
+            }
+            
+            // 2. Draw X right-aligned on bottom area
+            var xStr = engine.displayX
+            if engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha {
+                xStr += "_"
+            }
+            let xStrWidth = renderer.getStringWidth(xStr, size: .large)
+            let startX = max(0, 128 - xStrWidth - 2) // 2px padding
+            renderer.drawString(xStr, x: startX, y: 30, size: .large)
+            
+            // 3. Draw Indicators
+            var indX = 2
+            if engine.shiftState == 1 {
+                renderer.drawString("f", x: indX, y: 45, size: .small)
+                indX += 10
+            } else if engine.shiftState == 2 {
+                renderer.drawString("g", x: indX, y: 45, size: .small)
+                indX += 10
+            }
             renderer.buffer.withUnsafeBufferPointer { ptr in
                 display_send_buffer(ptr.baseAddress!)
             }

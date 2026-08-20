@@ -93,7 +93,7 @@ public struct HP32KeyMap {
         HP32Key(row: 6, col: 4, rowSpan: 1, label: "-", yellowLabel: "▸l", blueLabel: "▸gal", alphaLabel: "", action: "-"),
         
         // Row 7 (5 cols)
-        HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "", alphaLabel: "", action: "C"),
+        HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", action: "C"),
         HP32Key(row: 7, col: 1, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", action: "0"),
         HP32Key(row: 7, col: 2, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", action: "."),
         HP32Key(row: 7, col: 3, rowSpan: 1, label: "PLOT", yellowLabel: "CONST", blueLabel: "", alphaLabel: "", action: "PLOT"),
@@ -145,7 +145,7 @@ public struct HP32KeyMap {
         HP32Key(row: 2, col: 10, rowSpan: 1, label: "-", yellowLabel: "▸l", blueLabel: "▸gal", alphaLabel: "", action: "-"),
         
         // Row 3
-        HP32Key(row: 3, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "", alphaLabel: "", action: "C"),
+        HP32Key(row: 3, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", action: "C"),
         HP32Key(row: 3, col: 1, rowSpan: 1, label: "yellow", yellowLabel: "", blueLabel: "", alphaLabel: "", action: "SHIFT_YELLOW"),
         HP32Key(row: 3, col: 2, rowSpan: 1, label: "blue", yellowLabel: "", blueLabel: "", alphaLabel: "", action: "SHIFT_BLUE"),
         HP32Key(row: 3, col: 3, rowSpan: 1, label: "x<>y", yellowLabel: "MEM", blueLabel: "𝑥><?", alphaLabel: "N", action: "𝑥><𝑦"),

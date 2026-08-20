@@ -6,3 +6,4 @@
 
 int get_uart_char_c();
 void putchar_c(int ch);
+uint64_t hw_time_us(void);

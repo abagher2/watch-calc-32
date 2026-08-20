@@ -103,3 +103,7 @@ void sleep_ms_c(uint32_t ms) {
 int get_uart_char_c(void) {
     return getchar_timeout_us(0);
 }
+
+uint64_t hw_time_us(void) {
+    return time_us_64();
+}
