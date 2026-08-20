@@ -327,82 +327,88 @@ module chassis_shell() {{
         cube([cw, D, ch]);
         
         // 1. Tier 1: Faceplate Cavity (Y = 0 to plate_t)
-        // Faceplate sits entirely in this front pocket.
-        // Open at Z=0 (bottom) for loading. Stops at Z=ch-wall (ceiling).
         translate([wall, -0.1, -0.1])
             cube([cw - 2*wall, {plate_t} + 0.1, ch - wall + 0.1]);
             
         // 2. Tier 2: Switch Gap (Y = plate_t to plate_t + TACTILE_H)
-        // Narrower to provide a backstop ledge for Faceplate and front-stop for PCB.
         translate([wall + 6.0, {plate_t}, -0.1])
             cube([cw - 2*wall - 12.0, {TACTILE_H}, ch - wall + 0.1]);
             
         // 3. Tier 3: PCB Slot (Y = plate_t + TACTILE_H to + PCB_T)
-        // Wider than Tier 2/4 to create a captive rail for the PCB to slide down into.
-        // PCB width is exactly fp_w - 8 (which is cw - 2*wall - 8).
         translate([wall + 4.0, {plate_t} + {TACTILE_H}, -0.1])
             cube([cw - 2*wall - 8.0, {PCB_T}, ch - wall + 0.1]);
             
-        // 4. Tier 4: Battery & Component Clearance (Y = PCB end to back wall)
-        // Narrower again to provide the backstop rail for the PCB.
+        // 4. Tier 4: Battery & Component Clearance
         translate([wall + 6.0, {plate_t} + {TACTILE_H} + {PCB_T}, -0.1])
             cube([cw - 2*wall - 12.0, D - wall - ({plate_t} + {TACTILE_H} + {PCB_T}) + 0.1, ch - wall + 0.1]);
     }}
 }}
 module rim_walls() {{
-    // DM32/HP32SII-style protective bezel around front face.
-    // Extends forward from Y=0 by rim_d (4mm) — flush with faceplate surface.
-    // Buttons are recessed ~1.2mm below the rim top (2.8mm vs 4mm).
-    // Calculator can lie face-down without buttons touching surface.
-    rim_d = {plate_t};   // 4.0mm — matches faceplate thickness
-    lip_w = 1.5;         // inner retention lip width (overlaps faceplate edge)
-    // Left rim wall (full height)
-    translate([0, -rim_d, 0])        cube([wall, rim_d, ch]);
-    // Right rim wall (full height)
-    translate([cw-wall, -rim_d, 0])  cube([wall, rim_d, ch]);
-    // Top crossbar (display end) — completes the bezel
-    translate([0, -rim_d, ch-wall])  cube([cw, rim_d, wall]);
-    // Bottom is OPEN — end cap provides the bottom lip of the bezel.
+    // DM32/HP32SII-style bezel. rim_d=4mm matches faceplate thickness.
+    // Buttons recessed 1.2mm below rim — calculator can lie face-down safely.
+    rim_d = {plate_t};
+    lip   = 2.0;  // small retention chamfer lip at faceplate level
 
-    // ── INNER RETENTION LIPS (picture-frame rabbet) ─────────────
-    // These lips overlap the faceplate front edge by lip_w (1.5mm),
-    // preventing the faceplate from falling forward out of the cavity.
-    // They sit at Y=-lip_w to Y=0 (behind the rim, in front of faceplate).
-    // Left inner lip (Z=0 to Z=ch-wall, full faceplate height)
-    translate([wall, -lip_w, 0])        cube([lip_w, lip_w, ch - wall]);
-    // Right inner lip
-    translate([cw-wall-lip_w, -lip_w, 0])  cube([lip_w, lip_w, ch - wall]);
-    // Top inner lip (Z=ch-wall-lip_w to Z=ch-wall, full width minus walls)
-    translate([wall, -lip_w, ch-wall-lip_w])  cube([cw - 2*wall, lip_w, lip_w]);
+    // Outer rim walls (left, right, top crossbar)
+    translate([0, -rim_d, 0])        cube([wall, rim_d, ch]);
+    translate([cw-wall, -rim_d, 0])  cube([wall, rim_d, ch]);
+    translate([0, -rim_d, ch-wall])  cube([cw, rim_d, wall]);
+
+    // ── INNER CHAMFER LIPS (correct orientation) ──────────────────
+    // Wide (lip=2mm) at Y=0 (faceplate face) — overlaps faceplate edge,
+    // preventing it falling forward. Tapers to 0 at Y=-rim_d (outer face).
+    // Smooth, subtle, invisible from outside. Rugged retention for kids use.
+    //
+    // Left: triangle in XY, extruded full height.
+    //   At Y=0: extends lip=2mm inward from wall (supports faceplate).
+    //   At Y=-rim_d: nothing (flush with outer bezel face).
+    translate([wall, 0, 0])
+        linear_extrude(ch - wall)
+            polygon([[0,0],[lip,0],[0,-rim_d]]);
+    // Right (mirror)
+    translate([cw-wall, 0, 0])
+        linear_extrude(ch - wall)
+            polygon([[0,0],[-lip,0],[0,-rim_d]]);
+    // Top: same taper, extruded full width
+    translate([wall, 0, ch-wall])
+        rotate([0, 90, 0])
+        linear_extrude(cw - 2*wall)
+            polygon([[0,0],[lip,0],[0,-rim_d]]);
+}}
+module screw_bosses() {{
+    // Internal bosses on the inside of left/right walls at the keypad end.
+    // Provide thread material for M3 screws WITHOUT protruding outside.
+    // Boss: 4mm wide × 4mm deep × 3mm tall, flush with exterior wall face.
+    // Left (X = wall to wall+4, Y = 0 to 4, Z = 0 to 3)
+    translate([wall, 0, 0])       cube([4, 4, 3]);
+    // Right (X = cw-wall-4 to cw-wall, Y = 0 to 4, Z = 0 to 3)
+    translate([cw-wall-4, 0, 0])  cube([4, 4, 3]);
 }}
 module railway_grooves() {{
-    // 2 straight grooves for the sliding cover
-    translate([-0.1, GY, 0])          cube([GCD+0.1, GCW, ch]);\n    translate([cw-GCD, GY, 0])        cube([GCD+0.1, GCW, ch]);\n}}
+    translate([-0.1, GY, 0])        cube([GCD+0.1, GCW, ch]);
+    translate([cw-GCD, GY, 0])      cube([GCD+0.1, GCW, ch]);
+}}
 module chassis() {{
     difference() {{
         union() {{
             chassis_shell();
             rim_walls();
+            // No internal screw bosses — end cap boss provides thread engagement.
         }}
         
-        // ── END CAP SIDE-SCREWS ──────────────────────────────────────────────
-        // Secure the end cap from below. Screws enter laterally through the
-        // chassis side walls near the bottom (Z=1.5) and engage bosses
-        // that project upward from the end cap into the chassis cavity.
-        // Y = 2.0 (within Tier 1 faceplate cavity, Y=0 to 4.0)
+        // ── END CAP SCREWS ───────────────────────────────────────────────
+        // 3.4mm clearance bore through chassis walls at Y=2, Z=1.5.
+        // Screw head rests in a shallow 6mm dia recess (0.8mm deep) on exterior.
+        // Screw threads into end cap boss pilot at X=3..7.
+        // Left
+        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=6.0, h=0.8);   // head recess
+        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=3.4, h=wall+0.2); // clearance bore
+        // Right
+        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d=6.0, h=0.8);
+        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d=3.4, h=wall+0.2);
         
-        // Left side screw (X=0): countersink + through-bore into boss
-        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=3.4, h=wall+5);   // bore through wall into boss
-        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d1=6.0, d2=3.4, h=1.5);  // countersink
-        
-        // Right side screw (X=cw): countersink + through-bore into boss
-        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d=3.4, h=wall+5);  // bore through wall into boss
-        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d1=6.0, d2=3.4, h=1.5);  // countersink
-        
-        // ── CLOSED TOP ──────────────────────────────────────────────────────
-        // Display end (Z=ch) is now solid. No opening.
-        // PCB + Faceplate slide in from the keypad end (Z=0).
-        // End cap sits below (Z=-3 to Z=0), secured by lateral M3 screws.
+        // ── CLOSED TOP ───────────────────────────────────────────────────
+        // Display end (Z=ch) is solid. PCB+Faceplate load from bottom (Z=0).
     }}
 }}
 chassis();
@@ -446,17 +452,21 @@ module top_cap() {{
             }}
         }}
         // ── SCREW BOSSES (project upward into Tier 1 cavity) ────────
-        // Positioned within Tier 1 (Y=0 to 4.0) where full inner width is available.
-        // They engage the M3 lateral screws at Z=1.5, Y=2.0.
-        // Left boss
+        // Bosses sit at X=wall (left) and X=cw-wall-4 (right), Y=0..4, Z=0..3.
+        // M3 screw enters from cap exterior through boss → threads into chassis.
+        // Countersink on cap exterior (X=wall face / X=cw-wall face).
+        // 3.4mm clearance bore through boss body. 2.5mm pilot in chassis.
+        
+        // Left boss — starts at X=3 (matches hull corner, fully connected → manifold)
         difference() {{
-            translate([wall, 0, 0]) cube([4, 4, 3]);
-            translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=wall+5);
+            translate([3, 0, 0]) cube([4, 4, 3]);
+            // 2.5mm pilot enters from left face (X=3), screw tip threads here
+            translate([2.9, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
         }}
-        // Right boss
+        // Right boss — at X=cw-7..cw-3 (matches right hull corner)
         difference() {{
-            translate([cw-wall-4, 0, 0]) cube([4, 4, 3]);
-            translate([cw-wall-4-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=wall+5);
+            translate([cw-7, 0, 0]) cube([4, 4, 3]);
+            translate([cw-7-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
         }}
         // ── FRONT BEZEL LIP (completes DM32-style rim) ──────────────
         // Extends forward in -Y, from Z=-wall to Z=0.

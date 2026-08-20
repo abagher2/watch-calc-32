@@ -171,8 +171,9 @@ final class CalculatorEngineTests_Math: XCTestCase {
         XCTAssertTrue(val >= 0 && val < 1)
         
         // Seed test
-        typeAndEnter("42")
-        engine.executeMath("SEED")
-        XCTAssertEqual(engine.stack[0].real, 0.0) // seed drops it
+        typeAndEnter("42") // pushes 42.0 and duplicates it
+        engine.executeMath("SEED") // drops one 42.0
+        XCTAssertEqual(engine.stack[0].real, 42.0)
+        XCTAssertEqual(engine.stack[1].real, val)
     }
 }

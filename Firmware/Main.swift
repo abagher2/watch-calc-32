@@ -55,9 +55,10 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     }
     
     if isShowingFullPrecision {
-        isShowingFullPrecision = false
-        needsDisplay = true
-        // consume the key that dismisses SHOW
+        if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+            isShowingFullPrecision = false
+            needsDisplay = true
+        }
         return
     }
 
@@ -135,10 +136,12 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                     let upper = engine.stack.count > 0 ? engine.stack[0].real : 0.0
                     let lower = engine.stack.count > 1 ? engine.stack[1].real : 0.0
                     engine.statusMessage = "CALCULATING"
-                    _ = engine.integrate(for: varName, program: prog, lowerBound: lower, upperBound: upper)
+                    _ = engine.integrate(variable: varName, lower: lower, upper: upper, program: prog)
                     engine.statusMessage = nil
                     c47Mode = .none
                     c47Program = nil
+                } else {
+                    c47SelectedVar = varName
                 }
             }
             needsDisplay = true
@@ -147,7 +150,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         
         if finalOp.stringValue == "C47_EXEC" {
             if c47Mode == .plot {
-                engine.generatePlot(variable: "X", xmin: -10, xmax: 10)
+                engine.generatePlot(variable: c47SelectedVar, explicitMin: -10, explicitMax: 10)
                 engine.requestPlot = true
             } else if c47Mode == .xeq, let prog = c47Program {
                 engine.currentProgramLabel = prog.label
@@ -199,6 +202,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                     activeMenu = nil
                 } else {
                     engine.executeMath(selected.action)
+                    lfuManager.recordUsage(of: selected.action)
                     activeMenu = nil
                 }
             }
@@ -272,7 +276,8 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         case none, solve, integrate, plot, xeq
     }
     static var c47Mode: C47Mode = .none
-    static var c47Program: Program? = nil
+    static var c47Program: CalculatorEngine.Program? = nil
+    static var c47SelectedVar: String = "X"
 
     @inline(never)
     static func loopIteration() {
@@ -327,8 +332,19 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             renderer.clear()
             
             if isSleeping {
-                renderer.buffer.withUnsafeBufferPointer { ptr in
-                    display_send_buffer(ptr.baseAddress!)
+                var changed = false
+                if let prev = renderer.previousBuffer {
+                    for i in 0..<1024 {
+                        if prev[i] != renderer.buffer[i] { changed = true; break }
+                    }
+                } else { changed = true }
+                
+                if changed {
+                    renderer.buffer.withUnsafeBufferPointer { ptr in
+                        display_send_buffer(ptr.baseAddress!)
+                        if renderer.previousBuffer == nil { renderer.previousBuffer = [UInt8](repeating: 0, count: 1024) }
+                        for i in 0..<1024 { renderer.previousBuffer![i] = ptr[i] }
+                    }
                 }
                 needsDisplay = false
                 return
@@ -339,7 +355,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             defer { yBuffer.deallocate() }
             
             if isShowingFullPrecision {
-                let valStr = String(engine.stack.first?.real ?? 0.0)
+                let valStr = "\(engine.stack.first?.real ?? 0.0)"
                 var lineY = 4
                 var i = 0
                 let maxChars = 14
@@ -414,7 +430,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                     }
                     for v in vars.sorted() {
                         let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
-                        let label = hasVal ? "✓\(v)" : ">\(v)"
+                        let label = hasVal ? "@\(v)" : " \(v)"
                         items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
                     }
                     if c47Mode == .plot || c47Mode == .xeq {
@@ -426,10 +442,10 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 for i in 0..<min(6, items.count) {
                     let item = items[i]
                     let xOffset = i * segmentWidth
-                    renderer.drawRect(x: xOffset + 1, y: 53, w: segmentWidth - 2, h: 10, color: true)
+                    renderer.drawSoftkeyArrow(x: xOffset + (segmentWidth / 2) - 2, y: 50)
                     let textW = item.label.count * FontData.Tiny.charWidth
                     let textX = xOffset + (segmentWidth - textW) / 2
-                    renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: true)
+                    renderer.drawString(item.label, x: textX, y: 54, size: .tiny, color: true)
                 }
             } else if let pending = waitingForMenuDigit {
                 renderer.drawString("\(pending.action) _", x: 2, y: 53, size: .tiny, color: true)
@@ -439,15 +455,29 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             
             // 2. Draw X register (dynamic font size)
             let displayFont: Renderer.FontSize = .small
-            let startX = 2
+            var startX = 2
+            let charW = FontData.Small.charWidth
             
-            // Centered vertically always, even when menu is active
+            let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
+            let totalLen = engine.displayXLength + (hasCursor ? 1 : 0)
+            let totalW = totalLen * charW
+            var overflow = false
+            
+            if startX + totalW > 126 {
+                startX = 126 - totalW
+                overflow = true
+            }
+            
             engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                 renderer.drawString(ptr.baseAddress!, length: engine.displayXLength, x: startX, y: 28, size: displayFont, color: true)
             }
-            if engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha {
-                let cursorX = startX + (engine.displayXLength * FontData.Small.charWidth)
+            if hasCursor {
+                let cursorX = startX + (engine.displayXLength * charW)
                 _ = renderer.drawChar(95, x: cursorX, y: 28, size: displayFont, color: true) // '_' is ASCII 95
+            }
+            if overflow {
+                renderer.fillRect(x: 0, y: 28, w: charW, h: FontData.Small.charHeight, color: false)
+                _ = renderer.drawChar(60, x: 0, y: 28, size: displayFont, color: true) // '<'
             }
             
             // 3. Draw Indicators
@@ -463,9 +493,6 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             if engine.angleMode == .rad {
                 renderer.drawString("RAD", x: indX, y: indY, size: .small)
                 indX += 30
-            } else if engine.angleMode == .grad {
-                renderer.drawString("GRAD", x: indX, y: indY, size: .small)
-                indX += 36
             }
             if engine.baseMode == .hex {
                 renderer.drawString("HEX", x: indX, y: indY, size: .small)
@@ -490,8 +517,19 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 indX += 38
             }
             
-            renderer.buffer.withUnsafeBufferPointer { ptr in
-                display_send_buffer(ptr.baseAddress!)
+            var changed = false
+            if let prev = renderer.previousBuffer {
+                for i in 0..<1024 {
+                    if prev[i] != renderer.buffer[i] { changed = true; break }
+                }
+            } else { changed = true }
+            
+            if changed {
+                renderer.buffer.withUnsafeBufferPointer { ptr in
+                    display_send_buffer(ptr.baseAddress!)
+                    if renderer.previousBuffer == nil { renderer.previousBuffer = [UInt8](repeating: 0, count: 1024) }
+                    for i in 0..<1024 { renderer.previousBuffer![i] = ptr[i] }
+                }
             }
             needsDisplay = false
         }

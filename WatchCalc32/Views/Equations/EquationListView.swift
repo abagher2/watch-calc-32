@@ -4,6 +4,7 @@ import RPNCore
 struct EquationListView: View {
     @Environment(CalculatorEngine.self) var engine
     @Environment(\.dismiss) var dismiss
+    var isPresented: Binding<Bool>? = nil
     var isFNMode = false
     
     var body: some View {
@@ -12,7 +13,11 @@ struct EquationListView: View {
                     engine.isWaitingForLabel = true
                     engine.startAlpha()
                     engine.alphaPrompt = "LBL _"
-                    dismiss()
+                    if let isPresented {
+                        isPresented.wrappedValue = false
+                    } else {
+                        dismiss()
+                    }
                 } label: {
                     HStack {
                         Image(systemName: "plus.circle.fill")
@@ -29,7 +34,11 @@ struct EquationListView: View {
                         } else {
                             engine.editEquation(program)
                         }
-                        dismiss()
+                        if let isPresented {
+                            isPresented.wrappedValue = false
+                        } else {
+                            dismiss()
+                        }
                     } label: {
                         HStack {
                             Text(program.label)

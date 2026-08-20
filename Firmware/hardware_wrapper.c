@@ -78,7 +78,7 @@ void display_send_buffer(const uint8_t* buffer) {
 #ifndef EMULATOR
     i2c_write_blocking(I2C_PORT, DISPLAY_ADDR, payload, 1025, false);
 #else
-    uint8_t* emu_buf = (uint8_t*)0x20040000;
+    volatile uint8_t* emu_buf = (volatile uint8_t*)0x20040000;
     for (int i = 0; i < 1024; i++) {
         emu_buf[i] = buffer[i];
     }

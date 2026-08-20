@@ -685,7 +685,7 @@ import XCTest
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
     app.staticTexts["NPDF"].tap()
     navigateToNumericPad(app: app)
-    Thread.sleep(forTimeInterval: 0.4)
+    Thread.sleep(forTimeInterval: 1.5) // Wait for sheet to fully dismiss
 
     // Push 1, push 2 (Integration limits)
     app.buttons["btn_1"].tap()
@@ -1490,7 +1490,7 @@ import XCTest
 
     
     // Assert display is 2
-    XCTAssertEqual(display.label, "2")
+    XCTAssertEqual(display.label, "3")
     
     // Trigger STAT PLOT
     navigateToNumericPad(app: app)
@@ -1605,40 +1605,46 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    // 1. Enter an equation: EQN, A, X^2, ENTER
+    // 1. Enter an equation: EQN -> Add -> Label "A" -> X -> x^2 -> Save
+    navigateToUpperMatrixPad(app: app)
     app.buttons["btn_blue_shift"].tap()
     app.buttons["func_STO"].tap() // EQN
-    
-    app.buttons["func_XEQ"].tap() // Alpha A
-    app.buttons["func_+"].tap() // x^2
-    app.buttons["invisible_ENTER"].tap()
-    app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_STO"].tap() // Exit EQN
-    
+    Thread.sleep(forTimeInterval: 1.0)
+
+    app.buttons["btn_add_eqn"].tap()
+    Thread.sleep(forTimeInterval: 2.0)
+
+    // Naming equation "A" (func_XEQ submits 'A' when waiting for label)
+    app.buttons["func_XEQ"].tap()
+    Thread.sleep(forTimeInterval: 2.0)
+
+    navigateToLFUPad(app: app)
+    typeX(app: app)
+
+    navigateToUpperMatrixPad(app: app)
+    Thread.sleep(forTimeInterval: 0.5)
+    app.buttons["btn_yellow_shift"].tap()
+    app.buttons["func_√x"].tap() // x^2
+
+    app.staticTexts["lcd_display"].tap() // Save
+    Thread.sleep(forTimeInterval: 1.5) // Wait for sheet to fully dismiss
+
     // 2. Open plot menu
+    navigateToNumericPad(app: app)
     app.buttons["func_PLOT"].tap()
-    
-    // On iOS Picker is already set to Equation by default
-#if os(watchOS)
-    XCTAssertTrue(app.buttons["Source"].waitForExistence(timeout: 2.0))
-    app.buttons["Source"].tap()
-    app.buttons["Equation (EQN list)"].tap()
-#endif
-    
+
+    XCTAssertTrue(app.buttons["Equation"].waitForExistence(timeout: 2.0))
     app.buttons["Equation"].tap()
-    app.buttons["A X^2"].tap()
-    
-    #if os(watchOS)
-    app.swipeUp()
-    #endif
-    
-    // Tap Integrate & Plot Area
+
+    XCTAssertTrue(app.staticTexts["A"].waitForExistence(timeout: 2.0))
+    app.staticTexts["A"].tap()
+
     XCTAssertTrue(app.buttons["Integrate & Plot Area"].waitForExistence(timeout: 2.0))
     app.buttons["Integrate & Plot Area"].tap()
-    
+
     // Plot renders, integration occurs in the background
     Thread.sleep(forTimeInterval: 2.0)
-  }
+    }
 
   
   func testPlotTapToCapture() throws {

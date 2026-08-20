@@ -24,7 +24,7 @@ struct iOSContentView: View {
             let totalCols: CGFloat = landscape ? 11 : 6
             let totalRows: CGFloat = landscape ? 4 : 8
             let lcdHeight: CGFloat = landscape ? (isPad ? 130 : 90) : (isPad ? 160 : 120)
-            let extraPadding: CGFloat = landscape ? (isPad ? 132 : 40) : (isPad ? 160 : 100)
+            let extraPadding: CGFloat = landscape ? (isPad ? 132 : 40) : (isPad ? 160 : 125)
             let availableHForNumpad = geo.size.height - lcdHeight - extraPadding
             let maxH = geo.size.width / totalCols * 1.1
             let rawH = availableHForNumpad / totalRows
@@ -43,7 +43,7 @@ struct iOSContentView: View {
         }
         .onChange(of: engine.requestPlot) { oldValue, newValue in
             if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     showingPlot = true
                     engine.requestPlot = false
                 }
@@ -457,7 +457,14 @@ struct iOSMenuModifier: ViewModifier {
                 .presentationDetents([.large])
             )
         case .eqn:
-            return AnyView(NavigationStack { EquationListView().environment(engine).environmentObject(themeManager) })
+            return AnyView(NavigationStack {
+                EquationListView(isPresented: Binding(
+                    get: { activeMenu == .eqn },
+                    set: { if !$0 { activeMenu = nil } }
+                ))
+                .environment(engine)
+                .environmentObject(themeManager)
+            })
         case .plot:
             // PlotPromptView (from Watch target, compiled into iOS via shared Sources)
             return AnyView(PlotPromptView().environment(engine))

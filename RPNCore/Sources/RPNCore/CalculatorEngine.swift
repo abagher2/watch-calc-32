@@ -40,9 +40,25 @@ internal func _sqrt(_ x: Double) -> Double { return x.squareRoot() }
 public typealias IndexSet = [Int]
 
 #if hasFeature(Embedded)
-internal func parseInt(_ text: String) -> Int? { return 0 }
-internal func _substringToString(_ substring: Substring) -> String { return "" }
-internal func _formatDouble(_ value: Double) -> String { return "0.0" }
+internal func parseInt(_ text: String) -> Int? {
+    var val = 0
+    var sign = 1
+    var hasDigits = false
+    for ch in text.utf8 {
+        if ch == 45 { sign = -1 }
+        else if ch >= 48 && ch <= 57 {
+            val = val * 10 + Int(ch - 48)
+            hasDigits = true
+        }
+    }
+    return hasDigits ? val * sign : nil
+}
+internal func _substringToString(_ substring: Substring) -> String {
+    var s = ""
+    for c in substring { s.append(c) }
+    return s
+}
+internal func _formatDouble(_ value: Double) -> String { return "\(value)" }
 internal func parseDouble(_ text: String) -> Double? {
     var val = 0.0
     var sign = 1.0
@@ -1095,20 +1111,29 @@ public class CalculatorEngine {
         }
         
         lfuManager.recordUsage(of: operation)
+        func parseFlag(_ s: Substring) -> Int? {
+            switch String(s) {
+            case "0": return 0; case "1": return 1; case "2": return 2; case "3": return 3;
+            case "4": return 4; case "5": return 5; case "6": return 6; case "7": return 7;
+            case "8": return 8; case "9": return 9; case "10": return 10; case "11": return 11;
+            default: return nil
+            }
+        }
+        
         if operation.hasPrefix("SF ") {
-            if let f = Int(operation.dropFirst(3)), f >= 0 && f < 12 { flags[f] = true }
+            if let f = parseFlag(operation.dropFirst(3)), f >= 0 && f < 12 { flags[f] = true }
             return
         }
         if operation.hasPrefix("CF ") {
-            if let f = Int(operation.dropFirst(3)), f >= 0 && f < 12 { flags[f] = false }
+            if let f = parseFlag(operation.dropFirst(3)), f >= 0 && f < 12 { flags[f] = false }
             return
         }
         if operation.hasPrefix("FS? ") {
-            if let f = Int(operation.dropFirst(4)), f >= 0 && f < 12 { performTest(flags[f]) }
+            if let f = parseFlag(operation.dropFirst(4)), f >= 0 && f < 12 { performTest(flags[f]) }
             return
         }
         if operation.hasPrefix("FC? ") {
-            if let f = Int(operation.dropFirst(4)), f >= 0 && f < 12 { performTest(!flags[f]) }
+            if let f = parseFlag(operation.dropFirst(4)), f >= 0 && f < 12 { performTest(!flags[f]) }
             return
         }
         
@@ -1525,7 +1550,6 @@ public class CalculatorEngine {
         case "Σx²": commitInput(); push(CalculatorValue(real: statSumX2))
         case "Σy²": commitInput(); push(CalculatorValue(real: statSumY2))
         case "Σxy": commitInput(); push(CalculatorValue(real: statSumXY))
-        case "CLΣ": clearStats()
         case "->kg": unaryOp { CalculatorValue(real: $0.real * 0.45359237) }
         case "->lb": unaryOp { CalculatorValue(real: $0.real / 0.45359237) }
         case "->°C": unaryOp { CalculatorValue(real: ($0.real - 32) * 5/9) }

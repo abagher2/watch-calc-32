@@ -1,8 +1,10 @@
 public class Renderer {
     public var buffer: [UInt8]
+    public var previousBuffer: [UInt8]?
     
     public init() {
         buffer = [UInt8](repeating: 0, count: 1024)
+        previousBuffer = nil
     }
     
     public func clear() {
@@ -169,6 +171,17 @@ public class Renderer {
         }
     }
     
+    public func drawSoftkeyArrow(x: Int, y: Int) {
+        // Draw a small downward pointing triangle (▼)
+        // x, y is the top-left of a 5x3 box
+        // Row 0: #####
+        // Row 1:  ###
+        // Row 2:   #
+        for col in 0..<5 { setPixel(x: x + col, y: y, color: true) }
+        for col in 1..<4 { setPixel(x: x + col, y: y + 1, color: true) }
+        setPixel(x: x + 2, y: y + 2, color: true)
+    }
+    
     public func renderMenu(menu: CalculatorMenu, query: String = "") {
         if !query.isEmpty {
             drawString("Search: \(query)_", x: 2, y: 38, size: .small, color: true)
@@ -181,11 +194,11 @@ public class Renderer {
             let item = items[i]
             let xOffset = i * segmentWidth
             
-            drawRect(x: xOffset + 1, y: 53, w: segmentWidth - 2, h: 10, color: true)
+            drawSoftkeyArrow(x: xOffset + (segmentWidth / 2) - 2, y: 49)
             
             let textW = item.label.count * FontData.Tiny.charWidth
             let textX = xOffset + (segmentWidth - textW) / 2
-            drawString(item.label, x: textX, y: 55, size: .tiny, color: true)
+            drawString(item.label, x: textX, y: 54, size: .tiny, color: true)
         }
     }
     
@@ -194,14 +207,13 @@ public class Renderer {
         for i in 0..<6 {
             let xOffset = i * segmentWidth
             
-            // Always show the LFU keys even if blank
             drawRect(x: xOffset + 1, y: 53, w: segmentWidth - 2, h: 10, color: true)
             
             guard let funcName = manager.slots[i] else { continue }
             
             let textW = funcName.count * FontData.Tiny.charWidth
             let textX = xOffset + (segmentWidth - textW) / 2
-            drawString(funcName, x: textX, y: 55, size: .tiny, color: true)
+            drawString(funcName, x: textX, y: 54, size: .tiny, color: true)
         }
     }
 }

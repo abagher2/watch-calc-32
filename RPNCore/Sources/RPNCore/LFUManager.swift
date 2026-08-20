@@ -26,7 +26,8 @@ public class LFUManager {
     // Record that a function was executed
     public func recordUsage(of function: String) {
         // Skip numbers, basic arithmetic, and ignored functions like C, Setup, Enter, e, +/-, backspace, variables, and programming functions
-        let ignored: Set<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "ENTER", "+", "-", "×", "÷", "C", "CLEAR", "SETUP", "<-", "+/-", "E", "e", "LBL", "RTN", "A", "B", "C", "D", "X", "Y", "EQN", "FN=", "SOLVE", "∫", "PROB", "PARTS", "SUMS", "L.R.", "DISP", "MODES", "PLOT", "VIEW", "SHOW"]
+        // Also skip memory, flags, and setup options
+        let ignored: Set<String> = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "ENTER", "+", "-", "×", "÷", "C", "CLEAR", "SETUP", "<-", "+/-", "E", "e", "LBL", "RTN", "A", "B", "C", "D", "X", "Y", "EQN", "FN=", "SOLVE", "∫", "PROB", "PARTS", "SUMS", "L.R.", "DISP", "MODES", "PLOT", "VIEW", "SHOW", "SF", "CF", "FS?", "FC?", "STK4", "STK8", "STKINF", "STO", "RCL", "MEM", "CLΣ", "CLPRGM", "CLREGS", "CLALL", "VARS", "PRGM", "REGS"]
         if ignored.contains(function) { return }
         
         usageCounts[function, default: 0] += 1

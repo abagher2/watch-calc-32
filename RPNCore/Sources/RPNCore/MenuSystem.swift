@@ -14,24 +14,68 @@ public struct MenuItem: Equatable {
     }
 }
 
-public enum CalculatorMenu: String, CaseIterable {
-    case disp = "DISP"
-    case modes = "MODES"
-    case base = "BASE"
-    case const = "CONST"
-    case flags = "FLAGS"
-    case clear = "CLEAR"
-    case parts = "PARTS"
-    case prob = "PROB"
-    case sums = "SUMS"
-    case stat = "STAT"
-    case eqn = "EQN"
-    case mem = "MEM"
-    case testXY = "x?y"
-    case testX0 = "x?0"
-    case statMean = "x̄,ȳ"
-    case statStdDev = "s,σ"
-    case lr = "L.R."
+public enum CalculatorMenu: CaseIterable, RawRepresentable {
+    case disp
+    case modes
+    case base
+    case const
+    case flags
+    case clear
+    case parts
+    case prob
+    case sums
+    case stat
+    case eqn
+    case mem
+    case testXY
+    case testX0
+    case statMean
+    case statStdDev
+    case lr
+    
+    public typealias RawValue = String
+    
+    public init?(rawValue: String) {
+        if rawValue == "DISP" { self = .disp }
+        else if rawValue == "MODES" { self = .modes }
+        else if rawValue == "BASE" { self = .base }
+        else if rawValue == "CONST" { self = .const }
+        else if rawValue == "FLAGS" { self = .flags }
+        else if rawValue == "CLEAR" { self = .clear }
+        else if rawValue == "PARTS" { self = .parts }
+        else if rawValue == "PROB" { self = .prob }
+        else if rawValue == "SUMS" { self = .sums }
+        else if rawValue == "STAT" { self = .stat }
+        else if rawValue == "EQN" { self = .eqn }
+        else if rawValue == "MEM" { self = .mem }
+        else if rawValue == "x?y" { self = .testXY }
+        else if rawValue == "x?0" { self = .testX0 }
+        else if rawValue == "x̄,ȳ" { self = .statMean }
+        else if rawValue == "s,σ" { self = .statStdDev }
+        else if rawValue == "L.R." { self = .lr }
+        else { return nil }
+    }
+    
+    public var rawValue: String {
+        if self == .disp { return "DISP" }
+        if self == .modes { return "MODES" }
+        if self == .base { return "BASE" }
+        if self == .const { return "CONST" }
+        if self == .flags { return "FLAGS" }
+        if self == .clear { return "CLEAR" }
+        if self == .parts { return "PARTS" }
+        if self == .prob { return "PROB" }
+        if self == .sums { return "SUMS" }
+        if self == .stat { return "STAT" }
+        if self == .eqn { return "EQN" }
+        if self == .mem { return "MEM" }
+        if self == .testXY { return "x?y" }
+        if self == .testX0 { return "x?0" }
+        if self == .statMean { return "x̄,ȳ" }
+        if self == .statStdDev { return "s,σ" }
+        if self == .lr { return "L.R." }
+        return ""
+    }
     
     public var items: [MenuItem] {
         switch self {
@@ -62,7 +106,10 @@ public enum CalculatorMenu: String, CaseIterable {
             MenuItem(label: "SF", requiresDigit: true),
             MenuItem(label: "CF", requiresDigit: true),
             MenuItem(label: "FS?", requiresDigit: true),
-            MenuItem(label: "FC?", requiresDigit: true)
+            MenuItem(label: "FC?", requiresDigit: true),
+            MenuItem(label: "4-LVL", action: "STK4"),
+            MenuItem(label: "8-LVL", action: "STK8"),
+            MenuItem(label: "INF", action: "STKINF")
         ]
         case .clear: return [
             MenuItem(label: "Σ", action: "CLΣ"), MenuItem(label: "PRGM", action: "CLPRGM"),
