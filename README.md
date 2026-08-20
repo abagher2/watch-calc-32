@@ -24,6 +24,59 @@ While WatchCalc32 is heavily inspired by the classic HP-32SII and other vintage 
 - **Advanced Division Operations**: Native support for division with remainders and modulus operations.
 - **LFU (Least Frequently Used) Keys**: Dynamic keys that adapt to your usage, keeping the interface uncluttered while ensuring you always have access to the functions you need.
 
+## ⌨️ Keystroke Guide (HP-32S Style)
+
+WatchCalc32 embraces the classic interface while introducing modern workflows. Below are examples of how to perform calculations using the WatchCalc32 numpad.
+
+### 1. Basic RPN Arithmetic
+*Calculate: `(14 + 12) × 18`*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `1` `4` `[ENTER]` | `14.0000` | Pushes 14 to the Y register. |
+| `1` `2` `[+]` | `26.0000` | Adds 14 and 12. |
+| `1` `8` `[×]` | `468.0000` | Multiplies 26 by 18. |
+
+### 2. Division with Remainder
+*Calculate: `17 ÷ 5` yielding quotient and remainder*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `1` `7` `[ENTER]` | `17.0000` | Pushes 17 to the Y register. |
+| `5` `[Yellow Shift]` `[÷]` | `3.0000` | Integer division (`x // y`). The quotient (3) is placed in X. |
+| `[Yellow Shift]` `[MOD]` | `2.0000` | Returns the remainder (2) of the division. |
+
+### 3. Storing and Recalling Variables
+*Store 42 into register 'A' and multiply it by 2.*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `4` `2` `[STO]` `[A]` | `42.0000` | Stores 42 into variable A. |
+| `2` `[×]` | `84.0000` | Multiplies X (42) by 2. |
+| `[RCL]` `[A]` | `42.0000` | Recalls variable A back to the X register. |
+| `[Blue Shift]` `[REGS]` | `Registers...` | Opens the graphical Registers Display List to view all stored variables. |
+
+### 4. Equation Entry & Solving
+*Enter the equation `Y = M × X + B` and solve for X.*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `[Blue Shift]` `[EQN]` | `EQN List` | Opens the Equation Editor. |
+| `[+]` *(New Eq)* | `_` | Starts a new equation. |
+| `[RCL]` `[Y]` `[Blue Shift]` `[=]` | `Y=` | Begins equation with Y. |
+| `[RCL]` `[M]` `[×]` `[RCL]` `[X]` | `Y=M×X` | Adds M × X to the equation. |
+| `[+]` `[RCL]` `[B]` `[ENTER]` | `Y=M×X+B` | Finishes and saves the equation. |
+| `[Blue Shift]` `[SOLVE]` `[X]` | `X=...` | Prompts for Y, M, B, then calculates and displays the root for X. |
+
+### 5. Equation Plotting
+*Plot the equation you just entered.*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `[Blue Shift]` `[EQN]` | `Y=M×X+B` | Select the equation from the list. |
+| `[Yellow Shift]` `[PLOT]` | `Plot Y(X)?` | Prompts for the independent variable to sweep (X). |
+| `[ENTER]` | `Plotting...` | Renders a high-res plot of the equation. You can pan and zoom directly on the graph. |
+
 ## 📂 Repository Structure
 
 To maintain a clean and organized monorepo ready for public open-source distribution, this repository strictly adheres to the following structure:
