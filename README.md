@@ -24,58 +24,51 @@ While WatchCalc32 is heavily inspired by the classic HP-32SII and other vintage 
 - **Advanced Division Operations**: Native support for division with remainders and modulus operations.
 - **LFU (Least Frequently Used) Keys**: Dynamic keys that adapt to your usage, keeping the interface uncluttered while ensuring you always have access to the functions you need.
 
-## ⌨️ Keystroke Guide (HP-32S Style)
+## ⌨️ Unique WatchCalc32 Capabilities & Keystrokes
 
-WatchCalc32 embraces the classic interface while introducing modern workflows. Below are examples of how to perform calculations using the WatchCalc32 numpad.
+While the basic math and variable storage functions mirror the classic HP-32SII, WatchCalc32 introduces powerful new capabilities. Here is how to use the features unique to our calculator:
 
-### 1. Basic RPN Arithmetic
-*Calculate: `(14 + 12) × 18`*
-
-| Keystrokes | Display | Explanation |
-| :--- | :--- | :--- |
-| `1` `4` `[ENTER]` | `14.0000` | Pushes 14 to the Y register. |
-| `1` `2` `[+]` | `26.0000` | Adds 14 and 12. |
-| `1` `8` `[×]` | `468.0000` | Multiplies 26 by 18. |
-
-### 2. Division with Remainder
-*Calculate: `17 ÷ 5` yielding quotient and remainder*
-
-| Keystrokes | Display | Explanation |
-| :--- | :--- | :--- |
-| `1` `7` `[ENTER]` | `17.0000` | Pushes 17 to the Y register. |
-| `5` `[Yellow Shift]` `[÷]` | `3.0000` | Integer division (`x // y`). The quotient (3) is placed in X. |
-| `[Yellow Shift]` `[MOD]` | `2.0000` | Returns the remainder (2) of the division. |
-
-### 3. Storing and Recalling Variables
-*Store 42 into register 'A' and multiply it by 2.*
-
-| Keystrokes | Display | Explanation |
-| :--- | :--- | :--- |
-| `4` `2` `[STO]` `[A]` | `42.0000` | Stores 42 into variable A. |
-| `2` `[×]` | `84.0000` | Multiplies X (42) by 2. |
-| `[RCL]` `[A]` | `42.0000` | Recalls variable A back to the X register. |
-| `[Blue Shift]` `[REGS]` | `Registers...` | Opens the graphical Registers Display List to view all stored variables. |
-
-### 4. Equation Entry & Solving
-*Enter the equation `Y = M × X + B` and solve for X.*
+### 1. RPN Equation Editor (Like Programming)
+*Unlike the algebraic equation entry on the HP-32SII, WatchCalc32 equations are entered as raw RPN sequences—providing the power of programming without the overhead of full program memory management.*
+*Example: Enter the equation `Y = 56 × X + 3`*
 
 | Keystrokes | Display | Explanation |
 | :--- | :--- | :--- |
 | `[Blue Shift]` `[EQN]` | `EQN List` | Opens the Equation Editor. |
-| `[+]` *(New Eq)* | `_` | Starts a new equation. |
-| `[RCL]` `[Y]` `[Blue Shift]` `[=]` | `Y=` | Begins equation with Y. |
-| `[RCL]` `[M]` `[×]` `[RCL]` `[X]` | `Y=M×X` | Adds M × X to the equation. |
-| `[+]` `[RCL]` `[B]` `[ENTER]` | `Y=M×X+B` | Finishes and saves the equation. |
-| `[Blue Shift]` `[SOLVE]` `[X]` | `X=...` | Prompts for Y, M, B, then calculates and displays the root for X. |
+| `[+]` *(New)* `[A]` | `A 01- _` | Starts a new equation and assigns it to label A. |
+| `5` `6` `[ENTER]` | `A 03- ENTER` | Enters 56 into the RPN sequence. |
+| `[RCL]` `[X]` | `A 04- RCL X` | Recalls variable X. |
+| `[×]` | `A 05- ×` | Multiplies 56 by X. |
+| `3` `[+]` | `A 07- +` | Adds 3 to complete the RPN equation. |
 
-### 5. Equation Plotting
-*Plot the equation you just entered.*
+### 2. Equation Plotting
+*Plot the equation you just entered to analyze its behavior visually.*
 
 | Keystrokes | Display | Explanation |
 | :--- | :--- | :--- |
-| `[Blue Shift]` `[EQN]` | `Y=M×X+B` | Select the equation from the list. |
-| `[Yellow Shift]` `[PLOT]` | `Plot Y(X)?` | Prompts for the independent variable to sweep (X). |
-| `[ENTER]` | `Plotting...` | Renders a high-res plot of the equation. You can pan and zoom directly on the graph. |
+| `[Blue Shift]` `[EQN]` | `A 01- 56` | Select the equation from the list. |
+| `[Yellow Shift]` `[PLOT]` | `Plot Y(X)?` | Prompts for the independent variable to sweep (default X). |
+| `[ENTER]` | `Plotting...` | Renders a high-res, pan/zoomable plot of the equation. |
+
+### 3. Graphical Registers & Constants Lists
+*Say goodbye to blindly guessing what is stored in your variables.*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `[Blue Shift]` `[REGS]` | `Registers...` | Opens a scrollable graphical list of all stored memory registers (A-Z). |
+| `[Blue Shift]` `[CONST]` | `Constants...` | Opens the built-in scientific constants library for quick insertion. |
+
+### 4. Advanced Division & Modulus
+*Calculate integer division and remainders natively.*
+
+| Keystrokes | Display | Explanation |
+| :--- | :--- | :--- |
+| `1` `7` `[ENTER]` `5` | `5.0000` | Pushes 17 and 5 to the stack. |
+| `[Yellow Shift]` `[÷]` | `3.0000` | Integer division (`17 // 5`). |
+| `[Yellow Shift]` `[MOD]` | `2.0000` | Returns the remainder (`17 % 5`). |
+
+### 5. Dynamic LFU Keys
+WatchCalc32 features **Least Frequently Used (LFU)** adaptive keypads. As you use specific functions or variables, the interface gracefully adapts to surface your most-used keys, preventing you from having to dig through shift menus for your favorite operations.
 
 ## 📂 Repository Structure
 
