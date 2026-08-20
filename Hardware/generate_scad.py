@@ -66,8 +66,8 @@ for r_idx, row in enumerate(rows):
         lbl = (labels[r_idx][c_idx]
                if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
         b['label'] = lbl
-        b['w']     = 9.0 if r_idx == 0 else (17.5 if lbl == "ENTER" else 9.5 if lbl in ("f","g","C") else 8.5)
-        b['h']     = 5.5
+        b['w']     = 7.5 if r_idx == 0 else (16.0 if lbl == "ENTER" else 8.0 if lbl in ("f","g","C") else 7.0)
+        b['h']     = 5.0
 
 # ─────────────────────────────────────────────────────────
 # Global constants
@@ -103,17 +103,17 @@ def generate_scad():
     # Micro-supports bridge plunger and faceplate wall at Z=0.
     # ═══════════════════════════════════════════════════════
     gap         = 0.35   # print-in-place clearance
-    plate_t     = 4.0    # faceplate base thickness (rim adds protection height)
+    plate_t     = 4.0    # faceplate base thickness
     rim_h       = 4.0    # protective rim wall height above plate surface (keeps buttons safe)
-    plunger_h   = 1.5    # Z=0.0 to 1.5
-    stem_h      = 1.0    # Z=1.5 to 2.5
-    diamond_h   = 2.0    # Z=2.5 to 4.5
-    up_stem_h   = 1.0    # Z=4.5 to 5.5 (shortened to fit 4mm plate)
-    wedge_h     = 1.5    # Z=5.5 to 7.0 (keycap, 1mm taper HP style)
+    plunger_h   = 1.0    # Z=0.0 to 1.0
+    stem_h      = 0.5    # Z=1.0 to 1.5
+    diamond_h   = 1.5    # Z=1.5 to 3.0 (exactly 1.0mm below top of 4.0mm plate)
+    up_stem_h   = 1.0    # Z=3.0 to 4.0
+    wedge_h     = 2.8    # Z=4.0 to 6.8 (keycap)
     
     # Plunger dimensions (large for bed adhesion and switch pressing)
-    pw = 6.5
-    ph = 5.0
+    pw = 6.0
+    ph = 4.0
 
     faceplate = f"""
 // WatchCalc 32 Faceplate — Print FACE-UP
@@ -140,32 +140,24 @@ module key_button(w, h, label) {{
     translate([0, 0, {plunger_h + stem_h/2}])
         cube([{pw}, {ph}, {stem_h}], center=true);
 
-    // Z=2.5 to 4.5 : Diamond Flange (chamfered <> for no-support printing)
-    // Lower half expands
-    translate([0, 0, {plunger_h + stem_h}])
-        hull() {{
-            cube([{pw}, {ph}, 0.01], center=true);
-            translate([0, 0, {diamond_h/2}]) cube([dw, dh, 0.01], center=true);
-        }}
-    // Upper half contracts
-    translate([0, 0, {plunger_h + stem_h + diamond_h/2}])
-        hull() {{
-            cube([dw, dh, 0.01], center=true);
-            translate([0, 0, {diamond_h/2}]) cube([bw, bh, 0.01], center=true);
-        }}
+    // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
+    button_flange(w, h, 0);
 
-    // Z=4.5 to 6.0 : Upper Stem
-    translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h/2}])
-        cube([bw, bh, {up_stem_h}], center=true);
-
-    // Z=6.0 to 8.5 : Key Cap (Wedge shape, HP style)
-    // Flat top surface, sloped front face.
+    // Z=4.5 to 6.0 : Upper Stem (rounded)
+    translate([0, 0, {plunger_h + stem_h + diamond_h}])
+        hull() {{
+            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                translate([x, y, 0]) cylinder(r=1.0, h={up_stem_h});
+        }}
+    // Z=6.0 to 8.5 : Key Cap (Flat, rounded chiclet style)
     translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
         hull() {{
             // Base of the keycap
-            translate([-bw/2, -bh/2, 0]) cube([bw, bh, 0.01]);
-            // Top of the keycap (smaller in Y, shifted back)
-            translate([-bw/2 + 0.5, -bh/2 + 2.5, {wedge_h}]) cube([bw - 1.0, bh - 3.0, 0.01]);
+            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                translate([x, y, 0]) cylinder(r=1.0, h=0.01);
+            // Top of the keycap (flat, slightly smaller radius for soft edge)
+            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                translate([x, y, {wedge_h}]) cylinder(r=0.8, h=0.01);
         }}
 }}
 
@@ -180,30 +172,48 @@ module micro_supports(x, y, w, h) {{
     translate([x, y + {ph/2 + gap/2}, 0.2]) cube([1.0, {gap}, 0.4], center=true);
 }}
 
-module button_pocket(x, y, w, h) {{
-    bw = w;  bh = h;
-    dw = bw + 1.0 + GAP*2;  
-    dh = bh + 1.0 + GAP*2;
-
-    // Z=0.0 to 2.5 : Lower hole for plunger/stem
-    translate([x, y, {(plunger_h + stem_h)/2}])
-        cube([{pw} + GAP*2, {ph} + GAP*2, {plunger_h + stem_h}], center=true);
-
-    // Z=2.5 to 4.5 : Diamond cavity (chamfered <>)
-    translate([x, y, {plunger_h + stem_h}])
+module button_flange(w, h, gap) {{
+    bw = w; bh = h;
+    dw = bw + 1.0 + gap*2;
+    dh = bh + 1.0 + gap*2;
+    // Lower half expands
+    translate([0, 0, {plunger_h + stem_h}])
         hull() {{
-            cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
+            cube([{pw} + gap*2, {ph} + gap*2, 0.01], center=true);
             translate([0, 0, {diamond_h/2}]) cube([dw, dh, 0.01], center=true);
         }}
-    translate([x, y, {plunger_h + stem_h + diamond_h/2}])
+    // Upper half contracts smoothly to rounded rectangle
+    translate([0, 0, {plunger_h + stem_h + diamond_h/2}])
         hull() {{
             cube([dw, dh, 0.01], center=true);
-            translate([0, 0, {diamond_h/2}]) cube([bw + GAP*2, bh + GAP*2, 0.01], center=true);
+            translate([0, 0, {diamond_h/2}])
+                for(x=[-bw/2+1.0, bw/2-1.0], y=[-bh/2+1.0, bh/2-1.0])
+                    translate([x, y, 0]) cylinder(r=1.0 + gap, h=0.01);
+        }}
+}}
+
+module button_pocket(x, y, w, h) {{
+    // The pocket must accommodate the button in the UNPRESSED state (Z=0)
+    // and PRESSED state (Z=-1.0).
+    translate([x, y, 0]) {{
+        // Lower hole (accommodates plunger/stem travel down to Z=-1)
+        // From Z=0 to Z=1.7 (unpressed stem top).
+        translate([0, 0, {(plunger_h + stem_h)/2}])
+            cube([{pw} + GAP*2, {ph} + GAP*2, {plunger_h + stem_h}], center=true);
+
+        // Flange cavity: Hull of unpressed and pressed (-1.0mm) states
+        hull() {{
+            button_flange(w, h, GAP);
+            translate([0, 0, -1.0]) button_flange(w, h, GAP);
         }}
 
-    // Z=4.5 to 6.0 : Upper hole
-    translate([x, y, {plunger_h + stem_h + diamond_h + up_stem_h/2}])
-        cube([bw + GAP*2, bh + GAP*2, {up_stem_h + 0.1}], center=true);
+        // Upper hole: Must cut all the way through faceplate top
+        translate([0, 0, {plunger_h + stem_h + diamond_h}])
+            hull() {{
+                for(dx=[-(w)/2+1.0, (w)/2-1.0], dy=[-(h)/2+1.0, (h)/2-1.0])
+                    translate([dx, dy, 0]) cylinder(r=1.0 + GAP, h={up_stem_h + 1.0}); // Extra height to break through
+            }}
+    }}
 }}
 
 module faceplate_body() {{
@@ -312,63 +322,82 @@ module chassis_shell() {{
     }}
 }}
 module pcb_rails() {{
-    rl = 1.5; yoff = {plate_t:.1f} + 0.5;
-    translate([wall, yoff, {STANDOFF:.1f}])
-        cube([rl, D - wall - yoff, ch - wall - {STANDOFF:.1f}]);
-    translate([cw - wall - rl, yoff, {STANDOFF:.1f}])
-        cube([rl, D - wall - yoff, ch - wall - {STANDOFF:.1f}]);
+    rl = 1.5; 
+    // 1. Faceplate Rail (Back of faceplate)
+    fp_y = {plate_t:.1f};
+    translate([wall, fp_y, 0])
+        cube([rl, 1.0, ch - wall]);
+    translate([cw - wall - rl, fp_y, 0])
+        cube([rl, 1.0, ch - wall]);
+
+    // 2. PCB Rail (Back of PCB)
+    // Starts at Z=22.0 to safely clear the cap_posts (screw receivers)
+    pcb_y = fp_y + {PCB_T:.1f};
+    translate([wall, pcb_y, 22.0])
+        cube([rl, 1.0, ch - wall - 22.0]);
+    translate([cw - wall - rl, pcb_y, 22.0])
+        cube([rl, 1.0, ch - wall - 22.0]);
 }}
 module pcb_standoff() {{
-    translate([wall + 1.5, {plate_t:.1f} + 0.5, 0])
-        cube([cw - 2*(wall + 1.5), D - wall - ({plate_t:.1f} + 0.5), {STANDOFF:.1f}]);
+    // Removed to allow bottom access for PCB/Faceplate sliding
 }}
 module rim_walls() {{
     rim_d = 4.0;
     translate([0, -rim_d, 0])        cube([wall, rim_d, ch]);
     translate([cw-wall, -rim_d, 0])  cube([wall, rim_d, ch]);
-    translate([0, -rim_d, 0])        cube([cw, rim_d, wall]);
+    // Bottom rim removed for full slide access
     translate([0, -rim_d, ch-wall])  cube([cw, rim_d, wall]);
 }}
 module cap_posts() {{
     py = D - wall - 1.5;
-    translate([wall + 4,      py, 0]) cylinder(d=7, h=14);
-    translate([cw - wall - 4, py, 0]) cylinder(d=7, h=14);
+    // Left post tapers into the wall to prevent overhangs when printed inverted
+    hull() {{
+        translate([wall + 4, py, 0]) cylinder(d=7, h=14);
+        translate([wall, py + 1.5, 14 + 7]) cube([0.1, 0.1, 0.1]);
+    }}
+    // Right post tapers into the wall
+    hull() {{
+        translate([cw - wall - 4, py, 0]) cylinder(d=7, h=14);
+        translate([cw - wall, py + 1.5, 14 + 7]) cube([0.1, 0.1, 0.1]);
+    }}
 }}
 module railway_grooves() {{
+    // 2 straight grooves for the sliding cover
     translate([-0.1, GY, 0])          cube([GCD+0.1, GCW, ch]);
-    translate([-0.1, GY+GCW+GR, 0])  cube([GCD+0.1, GCW, ch]);
-    translate([0, GY, junc]) rotate([10,0,0])
-        translate([-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
-    translate([0, GY+GCW+GR, junc]) rotate([10,0,0])
-        translate([-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
-    translate([cw-GCD, GY, 0])          cube([GCD+0.1, GCW, ch]);
-    translate([cw-GCD, GY+GCW+GR, 0])  cube([GCD+0.1, GCW, ch]);
-    translate([cw, GY, junc]) rotate([10,0,0])
-        translate([-GCD-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
-    translate([cw, GY+GCW+GR, junc]) rotate([10,0,0])
-        translate([-GCD-0.1, 0, 0]) cube([GCD+0.1, GCW, ch]);
+    translate([cw-GCD, GY, 0])        cube([GCD+0.1, GCW, ch]);
 }}
 module battery_door_rails() {{
-    rail_w = 1.0; rail_d = 1.0;
-    translate([cw/2 - batt_w/2 - rail_w, D - wall - rail_d, batt_z - 2])
-        cube([rail_w, rail_d, batt_h + 4]);
-    translate([cw/2 + batt_w/2, D - wall - rail_d, batt_z - 2])
-        cube([rail_w, rail_d, batt_h + 4]);
+    // Replaced with simple interior ledge in chassis hole
 }}
 module chassis() {{
     difference() {{
         union() {{
             chassis_shell(); pcb_rails(); pcb_standoff();
-            cap_posts(); rim_walls(); battery_door_rails();
+            cap_posts(); rim_walls();
+            // Screw post tab inside battery cavity
+            // Provides solid plastic behind the inset ledge for the top screw
+            translate([cw/2 - 5, D - wall - 2.0, batt_z + 17])
+                cube([10, 2.5, 8]);
         }}
-        translate([cw/2 - batt_w/2, D - wall - 0.1, batt_z])
-            cube([batt_w, wall + 0.2, batt_h]);
-        translate([cw/2 - 5, D - wall - 0.1, ch - wall - 5])
-            cube([10, wall + 0.2, 6]);
+        // Battery opening (Outer recess for door, 1.5mm deep from outer face D)
+        translate([cw/2 - batt_w/2, D - 1.5, batt_z])
+            cube([batt_w, 1.6, batt_h]);
+        // Battery opening (Inner hole for battery, passes through wall)
+        // Leaves 1mm support ledge all around
+        translate([cw/2 - batt_w/2 + 1.0, D - 2.1, batt_z + 1.0])
+            cube([batt_w - 2.0, 2.2, batt_h - 2.0]);
+        // Bottom sliding rail slot (tuck tab under bottom ledge)
+        translate([cw/2 - (batt_w-4)/2, D - 1.5, batt_z - 1.0])
+            cube([batt_w - 4, 1.0, 1.1]);
+
         py = D - wall - 1.5;
         translate([wall + 4,      py, -0.1]) cylinder(d=2.6, h=15);
         translate([cw - wall - 4, py, -0.1]) cylinder(d=2.6, h=15);
         railway_grooves();
+        
+        // Pilot hole for battery door screw
+        translate([cw/2, D - 1.5, batt_z + 21.08])
+            rotate([-90,0,0]) cylinder(d=1.8, h=5);
     }}
 }}
 chassis();
@@ -425,11 +454,11 @@ module top_cap() {{
             }}
         }}
         // ── M3 CLEARANCE HOLES (+Z direction, match chassis cap posts) ────
-        translate([8,      {CHASSIS_D/2 - 3:.3f}, -0.1]) cylinder(d=3.4, h=cap_t+1);
-        translate([cw-8.5, {CHASSIS_D/2 - 3:.3f}, -0.1]) cylinder(d=3.4, h=cap_t+1);
+        translate([6.0,    6.5, -0.1]) cylinder(d=3.4, h=cap_t+1);
+        translate([cw-6.0, 6.5, -0.1]) cylinder(d=3.4, h=cap_t+1);
         // Countersinks (from the bottom face of the cap, Z=0)
-        translate([8,      {CHASSIS_D/2 - 3:.3f}, -3])   cylinder(d1=6.5, d2=3.4, h=3);
-        translate([cw-8.5, {CHASSIS_D/2 - 3:.3f}, -3])   cylinder(d1=6.5, d2=3.4, h=3);
+        translate([6.0,    6.5, -3])   cylinder(d1=6.5, d2=3.4, h=3);
+        translate([cw-6.0, 6.5, -3])   cylinder(d1=6.5, d2=3.4, h=3);
         // ── Ribbon cable relief notch (display side) ──────────────────────
         translate([cw/2-10, -0.1, cap_t-1.2]) cube([20, D+0.2, 1.3]);
     }}
@@ -454,7 +483,7 @@ top_cap();
     cov_wall  = 2.0        # wall thickness (PLA)
     cov_clear = 0.4        # fit clearance per side
     cov_h     = fp_h + 4   # 155mm — 2mm overhang each end
-    GROOVE_W  = 2.5;  GROOVE_D = 2.0;  GROOVE_Z = 3.0
+    GROOVE_W  = 2.0;  GROOVE_D = 1.5;  GROOVE_Z = 3.0
     rail_w    = GROOVE_W - 0.2   # rail tab width (0.2mm total clearance)
     rail_d    = GROOVE_D - 0.1   # rail tab depth (0.1mm clearance)
     wedge_len = 30
@@ -547,32 +576,25 @@ module battery_door() {{
     // Lip slides into chassis rail groove on the back face of the chassis.
     //
     // Dimensions derived from chassis:
-    //   Chassis ch = {fp_h:.2f} mm. Slot start Y=100, length = {fp_h - 100:.2f} mm
-    //   Door must be {fp_h - 100 - 0.2:.2f} mm long (0.2mm clearance)
-    //
-    //   Print orientation: face-down (Z=2 on build plate)
-    //   Z=0-1: inner lip / rails (wider, slides in the groove)
-    //   Z=1-2: outer visible face plate (narrower, sits in outer slot)
-
+    //   Chassis battery hole is 40x25mm
     difference() {{
         union() {{
-            // Inner lip (wider rail) at Z=0 to Z=1 — slides in chassis groove
-            // 49.8mm wide to fit in 50mm slot with 0.1mm each side clearance
-            translate([-49.8/2, 0, 0]) cube([49.8, {fp_h - 100 - 0.2:.2f}, 1.0]);
+            // Main plate (39.6 x 24.6mm to fit with 0.2mm clearance in 40x25 hole)
+            // Thickness = 1.5mm so it sits perfectly flush in the 1.5mm deep recess.
+            translate([-39.6/2, 0, 0]) cube([39.6, 24.6, 1.5]);
 
-            // Outer face at Z=1 to Z=2 — narrower, sits in 2mm outer slot
-            // 47.8mm wide (1mm inset each side, acts as ledge/stop)
-            translate([-47.8/2, 0, 1.0]) cube([47.8, {fp_h - 100 - 0.2:.2f}, 1.0]);
+            // Bottom mounting tab (slides into chassis slot at Z=-1.0)
+            // Starts at Z=0 (bottom edge of door), goes down 1.0mm
+            translate([-(39.6 - 4)/2, -1.0, 0.5]) cube([39.6 - 4, 1.0, 1.0]);
         }}
-        // Grip ridges on the outer face (Z=2, the bed-side when printing face-down)
-        for(i=[8:3:22]) {{
-            translate([-12, i, 1.6]) cube([24, 1.5, 0.5]);
-        }}
-        // M2 Screw clearance hole through both layers (locks door to chassis post)
-        // At 85% of door length = {(fp_h - 100 - 0.2) * 0.85:.2f} mm
-        translate([0, {(fp_h - 100 - 0.2) * 0.85:.2f}, -0.1]) cylinder(d=2.4, h=2.3);
-        // Countersink on the outer visible face (Z=2, facing user)
-        translate([0, {(fp_h - 100 - 0.2) * 0.85:.2f}, 1.0]) cylinder(d1=2.4, d2=4.4, h=1.1);
+
+        // Fingernail notch on the top edge (Z=24.6)
+        translate([0, 24.6, 1.5]) rotate([90,0,0]) cylinder(d=4.0, h=4.0, center=true);
+
+        // M2 Screw clearance hole 
+        translate([0, 21.08, -0.1]) cylinder(d=2.4, h=2.3);
+        // Countersink
+        translate([0, 21.08, 0.5]) cylinder(d1=2.4, d2=4.4, h=1.1);
     }}
 }}
 battery_door();
@@ -588,21 +610,23 @@ battery_door();
 // Standalone Keycaps
 $fn = 40;
 module keycap(w, h, label) {{
-    // HP32SII-style keycap: only ~1mm taper front-to-back
-    // Front edge (y = -h/2) sits 0.5mm lower than rear edge (y = +h/2)
-    // giving a gentle 1mm total rise over key depth — very subtle, comfortable
+    // Plunger (Z=-1 to 0)
+    translate([0, 0, -0.5]) cube([w - 1.0, h - 1.0, 1.0], center=true);
+
+    // Flange (Z=0 to 1.0)
+    translate([0, 0, 0.5]) cube([w + 1.5, h + 1.5, 1.0], center=true);
+
+    // Keycap (Z=1.0 to 6.7)
     hull() {{
-        // Bottom face (Z=0)
-        translate([-w/2+1, -h/2+1, 0])   cylinder(r=1, h=0.01);
-        translate([ w/2-1, -h/2+1, 0])   cylinder(r=1, h=0.01);
-        translate([-w/2+1,  h/2-1, 0])   cylinder(r=1, h=0.01);
-        translate([ w/2-1,  h/2-1, 0])   cylinder(r=1, h=0.01);
+        translate([-w/2+1.0, -h/2+1.0, 1.0])   cylinder(r=1.0, h=0.01);
+        translate([ w/2-1.0, -h/2+1.0, 1.0])   cylinder(r=1.0, h=0.01);
+        translate([-w/2+1.0,  h/2-1.0, 1.0])   cylinder(r=1.0, h=0.01);
+        translate([ w/2-1.0,  h/2-1.0, 1.0])   cylinder(r=1.0, h=0.01);
         
-        // Top face: front at Z=2.5, rear at Z=2.5+1=3.5 — 1mm taper only
-        translate([-w/2+1, -h/2+1, 2.5]) cylinder(r=1, h=0.01);
-        translate([ w/2-1, -h/2+1, 2.5]) cylinder(r=1, h=0.01);
-        translate([-w/2+1,  h/2-1, 3.5]) cylinder(r=1, h=0.01);
-        translate([ w/2-1,  h/2-1, 3.5]) cylinder(r=1, h=0.01);
+        translate([-w/2+1.0, -h/2+1.0, 6.7]) cylinder(r=0.8, h=0.01);
+        translate([ w/2-1.0, -h/2+1.0, 6.7]) cylinder(r=0.8, h=0.01);
+        translate([-w/2+1.0,  h/2-1.0, 6.7]) cylinder(r=0.8, h=0.01);
+        translate([ w/2-1.0,  h/2-1.0, 6.7]) cylinder(r=0.8, h=0.01);
     }}
 }}
 """

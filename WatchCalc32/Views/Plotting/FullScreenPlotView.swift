@@ -133,15 +133,7 @@ struct FullScreenPlotView: View {
     @ChartContentBuilder
     var areaAndSelectedContent: some ChartContent {
         if engine.integrationLimits != nil {
-            ForEach(dataPoints) { point in
-                AreaMark(
-                    x: .value("X", point.x),
-                    yStart: .value("Y Start", 0),
-                    yEnd: .value("Y End", point.y)
-                )
-                .interpolationMethod(.monotone)
-                .foregroundStyle(.blue.opacity(0.2))
-            }
+            // Only shade the integration window (between the limits), with the x-axis as the baseline
             ForEach(highlightedDataPoints) { point in
                 AreaMark(
                     x: .value("X", point.x),
@@ -167,6 +159,7 @@ struct FullScreenPlotView: View {
                 .annotation(position: .top) { annotationView(for: x2, isFirst: false) }
         }
     }
+
     
     var body: some View {
         GeometryReader { geo in
@@ -378,9 +371,18 @@ struct FullScreenPlotView: View {
             xCenter = (first.x + last.x) / 2.0
             
             let yValues = dataPoints.map { $0.y }
-            let minY = yValues.min() ?? -3.0
-            let maxY = yValues.max() ?? 3.0
-            initialYDomainLength = max(0.1, abs(maxY - minY))
+            var minY = yValues.min() ?? -3.0
+            var maxY = yValues.max() ?? 3.0
+            
+            // Always include y=0 so the x-axis baseline is visible,
+            // especially for integration area shading
+            if engine.integrationLimits != nil {
+                minY = min(minY, 0.0)
+                maxY = max(maxY, 0.0)
+            }
+            
+            let padding = max(0.5, abs(maxY - minY) * 0.1)
+            initialYDomainLength = max(0.1, abs(maxY - minY) + padding * 2)
             yCenter = (minY + maxY) / 2.0
             
         } else {

@@ -27,7 +27,7 @@ public class Renderer {
     }
     
     public enum FontSize {
-        case small, medium, large
+        case tiny, small, medium, large
     }
     
     public func drawChar(_ c: Character, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
@@ -36,6 +36,10 @@ public class Renderer {
         let glyph: [UInt8]?
         
         switch size {
+        case .tiny:
+            width = FontData.Tiny.charWidth
+            height = FontData.Tiny.charHeight
+            glyph = FontData.Tiny.glyph(for: c)
         case .small:
             width = FontData.Small.charWidth
             height = FontData.Small.charHeight
@@ -72,6 +76,7 @@ public class Renderer {
     public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
         let width: Int
         switch size {
+        case .tiny: width = FontData.Tiny.charWidth
         case .small: width = FontData.Small.charWidth
         case .medium: width = FontData.Medium.charWidth
         case .large: width = FontData.Large.charWidth
@@ -83,6 +88,7 @@ public class Renderer {
         var cursorX = x
         let width: Int
         switch size {
+        case .tiny: width = FontData.Tiny.charWidth
         case .small: width = FontData.Small.charWidth
         case .medium: width = FontData.Medium.charWidth
         case .large: width = FontData.Large.charWidth
@@ -102,11 +108,21 @@ public class Renderer {
         }
     }
     
+    public func drawRect(x: Int, y: Int, w: Int, h: Int, color: Bool = true) {
+        for col in x..<(x+w) {
+            setPixel(x: col, y: y, color: color)
+            setPixel(x: col, y: y+h-1, color: color)
+        }
+        for row in y..<(y+h) {
+            setPixel(x: x, y: row, color: color)
+            setPixel(x: x+w-1, y: row, color: color)
+        }
+    }
+    
     public func renderMenu(menu: CalculatorMenu, query: String = "") {
-        // Draw the menu title
-        let titleStr = query.isEmpty ? "\(menu.rawValue) Menu:" : "Search: \(query)_"
-        drawString(titleStr, x: 2, y: 34, size: .small, color: true)
-        
+        if !query.isEmpty {
+            drawString("Search: \(query)_", x: 2, y: 38, size: .small, color: true)
+        }
         // Render soft keys
         let items = MenuSystem.filter(menu: menu, query: query)
         let segmentWidth = 128 / 6
@@ -115,13 +131,11 @@ public class Renderer {
             let item = items[i]
             let xOffset = i * segmentWidth
             
-            fillRect(x: xOffset + 2, y: 56, w: segmentWidth - 4, h: 8, color: true)
+            drawRect(x: xOffset + 1, y: 53, w: segmentWidth - 2, h: 10, color: true)
             
-            let textW = item.label.count * FontData.Small.charWidth
+            let textW = item.label.count * FontData.Tiny.charWidth
             let textX = xOffset + (segmentWidth - textW) / 2
-            drawString(item.label, x: textX, y: 46, size: .small, color: true)
-            
-            drawChar("▼", x: xOffset + (segmentWidth - FontData.Small.charWidth) / 2, y: 56, size: .small, color: false)
+            drawString(item.label, x: textX, y: 55, size: .tiny, color: true)
         }
     }
 }

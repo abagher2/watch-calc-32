@@ -130,8 +130,28 @@ struct WatchCalcFirmware {
 @inline(never)
 static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: CalculatorEngine, _ lfu: LFUManager) {
     var str = ""
-    for i in 0..<len {
-        str.append(Character(UnicodeScalar(buf[i])))
+    str.reserveCapacity(len)
+    var i = 0
+    while i < len {
+        let c = buf[i]
+        if c < 0x80 {
+            str.append(Character(UnicodeScalar(c)))
+            i += 1
+        } else if c >= 0xC0 && c < 0xE0 {
+            if i + 1 < len {
+                let code = ((UInt32(c) & 0x1F) << 6) | (UInt32(buf[i+1]) & 0x3F)
+                if let scalar = UnicodeScalar(code) { str.append(Character(scalar)) }
+                i += 2
+            } else { i += 1 }
+        } else if c >= 0xE0 && c < 0xF0 {
+            if i + 2 < len {
+                let code = ((UInt32(c) & 0x0F) << 12) | ((UInt32(buf[i+1]) & 0x3F) << 6) | (UInt32(buf[i+2]) & 0x3F)
+                if let scalar = UnicodeScalar(code) { str.append(Character(scalar)) }
+                i += 3
+            } else { i += 1 }
+        } else {
+            i += 1
+        }
     }
     
     if str == "C" {
@@ -240,31 +260,45 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 return
             }
             
-            // 1. Draw Menu (top area)
+            let menuActive = activeMenu != nil || waitingForMenuDigit != nil
+            
+            // 1. Draw Menu (bottom area)
             if let menu = activeMenu {
                 renderer.renderMenu(menu: menu, query: menuAlphaQuery)
             } else if let pending = waitingForMenuDigit {
-                renderer.drawString("\(pending.action) _", x: 2, y: 5, size: .small, color: true)
+                renderer.drawString("\(pending.action) _", x: 2, y: 52, size: .small, color: true)
             }
             
-            // 2. Draw X right-aligned on bottom area
+            // 2. Draw X register (dynamic font size)
             var xStr = engine.displayX
             if engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha {
                 xStr += "_"
             }
-            let xStrWidth = renderer.getStringWidth(xStr, size: .large)
-            let startX = max(0, 128 - xStrWidth - 2) // 2px padding
-            renderer.drawString(xStr, x: startX, y: 30, size: .large)
+            
+            let displayFont: Renderer.FontSize = xStr.count <= 9 ? .medium : .small
+            let xStrWidth = renderer.getStringWidth(xStr, size: displayFont)
+            let startX = max(0, 128 - xStrWidth - 2)
+            
+            if menuActive {
+                // Squeeze X above the menu (Indicators end at y=14)
+                renderer.drawString(xStr, x: startX, y: 14, size: displayFont)
+            } else {
+                // Centered vertically when no menu
+                renderer.drawString(xStr, x: startX, y: 28, size: displayFont)
+            }
             
             // 3. Draw Indicators
             var indX = 2
+            let indY = 2
             if engine.shiftState == 1 {
-                renderer.drawString("f", x: indX, y: 45, size: .small)
+                renderer.drawString("f", x: indX, y: indY, size: .small)
                 indX += 10
             } else if engine.shiftState == 2 {
-                renderer.drawString("g", x: indX, y: 45, size: .small)
+                renderer.drawString("g", x: indX, y: indY, size: .small)
                 indX += 10
             }
+            // Future indicators like 'rad', 'hyp' go here
+            
             renderer.buffer.withUnsafeBufferPointer { ptr in
                 display_send_buffer(ptr.baseAddress!)
             }

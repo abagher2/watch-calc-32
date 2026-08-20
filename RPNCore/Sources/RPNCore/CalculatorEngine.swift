@@ -554,7 +554,7 @@ public class CalculatorEngine {
         } else {
             if !isBuildingNumber {
                 if stackLiftEnabled && !stack.isEmpty {
-                    stack.insert(stack[0], at: 0) // Push stack
+                    pushToStack(stack[0]) // Push stack
                 }
                 isBuildingNumber = true
                 currentInput = "\(d)"
@@ -828,10 +828,10 @@ public class CalculatorEngine {
         
         if isBuildingNumber {
             commitInput()
-            stack.insert(stack[0], at: 0)
+            pushToStack(stack[0])
         } else {
             if !stack.isEmpty {
-                stack.insert(stack[0], at: 0)
+                pushToStack(stack[0])
             }
         }
         stackLiftEnabled = false
@@ -897,8 +897,10 @@ public class CalculatorEngine {
             }
             updateCurrentInputDisplay()
         } else {
-            drop()
-            if stack.isEmpty { stack.append(CalculatorValue()) }
+            for i in 0..<(stackSizeLimit - 1) {
+                stack[i] = stack[i+1]
+            }
+            stack[stackSizeLimit - 1] = CalculatorValue()
             updateDisplay()
         }
     }
@@ -906,8 +908,11 @@ public class CalculatorEngine {
     public func rollDown() {
         commitInput()
         if stack.count > 1 {
-            let x = stack.removeFirst()
-            stack.append(x)
+            let x = stack[0]
+            for i in 0..<(stackSizeLimit - 1) {
+                stack[i] = stack[i+1]
+            }
+            stack[stackSizeLimit - 1] = x
         }
         updateDisplay()
     }
@@ -916,7 +921,7 @@ public class CalculatorEngine {
         commitInput()
         if stack.count > 1 {
             let last = stack.removeLast()
-            stack.insert(last, at: 0)
+            pushToStack(last)
         }
         updateDisplay()
     }
@@ -940,7 +945,7 @@ public class CalculatorEngine {
     private func performTest(_ result: Bool) {
         if isEquationMode || isProgrammingMode {
             commitInput()
-            stack.insert(CalculatorValue(real: result ? 1.0 : 0.0), at: 0)
+            pushToStack(CalculatorValue(real: result ? 1.0 : 0.0))
             stack.removeLast()
             updateDisplay()
         } else {
@@ -1284,9 +1289,9 @@ public class CalculatorEngine {
                 if stack[0].real < 0 || stack[0].real != floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
             }
             unaryOp { CalculatorValue(real: tgamma($0.real + 1)) }
-        case "π": commitInput(); stack.insert(CalculatorValue(real: Double.pi), at: 0)
+        case "π": commitInput(); pushToStack(CalculatorValue(real: Double.pi))
         case "+/-": toggleSign(); return
-        case "ENTER": commitInput(); stack.insert(stack[0], at: 0); stackLiftEnabled = false
+        case "ENTER": commitInput(); pushToStack(stack[0]); stackLiftEnabled = false
         case ".": decimal(); return
         case "FRAC": unaryOp { CalculatorValue(real: $0.real - floor($0.real)) }
         case "SIN": 
@@ -1346,13 +1351,15 @@ public class CalculatorEngine {
             
         case "R↓":
             if stack.count > 1 {
-                let first = stack.removeFirst()
+                let first = stack[0]
+                for i in 0..<(stackSizeLimit - 1) { stack[i] = stack[i+1] }
+                stack[stackSizeLimit - 1] = CalculatorValue()
                 stack.append(first)
             }
         case "R↑":
             if stack.count > 1 {
                 let last = stack.removeLast()
-                stack.insert(last, at: 0)
+                pushToStack(last)
             }
 
         case "Σ+": addStat()
@@ -1410,7 +1417,7 @@ public class CalculatorEngine {
             stackLiftEnabled = true
             updateDisplay()
             
-        case "R#": commitInput(); stack.insert(CalculatorValue(real: Double.random(in: 0..<1)), at: 0)
+        case "R#": commitInput(); pushToStack(CalculatorValue(real: Double.random(in: 0..<1)))
         case "SD":
             if stack.count > 0 { srand48(Int(stack[0].real)); drop() }
         
@@ -1661,7 +1668,7 @@ public class CalculatorEngine {
             if isProgramNumberStep(step) {
                 if !self.isBuildingNumber {
                     if self.stackLiftEnabled && !self.stack.isEmpty {
-                        self.stack.insert(self.stack[0], at: 0) // Push stack
+                        self.pushToStack(self.stack[0]) // Push stack
                     }
                     self.isBuildingNumber = true
                 }
@@ -1794,11 +1801,11 @@ public class CalculatorEngine {
         
         if y {
             commitInput()
-            stack.insert(CalculatorValue(real: meanY), at: 0)
+            pushToStack(CalculatorValue(real: meanY))
         } else {
             commitInput()
-            stack.insert(CalculatorValue(real: meanY), at: 0)
-            stack.insert(CalculatorValue(real: meanX), at: 0)
+            pushToStack(CalculatorValue(real: meanY))
+            pushToStack(CalculatorValue(real: meanX))
         }
     }
     
@@ -1806,7 +1813,7 @@ public class CalculatorEngine {
         if statSumY == 0 { errorMessage = "STAT ERROR"; return }
         let xw = statSumXY / statSumY
         commitInput()
-        stack.insert(CalculatorValue(real: xw), at: 0)
+        pushToStack(CalculatorValue(real: xw))
     }
     
     private func calculateStdDev(sample: Bool, y: Bool = false) {
@@ -1817,11 +1824,11 @@ public class CalculatorEngine {
         
         if y {
             commitInput()
-            stack.insert(CalculatorValue(real: sqrt(varY > 0 ? varY : 0)), at: 0)
+            pushToStack(CalculatorValue(real: sqrt(varY > 0 ? varY : 0)))
         } else {
             commitInput()
-            stack.insert(CalculatorValue(real: sqrt(varY > 0 ? varY : 0)), at: 0)
-            stack.insert(CalculatorValue(real: sqrt(varX > 0 ? varX : 0)), at: 0)
+            pushToStack(CalculatorValue(real: sqrt(varY > 0 ? varY : 0)))
+            pushToStack(CalculatorValue(real: sqrt(varX > 0 ? varX : 0)))
         }
     }
     
@@ -1832,7 +1839,7 @@ public class CalculatorEngine {
         if den == 0 { errorMessage = "STAT ERROR"; return }
         let m = num / den
         commitInput()
-        stack.insert(CalculatorValue(real: m), at: 0)
+        pushToStack(CalculatorValue(real: m))
     }
     
     private func calculateYIntercept() {
@@ -1843,7 +1850,7 @@ public class CalculatorEngine {
         let m = num / den
         let b = (statSumY - m * statSumX) / statN
         commitInput()
-        stack.insert(CalculatorValue(real: b), at: 0)
+        pushToStack(CalculatorValue(real: b))
     }
     
     private func calculateCorrelation() {
@@ -1860,8 +1867,8 @@ public class CalculatorEngine {
         let b = (statSumY - m * statSumX) / statN
         let yHat = m * x + b
         commitInput()
-        stack.insert(CalculatorValue(real: r), at: 0)
-        stack.insert(CalculatorValue(real: yHat), at: 0)
+        pushToStack(CalculatorValue(real: r))
+        pushToStack(CalculatorValue(real: yHat))
     }
     
     private func calculateLinearEstimation() {
@@ -1877,7 +1884,7 @@ public class CalculatorEngine {
         let xHat = (y - b) / m
         
         commitInput()
-        stack.insert(CalculatorValue(real: xHat), at: 0)
+        pushToStack(CalculatorValue(real: xHat))
     }
     
     // MARK: - Angles
@@ -2009,7 +2016,7 @@ public class CalculatorEngine {
             variables[initialChar] = stack.count > 0 ? stack[0] : CalculatorValue()
         } else if alphaAction == .rcl {
             let val = variables[initialChar] ?? CalculatorValue()
-            stack.insert(val, at: 0)
+            pushToStack(val)
             updateDisplay()
         } else {
             // Push variable directly if in run mode
@@ -2048,7 +2055,7 @@ public class CalculatorEngine {
     
     public func push(_ val: CalculatorValue) {
         commitInput()
-        stack.insert(val, at: 0)
+        pushToStack(val)
         // Do NOT disable stackLift — pushed constants behave like π: the next
         // digit entered lifts the stack rather than replacing the constant.
         // e.g.  CONST(h)  2  ×  →  2 * h   (no ENTER needed)
@@ -2058,11 +2065,16 @@ public class CalculatorEngine {
 
     public func drop() {
         if !stack.isEmpty {
-            stack.removeFirst()
-            while stack.count < stackSizeLimit {
-                stack.append(stack.last ?? CalculatorValue())
-            }
+            for i in 0..<(stackSizeLimit - 1) { stack[i] = stack[i+1] }
+            stack[stackSizeLimit - 1] = CalculatorValue()
         }
+    }
+
+    public func pushToStack(_ value: CalculatorValue) {
+        for i in (1..<stackSizeLimit).reversed() {
+            stack[i] = stack[i-1]
+        }
+        stack[0] = value
     }
 
     public func startAlpha() {
@@ -2317,7 +2329,7 @@ public class CalculatorEngine {
         let fMinus = evaluateProgram(program, variables: vars)?.real ?? 0.0
         
         let derivative = (fPlus - fMinus) / (2 * h)
-        self.stack.insert(CalculatorValue(real: derivative), at: 0)
+        self.pushToStack(CalculatorValue(real: derivative))
         updateDisplay()
         return derivative
     }
@@ -2339,7 +2351,7 @@ public class CalculatorEngine {
             if abs(f1 - f0) < 1e-14 { break }
             let x2 = x1 - f1 * (x1 - x0) / (f1 - f0)
             if abs(x2 - x1) < tolerance {
-                self.stack.insert(CalculatorValue(real: x2), at: 0)
+                self.pushToStack(CalculatorValue(real: x2))
                 updateDisplay()
                 return x2
             }

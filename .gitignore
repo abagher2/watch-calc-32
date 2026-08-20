@@ -92,3 +92,4 @@ swift_toolchain/**
 swift.pkg
 swift_expanded/
 *.txt
+Hardware/designs/anim_frames/**

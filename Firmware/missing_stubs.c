@@ -4,9 +4,6 @@
 
 #include <stdio.h>
 int posix_memalign(void **memptr, size_t alignment, size_t size) {
-    void* lr0 = __builtin_return_address(0);
-    void* lr1 = __builtin_return_address(1);
-    printf("posix_memalign: %d bytes from %p (caller: %p)\n", size, lr0, lr1);
     *memptr = malloc(size);
     return 0;
 }
