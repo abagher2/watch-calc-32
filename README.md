@@ -13,6 +13,17 @@ This monorepo contains the entire project, spanning iOS, watchOS, embedded firmw
 - **Physical Hardware**: Fully open-source 3D models (chassis, faceplates, buttons) and KiCAD PCB designs for building your own physical WatchCalc32 device.
 - **Embedded Firmware**: Microcontroller code (utilizing Swift Embedded / Pico SDK) powering the physical calculator.
 
+## 🚀 Modern Enhancements (vs. Classic HP-32SII)
+
+While WatchCalc32 is heavily inspired by the classic HP-32SII and other vintage HP calculators, it introduces several modern capabilities designed for today's engineering workflows:
+
+- **RPN Equation Editor**: An intuitive editor that feels like programming, but is optimized for quick equation entry and evaluation without the overhead of full program management.
+- **Equation Plotting**: Visually plot your equations directly on the screen to analyze functions, roots, and behaviors.
+- **Built-in Constants**: A comprehensive library of built-in scientific constants for quick access during calculations.
+- **Registers Display List**: Easily view and manage the contents of all your memory registers in a dedicated list view, rather than blindly recalling them one by one.
+- **Advanced Division Operations**: Native support for division with remainders and modulus operations.
+- **LFU (Least Frequently Used) Keys**: Dynamic keys that adapt to your usage, keeping the interface uncluttered while ensuring you always have access to the functions you need.
+
 ## 📂 Repository Structure
 
 To maintain a clean and organized monorepo ready for public open-source distribution, this repository strictly adheres to the following structure:
