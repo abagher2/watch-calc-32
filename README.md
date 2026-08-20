@@ -30,6 +30,8 @@ While the basic math and variable storage functions mirror the classic HP-32SII,
 
 ### 1. RPN Equation Editor (Like Programming)
 *Unlike the algebraic equation entry on the HP-32SII, WatchCalc32 equations are entered as raw RPN sequences—providing the power of programming without the overhead of full program memory management.*
+*Note on display formatting: `A 04- RCL X` means you are editing Equation/Label **A**, on step/line **04**, and the instruction is **RCL X**.*
+
 *Example: Enter the equation `Y = 56 × X + 3`*
 
 | Keystrokes | Display | Explanation |
