@@ -34,6 +34,14 @@ public struct RetroLCDView: View {
                 Color.black
             }
         }
+        .accessibilityAddTraits(.isStaticText)
+        .accessibilityIdentifier("lcd_display")
+        .accessibilityLabel(
+            engine.statusMessage ?? 
+            engine.errorMessage ?? 
+            engine.transientMessage ?? 
+            (engine.promptString != nil ? engine.promptString! : engine.displayX)
+        )
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("iOSMenuTrigger"))) { notification in
             if let command = notification.userInfo?["command"] as? CalculatorOperation {
                 controller.processAction(command)

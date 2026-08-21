@@ -145,6 +145,36 @@ import RPNCore
         XCTAssertTrue(app.exists)
     }
 
+    func testAllRetroMenusVisual() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launch()
+        
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Open MATH Menu (Yellow Shift + 4)
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["btn_4"].tap()
+        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        
+        // Open MODES Menu (Yellow Shift + .)
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["btn_."].tap()
+        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        
+        // Open DISP Menu (Yellow Shift + 0)
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["btn_0"].tap()
+        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        
+        // Open CLEAR Menu (Yellow Shift + <-)
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["func_<-"].tap()
+        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        
+        XCTAssertTrue(app.exists)
+    }
+
     func testStoRcl() throws {
         if let tc = SharedMathTestCases.cases.first(where: { $0.name == "StoRcl" }) {
             runSharedTestCase(tc)

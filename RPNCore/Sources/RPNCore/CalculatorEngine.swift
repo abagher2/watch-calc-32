@@ -2613,7 +2613,7 @@ public class CalculatorEngine {
                 case .all: cMode = 0; cPlaces = 0
                 }
                 displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                    format_double_c(stack[0].real, ptr.baseAddress!, 32, cMode, cPlaces)
+                    format_double_c(stack[0].real, ptr.baseAddress!, 13, cMode, cPlaces)
                 }
                 var len = 0
                 while len < 64 && displayXBuffer[len] != 0 { len += 1 }
@@ -2663,7 +2663,7 @@ public class CalculatorEngine {
                     case .all: cMode = 0; cPlaces = 0
                     }
                     displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                        format_double_c(stack[0].real, ptr.baseAddress!, 64, cMode, cPlaces)
+                        format_double_c(stack[0].real, ptr.baseAddress!, 13, cMode, cPlaces)
                     }
                     var len = 0
                     while len < 64 && displayXBuffer[len] != 0 { len += 1 }

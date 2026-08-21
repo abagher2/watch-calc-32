@@ -16,6 +16,14 @@ public class Renderer {
     
     public func fitSoftkeyLabel(_ rawLabel: String) -> String {
         switch rawLabel {
+        case "e^x": return "𝑒ˣ"
+        case "√x": return "√𝑥"
+        case "x^2": return "𝑥²"
+        case "y^x": return "𝑦ˣ"
+        case "10^x": return "10ˣ"
+        case "1/x": return "1/𝑥"
+        case "x!": return "𝑥!"
+        case "x<>y": return "𝑥↔𝑦"
         case "4-LVL": return "4LV"
         case "PRGM": return "PRG"
         case "REGS": return "REG"
@@ -204,11 +212,21 @@ public class Renderer {
         setPixel(x: x + 2, y: y + 2, color: true)
     }
     
+    // Perfectly symmetrically balanced segments mapping the 128 pixel display 
+    // to exactly 6 hardware columns (which average 21.333 pixels wide)
+    private let menuSegments: [(x: Int, w: Int)] = [
+        (0, 21),
+        (22, 20),
+        (43, 21),
+        (65, 21),
+        (87, 20),
+        (108, 21)
+    ]
+    
     public func renderMenu(menu: CalculatorMenu, query: String = "", offset: Int = 0) {
         if !query.isEmpty {
             drawString("Search: \(query)_", x: 2, y: 38, size: .small, color: true)
         }
-        let segmentWidth = 128 / 6
         let items = MenuSystem.filter(menu: menu, query: query)
         let visibleCount = items.count - offset
         let isMore = visibleCount > 6
@@ -229,35 +247,34 @@ public class Renderer {
                 }
             }
             
-            let xOffset = colIndex * segmentWidth
-            fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
+            let segment = menuSegments[colIndex]
+            fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
             
             let label = fitSoftkeyLabel(item.label)
             let textW = getStringWidth(label, size: .tiny)
-            let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
+            let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
             drawString(label, x: textX, y: 55, size: .tiny, color: false)
         }
         
         if isMore {
-            let xOffset = 5 * segmentWidth
-            fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
+            let segment = menuSegments[5]
+            fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
             let textW = getStringWidth("MORE▶", size: .tiny)
-            let textX = xOffset + (segmentWidth - 1 - textW) / 2
+            let textX = segment.x + (segment.w - textW) / 2
             drawString("MORE▶", x: textX, y: 55, size: .tiny, color: false)
         }
     }
     
     public func renderLFU(manager: LFUManager) {
-        let segmentWidth = 128 / 6
         for i in 0..<6 {
-            let xOffset = i * segmentWidth
+            let segment = menuSegments[i]
             guard let rawName = manager.slots[i] else { continue }
             
             let funcName = fitSoftkeyLabel(rawName)
-            fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
+            fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
             
             let textW = getStringWidth(funcName, size: .tiny)
-            let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
+            let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
             drawString(funcName, x: textX, y: 55, size: .tiny, color: false)
         }
     }

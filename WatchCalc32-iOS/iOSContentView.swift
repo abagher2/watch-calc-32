@@ -28,7 +28,11 @@ struct iOSContentView: View {
             
             // In Retro mode, the LCD is strictly 128x64 (2:1 aspect ratio). To align the 6 menu columns 
             // with the 6 LFU buttons perfectly, the LCD must span the exact same width as the keypad.
-            let numpadPadHoriz: CGFloat = isPad ? 24 : 8
+            // On the physical device (STL), the keypad is ~84% of the chassis width. So we use 8% bezel on each side.
+            let baseNumpadPadHoriz: CGFloat = isPad ? 24 : 8
+            let retroNumpadPadHoriz: CGFloat = geo.size.width * 0.08
+            let numpadPadHoriz: CGFloat = isRetro ? retroNumpadPadHoriz : baseNumpadPadHoriz
+            
             let retroLcdHeight: CGFloat = (geo.size.width - (numpadPadHoriz * 2)) / 2.0
             
             let lcdHeight: CGFloat = isRetro ? retroLcdHeight : standardLcdHeight
@@ -61,7 +65,7 @@ struct iOSContentView: View {
         }
     }
     
-    private func mainContent(geo: GeometryProxy, landscape: Bool, isPad: Bool, numpadHeight: CGFloat) -> AnyView {
+    private func mainContent(geo: GeometryProxy, landscape: Bool, isPad: Bool, numpadHeight: CGFloat, retroLcdHeight: CGFloat) -> AnyView {
         let content = VStack(spacing: 0) {
             if isPad {
                 Spacer(minLength: 0)
@@ -76,9 +80,9 @@ struct iOSContentView: View {
             
             // 1-Line LCD Display (HP32SII style)
             if landscape {
-                landscapeView(geo: geo, numpadHeight: numpadHeight, isPad: isPad)
+                landscapeView(geo: geo, numpadHeight: numpadHeight, isPad: isPad, retroLcdHeight: retroLcdHeight)
             } else {
-                portraitView(geo: geo, numpadHeight: numpadHeight, isPad: isPad)
+                portraitView(geo: geo, numpadHeight: numpadHeight, isPad: isPad, retroLcdHeight: retroLcdHeight)
             }
         }
         
@@ -97,7 +101,7 @@ struct iOSContentView: View {
     }
     
     @ViewBuilder
-    private func landscapeView(geo: GeometryProxy, numpadHeight: CGFloat, isPad: Bool) -> some View {
+    private func landscapeView(geo: GeometryProxy, numpadHeight: CGFloat, isPad: Bool, retroLcdHeight: CGFloat) -> some View {
         let padAll: CGFloat = isPad ? 24 : 0
         let padHoriz: CGFloat = isPad ? 16 : 0
         let padBottom: CGFloat = isPad ? 16 : 0
@@ -109,7 +113,8 @@ struct iOSContentView: View {
         let nameplatePadTop: CGFloat = isPad ? 48 : 24
         let nameplatePadTrailing: CGFloat = isPad ? 48 : 24
         
-        let numpadPadHoriz: CGFloat = isPad ? 24 : 12
+        let baseNumpadPadHoriz: CGFloat = isPad ? 24 : 12
+        let numpadPadHoriz: CGFloat = (themeManager.activeThemeType == .retro) ? (geo.size.width * 0.08) : baseNumpadPadHoriz
         let numpadPadBottom: CGFloat = isPad ? 32 : 16
         
         let lcdMaxWidth: CGFloat = .infinity
@@ -118,8 +123,7 @@ struct iOSContentView: View {
             HStack(alignment: .top) {
                 if themeManager.activeThemeType == .retro {
                     RetroLCDView(engine: engine)
-                        .padding(4)
-                        .frame(maxWidth: lcdMaxWidth, maxHeight: 90)
+                        .frame(maxWidth: lcdMaxWidth, maxHeight: retroLcdHeight)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(themeManager.theme.lcdBackgroundColor)
@@ -210,20 +214,20 @@ struct iOSContentView: View {
     }
 
     @ViewBuilder
-    private func portraitView(geo: GeometryProxy, numpadHeight: CGFloat, isPad: Bool) -> some View {
+    private func portraitView(geo: GeometryProxy, numpadHeight: CGFloat, isPad: Bool, retroLcdHeight: CGFloat) -> some View {
         let lcdPadHoriz: CGFloat = isPad ? 32 : 16
         let lcdPadTop: CGFloat = isPad ? 32 : 16
         let lcdMaxWidth: CGFloat = isPad ? 600 : .infinity
         let lcdMaxHeight: CGFloat = isPad ? 160 : 120
         let lcdFontSize: CGFloat = isPad ? 48 : 42
         
-        let numpadPadHoriz: CGFloat = isPad ? 24 : 8
+        let baseNumpadPadHoriz: CGFloat = isPad ? 24 : 8
+        let numpadPadHoriz: CGFloat = (themeManager.activeThemeType == .retro) ? (geo.size.width * 0.08) : baseNumpadPadHoriz
         let numpadPadBottom: CGFloat = isPad ? 48 : 32
         
         if themeManager.activeThemeType == .retro {
             RetroLCDView(engine: engine)
-                .padding(4)
-                .frame(maxWidth: lcdMaxWidth, maxHeight: lcdMaxHeight)
+                .frame(maxWidth: .infinity, maxHeight: retroLcdHeight)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(themeManager.theme.lcdBackgroundColor)

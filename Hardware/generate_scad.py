@@ -619,20 +619,25 @@ module c_cover() {{
 
     // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
     // Left flange rail tab
-    difference() {{
+    union() {{
         // Overlap by 0.1mm into the flange wall to ensure perfect manifold fusion
         translate([-cov_clear - 0.1, GROOVE_Z - cov_clear, -2])
             cube([rail_d + 0.1, rail_w, cov_h]);
-        // Lock notch at Z=5
-        translate([-cov_clear-0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) rotate([0, 90, 0]) cylinder(d=rail_w+0.2, h=rail_d+0.5, $fn=16);
+        // Lock bump at Z=5
+        translate([-cov_clear - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
+            rotate([0, 90, 0]) 
+            cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
     }}
     // Right flange rail tab (translated inwards by rail_d)
-    difference() {{
+    union() {{
         // Overlap by 0.1mm into the flange wall
         translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, -2])
             cube([rail_d + 0.1, rail_w, cov_h]);
-        // Lock notch at Z=5
-        translate([cw + cov_clear - rail_d - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) rotate([0, 90, 0]) cylinder(d=rail_w+0.2, h=rail_d+0.5, $fn=16);
+        // Lock bump at Z=5
+        // Protrudes in negative X direction, so translate to outer edge and rotate -90
+        translate([cw + cov_clear + 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
+            rotate([0, -90, 0]) 
+            cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
     }}
 }}
 c_cover();

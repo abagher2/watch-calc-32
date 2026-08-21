@@ -124,11 +124,17 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
     if (mode == 1) { // FIX
         snprintf((char*)buffer, max_len, "%.*f", places, val);
     } else if (mode == 2) { // SCI
-        snprintf((char*)buffer, max_len, "%.*e", places, val);
+        snprintf((char*)buffer, max_len, "%.*E", places, val);
     } else if (mode == 3) { // ENG
-        // C doesn't have a direct format specifier for ENG, so we fallback to 'g' with the given places
-        snprintf((char*)buffer, max_len, "%.*g", places, val);
+        snprintf((char*)buffer, max_len, "%.*G", places, val);
     } else { // ALL
-        snprintf((char*)buffer, max_len, "%.14g", val);
+        int max_chars = max_len - 1;
+        for (int p = 14; p >= 0; p--) {
+            int needed = snprintf(NULL, 0, "%.*G", p, val);
+            if (needed <= max_chars) {
+                snprintf((char*)buffer, max_len, "%.*G", p, val);
+                break;
+            }
+        }
     }
 }
