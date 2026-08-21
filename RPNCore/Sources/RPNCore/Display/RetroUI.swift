@@ -26,31 +26,32 @@ public class RetroUI {
         renderer.clear()
         
         // --- 1. Top Annunciators (Indicators) ---
-        var indicators: [View] = []
-        if engine.shiftState == 1 { indicators.append(Text("f", font: .small)) }
-        if engine.shiftState == 2 { indicators.append(Text("g", font: .small)) }
-        if engine.angleMode == .rad { indicators.append(Text("RAD", font: .small)) }
-        else if engine.angleMode == .grd { indicators.append(Text("GRD", font: .small)) }
+        var indicators: [FirmwareView] = []
+        if engine.shiftState == 1 { indicators.append(FirmwareText("f", font: .small)) }
+        if engine.shiftState == 2 { indicators.append(FirmwareText("g", font: .small)) }
+        if engine.angleMode == .rad { indicators.append(FirmwareText("RAD", font: .small)) }
+        else if engine.angleMode == .grd { indicators.append(FirmwareText("GRD", font: .small)) }
         
-        if engine.complexMode { indicators.append(Text("CMPLX", font: .small)) }
-        if engine.isExamMode { indicators.append(Text("EXAM", font: .small)) }
-        if !engine.autoReturnToMainPad { indicators.append(Text("STAY", font: .small)) }
+        if engine.complexMode { indicators.append(FirmwareText("CMPLX", font: .small)) }
+        if engine.isExamMode { indicators.append(FirmwareText("EXAM", font: .small)) }
+        if !engine.autoReturnToMainPad { indicators.append(FirmwareText("STAY", font: .small)) }
         
         if engine.isProgrammingMode || engine.isEquationMode {
-            indicators.append(Text("EQN", font: .small))
+            indicators.append(FirmwareText("EQN", font: .small))
         }
         
-        if engine.isHypPending { indicators.append(Text("HYP", font: .small)) }
-        if engine.isWaitingForAlpha { indicators.append(Text("A..Z", font: .small)) }
-        if engine.isStatPlot { indicators.append(Text("STAT", font: .small)) }
-        if engine.hasStackData { indicators.append(Text("↑", font: .small)) }
+        if engine.isHypPending { indicators.append(FirmwareText("HYP", font: .small)) }
+        if engine.isWaitingForAlpha { indicators.append(FirmwareText("A..Z", font: .small)) }
+        if engine.isStatPlot { indicators.append(FirmwareText("STAT", font: .small)) }
+        if engine.hasStackData { indicators.append(FirmwareText("↑", font: .small)) }
         
-        if engine.baseMode == .hex { indicators.append(Text("HEX", font: .small)) }
-        else if engine.baseMode == .oct { indicators.append(Text("OCT", font: .small)) }
-        else if engine.baseMode == .bin { indicators.append(Text("BIN", font: .small)) }
+        if engine.baseMode == .hex { indicators.append(FirmwareText("HEX", font: .small)) }
+        else if engine.baseMode == .oct { indicators.append(FirmwareText("OCT", font: .small)) }
+        else if engine.baseMode == .bin { indicators.append(FirmwareText("BIN", font: .small)) }
         
-        let indicatorRow = HStack(alignment: .center, spacing: 4, children: indicators)
+        let indicatorRow = FirmwareHStack(alignment: .center, spacing: 4, children: indicators)
         indicatorRow.draw(in: renderer, x: 2, y: 2)
+
         
         // --- 2. Bottom Softkeys (Menus / LFU) ---
         let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none
@@ -91,8 +92,9 @@ public class RetroUI {
                     renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: false)
                 }
             } else if let pending = waitingForMenuDigit {
-                Text("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 53)
+                FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 53)
             }
+
         } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
             renderer.renderLFU(manager: lfuManager)
         }
@@ -132,24 +134,24 @@ public class RetroUI {
                 return "?:"
             }
             
-            var stackLines: [View] = []
+            var stackLines: [FirmwareView] = []
             for i in 0..<4 {
                 let regIdx = regsOffset + (3 - i)
                 let name = getRegName(regIdx)
                 let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
-                stackLines.append(Text("\(name) \(valStr)", font: .small))
+                stackLines.append(FirmwareText("\(name) \(valStr)", font: .small))
             }
-            VStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
+            FirmwareVStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
         } else if let error = engine.errorMessage {
-            Text(error, font: .display).draw(in: renderer, x: 2, y: 24)
+            FirmwareText(error, font: .display).draw(in: renderer, x: 2, y: 24)
         } else if let status = engine.statusMessage {
-            Text(status, font: .display).draw(in: renderer, x: 2, y: 24)
+            FirmwareText(status, font: .display).draw(in: renderer, x: 2, y: 24)
         } else if let transient = engine.transientMessage {
-            Text(transient, font: .display).draw(in: renderer, x: 2, y: 24)
+            FirmwareText(transient, font: .display).draw(in: renderer, x: 2, y: 24)
         } else if let prompt = engine.promptString {
-            Text("\(prompt) _", font: .display).draw(in: renderer, x: 2, y: 24)
+            FirmwareText("\(prompt) _", font: .display).draw(in: renderer, x: 2, y: 24)
         } else if engine.isGeneratingPlot || engine.isPlotLoading {
-            Text("LOADING PLOT...", font: .small).draw(in: renderer, x: 2, y: 24)
+            FirmwareText("LOADING PLOT...", font: .small).draw(in: renderer, x: 2, y: 24)
         } else if engine.isProgrammingMode || engine.isEquationMode {
             // Draw 4 lines of equations, correctly spaced
             let steps = engine.currentProgramSteps
@@ -157,13 +159,13 @@ public class RetroUI {
             programScrollOffset = min(programScrollOffset, maxScroll)
             let startIndex = max(0, steps.count - 4 - programScrollOffset)
             
-            var eqLines: [View] = []
+            var eqLines: [FirmwareView] = []
             for i in startIndex..<min(steps.count, startIndex + 4) {
                 let stepNum = i + 1
                 let stepNumStr = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
-                eqLines.append(Text("\(stepNumStr): \(steps[i])", font: .small))
+                eqLines.append(FirmwareText("\(stepNumStr): \(steps[i])", font: .small))
             }
-            let eqStack = VStack(alignment: .leading, spacing: 2, children: eqLines)
+            let eqStack = FirmwareVStack(alignment: .leading, spacing: 2, children: eqLines)
             eqStack.draw(in: renderer, x: 2, y: 14)
             
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
@@ -181,11 +183,11 @@ public class RetroUI {
             
             let textW = renderer.getStringWidth(displayStr, size: .display)
             if textW > 124 {
-                Text("<", font: .display).draw(in: renderer, x: 0, y: 24)
+                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
                 let overflowOffset = 124 - textW
-                Text(displayStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
+                FirmwareText(displayStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
             } else {
-                Text(displayStr, font: .display).draw(in: renderer, x: 2, y: 24)
+                FirmwareText(displayStr, font: .display).draw(in: renderer, x: 2, y: 24)
             }
         } else {
             // HP-32SII Single Number Display (X register) - Left-Justified starting at X: 2
@@ -194,16 +196,14 @@ public class RetroUI {
             
             let textW = renderer.getStringWidth(valStr, size: .display)
             if textW > 124 {
-                Text("<", font: .display).draw(in: renderer, x: 0, y: 24)
+                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
                 let overflowOffset = 124 - textW
-                Text(valStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
+                FirmwareText(valStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
             } else {
-                Text(valStr, font: .display).draw(in: renderer, x: 2, y: 24)
+                FirmwareText(valStr, font: .display).draw(in: renderer, x: 2, y: 24)
             }
         }
-
-
-
     }
 }
+
 

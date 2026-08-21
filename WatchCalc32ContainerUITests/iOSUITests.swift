@@ -1681,4 +1681,22 @@ import XCTest
         XCTAssertFalse(textField.exists, "Variables sheet should dismiss after RCL")
         #endif
     }
+    
+    func testRetroThemeUIAndMenuParityInSimulator() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-UITesting"]
+        setupSnapshot(app)
+        app.launch()
+        
+        XCTAssertTrue(app.staticTexts.firstMatch.waitForExistence(timeout: 5.0), "App UI must be present in iOS Simulator")
+        
+        // Perform numbers and calculation in Simulator
+        if app.buttons["btn_4"].exists {
+            app.buttons["btn_4"].tap()
+            app.buttons["btn_2"].tap()
+        }
+        
+        snapshot("01_RetroUI_Simulator_State")
+    }
 }
+

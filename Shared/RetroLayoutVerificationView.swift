@@ -43,11 +43,16 @@ public struct RetroLayoutVerificationView: View {
                     Text(scenario.rawValue).tag(scenario)
                 }
             }
+            #if os(watchOS)
+            .pickerStyle(.wheel)
+            #else
             .pickerStyle(.segmented)
+            #endif
             .padding(.horizontal)
             .onChange(of: selectedScenario) { _, newScenario in
                 applyScenario(newScenario)
             }
+
             
             // Display Preview Container
             ZStack {
@@ -106,7 +111,11 @@ public struct RetroLayoutVerificationView: View {
                     Text("4x (512×256)").tag(CGFloat(4.0))
                     Text("8x (1024×512)").tag(CGFloat(8.0))
                 }
+                #if os(watchOS)
+                .pickerStyle(.wheel)
+                #else
                 .pickerStyle(.menu)
+                #endif
             }
             .padding(.horizontal)
             
@@ -162,7 +171,8 @@ public struct RetroLayoutVerificationView: View {
             newEngine.setShift(1)
             newEngine.baseMode = .hex
             newEngine.angleMode = .rad
-            newEngine.isComplexMode = true
+            newEngine.complexMode = true
+
             
         case .menuBase:
             newController.processAction(.base)

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		039B528A371CBF3C7144A0CA /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */; };
 		047EEFCCA2FBDD94B5998163 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587C3E00D19968F12AC41028 /* iOSContentView.swift */; };
+		0C61D50BA376C36A4391B530 /* RetroLCDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3226D5170FD47417B14ED2 /* RetroLCDView.swift */; };
+		1C102A21CDDD3BBBDC8C1C4A /* RetroLayoutVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916DE9D305ECF467358D921A /* RetroLayoutVerificationView.swift */; };
 		1C7C3A2352869537FDE0172E /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */; };
 		213042356BA1A34FE72AFC0D /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 203CA19B9100ADCABC7E6EC4 /* RPNCore */; };
 		29DD67D1DA47A705BD28283D /* HapticNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CE381DA1230052F591DA43 /* HapticNumpadView.swift */; };
@@ -28,7 +30,9 @@
 		4C14445080D80DDE19B4E16E /* TestBasicEnter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D76C5134CF3F1B68652A1B /* TestBasicEnter.swift */; };
 		56CACE0045D64A880AD59D6B /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8AFADF70A2E45FF0D41407 /* VariablePromptView.swift */; };
 		586A08015EAF6BD50409CDBC /* PlotPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90AE59D4DDFB0F88AAC9C9BA /* PlotPromptView.swift */; };
+		5A48741E6F99D79D1689EF42 /* RetroLCDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3226D5170FD47417B14ED2 /* RetroLCDView.swift */; };
 		5D0E7AF1181024B666BDE34C /* FullScreenPlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E6AECD717221530EF79254 /* FullScreenPlotView.swift */; };
+		61ABD329E939767DB5F448C8 /* RetroLayoutVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916DE9D305ECF467358D921A /* RetroLayoutVerificationView.swift */; };
 		6511C0A0FFC4155D5FE55A14 /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */; };
 		6C1E62B8385E46571925B8F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7541CC53D8F82834A670AFE7 /* Assets.xcassets */; };
 		73CB96AF5E2F72B5AE07DEDE /* UILBenchmarkData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19DF658A03B03870932682A4 /* UILBenchmarkData.swift */; };
@@ -122,6 +126,7 @@
 		27EE043F713CA870829FFD11 /* TopNumpadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopNumpadView.swift; sourceTree = "<group>"; };
 		304C9C58EBAA51A1ACFB6ADC /* IntegratePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegratePromptView.swift; sourceTree = "<group>"; };
 		36EA20C7632AAC2FF0C51C4E /* WatchCalc32App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCalc32App.swift; sourceTree = "<group>"; };
+		3C3226D5170FD47417B14ED2 /* RetroLCDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetroLCDView.swift; sourceTree = "<group>"; };
 		3E8EF5BCC7D97E870A5D10C8 /* RegsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegsMenuView.swift; sourceTree = "<group>"; };
 		41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HP32KeyMap.swift; sourceTree = "<group>"; };
 		42DA4D6580B0F6B971CC5E3A /* TestMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMath.swift; sourceTree = "<group>"; };
@@ -150,6 +155,7 @@
 		8869FFBAFCD814FA507BFBF7 /* WatchCalc32UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WatchCalc32UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		90AE59D4DDFB0F88AAC9C9BA /* PlotPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlotPromptView.swift; sourceTree = "<group>"; };
 		9113082685473D1416D00106 /* WatchCalc32.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WatchCalc32.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		916DE9D305ECF467358D921A /* RetroLayoutVerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetroLayoutVerificationView.swift; sourceTree = "<group>"; };
 		A603ECAFE549C00B0F724057 /* CalcButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcButton.swift; sourceTree = "<group>"; };
 		AF192A74FFF113EE59586474 /* PioneerButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PioneerButtonStyle.swift; sourceTree = "<group>"; };
 		BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantsMenuView.swift; sourceTree = "<group>"; };
@@ -227,6 +233,8 @@
 				41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */,
 				4BF83BE2D0F249D71CC64E42 /* KeyActionDispatcher.swift */,
 				8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */,
+				916DE9D305ECF467358D921A /* RetroLayoutVerificationView.swift */,
+				3C3226D5170FD47417B14ED2 /* RetroLCDView.swift */,
 				1B3B2728A7BBFA718A645C82 /* ThemeManager.swift */,
 			);
 			path = Shared;
@@ -548,6 +556,8 @@
 				586A08015EAF6BD50409CDBC /* PlotPromptView.swift in Sources */,
 				A129C0A12537790E9E7D6772 /* ProgramEditorView.swift in Sources */,
 				38CBA4D981F8D19A2BAE017F /* RegsMenuView.swift in Sources */,
+				5A48741E6F99D79D1689EF42 /* RetroLCDView.swift in Sources */,
+				61ABD329E939767DB5F448C8 /* RetroLayoutVerificationView.swift in Sources */,
 				81262546734AC53D1827E5B0 /* ShiftedLayoutView.swift in Sources */,
 				37C50B336B000503004AEFD1 /* ShowView.swift in Sources */,
 				A0F71D94903B30CAFD7E29D3 /* SolvePromptView.swift in Sources */,
@@ -604,6 +614,8 @@
 				D2A9EC8D34F9B566AACE79A5 /* PlotPromptView.swift in Sources */,
 				2B323B6CA221D10EAC7CE7FE /* ProgramEditorView.swift in Sources */,
 				7D918461400B97562D32B84A /* RegsMenuView.swift in Sources */,
+				0C61D50BA376C36A4391B530 /* RetroLCDView.swift in Sources */,
+				1C102A21CDDD3BBBDC8C1C4A /* RetroLayoutVerificationView.swift in Sources */,
 				83DD7B9FC261130AFAD78F79 /* SolvePromptView.swift in Sources */,
 				86F21CB19014ED8884873D4F /* ThemeManager.swift in Sources */,
 				3A22F67D29CCC6143FCC2E7E /* VariablePromptView.swift in Sources */,

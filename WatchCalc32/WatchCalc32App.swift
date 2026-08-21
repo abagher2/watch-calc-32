@@ -1,7 +1,9 @@
 import SwiftUI
 import RPNCore
+import Observation
 
 @main
+
 struct WatchCalc32App: App {
     @State private var engine = CalculatorEngine()
     @StateObject private var themeManager = ThemeManager()
@@ -14,3 +16,4 @@ struct WatchCalc32App: App {
         }
     }
 }
+

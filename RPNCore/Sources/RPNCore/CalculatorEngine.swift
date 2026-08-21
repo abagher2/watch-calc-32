@@ -214,8 +214,10 @@ func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max
 #if !hasFeature(Embedded)
 @Observable
 #endif
-
 public class CalculatorEngine {
+
+
+
     public let lfuManager = LFUManager()
     
     // Standard Display State
@@ -2713,3 +2715,8 @@ public class CalculatorEngine {
         return nil
     }
 }
+
+#if !hasFeature(Embedded)
+extension CalculatorEngine: ObservableObject {}
+#endif
+

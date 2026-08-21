@@ -136,47 +136,59 @@ module key_button(w, h, label) {{
     bh = h;  
     dw = bw + 1.0;  // diamond width
     dh = bh + 1.0;  
+    top_z = {plunger_h + stem_h + diamond_h + up_stem_h + wedge_h};
 
-    // Z=0.0 to 1.5 : Plunger (rectangular pad)
-    translate([0, 0, {plunger_h/2}])
-        cube([{pw}, {ph}, {plunger_h}], center=true);
+    difference() {{
+        union() {{
+            // Z=0.0 to 1.5 : Plunger (rectangular pad)
+            translate([0, 0, {plunger_h/2}])
+                cube([{pw}, {ph}, {plunger_h}], center=true);
 
-    // Z=1.5 to 2.5 : Stem (rectangular)
-    translate([0, 0, {plunger_h + stem_h/2}])
-        cube([{pw}, {ph}, {stem_h}], center=true);
+            // Z=1.5 to 2.5 : Stem (rectangular)
+            translate([0, 0, {plunger_h + stem_h/2}])
+                cube([{pw}, {ph}, {stem_h}], center=true);
 
-    // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
-    button_flange(w, h, 0);
+            // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
+            button_flange(w, h, 0);
 
-    // Z=3.0 to 4.6 : Upper Stem (rounded)
-    // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
-    translate([0, 0, {plunger_h + stem_h + diamond_h}])
-        hull() {{
-            for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
-                translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
+            // Z=3.0 to 4.6 : Upper Stem (rounded)
+            // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
+            translate([0, 0, {plunger_h + stem_h + diamond_h}])
+                hull() {{
+                    for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
+                        translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
+                }}
+                
+            // Z=4.6 to 5.6 : Key Cap Base Chamfer (45 degrees, no support needed)
+            // Eliminates the flat overhang that sags and fuses to the faceplate
+            translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
+                hull() {{
+                    // Bottom of chamfer matches upper stem
+                    for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
+                        translate([x, y, 0]) cylinder(r=0.5, h=0.01);
+                    // Top of chamfer matches full keycap base (1.0mm overhang over 1.0mm height = 45 deg)
+                    for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                        translate([x, y, 1.0]) cylinder(r=1.0, h=0.01);
+                }}
+                
+            // Z=5.6 to 7.4 : Key Cap Top (Flat, rounded chiclet style)
+            translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h + 1.0}])
+                hull() {{
+                    for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                        translate([x, y, 0]) cylinder(r=1.0, h=0.01);
+                    // Top of the keycap (flat, slightly smaller radius for soft edge)
+                    for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                        translate([x, y, {wedge_h - 1.0}]) cylinder(r=0.8, h=0.01);
+                }}
         }}
         
-    // Z=4.6 to 5.6 : Key Cap Base Chamfer (45 degrees, no support needed)
-    // Eliminates the flat overhang that sags and fuses to the faceplate
-    translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
-        hull() {{
-            // Bottom of chamfer matches upper stem
-            for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
-                translate([x, y, 0]) cylinder(r=0.5, h=0.01);
-            // Top of chamfer matches full keycap base (1.0mm overhang over 1.0mm height = 45 deg)
-            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                translate([x, y, 1.0]) cylinder(r=1.0, h=0.01);
+        // Sunken label at the top surface (0.6mm deep)
+        if (label != "") {{
+            translate([0, 0, top_z - 0.6])
+                linear_extrude(1.0)
+                    text(label, size=min(bw, bh)*0.55, font="Helvetica:style=Bold", halign="center", valign="center");
         }}
-        
-    // Z=5.6 to 7.4 : Key Cap Top (Flat, rounded chiclet style)
-    translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h + 1.0}])
-        hull() {{
-            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                translate([x, y, 0]) cylinder(r=1.0, h=0.01);
-            // Top of the keycap (flat, slightly smaller radius for soft edge)
-            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                translate([x, y, {wedge_h - 1.0}]) cylinder(r=0.8, h=0.01);
-        }}
+    }}
 }}
 
 module micro_supports(x, y, w, h) {{
@@ -617,15 +629,17 @@ module c_cover() {{
     // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
     // Left flange rail tab
     difference() {{
-        translate([-(cov_clear) + cov_wall - cov_wall, GROOVE_Z - cov_clear, -2])
-            cube([rail_d, rail_w, cov_h]);
+        // Overlap by 0.1mm into the flange wall to ensure perfect manifold fusion
+        translate([-cov_clear - 0.1, GROOVE_Z - cov_clear, -2])
+            cube([rail_d + 0.1, rail_w, cov_h]);
         // Lock notch at Z=5
         translate([-cov_clear-0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) rotate([0, 90, 0]) cylinder(d=rail_w+0.2, h=rail_d+0.5, $fn=16);
     }}
     // Right flange rail tab (translated inwards by rail_d)
     difference() {{
+        // Overlap by 0.1mm into the flange wall
         translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, -2])
-            cube([rail_d, rail_w, cov_h]);
+            cube([rail_d + 0.1, rail_w, cov_h]);
         // Lock notch at Z=5
         translate([cw + cov_clear - rail_d - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) rotate([0, 90, 0]) cylinder(d=rail_w+0.2, h=rail_d+0.5, $fn=16);
     }}

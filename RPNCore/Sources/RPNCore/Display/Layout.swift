@@ -1,12 +1,12 @@
-public enum View {
+public enum FirmwareView {
     public enum HStackAlignment { case top, center, bottom }
     public enum VStackAlignment { case leading, center, trailing }
 
     case textNode(String, Renderer.FontSize, Bool)
     case spacerNode(Int, Int)
-    indirect case hstackNode(HStackAlignment, Int, [View])
-    indirect case vstackNode(VStackAlignment, Int, [View])
-    indirect case paddingNode(Int, Int, Int, Int, View)
+    indirect case hstackNode(HStackAlignment, Int, [FirmwareView])
+    indirect case vstackNode(VStackAlignment, Int, [FirmwareView])
+    indirect case paddingNode(Int, Int, Int, Int, FirmwareView)
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
         switch self {
@@ -89,22 +89,22 @@ public enum View {
     }
 }
 
-public func Text(_ text: String, font: Renderer.FontSize = .small, color: Bool = true) -> View {
+public func FirmwareText(_ text: String, font: Renderer.FontSize = .small, color: Bool = true) -> FirmwareView {
     return .textNode(text, font, color)
 }
 
-public func Spacer(minWidth: Int = 0, minHeight: Int = 0) -> View {
+public func FirmwareSpacer(minWidth: Int = 0, minHeight: Int = 0) -> FirmwareView {
     return .spacerNode(minWidth, minHeight)
 }
 
-public func HStack(alignment: View.HStackAlignment = .center, spacing: Int = 0, children: [View]) -> View {
+public func FirmwareHStack(alignment: FirmwareView.HStackAlignment = .center, spacing: Int = 0, children: [FirmwareView]) -> FirmwareView {
     return .hstackNode(alignment, spacing, children)
 }
 
-public func VStack(alignment: View.VStackAlignment = .leading, spacing: Int = 0, children: [View]) -> View {
+public func FirmwareVStack(alignment: FirmwareView.VStackAlignment = .leading, spacing: Int = 0, children: [FirmwareView]) -> FirmwareView {
     return .vstackNode(alignment, spacing, children)
 }
 
-public func Padding(top: Int = 0, bottom: Int = 0, leading: Int = 0, trailing: Int = 0, child: View) -> View {
+public func FirmwarePadding(top: Int = 0, bottom: Int = 0, leading: Int = 0, trailing: Int = 0, child: FirmwareView) -> FirmwareView {
     return .paddingNode(top, bottom, leading, trailing, child)
 }
