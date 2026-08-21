@@ -1730,3 +1730,119 @@ import XCTest
     }
 }
 
+
+
+@MainActor final class iOSParityUITests: XCTestCase {
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+    }
+
+    func setupApp() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["-parityMode", "1", "-animations", "0"]
+        app.launch()
+        
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["func_<-"].tap()
+        
+        let predicate = NSPredicate(format: "existsNoRetry == 1")
+        expectation(for: predicate, evaluatedWith: app.buttons["Clear ALL"], handler: nil)
+        waitForExpectations(timeout: 2.0, handler: nil)
+        
+        // Ensure starting state is empty
+        app.buttons["Clear ALL"].tap()
+        return app
+    }
+    
+    func saveParityScreenshot(app: XCUIApplication, name: String) {
+        let hexText = app.staticTexts["lcd_buffer_hex"]
+        if hexText.waitForExistence(timeout: 5.0) {
+            let hexValue = hexText.label
+            if hexValue.count > 0 {
+                let saveDir = ProcessInfo.processInfo.environment["PARITY_SAVE_DIR"] ?? "/tmp"
+                let url = URL(fileURLWithPath: saveDir).appendingPathComponent(name + ".txt")
+                try? hexValue.write(to: url, atomically: true, encoding: .utf8)
+                print("Saved hex buffer to \(url.path)")
+            } else {
+                print("Failed to get hex buffer from lcd_buffer_hex.label")
+            }
+        } else {
+            print("lcd_buffer_hex did not exist")
+        }
+    }
+
+    func testParityComplexEquation() throws {
+        let app = setupApp()
+        app.buttons["btn_blue_shift"].tap()
+        app.buttons["func_STO"].tap() // EQN
+        app.buttons["func_SIN"].tap()
+        app.buttons["btn_1"].tap() // Let's just do SIN 1 since there is no "(" key!
+        app.buttons["func_+"].tap()
+        app.buttons["func_e^x"].tap()
+        app.buttons["invisible_ENTER"].tap()
+        Thread.sleep(forTimeInterval: 1.0)
+        saveParityScreenshot(app: app, name: "parity_complex_eqn")
+    }
+
+    func testParityMultiLineScroll() throws {
+        let app = setupApp()
+        app.buttons["btn_blue_shift"].tap()
+        app.buttons["func_STO"].tap() // EQN
+        app.buttons["func_√x"].tap() // A
+        app.buttons["func_+"].tap()
+        app.buttons["func_e^x"].tap() // B
+        app.buttons["func_+"].tap()
+        app.buttons["btn_1"].tap() // C
+        app.buttons["func_+"].tap()
+        app.buttons["btn_2"].tap() // D
+        app.buttons["func_+"].tap()
+        app.buttons["btn_3"].tap() // E
+        Thread.sleep(forTimeInterval: 0.5)
+        saveParityScreenshot(app: app, name: "parity_multiline_1")
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["btn_8"].tap() // UP ARROW
+        Thread.sleep(forTimeInterval: 0.5)
+        saveParityScreenshot(app: app, name: "parity_multiline_2")
+    }
+
+    func testParityBaseModes() throws {
+        let app = setupApp()
+        app.buttons["btn_1"].tap()
+        app.buttons["btn_2"].tap()
+        app.buttons["invisible_ENTER"].tap()
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["func_×"].tap() // BASE
+        app.buttons["func_LFU_0"].tap() // Hex
+        Thread.sleep(forTimeInterval: 0.5)
+        saveParityScreenshot(app: app, name: "parity_base_mode")
+    }
+
+    func testParitySoftkeyLFU() throws {
+        let app = setupApp()
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["func_PLOT"].tap() // CONST
+        Thread.sleep(forTimeInterval: 0.5)
+        saveParityScreenshot(app: app, name: "parity_softkey_1")
+        app.buttons["func_LFU_5"].tap() // MORE
+        Thread.sleep(forTimeInterval: 0.5)
+        saveParityScreenshot(app: app, name: "parity_softkey_2")
+    }
+
+    func testParityScientific() throws {
+        let app = setupApp()
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["func_E"].tap() // DISP
+        app.buttons["func_LFU_1"].tap() // SCI
+        app.buttons["btn_4"].tap() // SCI 4
+        app.buttons["btn_1"].tap()
+        app.buttons["btn_."].tap()
+        app.buttons["btn_2"].tap()
+        app.buttons["btn_3"].tap()
+        app.buttons["func_E"].tap()
+        app.buttons["btn_5"].tap()
+        app.buttons["invisible_ENTER"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        saveParityScreenshot(app: app, name: "parity_scientific")
+    }
+}

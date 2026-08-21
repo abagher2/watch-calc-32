@@ -3,15 +3,20 @@ import pcbnew
 
 def set_routing_rules(board_path):
     board = pcbnew.LoadBoard(board_path)
-    board.SetCopperLayerCount(4)
+    board.SetCopperLayerCount(2)
     
     # Get design settings
     design_settings = board.GetDesignSettings()
     
-    min_width = pcbnew.FromMM(0.090)
-    clearance = pcbnew.FromMM(0.090)
-    via_diameter = pcbnew.FromMM(0.40)
-    via_drill = pcbnew.FromMM(0.20)
+    min_width = pcbnew.FromMM(0.150)
+    clearance = pcbnew.FromMM(0.150)
+    via_diameter = pcbnew.FromMM(0.60)
+    via_drill = pcbnew.FromMM(0.30)
+    
+    design_settings.m_ViasDimensionsList.clear()
+    design_settings.m_TrackWidthList.clear()
+    design_settings.m_ViasDimensionsList.append(pcbnew.VIA_DIMENSION(via_diameter, via_drill))
+    design_settings.m_TrackWidthList.append(min_width)
     
     design_settings.m_TrackMinWidth = min_width
     design_settings.m_ViasMinSize = via_diameter

@@ -125,6 +125,17 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
         snprintf((char*)buffer, max_len, "%.*f", places, val);
     } else if (mode == 2) { // SCI
         snprintf((char*)buffer, max_len, "%.*E", places, val);
+        char* e_ptr = strchr((char*)buffer, 'E');
+        if (e_ptr) {
+            char sign = e_ptr[1];
+            char* digits = e_ptr + 2;
+            while (*digits == '0' && *(digits + 1) != '\0') digits++;
+            if (sign == '+') {
+                memmove(e_ptr + 1, digits, strlen(digits) + 1);
+            } else {
+                memmove(e_ptr + 2, digits, strlen(digits) + 1);
+            }
+        }
     } else if (mode == 3) { // ENG
         snprintf((char*)buffer, max_len, "%.*G", places, val);
     } else { // ALL
@@ -133,6 +144,18 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
             int needed = snprintf(NULL, 0, "%.*G", p, val);
             if (needed <= max_chars) {
                 snprintf((char*)buffer, max_len, "%.*G", p, val);
+                
+                // Workaround for pico_printf %G not stripping trailing zeros properly
+                int len = strlen((char*)buffer);
+                if (strchr((char*)buffer, '.') != NULL && strchr((char*)buffer, 'E') == NULL && strchr((char*)buffer, 'e') == NULL) {
+                    while (len > 0 && buffer[len - 1] == '0') {
+                        buffer[len - 1] = '\0';
+                        len--;
+                    }
+                    if (len > 0 && buffer[len - 1] == '.') {
+                        buffer[len - 1] = '\0';
+                    }
+                }
                 break;
             }
         }

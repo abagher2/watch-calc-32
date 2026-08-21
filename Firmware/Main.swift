@@ -53,6 +53,12 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         processAction(op, engine: engine, lfuManager: lfu)
     } else if let id = parseUInt(str), let op = CalculatorOperation(rawValue: id) {
         processAction(op, engine: engine, lfuManager: lfu)
+    } else if str == "CLEAR_ALL" {
+        engine.clearAll()
+        isShowingRegisters = false
+        isShowingFullPrecision = false
+        regsOffset = 0
+        needsDisplay = true
     } else {
         engine.executeMath(str)
     }
@@ -116,6 +122,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         isShowingRegisters = true
         regsOffset = 0
         activeMenu = nil
+        menuOffset = 0
         needsDisplay = true
         return
     }
@@ -128,6 +135,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         if finalOp == .xeq { c47Mode = .xeq }
         c47Program = nil
         activeMenu = nil
+        menuOffset = 0
         needsDisplay = true
         return
     }
@@ -236,6 +244,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             engine.executeMath("\(pendingItem.action) \(digit)")
         }
         waitingForMenuDigit = nil
+        activeMenu = nil
         return
     }
     
@@ -275,6 +284,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 if selected.requiresDigit {
                     waitingForMenuDigit = selected
                     activeMenu = nil
+                    menuOffset = 0
                 } else {
                     if selected.action == "REGS" {
                         isShowingRegisters = true
@@ -285,6 +295,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                         lfuManager.recordUsage(of: selected.action)
                     }
                     activeMenu = nil
+                    menuOffset = 0
                 }
             }
             return
@@ -298,6 +309,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
             } else {
                 activeMenu = nil
+                menuOffset = 0
             }
             return
         }
@@ -306,6 +318,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     if let newMenu = CalculatorMenu(rawValue: finalOp.stringValue) {
         activeMenu = newMenu
         menuAlphaQuery = ""
+        menuOffset = 0
         menuItemsDisplayCache = newMenu.items
     }
     else if finalOp.stringValue.hasPrefix("LFU_") {
@@ -330,6 +343,8 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             needsDisplay = true
         } else if finalOp == .backspace || finalOp == .clear || finalOp == .c {
             engine.backspace()
+        } else if finalOp == .e {
+            engine.startExponent()
         } else {
             engine.executeMath(finalOp.stringValue)
             lfuManager.recordUsage(of: finalOp.stringValue)

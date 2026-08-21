@@ -30,6 +30,7 @@ public struct RetroLCDView: View {
                     .resizable()
                     .interpolation(.none)
                     .aspectRatio(128.0 / 64.0, contentMode: .fit)
+                    .accessibilityValue(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
             } else {
                 Color.black
             }
@@ -41,6 +42,11 @@ public struct RetroLCDView: View {
             engine.errorMessage ?? 
             engine.transientMessage ?? 
             (engine.promptString != nil ? engine.promptString! : engine.displayX)
+        )
+        .background(
+            Text(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
+                .accessibilityIdentifier("lcd_buffer_hex")
+                .frame(width: 0, height: 0)
         )
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("iOSMenuTrigger"))) { notification in
             if let command = notification.userInfo?["command"] as? CalculatorOperation {

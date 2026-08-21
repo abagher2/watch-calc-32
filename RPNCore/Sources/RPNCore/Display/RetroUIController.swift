@@ -19,16 +19,15 @@ public class RetroUIController {
     }
     
     public func processAction(_ op: CalculatorOperation) {
-        var finalOp = op
+        let finalOp = op
         
         // HP-32SII Error Message Reset Handling:
-        // When an error is displayed, pressing C (or CLEAR / backspace) clears the error message
-        // and restores the normal display without altering stack or register contents.
+        // When an error is displayed, pressing any key clears the error message
+        // and restores the normal display without executing the key.
         if engine.errorMessage != nil {
-            engine.errorMessage = nil
-            if finalOp == .c || finalOp == .clear || finalOp == .backspace {
-                return
-            }
+            engine.clearError()
+            render()
+            return
         }
         
         if engine.isTestMode {
@@ -182,16 +181,20 @@ public class RetroUIController {
 
         
         if engine.isWaitingForAlpha {
-            if finalOp.stringValue.count == 1 {
+            if finalOp == .backspace || finalOp == .clear || finalOp == .c {
+                engine.submitAlpha("<-")
+            } else if finalOp == .enter {
+                engine.submitAlpha("ENTER")
+            } else if let alpha = finalOp.alphaLabel ?? (finalOp.stringValue.count == 1 ? finalOp.stringValue : nil) {
                 if let menu = retroUI.activeMenu {
-                    retroUI.menuAlphaQuery.append(finalOp.stringValue)
+                    retroUI.menuAlphaQuery.append(alpha)
                     menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
                 } else {
-                    engine.executeMath(finalOp.stringValue)
-                    lfuManager.recordUsage(of: finalOp.stringValue)
+                    engine.submitAlpha(alpha)
+                    lfuManager.recordUsage(of: alpha)
                 }
-                return
             }
+            return
         }
         
         if let pendingItem = retroUI.waitingForMenuDigit {
@@ -199,6 +202,7 @@ public class RetroUIController {
                 engine.executeMath("\(pendingItem.action) \(digit)")
             }
             retroUI.waitingForMenuDigit = nil
+            retroUI.activeMenu = nil
             return
         }
         
@@ -280,6 +284,8 @@ public class RetroUIController {
         else {
             if finalOp.stringValue.count == 1, let digit = Int(finalOp.stringValue) {
                 engine.digit(digit)
+            } else if finalOp == .e {
+                engine.startExponent()
             } else if finalOp == .decimal {
                 engine.decimal()
             } else if finalOp == .toggleSign {
@@ -289,8 +295,10 @@ public class RetroUIController {
             } else if finalOp == .regs {
                 retroUI.isShowingRegisters = true
                 retroUI.regsOffset = 0
-            } else if finalOp == .backspace || finalOp == .clear || finalOp == .c {
+            } else if finalOp == .backspace {
                 engine.backspace()
+            } else if finalOp == .clear || finalOp == .c {
+                engine.executeMath(finalOp.stringValue)
             } else {
                 engine.executeMath(finalOp.stringValue)
                 lfuManager.recordUsage(of: finalOp.stringValue)
@@ -302,6 +310,8 @@ public class RetroUIController {
         retroUI.doubleFormatter = { [weak engine] val, mode in
             return engine?.formatNumber(val) ?? "\(val)"
         }
+        renderer.clear()
+        retroUI.render(engine: engine, renderer: renderer)
     }
 }
 #endif

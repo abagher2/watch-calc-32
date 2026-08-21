@@ -8,6 +8,7 @@ public class Renderer {
     
     public var detectOverlap: Bool = false
     public var hasOverlap: Bool = false
+    public var boldFonts: Bool = true
     
     public init() {
         buffer = [UInt8](repeating: 0, count: 1024)
@@ -73,52 +74,53 @@ public class Renderer {
     
     public func drawChar(_ scalarValue: UInt32, x: Int, y: Int, size: FontSize = .small, color: Bool = true) -> Int {
         var returnWidth: Int = 0
+        let shouldBold = boldFonts && size != .tiny
         switch size {
         case .tiny:
             if var result = FontData.Tiny.glyph(forScalar: scalarValue) {
                 returnWidth = result.width
                 withUnsafeBytes(of: &result.bitmap) { ptr in
                     let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Tiny.charHeight, x: x, y: y, color: color)
+                    drawGlyphBytes(bytes, width: result.width, height: FontData.Tiny.charHeight, x: x, y: y, color: color, bold: false)
                 }
             }
         case .small:
             if var result = FontData.Small.glyph(forScalar: scalarValue) {
-                returnWidth = result.width
+                returnWidth = result.width + (shouldBold ? 1 : 0)
                 withUnsafeBytes(of: &result.bitmap) { ptr in
                     let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Small.charHeight, x: x, y: y, color: color)
+                    drawGlyphBytes(bytes, width: result.width, height: FontData.Small.charHeight, x: x, y: y, color: color, bold: shouldBold)
                 }
             }
         case .display:
             if var result = FontData.Display.glyph(forScalar: scalarValue) {
-                returnWidth = result.width
+                returnWidth = result.width + (shouldBold ? 1 : 0)
                 withUnsafeBytes(of: &result.bitmap) { ptr in
                     let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Display.charHeight, x: x, y: y, color: color)
+                    drawGlyphBytes(bytes, width: result.width, height: FontData.Display.charHeight, x: x, y: y, color: color, bold: shouldBold)
                 }
             }
         case .medium:
             if var result = FontData.Medium.glyph(forScalar: scalarValue) {
-                returnWidth = result.width
+                returnWidth = result.width + (shouldBold ? 1 : 0)
                 withUnsafeBytes(of: &result.bitmap) { ptr in
                     let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Medium.charHeight, x: x, y: y, color: color)
+                    drawGlyphBytes(bytes, width: result.width, height: FontData.Medium.charHeight, x: x, y: y, color: color, bold: shouldBold)
                 }
             }
         case .large:
             if var result = FontData.Large.glyph(forScalar: scalarValue) {
-                returnWidth = result.width
+                returnWidth = result.width + (shouldBold ? 1 : 0)
                 withUnsafeBytes(of: &result.bitmap) { ptr in
                     let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Large.charHeight, x: x, y: y, color: color)
+                    drawGlyphBytes(bytes, width: result.width, height: FontData.Large.charHeight, x: x, y: y, color: color, bold: shouldBold)
                 }
             }
         }
         return returnWidth
     }
     
-    private func drawGlyphBytes(_ bytes: UnsafeBufferPointer<UInt8>, width: Int, height: Int, x: Int, y: Int, color: Bool) {
+    private func drawGlyphBytes(_ bytes: UnsafeBufferPointer<UInt8>, width: Int, height: Int, x: Int, y: Int, color: Bool, bold: Bool = false) {
         let bytesPerRow = (width + 7) / 8
         for row in 0..<height {
             for byteIdx in 0..<bytesPerRow {
@@ -129,6 +131,9 @@ public class Renderer {
                         let pixel = (rowByte & (1 << (7 - bitIdx))) != 0
                         if pixel {
                             setPixel(x: x + col, y: y + row, color: color)
+                            if bold {
+                                setPixel(x: x + col + 1, y: y + row, color: color)
+                            }
                         }
                     }
                 }
@@ -138,29 +143,37 @@ public class Renderer {
     
     public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
         var total = 0
+        let shouldBold = boldFonts && size != .tiny
         for scalar in str.unicodeScalars {
+            var charWidth = 0
             switch size {
-            case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar.value) { total += result.width }
-            case .small: if let result = FontData.Small.glyph(forScalar: scalar.value) { total += result.width }
-            case .display: if let result = FontData.Display.glyph(forScalar: scalar.value) { total += result.width }
-            case .medium: if let result = FontData.Medium.glyph(forScalar: scalar.value) { total += result.width }
-            case .large: if let result = FontData.Large.glyph(forScalar: scalar.value) { total += result.width }
+            case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar.value) { charWidth = result.width }
+            case .small: if let result = FontData.Small.glyph(forScalar: scalar.value) { charWidth = result.width }
+            case .display: if let result = FontData.Display.glyph(forScalar: scalar.value) { charWidth = result.width }
+            case .medium: if let result = FontData.Medium.glyph(forScalar: scalar.value) { charWidth = result.width }
+            case .large: if let result = FontData.Large.glyph(forScalar: scalar.value) { charWidth = result.width }
             }
+            if shouldBold && charWidth > 0 { charWidth += 1 }
+            total += charWidth
         }
         return total
     }
     
     public func getStringWidth(_ buffer: UnsafePointer<UInt8>, length: Int, size: FontSize = .small) -> Int {
         var total = 0
+        let shouldBold = boldFonts && size != .tiny
         for i in 0..<length {
             let scalar = UInt32(buffer[i])
+            var charWidth = 0
             switch size {
-            case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar) { total += result.width }
-            case .small: if let result = FontData.Small.glyph(forScalar: scalar) { total += result.width }
-            case .display: if let result = FontData.Display.glyph(forScalar: scalar) { total += result.width }
-            case .medium: if let result = FontData.Medium.glyph(forScalar: scalar) { total += result.width }
-            case .large: if let result = FontData.Large.glyph(forScalar: scalar) { total += result.width }
+            case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar) { charWidth = result.width }
+            case .small: if let result = FontData.Small.glyph(forScalar: scalar) { charWidth = result.width }
+            case .display: if let result = FontData.Display.glyph(forScalar: scalar) { charWidth = result.width }
+            case .medium: if let result = FontData.Medium.glyph(forScalar: scalar) { charWidth = result.width }
+            case .large: if let result = FontData.Large.glyph(forScalar: scalar) { charWidth = result.width }
             }
+            if shouldBold && charWidth > 0 { charWidth += 1 }
+            total += charWidth
         }
         return total
     }

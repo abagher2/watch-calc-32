@@ -289,4 +289,35 @@ public enum CalculatorOperation: Int, CaseIterable, Equatable, Hashable {
         case .shiftBlue: return "SHIFT_BLUE"
         }
     }
+    public var alphaLabel: String? {
+        switch self {
+        case .sqrt: return "A"
+        case .exp: return "B"
+        case .ln: return "C"
+        case .power: return "D"
+        case .reciprocal: return "E"
+        case .statAdd: return "F"
+        case .sto: return "G"
+        case .rcl: return "H"
+        case .rollDown: return "I"
+        case .sin: return "J"
+        case .cos: return "K"
+        case .tan: return "L"
+        case .enter: return "M"
+        case .swapXY: return "N"
+        case .toggleSign: return "O"
+        case .e: return "P"
+        case .digit7: return "Q"
+        case .digit8: return "R"
+        case .digit9: return "S"
+        case .digit4: return "T"
+        case .digit5: return "U"
+        case .digit6: return "V"
+        case .digit1: return "W"
+        case .digit2: return "X"
+        case .digit3: return "Y"
+        case .digit0: return "Z"
+        default: return nil
+        }
+    }
 }

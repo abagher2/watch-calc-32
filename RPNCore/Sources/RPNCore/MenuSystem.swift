@@ -25,7 +25,6 @@ public enum CalculatorMenu: String, CaseIterable {
     case prob = "PROB"
     case sums = "SUMS"
     case stat = "STAT"
-    case eqn = "EQN"
     case mem = "MEM"
     case testXY = "x?y"
     case testX0 = "x?0"
@@ -44,7 +43,6 @@ public enum CalculatorMenu: String, CaseIterable {
         else if rawValue == "PROB" { self = .prob }
         else if rawValue == "SUMS" { self = .sums }
         else if rawValue == "STAT" { self = .stat }
-        else if rawValue == "EQN" { self = .eqn }
         else if rawValue == "MEM" { self = .mem }
         else if rawValue == "x?y" { self = .testXY }
         else if rawValue == "x?0" { self = .testX0 }

@@ -237,6 +237,9 @@ struct ButtonView: View {
     }
     
     var resolvedLabel: String {
+        if themeManager.activeThemeType == .retro && key.row == 0 {
+            return ""
+        }
         if let primary = key.primaryAction, primary.rawValue >= CalculatorOperation.lfu0.rawValue && primary.rawValue <= CalculatorOperation.lfu5.rawValue {
             let slot = primary.rawValue - CalculatorOperation.lfu0.rawValue
             return uiLabel(for: engine.lfuManager.getFunction(for: slot))

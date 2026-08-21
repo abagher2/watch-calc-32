@@ -70,7 +70,8 @@ public let menuCommands: Set<CalculatorOperation> = [
     .disp, .modes, .lr, .sums, .fnEq, .eqn, .prgm,
     .solve, .integrate, .show, .plot, .view, .clear,
     .testXY, .testX0, .base, .flags, .xeq,
-    .prob, .parts, .mem, .regs, .statMean, .statStdDev, .const
+    .prob, .parts, .mem, .regs, .statMean, .statStdDev, .const,
+    .lfu0, .lfu1, .lfu2, .lfu3, .lfu4, .lfu5
 ]
 
 // MARK: - Core action dispatch
@@ -105,7 +106,7 @@ public func dispatchKey(
             onMenuAction?(command)
         } else if command.stringValue.count == 1 && command.stringValue.first!.isNumber {
             engine.digit(Int(command.stringValue)!)
-        } else if command.stringValue.count == 1 && command.stringValue.first!.isASCII && command.stringValue.first!.isLetter && command.stringValue.uppercased() == command.stringValue {
+        } else if command.stringValue.count == 1 && command.stringValue.first!.isASCII && command.stringValue.first!.isLetter && command.stringValue.uppercased() == command.stringValue && command != .c && command != .e {
             engine.submitAlpha(command.stringValue)
         } else {
             engine.executeMath(command.stringValue)

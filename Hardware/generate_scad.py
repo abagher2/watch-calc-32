@@ -81,8 +81,8 @@ corner = 6.0
 # Internal Component Heights (mm)
 TACTILE_H = 1.5   # Tactile switch height above PCB (Switch Gap)
 PCB_T     = 1.6   # PCB thickness
-BATT_H    = 3.2   # Battery thickness (e.g. CR2032)
-plate_t   = 4.0   # Faceplate base thickness
+BATT_H    = 4.8   # SMD Right-Angle JST battery connector clearance (Z)
+plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
 
 # Calculate required chassis depth to securely fit all components
 # Total Depth = Faceplate(4.0) + Switch Gap(1.5) + PCB(1.6) + Battery Clearance(3.2) + Back Wall(1.7) = 12.0mm
@@ -98,6 +98,22 @@ chassis_screws = [
     (5.0, fp_h - 5.0), (fp_w - 5.0, fp_h - 5.0),
 ]
 
+def top_fillet_cutter_scad():
+    return """
+module top_fillet_cutter(w, d, h, r) {
+    difference() {
+        translate([-r-1, -r-1, h-r]) cube([w+2*r+2, d+2*r+2, r+1]);
+        hull() {
+            translate([r, r, h-r]) sphere(r=r, $fn=24);
+            translate([w-r, r, h-r]) sphere(r=r, $fn=24);
+            translate([r, d-r, h-r]) sphere(r=r, $fn=24);
+            translate([w-r, d-r, h-r]) sphere(r=r, $fn=24);
+        }
+        translate([-r-1, -r-1, -1]) cube([w+2*r+2, d+2*r+2, h-r+1]);
+    }
+}
+"""
+
 def generate_scad():
     os.makedirs("../scratch/stl", exist_ok=True)
 
@@ -110,9 +126,9 @@ def generate_scad():
     # ═══════════════════════════════════════════════════════
     gap         = 0.50   # print-in-place clearance (0.50mm for FDM — generous for kids toy)
     rim_h       = 4.0    # protective rim wall height above plate surface (keeps buttons safe)
-    plunger_h   = 1.0    # Z=0.0 to 1.0
-    stem_h      = 0.5    # Z=1.0 to 1.5
-    diamond_h   = 1.5    # Z=1.5 to 3.0 (exactly 1.0mm below top of 4.0mm plate)
+    plunger_h   = 0.5    # Z=0.0 to 0.5
+    stem_h      = 0.3    # Z=0.5 to 0.8
+    diamond_h   = 1.2    # Z=0.8 to 2.0 (exactly 1.0mm below top of 3.0mm plate)
     up_stem_h   = 1.6    # Z=3.0 to 4.6 (Provides 0.6mm travel clearance above 4.0mm faceplate)
     wedge_h     = 2.8    # Z=4.6 to 7.4 (keycap)
     
@@ -279,8 +295,8 @@ module faceplate() {{
         // The EINK module sits perfectly flush on the flat back (Z=0).
         ACTIVE_W = 49.0;
         ACTIVE_H = 24.0;
-        POCKET_W = {EINK_W:.3f} + 1.0;
-        POCKET_H = {EINK_H:.3f} + 1.0;
+        POCKET_W = {EINK_W:.3f} + 1.1;
+        POCKET_H = {EINK_H:.3f} + 1.1;
         hull() {{
             // Back of faceplate (Z=-0.1) fits the full display module
             translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, -0.1])
@@ -357,6 +373,8 @@ wall = {WALL:.3f};
 batt_w = {batt_w}; batt_h = {batt_h}; batt_z = {batt_z:.2f};
 GCW = {GCW:.1f}; GCD = {GCD:.1f}; GR = {GR:.1f}; GY = {GY:.1f};
 junc = {junc_z:.2f};
+
+{top_fillet_cutter_scad()}
 
 module chassis_shell() {{
     difference() {{
@@ -465,6 +483,9 @@ module chassis() {{
         // ── RAILWAY GROOVES ──────────────────────────────────────────────
         // 2 straight grooves for the sliding cover
         railway_grooves();
+        
+        // ── TOP CORNER FILLET ─────────────────────────────────────────────
+        translate([0, -{plate_t}, 0]) top_fillet_cutter(cw, D + {plate_t}, ch, 3.0);
     }}
 }}
 chassis();
@@ -511,6 +532,11 @@ module top_cap() {{
                 translate([3, D-3, -cap_t]) cylinder(r=3, h=cap_t);
                 translate([cw-3, D-3, -cap_t]) cylinder(r=3, h=cap_t);
             }}
+            
+            // ── RAILWAY GROOVES ─────────────────────────────────────────────
+            // Cut grooves out of the top cap so the cover can slide fully
+            translate([-0.1, {GY:.1f}, -cap_t - 0.1])   cube([{GCD:.1f} + 0.1, {GCW:.1f}, cap_t + 0.2]);
+            translate([cw-{GCD:.1f}, {GY:.1f}, -cap_t - 0.1]) cube([{GCD:.1f} + 0.1, {GCW:.1f}, cap_t + 0.2]);
         }}
         // ── SCREW BOSSES (project upward into Tier 1 cavity) ────────
         // Bosses inset 2mm from chassis inner wall to avoid overlapping wall material.
@@ -519,12 +545,12 @@ module top_cap() {{
         
         // Left boss — inset 2mm from inner wall (X=wall+2 to X=wall+6)
         difference() {{
-            translate([wall+2, 0, 0]) cube([4, 4, 5]);
+            translate([wall+2, 0, 0]) cube([4, 4, 8]);
             translate([wall+2-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
         }}
         // Right boss — inset 2mm from inner wall (X=cw-wall-6 to X=cw-wall-2)
         difference() {{
-            translate([cw-wall-6, 0, 0]) cube([4, 4, 5]);
+            translate([cw-wall-6, 0, 0]) cube([4, 4, 8]);
             translate([cw-wall-6-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
         }}
         // ── FRONT BEZEL LIP ──
@@ -557,6 +583,10 @@ top_cap();
     wedge_len = 30
     wedge_rise = wedge_len * math.tan(math.radians(10))  # 5.29mm at 10°
     cov_ow    = cw + 2 * (cov_wall + cov_clear)          # total outer width
+    cov_z_start = -(cap_t_val + cov_wall + cov_clear)
+    cov_h     = fp_h + WALL + cap_t_val + 2*cov_wall + 2*cov_clear
+    cov_y_start = -(plate_t + cov_clear)
+    cov_y_len = CHASSIS_D + plate_t + 2*cov_clear
 
     cover = f"""
 // WatchCalc 32 C-Cover — v3 PLA BACK COVER
@@ -575,54 +605,56 @@ cov_h    = {cov_h:.3f};  // total height
 rail_w   = {rail_w:.2f};  // rail tab width
 rail_d   = {rail_d:.2f};  // rail tab depth
 GROOVE_Z = {GROOVE_Z:.1f};  // groove Y-offset from front face
+cov_z_start = {cov_z_start:.3f};
+cov_y_start = {cov_y_start:.3f};
+cov_y_len   = {cov_y_len:.3f};
 wedge_len  = {wedge_len};
 wedge_rise = {wedge_rise:.3f};
+
+{top_fillet_cutter_scad()}
 
 module c_cover() {{
     difference() {{
         union() {{
             // ── BACK PANEL ─────────────────────────────────────────────────────
             // Sits flush against chassis back face (Y=D)
-            translate([-(cov_wall + cov_clear), D + cov_clear, -2])
+            translate([-(cov_wall + cov_clear), D + cov_clear, cov_z_start])
                 cube([cov_ow, cov_wall, cov_h]);
 
             // ── LEFT FLANGE ────────────────────────────────────────────────────
             // Wraps around left side of chassis (X<0)
-            translate([-(cov_wall + cov_clear), -cov_clear, -2])
-                cube([cov_wall, D + cov_clear + cov_wall, cov_h]);
+            translate([-(cov_wall + cov_clear), cov_y_start, cov_z_start])
+                cube([cov_wall, cov_y_len, cov_h]);
 
             // ── RIGHT FLANGE ───────────────────────────────────────────────────
             // Wraps around right side of chassis (X=cw)
-            translate([cw + cov_clear, -cov_clear, -2])
-                cube([cov_wall, D + cov_clear + cov_wall, cov_h]);
+            translate([cw + cov_clear, cov_y_start, cov_z_start])
+                cube([cov_wall, cov_y_len, cov_h]);
 
-            // ── BOTTOM END CAP (keypad end, Z=-2) ─────────────────────────────
+            // ── BOTTOM END CAP (keypad end, Z=cov_z_start) ─────────────────────────────
             // Solid end cap — becomes the desk stand foot.
-            translate([-(cov_wall + cov_clear), -cov_clear, -2])
-                cube([cov_ow, D + cov_clear + cov_wall, cov_wall]);
+            translate([-(cov_wall + cov_clear), cov_y_start, cov_z_start])
+                cube([cov_ow, cov_y_len, cov_wall]);
         }}
 
         // ── WEDGE FOOT BEVEL ────────────────────────────────────────────────
         // 10° bevel cut from BACK face of end cap only.
-        // When cover sits on desk, back corner lifts {wedge_rise:.1f}mm → 10° tilt.
         translate([-(cov_wall + cov_clear + 1),
                    D + cov_clear - 0.1,
-                   -2 - 1])
+                   cov_z_start + 1])
             rotate([-atan(wedge_rise / wedge_len), 0, 0])
                 cube([cov_ow + 2, wedge_rise + 2, wedge_len + 3]);
-
-        // ── LEFT RAIL TAB SLOT ──────────────────────────────────────────────
-        // Subtracted from left flange interior — creates inward-facing rail tab.
-        // Rail tab is what remains after the slot is cut.
-        // (Build the tab by geometry, not subtraction — handled in union above)
+                
+        // ── TOP CORNER FILLET ─────────────────────────────────────────────
+        translate([-(cov_wall + cov_clear), cov_y_start, cov_z_start])
+            top_fillet_cutter(cov_ow, cov_y_len, cov_h, 3.0);
     }}
 
     // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
     // Left flange rail tab
     union() {{
-        // Overlap by 0.1mm into the flange wall to ensure perfect manifold fusion
-        translate([-cov_clear - 0.1, GROOVE_Z - cov_clear, -2])
-            cube([rail_d + 0.1, rail_w, cov_h]);
+        translate([-cov_clear - 0.1, GROOVE_Z - cov_clear, cov_z_start + cov_wall])
+            cube([rail_d + 0.1, rail_w, cov_h - cov_wall]);
         // Lock bump at Z=5
         translate([-cov_clear - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
             rotate([0, 90, 0]) 
@@ -630,14 +662,23 @@ module c_cover() {{
     }}
     // Right flange rail tab (translated inwards by rail_d)
     union() {{
-        // Overlap by 0.1mm into the flange wall
-        translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, -2])
-            cube([rail_d + 0.1, rail_w, cov_h]);
+        translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, cov_z_start + cov_wall])
+            cube([rail_d + 0.1, rail_w, cov_h - cov_wall]);
         // Lock bump at Z=5
-        // Protrudes in negative X direction, so translate to outer edge and rotate -90
         translate([cw + cov_clear + 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
             rotate([0, -90, 0]) 
             cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
+    }}
+    
+    // ── WEDGE FOOT FRICTION RIBS ──────────────────────────────────────
+    // Ribs on the slanted wedge face to prevent slipping when used as a stand.
+    for(rz = [3 : 4 : wedge_len - 3]) {{
+        // Place the ribs exactly on the cut facet.
+        translate([-cov_clear,
+                   D + cov_clear - (rz * (wedge_rise / wedge_len)),
+                   cov_z_start + 1 + rz])
+            rotate([-atan(wedge_rise / wedge_len), 0, 0])
+                rotate([0, 90, 0]) cylinder(r=0.4, h=cw + 2*cov_clear, $fn=12);
     }}
 }}
 c_cover();
@@ -720,6 +761,67 @@ module keycap(w, h, label) {{
     with open("designs/buttons.scad", "w") as f:
         f.write(buttons_scad)
 
+    # ---------------------------------------------------------
+    # DUMMY PCB FOR ALIGNMENT
+    # ---------------------------------------------------------
+    dummy_scad = f"""
+// ── DUMMY PCB FOR ALIGNMENT TESTING ──────────────────────────────
+$fn=24;
+module dummy_pcb() {{
+    // Main FR4 Board
+    color("DarkGreen") {{
+        translate([{pad_x:.3f}, {pad_y:.3f}, 0]) cube([{pcb_width:.3f}, {pcb_height:.3f}, 1.6]);
+    }}
+
+    // E-Ink Display Module Base (White)
+    color("White") {{
+        translate([{disp_x:.3f}, {disp_y:.3f}, 1.6]) 
+            translate([-{EINK_W:.3f}/2, -{EINK_H:.3f}/2, 0])
+            cube([{EINK_W:.3f}, {EINK_H:.3f}, 1.0]);
+    }}
+
+    // E-Ink Display Active Glass Area (Black)
+    color("Black") {{
+        translate([{disp_x:.3f}, {disp_y:.3f}, 2.6]) 
+            translate([-49.0/2, -24.0/2, 0])
+            cube([49.0, 24.0, 0.4]);
+    }}
+
+    // Tactile Switches (6.0 x 3.5 x 1.5mm body + 3.0x0.5mm plunger)
+    color("Silver") {{
+"""
+    for row in rows:
+        for b in row:
+            ox = b['x'] + pad_x
+            oy = b['y'] + pad_y
+            dummy_scad += f"""        translate([{ox:.3f}, {oy:.3f}, 1.6]) {{
+            translate([-3.0, -1.75, 0]) cube([6.0, 3.5, 1.5]);
+            translate([0, 0, 1.5]) cylinder(d=3.0, h=0.5);
+        }}
+"""
+            
+    dummy_scad += f"""    }}
+    
+    // Components on the back (MCU and Battery JST)
+    color("Black") {{
+        // RP2350 / ProMicro (35x18x4mm)
+        translate([{34.575 + pad_x:.3f}, {130.075 + pad_y:.3f}, 0]) 
+            translate([-35.0/2, -18.0/2, -4.0])
+            cube([35.0, 18.0, 4.0]);
+    }}
+    
+    color("White") {{
+        // JST-PH 2-Pin SMD Right-Angle Connector (6x7.8x4.8mm)
+        translate([{58.075 + pad_x:.3f}, {130.075 + pad_y:.3f}, 0]) 
+            translate([-6.0/2, -7.8/2, -4.8])
+            cube([6.0, 7.8, 4.8]);
+    }}
+}}
+dummy_pcb();
+"""
+    with open("designs/dummy_pcb.scad", "w") as f:
+        f.write(dummy_scad)
+
     print(f"SCAD files generated:")
     print(f"  Faceplate:      FACE-UP print. Keys face up, Z=0 on bed. DM32-style protective rim.")
     print(f"  Chassis:        STANDING on keypad edge. Flat 10mm uniform depth. Side grooves for cover.")
@@ -727,6 +829,7 @@ module keycap(w, h, label) {{
     print(f"  Battery Door:   FACE-DOWN print. T-slot on back of chassis.")
     print(f"  Sliding Cover:  FLAT on front wall face. Print in PLA (v1). TPU for v2.")
     print(f"  Buttons:        As-is.")
+    print(f"  Dummy PCB:      For physical alignment testing.")
 
 if __name__ == "__main__":
     generate_scad()
@@ -738,6 +841,7 @@ if __name__ == "__main__":
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
         ("sliding_cover",  "designs/sliding_cover.scad",  "../scratch/stl/sliding_cover.stl"),
         ("buttons",        "designs/buttons.scad",        "../scratch/stl/buttons.stl"),
+        ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),
     ]
 
     procs = []
@@ -754,7 +858,8 @@ if __name__ == "__main__":
 
     mfg_3d = "output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files"
     os.makedirs(mfg_3d, exist_ok=True)
-    for _, _, stl in tasks:
-        fname = os.path.basename(stl)
-        subprocess.run(["cp", stl, f"{mfg_3d}/{fname}"])
-        subprocess.run(["cp", stl, f"./{fname}"])
+    for name, scad_file, stl_file in tasks:
+        # print(f"  Building {name} ...")
+        # subprocess.run(["openscad", "-o", stl_file, scad_file], check=True)
+        pass
+    print("Done generating SCAD files!")

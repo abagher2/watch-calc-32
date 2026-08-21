@@ -25,5 +25,8 @@ let package = Package(
         .testTarget(
             name: "RPNCoreTests",
             dependencies: ["RPNCore"]),
+        .executableTarget(
+            name: "ParityExporter",
+            dependencies: ["RPNCore"])
     ]
 )

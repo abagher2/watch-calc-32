@@ -39,7 +39,7 @@ def inject_eink(kicad_pcb_path):
     mcu_pos = mcu.GetPosition()
     # E-Ink screen should be 15mm to the left of the MCU, at the same Y height
     start_x = mcu_pos.x - pcbnew.FromMM(15)
-    start_y = mcu_pos.y
+    start_y = mcu_pos.y + pcbnew.FromMM(6) # Move 6mm down towards keypad to avoid Pico pads
     
     # 2. Create the Footprint
     fp = pcbnew.FOOTPRINT(board)

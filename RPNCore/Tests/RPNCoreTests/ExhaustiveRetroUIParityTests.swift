@@ -34,7 +34,6 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             .prob: .prob,
             .sums: .sums,
             .stat: .statMean,
-            .eqn: .eqn,
             .mem: .mem,
             .testXY: .testXY,
             .testX0: .testX0,

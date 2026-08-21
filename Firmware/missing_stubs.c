@@ -12,6 +12,9 @@ int posix_memalign(void **memptr, size_t alignment, size_t size) {
 
 void putchar_c(int ch) {
     putchar(ch);
+    if (ch == '\n' || ch == 10) {
+        fflush(stdout);
+    }
 }
 
 int getentropy(void *buffer, size_t length) {

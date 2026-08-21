@@ -129,16 +129,18 @@ public class RetroUI {
         // --- 3. Main Content Area (Y: 12 to 52) ---
         if isShowingFullPrecision {
             let valStr = "\(engine.stack.first?.real ?? 0.0)"
-            var lineY = 14
             var i = 0
             let maxChars = 14
+            var textNodes: [FirmwareView] = []
             while i < valStr.count {
                 let start = valStr.index(valStr.startIndex, offsetBy: i)
                 let end = valStr.index(start, offsetBy: min(maxChars, valStr.count - i))
-                renderer.drawString(String(valStr[start..<end]), x: 2, y: lineY, size: .medium, color: true)
-                lineY += 12
+                textNodes.append(FirmwareText(String(valStr[start..<end]), font: .medium, color: true))
                 i += maxChars
             }
+            // Use spacing -4 to mimic the previous lineY += 12 behavior (16 - 4 = 12)
+            let overlay = FirmwarePadding(top: 14, leading: 2, child: FirmwareVStack(alignment: .leading, spacing: -4, children: textNodes))
+            overlay.draw(in: renderer, x: 0, y: 0)
         } else if isShowingRegisters {
             let getRegVal: (Int) -> Double = { idx in
                 if idx < 4 { return engine.stack.count > idx ? engine.stack[idx].real : 0.0 }
@@ -258,8 +260,17 @@ public class RetroUI {
             }
         } else {
             // HP-32SII Single Number Display (X register) - Left-Justified starting at X: 2
+            var valStr = ""
+            #if hasFeature(Embedded)
+            engine.displayXBuffer.withUnsafeBufferPointer { ptr in
+                let len = min(engine.displayXLength, 64)
+                let buf = UnsafeBufferPointer(start: ptr.baseAddress, count: len)
+                valStr = String(decoding: buf, as: UTF8.self)
+            }
+            #else
             let xVal = engine.stack.first?.real ?? 0.0
-            let valStr = doubleFormatter?(xVal, engine.displayMode) ?? "\(xVal)"
+            valStr = doubleFormatter?(xVal, engine.displayMode) ?? "\(xVal)"
+            #endif
             
             let textW = renderer.getStringWidth(valStr, size: .display)
             if textW > 124 {

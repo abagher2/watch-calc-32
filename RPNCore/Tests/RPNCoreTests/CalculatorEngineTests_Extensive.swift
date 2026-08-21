@@ -99,4 +99,47 @@ final class CalculatorEngineTests_Extensive: XCTestCase {
         engine.commitInput()
         XCTAssertEqual(engine.stack[0].real, 171.0) // 0xAB is 171
     }
+    
+    func testStoArithmetic() {
+        engine.digit(1)
+        engine.digit(0)
+        engine.enter()
+        engine.executeMath("STO")
+        engine.submitAlpha("A")
+        
+        // 10 is in A
+        engine.executeMath("C")
+        engine.digit(5)
+        engine.executeMath("STO")
+        engine.submitAlpha("+")
+        engine.submitAlpha("A") // A is now 15
+        
+        engine.executeMath("C")
+        engine.digit(2)
+        engine.executeMath("STO")
+        engine.submitAlpha("×")
+        engine.submitAlpha("A") // A is now 30
+        
+        engine.executeMath("RCL")
+        engine.submitAlpha("A")
+        XCTAssertEqual(engine.stack[0].real, 30.0)
+    }
+    
+    func testViewCommand() {
+        engine.digit(4)
+        engine.digit(2)
+        engine.executeMath("STO")
+        engine.submitAlpha("B") // Store 42 in B
+        
+        engine.executeMath("C")
+        engine.digit(9)
+        engine.digit(9)
+        
+        engine.executeMath("VIEW")
+        engine.submitAlpha("B")
+        
+        XCTAssertEqual(engine.transientMessage, "B = 42")
+        // Stack shouldn't change
+        XCTAssertEqual(engine.stack[0].real, 99.0)
+    }
 }

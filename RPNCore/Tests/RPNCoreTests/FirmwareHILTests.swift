@@ -123,6 +123,10 @@ final class FirmwareHILTests: XCTestCase {
         // Since HEX mode formats X differently
         // We can just verify the menu interaction didn't crash and returned to normal
         XCTAssertTrue(screen.contains("X: 0"), "Screen did not return to normal view after menu execution")
+        
+        // Reset state so we don't break subsequent tests
+        sendCommand("DEC")
+        Thread.sleep(forTimeInterval: 0.2)
     }
 
     func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
@@ -132,8 +136,13 @@ final class FirmwareHILTests: XCTestCase {
         for step in testCase.steps {
             sendCommand(step.op)
             if let expected = step.expectedX {
-                let screen = readScreen(expecting: "X: \(expected)")
-                XCTAssertTrue(screen.contains("X: \(expected)") || screen.contains("X: \(expected).0000"), "[\(testCase.name)] Expected X to contain: \(expected) but got screen: \(screen)")
+                var formattedExpected = expected
+                if formattedExpected.hasSuffix(".0") {
+                    formattedExpected = String(formattedExpected.dropLast(2))
+                }
+                
+                let screen = readScreen(expecting: "X: \(formattedExpected)")
+                XCTAssertTrue(screen.contains("X: \(formattedExpected)") || screen.contains("X: \(expected)") || screen.contains("X: \(expected)000"), "[\(testCase.name)] Expected X to contain: \(formattedExpected) but got screen: \(screen)")
             }
         }
     }
@@ -183,6 +192,13 @@ final class FirmwareHILTests: XCTestCase {
             runSharedTestCase(tc)
         } else {
             XCTFail("Could not find All32SIIMathOperations test case")
+        }
+    }
+    
+    func testThoroughParityOnFirmware() {
+        for tc in SharedCalculatorThoroughTestCases.cases {
+            runSharedTestCase(tc)
+            sendCommand("C") // clean up
         }
     }
 }

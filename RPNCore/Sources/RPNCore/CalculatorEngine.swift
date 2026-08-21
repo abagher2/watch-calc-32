@@ -295,7 +295,6 @@ public class CalculatorEngine {
 
 
     private var currentExponent: String = ""
-    private var isBuildingImaginary: Bool = false
     
     // Last X
     public var lastX: CalculatorValue = CalculatorValue()
@@ -459,7 +458,8 @@ public class CalculatorEngine {
         } else {
             if isDigit {
                 let lastChar = currentEquation.last ?? " "
-                if lastChar.isNumber || lastChar == "." {
+                let isNum = (lastChar >= "0" && lastChar <= "9")
+                if isNum || lastChar == "." {
                     currentEquation += str
                 } else {
                     currentEquation += " \(str)"
@@ -515,11 +515,11 @@ public class CalculatorEngine {
     public enum BaseMode { case dec, hex, oct, bin }
     
     public enum AlphaAction {
-        case none, sto, rcl, evalEquation, promptVar
+        case none, sto, stoAdd, stoSub, stoMul, stoDiv, rcl, evalEquation, promptVar, view
     }
     
     public var usesContextualAlphaPad: Bool {
-        return alphaAction == .sto || alphaAction == .rcl || alphaAction == .promptVar
+        return alphaAction == .sto || alphaAction == .stoAdd || alphaAction == .stoSub || alphaAction == .stoMul || alphaAction == .stoDiv || alphaAction == .rcl || alphaAction == .promptVar || alphaAction == .view
     }
     
 
@@ -575,7 +575,14 @@ public class CalculatorEngine {
         displayMode = .all
         shiftState = 0
         isBuildingNumber = false
+        isEquationMode = false
+        currentEquation = ""
         currentInputLength = 0
+        promptString = nil
+        isWaitingForAlpha = false
+        alphaAction = .none
+        isWaitingForLabel = false
+        pendingEquationVars = []
         updateDisplay()
     }
     
@@ -622,6 +629,12 @@ public class CalculatorEngine {
     public func digit(_ d: Int) {
         if isWaitingForLabel { return }
         errorMessage = nil
+        
+        if isEquationMode {
+            appendToEquation("\(d)", isDigit: true)
+            updateDisplay()
+            return
+        }
         
         if isProgrammingMode {
             if let last = currentProgramSteps.last, isProgramNumberStep(last) {
@@ -708,6 +721,13 @@ public class CalculatorEngine {
     
     public func decimal() {
         errorMessage = nil
+        
+        if isEquationMode {
+            appendToEquation(".", isDigit: true)
+            updateDisplay()
+            return
+        }
+        
         if isProgrammingMode {
             if let last = currentProgramSteps.last, isProgramNumberStep(last) {
                 currentProgramSteps[currentProgramSteps.count - 1] = last + "."
@@ -738,18 +758,7 @@ public class CalculatorEngine {
     }
     
     public func complexSeparator() {
-        // (i) input
-        if isBuildingNumber {
-            commitInput()
-        }
-        isBuildingImaginary = true
-        // Start building imaginary part
-        isBuildingNumber = true
-        currentInputBuffer[0] = 48; currentInputLength = 1
-        hasDecimal = false
-        isBuildingExponent = false
-        currentExponent = ""
-        updateCurrentInputDisplay()
+        // Obsolete: HP32SII uses X and Y registers for complex entry
     }
     
     public func toggleSign() {
@@ -803,7 +812,7 @@ public class CalculatorEngine {
         } else {
             if !stack.isEmpty {
                 lastX = stack[0]
-                stack[0] = CalculatorValue(real: -stack[0].real, imag: -stack[0].imag)
+                stack[0] = CalculatorValue(real: -stack[0].real)
                 updateDisplay()
             }
         }
@@ -824,21 +833,12 @@ public class CalculatorEngine {
                 displayXLength += 1
             }
         }
-        if isBuildingImaginary {
-            // Simplification for Embedded to avoid allocations during imaginary building
-            displayXBuffer[displayXLength] = 105 // 'i'
-            displayXLength += 1
-        }
         #else
         var str = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
         if isBuildingExponent {
             str += "E\(currentExponent.isEmpty ? "0" : currentExponent)"
         }
-        if isBuildingImaginary {
-            displayX = "\(formatNumber(stack[0].real)) + \(str)i"
-        } else {
-            displayX = str
-        }
+        displayX = str
         updateStackStrings()
         #endif
     }
@@ -891,15 +891,15 @@ public class CalculatorEngine {
                 }
             }
             
-            if isBuildingImaginary {
-                stack[0].imag = val
-                isBuildingImaginary = false
+            if stack.isEmpty {
+                stack.append(CalculatorValue(real: val))
             } else {
-                if stack.isEmpty {
-                    stack.append(CalculatorValue(real: val))
-                } else {
-                    stack[0] = CalculatorValue(real: val)
+                if stackLiftEnabled && stack.count >= stackSizeLimit {
+                    for i in (1..<stackSizeLimit).reversed() {
+                        stack[i] = stack[i-1]
+                    }
                 }
+                stack[0] = CalculatorValue(real: val)
             }
             isBuildingNumber = false
             isBuildingExponent = false
@@ -934,6 +934,13 @@ public class CalculatorEngine {
     
     public func enter() {
         errorMessage = nil
+        
+        if isEquationMode {
+            appendToEquation("ENTER")
+            updateDisplay()
+            return
+        }
+        
         if alphaAction == .promptVar {
             if isBuildingNumber { commitInput() }
             if let varName = pendingEquationVars.first {
@@ -990,7 +997,7 @@ public class CalculatorEngine {
         currentInputBuffer[0] = 48; currentInputLength = 1
         isBuildingNumber = false
         hasDecimal = false
-        isBuildingImaginary = false
+        isBuildingExponent = false
         stackLiftEnabled = false
         updateDisplay()
     }
@@ -1106,6 +1113,7 @@ public class CalculatorEngine {
     }
 
     public func executeMath(_ operation: String) {
+        print("executeMath: \(operation)")
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
@@ -1212,7 +1220,7 @@ public class CalculatorEngine {
         
         // Intercept inputs when building a program or equation
         if isProgrammingMode && !isWaitingForAlpha {
-            if ["STO", "RCL", "LBL", "GTO", "XEQ"].contains(operation) {
+            if ["STO", "RCL", "LBL", "GTO", "XEQ", "VIEW"].contains(operation) {
                 // Let these fall through to prompt for alpha
                 prgmIsBuildingNumber = false
             } else if operation == "C" || operation == "CLEAR" {
@@ -1256,6 +1264,21 @@ public class CalculatorEngine {
                 }
                 updateProgramDisplay()
                 return
+            } else if operation == "STO" {
+                startAlpha()
+                alphaPrompt = "STO _"
+                alphaAction = .sto
+                return
+            } else if operation == "RCL" {
+                startAlpha()
+                alphaPrompt = "RCL _"
+                alphaAction = .rcl
+                return
+            } else if operation == "GTO" {
+                isWaitingForLabel = true
+                startAlpha()
+                alphaPrompt = "GTO _"
+                return
             } else {
                 currentProgramSteps.append(operation)
                 prgmIsBuildingNumber = false
@@ -1266,6 +1289,11 @@ public class CalculatorEngine {
         
         if operation == "STO" {
             startSto()
+            return
+        }
+        
+        if operation == "VIEW" {
+            startView()
             return
         }
         if operation == "RCL" {
@@ -1798,30 +1826,30 @@ public class CalculatorEngine {
     
     @inline(__always)
     private func complexUnaryOp(_ op: (CalculatorValue) -> CalculatorValue) {
-        let xr = stack.count > 0 ? stack[0].real : 0.0
-        let yi = stack.count > 1 ? stack[1].real : 0.0
+        let xi = stack.count > 0 ? stack[0].real : 0.0
+        let yr = stack.count > 1 ? stack[1].real : 0.0
         
-        let c = CalculatorValue(real: xr, imag: yi)
-        lastX = CalculatorValue(real: xr) // naive
+        let c = CalculatorValue(real: yr, imag: xi)
+        lastX = CalculatorValue(real: xi)
         
         let result = op(c)
         drop()
         drop()
-        stack[0] = CalculatorValue(real: result.real)
-        stack[1] = CalculatorValue(real: result.imag)
+        stack[1] = CalculatorValue(real: result.real)
+        stack[0] = CalculatorValue(real: result.imag)
     }
     
     @inline(__always)
     private func complexBinaryOp(_ op: (CalculatorValue, CalculatorValue) -> CalculatorValue) {
-        let x1r = stack.count > 0 ? stack[0].real : 0.0
-        let y1i = stack.count > 1 ? stack[1].real : 0.0
-        let z2r = stack.count > 2 ? stack[2].real : 0.0
-        let t2i = stack.count > 3 ? stack[3].real : 0.0
+        let x1i = stack.count > 0 ? stack[0].real : 0.0
+        let y1r = stack.count > 1 ? stack[1].real : 0.0
+        let z2i = stack.count > 2 ? stack[2].real : 0.0
+        let t2r = stack.count > 3 ? stack[3].real : 0.0
         
-        let c1 = CalculatorValue(real: x1r, imag: y1i)
-        let c2 = CalculatorValue(real: z2r, imag: t2i)
+        let c1 = CalculatorValue(real: y1r, imag: x1i)
+        let c2 = CalculatorValue(real: t2r, imag: z2i)
         
-        lastX = CalculatorValue(real: x1r)
+        lastX = CalculatorValue(real: x1i)
         
         let result = op(c2, c1)
         
@@ -1829,8 +1857,8 @@ public class CalculatorEngine {
         drop()
         drop()
         drop()
-        stack[0] = CalculatorValue(real: result.real)
-        stack[1] = CalculatorValue(real: result.imag)
+        stack[1] = CalculatorValue(real: result.real)
+        stack[0] = CalculatorValue(real: result.imag)
         
         if stack.count < 4 {
             for _ in 0..<(4 - stack.count) {
@@ -2241,6 +2269,21 @@ public class CalculatorEngine {
         updateDisplay()
     }
     
+    public func startView() {
+        commitInput()
+        isWaitingForAlpha = true
+        alphaAction = .view
+        
+        if isProgrammingMode {
+            let stepNum = currentProgramSteps.count + 1
+            let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
+            promptString = "\(paddedStep) VIEW"
+        } else {
+            promptString = "VIEW"
+        }
+        updateDisplay()
+    }
+    
     public func startRcl() {
         commitInput()
         isWaitingForAlpha = true
@@ -2285,6 +2328,27 @@ public class CalculatorEngine {
             return
         }
         
+        if alphaAction == .sto {
+            if ["+", "-", "×", "÷"].contains(initialChar) {
+                switch initialChar {
+                case "+": alphaAction = .stoAdd
+                case "-": alphaAction = .stoSub
+                case "×": alphaAction = .stoMul
+                case "÷": alphaAction = .stoDiv
+                default: break
+                }
+                if isProgrammingMode {
+                    let stepNum = currentProgramSteps.count + 1
+                    let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
+                    promptString = "\(paddedStep) STO \(initialChar)"
+                } else {
+                    promptString = "STO \(initialChar)"
+                }
+                updateDisplay()
+                return // Still waiting for the variable letter
+            }
+        }
+        
         isWaitingForAlpha = false
         promptString = nil
         
@@ -2315,10 +2379,20 @@ public class CalculatorEngine {
         } else if isProgrammingMode {
             if alphaAction == .sto {
                 currentProgramSteps.append("STO \(initialChar)")
+            } else if alphaAction == .stoAdd {
+                currentProgramSteps.append("STO + \(initialChar)")
+            } else if alphaAction == .stoSub {
+                currentProgramSteps.append("STO - \(initialChar)")
+            } else if alphaAction == .stoMul {
+                currentProgramSteps.append("STO × \(initialChar)")
+            } else if alphaAction == .stoDiv {
+                currentProgramSteps.append("STO ÷ \(initialChar)")
             } else if alphaAction == .rcl {
                 currentProgramSteps.append("RCL \(initialChar)")
             } else if alphaAction == .evalEquation {
                 currentProgramSteps.append("XEQ \(initialChar)")
+            } else if alphaAction == .view {
+                currentProgramSteps.append("VIEW \(initialChar)")
             } else {
                 // If it's LBL, GTO, or just raw alpha fallback
                 if isWaitingForLabel {
@@ -2333,9 +2407,26 @@ public class CalculatorEngine {
             updateDisplay()
         } else if alphaAction == .sto {
             variables[initialChar] = stack.count > 0 ? stack[0] : CalculatorValue()
+        } else if alphaAction == .stoAdd {
+            let existing = variables[initialChar] ?? CalculatorValue()
+            variables[initialChar] = existing + (stack.count > 0 ? stack[0] : CalculatorValue())
+        } else if alphaAction == .stoSub {
+            let existing = variables[initialChar] ?? CalculatorValue()
+            variables[initialChar] = existing - (stack.count > 0 ? stack[0] : CalculatorValue())
+        } else if alphaAction == .stoMul {
+            let existing = variables[initialChar] ?? CalculatorValue()
+            variables[initialChar] = existing * (stack.count > 0 ? stack[0] : CalculatorValue())
+        } else if alphaAction == .stoDiv {
+            let existing = variables[initialChar] ?? CalculatorValue()
+            variables[initialChar] = existing / (stack.count > 0 ? stack[0] : CalculatorValue())
         } else if alphaAction == .rcl {
             let val = variables[initialChar] ?? CalculatorValue()
             pushToStack(val)
+            updateDisplay()
+        } else if alphaAction == .view {
+            let val = variables[initialChar] ?? CalculatorValue()
+            let valStr = val.isComplex ? "\(formatNumber(val.real)) + \(formatNumber(val.imag))i" : formatNumber(val.real)
+            transientMessage = "\(initialChar) = \(valStr)"
             updateDisplay()
         } else {
             // Push variable directly if in run mode
@@ -2458,9 +2549,9 @@ public class CalculatorEngine {
         if baseMode != .dec {
             let intVal = Int64(val)
             switch baseMode {
-            case .hex: return String(intVal, radix: 16, uppercase: true)
-            case .oct: return String(intVal, radix: 8)
-            case .bin: return String(intVal, radix: 2)
+            case .hex: return String(intVal, radix: 16).uppercased() + "h"
+            case .oct: return String(intVal, radix: 8) + "o"
+            case .bin: return String(intVal, radix: 2) + "b"
             default: break
             }
         }
@@ -2602,56 +2693,9 @@ public class CalculatorEngine {
             stack.append(CalculatorValue())
         }
         if !isBuildingNumber {
-            if stack[0].isComplex {
-                #if hasFeature(Embedded)
-                var cMode: Int32 = 0
-                var cPlaces: Int32 = 0
-                switch displayMode {
-                case .fix(let p): cMode = 1; cPlaces = Int32(p)
-                case .sci(let p): cMode = 2; cPlaces = Int32(p)
-                case .eng(let p): cMode = 3; cPlaces = Int32(p)
-                case .all: cMode = 0; cPlaces = 0
-                }
-                displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                    format_double_c(stack[0].real, ptr.baseAddress!, 13, cMode, cPlaces)
-                }
-                var len = 0
-                while len < 64 && displayXBuffer[len] != 0 { len += 1 }
-                
-                if len < 60 {
-                    displayXBuffer[len] = 32 // space
-                    displayXBuffer[len+1] = 43 // +
-                    displayXBuffer[len+2] = 32 // space
-                    len += 3
-                    
-                    displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                        format_double_c(stack[0].imag, ptr.baseAddress!.advanced(by: len), Int32(64 - len), cMode, cPlaces)
-                    }
-                    while len < 64 && displayXBuffer[len] != 0 { len += 1 }
-                    
-                    if len < 64 {
-                        displayXBuffer[len] = 105 // i
-                        displayXLength = len + 1
-                    } else {
-                        displayXLength = 64
-                    }
-                } else {
-                    displayXLength = len
-                }
-                #else
-                displayX = "\(formatNumber(stack[0].real)) + \(formatNumber(stack[0].imag))i"
-                #endif
-            } else {
                 #if hasFeature(Embedded)
                 if baseMode != .dec {
-                    let intVal = Int64(stack[0].real)
-                    let strVal: String
-                    switch baseMode {
-                    case .hex: strVal = String(intVal, radix: 16, uppercase: true) + "h"
-                    case .oct: strVal = String(intVal, radix: 8) + "o"
-                    case .bin: strVal = String(intVal, radix: 2) + "b"
-                    default: strVal = "0"
-                    }
+                    let strVal = formatNumber(stack[0].real)
                     _populateBufferWithString(strVal)
                 } else {
                     var cMode: Int32 = 0
@@ -2673,7 +2717,6 @@ public class CalculatorEngine {
                 displayX = formatNumber(stack[0].real)
                 #endif
             }
-        }
         #if !hasFeature(Embedded)
         updateStackStrings()
         #endif
@@ -2682,7 +2725,7 @@ public class CalculatorEngine {
     private func updateStackStrings() {
         #if !hasFeature(Embedded)
         let logicalStack = getLogicalStack()
-        stackStrings = logicalStack.map { $0.isComplex ? "\(formatNumber($0.real)) + \(formatNumber($0.imag))i" : formatNumber($0.real) }
+        stackStrings = logicalStack.map { formatNumber($0.real) }
         #endif
     }
 

@@ -107,7 +107,7 @@ def sync_pcb():
 
     # Move display
     if disp_fp:
-        DISP_Y_SCAD = 123.0
+        DISP_Y_SCAD = 117.0
         y_disp_kicad = y_max - DISP_Y_SCAD
         # Keep original X
         x_disp_kicad = disp_fp.GetPosition().x / 1e6

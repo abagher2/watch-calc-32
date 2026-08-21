@@ -456,6 +456,13 @@ struct iOSMenuModifier: ViewModifier {
                 presentMenu(menu)
                     .foregroundColor(.primary)
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("iOSThemeChangeTrigger"))) { _ in
+                let allThemes = ThemeType.allCases
+                if let currentIndex = allThemes.firstIndex(of: themeManager.activeThemeType) {
+                    let nextIndex = (currentIndex + 1) % allThemes.count
+                    themeManager.activeThemeType = allThemes[nextIndex]
+                }
+            }
     }
     
     private func presentMenu(_ menu: ActiveMenu) -> AnyView {
@@ -653,7 +660,10 @@ struct iOSMenuModifier: ViewModifier {
     
     private func handleMenuCommand(_ command: CalculatorOperation) {
         if themeManager.activeThemeType == .retro {
-            // Retro theme processes all menu commands via RetroUIController directly on the pixel LCD.
+            if command == .flags {
+                activeMenu = .flags
+            }
+            // Retro theme processes all other menu commands via RetroUIController directly on the pixel LCD.
             return
         }
         switch command {
@@ -680,6 +690,12 @@ struct iOSMenuModifier: ViewModifier {
         case .integrate: activeMenu = .integrate
         case .solve: activeMenu = .solve
         case .xeq: activeMenu = .xeq
+        case .lfu0, .lfu1, .lfu2, .lfu3, .lfu4, .lfu5:
+            let index = command.rawValue - CalculatorOperation.lfu0.rawValue
+            let funcStr = engine.lfuManager.getFunction(for: index)
+            if !funcStr.isEmpty {
+                engine.executeMath(funcStr)
+            }
         default:
             print("Unhandled iOS Menu: \(command)")
         }
