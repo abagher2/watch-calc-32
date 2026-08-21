@@ -14,12 +14,21 @@
 const uint8_t col_pins[] = {0, 1, 4, 21, 20, 19};
 const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 18};
 
+struct EmuDisplay {
+    uint32_t magic[4];
+    uint8_t buffer[1024];
+};
+
+volatile struct EmuDisplay emu_display = {
+    .magic = {0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00},
+    .buffer = {0}
+};
 void hw_init(void) {
     stdio_init_all();
     watchdog_enable(2000, 1);
-    printf("C Booted!\\n");
+    printf("C Booted! Magic check: %lx\n", emu_display.magic[0]);
     void* ptr = malloc(32);
-    printf("Malloc: %p\\n", ptr);
+    printf("Malloc: %p\n", ptr);
     free(ptr);
 #ifndef EMULATOR
     // I2C init
@@ -78,9 +87,8 @@ void display_send_buffer(const uint8_t* buffer) {
 #ifndef EMULATOR
     i2c_write_blocking(I2C_PORT, DISPLAY_ADDR, payload, 1025, false);
 #else
-    volatile uint8_t* emu_buf = (volatile uint8_t*)0x20040000;
     for (int i = 0; i < 1024; i++) {
-        emu_buf[i] = buffer[i];
+        emu_display.buffer[i] = buffer[i];
     }
 #endif
 }

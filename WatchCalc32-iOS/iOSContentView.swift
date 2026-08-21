@@ -23,7 +23,16 @@ struct iOSContentView: View {
             // Calculate exact height for keypad to prevent GeometryReader from ballooning empty space
             let totalCols: CGFloat = landscape ? 11 : 6
             let totalRows: CGFloat = landscape ? 4 : 8
-            let lcdHeight: CGFloat = landscape ? (isPad ? 130 : 90) : (isPad ? 160 : 120)
+            let standardLcdHeight: CGFloat = landscape ? (isPad ? 130 : 90) : (isPad ? 160 : 120)
+            let isRetro = themeManager.activeThemeType == .retro
+            
+            // In Retro mode, the LCD is strictly 128x64 (2:1 aspect ratio). To align the 6 menu columns 
+            // with the 6 LFU buttons perfectly, the LCD must span the exact same width as the keypad.
+            let numpadPadHoriz: CGFloat = isPad ? 24 : 8
+            let retroLcdHeight: CGFloat = (geo.size.width - (numpadPadHoriz * 2)) / 2.0
+            
+            let lcdHeight: CGFloat = isRetro ? retroLcdHeight : standardLcdHeight
+            
             let extraPadding: CGFloat = landscape ? (isPad ? 132 : 40) : (isPad ? 160 : 125)
             let availableHForNumpad = geo.size.height - lcdHeight - extraPadding
             let maxH = geo.size.width / totalCols * 1.1
@@ -31,7 +40,7 @@ struct iOSContentView: View {
             let h = isPad ? min(rawH, maxH) : rawH
             let numpadHeight = h * totalRows
             
-            mainContent(geo: geo, landscape: landscape, isPad: isPad, numpadHeight: numpadHeight)
+            mainContent(geo: geo, landscape: landscape, isPad: isPad, numpadHeight: numpadHeight, retroLcdHeight: retroLcdHeight)
         }
         .modifier(KeyboardSupportModifier())
         .modifier(iOSMenuModifier())
@@ -115,7 +124,7 @@ struct iOSContentView: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(themeManager.theme.lcdBackgroundColor)
                         )
-                        .padding(.horizontal, lcdPadHoriz)
+                        .padding(.horizontal, numpadPadHoriz)
                         .padding(.top, lcdPadTop)
                 } else {
                     VStack(alignment: .trailing, spacing: 2) {
@@ -219,7 +228,7 @@ struct iOSContentView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .fill(themeManager.theme.lcdBackgroundColor)
                 )
-                .padding(.horizontal, lcdPadHoriz)
+                .padding(.horizontal, numpadPadHoriz)
                 .padding(.top, lcdPadTop)
         } else {
             VStack(alignment: .trailing, spacing: 2) {

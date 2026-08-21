@@ -24,7 +24,13 @@ def auto_route_and_fill(kicad_pcb_path, ses_path):
         board.Remove(zone)
         
     # Find the netcode for GND
-    netcode = board.GetNetcodeFromNetname("GND")
+    netcode = 0
+    try:
+        gnd_net = board.FindNet("GND")
+        if gnd_net and hasattr(gnd_net, "GetNetCode"):
+            netcode = gnd_net.GetNetCode()
+    except Exception:
+        pass
     if netcode <= 0:
         print("Warning: GND net not found, creating isolated copper pour.")
     

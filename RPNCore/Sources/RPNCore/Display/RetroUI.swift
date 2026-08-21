@@ -25,6 +25,17 @@ public class RetroUI {
     public func render(engine: CalculatorEngine, renderer: Renderer) {
         renderer.clear()
         
+        if engine.isTestMode {
+            for y in 0..<64 {
+                for x in 0..<128 {
+                    if (x + y) % 2 == 0 { renderer.setPixel(x: x, y: y, color: true) }
+                }
+            }
+            renderer.fillRect(x: 10, y: 20, w: 108, h: 24, color: false)
+            renderer.drawString("HP-32SII TEST OK", x: 14, y: 26, size: .small, color: true)
+            return
+        }
+        
         // --- 1. Top Annunciators (Indicators) ---
         var indicators: [FirmwareView] = []
         if engine.shiftState == 1 { indicators.append(FirmwareText("f", font: .small)) }
@@ -54,49 +65,65 @@ public class RetroUI {
 
         
         // --- 2. Bottom Softkeys (Menus / LFU) ---
-        let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none
-        if menuActive {
-            if let menu = activeMenu {
-                renderer.renderMenu(menu: menu, query: menuAlphaQuery, offset: menuOffset)
-            } else if c47Mode != .none {
-                // Emulate C47 Menu (Simplified for Layout)
-                var items: [MenuItem] = []
-                if c47Program == nil {
-                    for prog in engine.programs {
-                        items.append(MenuItem(label: prog.label, action: "C47_PRG_\(prog.label)"))
+        let hideSoftkeys = isShowingRegisters || isShowingFullPrecision
+        if !hideSoftkeys {
+            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none
+            if menuActive {
+                if let menu = activeMenu {
+                    renderer.renderMenu(menu: menu, query: menuAlphaQuery, offset: menuOffset)
+                } else if c47Mode != .none {
+                    // Emulate C47 Menu (Simplified for Layout)
+                    var items: [MenuItem] = []
+                    if c47Program == nil {
+                        for prog in engine.programs {
+                            items.append(MenuItem(label: prog.label, action: "C47_PRG_\(prog.label)"))
+                        }
+                    } else {
+                        var vars = Set<String>()
+                        for step in c47Program!.steps {
+                            if step.count == 1 && step.first!.isLetter { vars.insert(step) }
+                            else if step.hasPrefix("STO ") { vars.insert(String(step.dropFirst(4))) }
+                            else if step.hasPrefix("RCL ") { vars.insert(String(step.dropFirst(4))) }
+                        }
+                        for v in vars.sorted() {
+                            let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
+                            let label = hasVal ? "@\(v)" : " \(v)"
+                            items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
+                        }
+                        if c47Mode == .plot || c47Mode == .xeq {
+                            items.append(MenuItem(label: "EXEC", action: "C47_EXEC"))
+                        }
+                    }
+                    
+                    let segmentWidth = 128 / 6
+                    for i in 0..<min(6, items.count) {
+                        let item = items[i]
+                        let xOffset = i * segmentWidth
+                        renderer.fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
+                        let textW = renderer.getStringWidth(item.label, size: .tiny)
+                        let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
+                        renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: false)
+                    }
+                } else if let pending = waitingForMenuDigit {
+                    FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 53)
+                }
+    
+            } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
+                if engine.requestPlot {
+                    let segmentWidth = 128 / 6
+                    for i in 0..<6 {
+                        let xOffset = i * segmentWidth
+                        let isSelected = engine.selectedPlotMarkerIndex == i
+                        renderer.fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: !isSelected)
+                        let label = "R\(i + 1)"
+                        let textW = renderer.getStringWidth(label, size: .tiny)
+                        let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
+                        renderer.drawString(label, x: textX, y: 55, size: .tiny, color: isSelected)
                     }
                 } else {
-                    var vars = Set<String>()
-                    for step in c47Program!.steps {
-                        if step.count == 1 && step.first!.isLetter { vars.insert(step) }
-                        else if step.hasPrefix("STO ") { vars.insert(String(step.dropFirst(4))) }
-                        else if step.hasPrefix("RCL ") { vars.insert(String(step.dropFirst(4))) }
-                    }
-                    for v in vars.sorted() {
-                        let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
-                        let label = hasVal ? "@\(v)" : " \(v)"
-                        items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
-                    }
-                    if c47Mode == .plot || c47Mode == .xeq {
-                        items.append(MenuItem(label: "EXEC", action: "C47_EXEC"))
-                    }
+                    renderer.renderLFU(manager: lfuManager)
                 }
-                
-                let segmentWidth = 128 / 6
-                for i in 0..<min(6, items.count) {
-                    let item = items[i]
-                    let xOffset = i * segmentWidth
-                    renderer.fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
-                    let textW = renderer.getStringWidth(item.label, size: .tiny)
-                    let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
-                    renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: false)
-                }
-            } else if let pending = waitingForMenuDigit {
-                FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 53)
             }
-
-        } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
-            renderer.renderLFU(manager: lfuManager)
         }
         
         // --- 3. Main Content Area (Y: 12 to 52) ---
@@ -152,6 +179,46 @@ public class RetroUI {
             FirmwareText("\(prompt) _", font: .display).draw(in: renderer, x: 2, y: 24)
         } else if engine.isGeneratingPlot || engine.isPlotLoading {
             FirmwareText("LOADING PLOT...", font: .small).draw(in: renderer, x: 2, y: 24)
+        } else if engine.requestPlot && !engine.plotData.isEmpty {
+            // Render Plot graph curve and point cursor searching via LFU keys
+            let minX = engine.plotData.map { $0.0 }.min() ?? -10.0
+            let maxX = engine.plotData.map { $0.0 }.max() ?? 10.0
+            let minY = engine.plotData.map { $0.1 }.min() ?? -10.0
+            let maxY = engine.plotData.map { $0.1 }.max() ?? 10.0
+            
+            let rangeX = max(1e-6, maxX - minX)
+            let rangeY = max(1e-6, maxY - minY)
+            
+            for pt in engine.plotData {
+                let px = Int(((pt.0 - minX) / rangeX) * 127.0)
+                let py = 52 - Int(((pt.1 - minY) / rangeY) * 38.0)
+                renderer.setPixel(x: px, y: py, color: true)
+            }
+            
+            if let idx = engine.selectedPlotMarkerIndex {
+                var selectedPoint: (Double, Double)? = nil
+                if idx < engine.plotMarkers.count {
+                    selectedPoint = engine.plotMarkers[idx]
+                } else if !engine.plotData.isEmpty {
+                    let step = engine.plotData.count / 6
+                    let sampleIdx = min(engine.plotData.count - 1, idx * step)
+                    selectedPoint = engine.plotData[sampleIdx]
+                }
+                
+                if let (ptX, ptY) = selectedPoint {
+                    let px = Int(((ptX - minX) / rangeX) * 127.0)
+                    let py = 52 - Int(((ptY - minY) / rangeY) * 38.0)
+                    
+                    renderer.setPixel(x: px - 1, y: py, color: true)
+                    renderer.setPixel(x: px + 1, y: py, color: true)
+                    renderer.setPixel(x: px, y: py - 1, color: true)
+                    renderer.setPixel(x: px, y: py + 1, color: true)
+                    
+                    let xStr = doubleFormatter?(ptX, engine.displayMode) ?? "\(ptX)"
+                    let yStr = doubleFormatter?(ptY, engine.displayMode) ?? "\(ptY)"
+                    renderer.drawString("X:\(xStr) Y:\(yStr)", x: 2, y: 12, size: .small, color: true)
+                }
+            }
         } else if engine.isProgrammingMode || engine.isEquationMode {
             // Draw 4 lines of equations, correctly spaced
             let steps = engine.currentProgramSteps

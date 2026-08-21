@@ -42,8 +42,8 @@ labels = [
     ["√x", "e^x", "LN", "y^x", "1/x", "Σ+"],
     ["STO", "RCL", "R↓", "SIN", "COS", "TAN"],
     ["ENTER", "x<>y", "+/-", "E", "<-"],
-    ["XEQ", "7", "8", "9", "/"],
-    ["yellow", "4", "5", "6", "*"],
+    ["XEQ", "7", "8", "9", "÷"],
+    ["yellow", "4", "5", "6", "×"],
     ["blue", "1", "2", "3", "-"],
     ["C", "0", ".", "PLOT", "+"]
 ]
@@ -89,9 +89,9 @@ label_map = {
 }
 
 svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {pcb_width} {pcb_height}" width="{pcb_width}mm" height="{pcb_height}mm">
-    <rect width="{pcb_width}" height="{pcb_height}" fill="none" stroke="red"/>
+    <rect width="{pcb_width}" height="{pcb_height}" fill="black" stroke="red"/>
     <!-- App Nameplate (iOS App Style) -->
-    <text x="10" y="16" fill="black" font-size="4" font-family="Helvetica" font-weight="900" font-style="italic">WatchCalc</text>
+    <text x="10" y="16" fill="white" font-size="4" font-family="Helvetica" font-weight="900" font-style="italic">WatchCalc</text>
     <text x="10" y="24" fill="cyan" font-size="7" font-family="Helvetica" font-weight="900" font-style="italic">32</text>
     <text x="{pcb_width - 10}" y="20" fill="gray" font-size="2.5" font-family="Helvetica" font-weight="bold" text-anchor="end">RPN SCIENTIFIC CALCULATOR</text>
 '''
@@ -105,14 +105,18 @@ for r_idx, row in enumerate(rows):
         lbl = labels[r_idx][c_idx] if r_idx < len(labels) and c_idx < len(labels[r_idx]) else ""
         y_lbl, b_lbl = label_map.get(lbl, ("", ""))
         
+        lbl = lbl.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         y_lbl = y_lbl.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         b_lbl = b_lbl.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         
+        if lbl and lbl not in ("yellow", "blue"):
+            svg_content += f'    <text x="{svg_x}" y="{svg_y + 1}" fill="white" font-size="2.5" font-family="Helvetica" font-weight="bold" text-anchor="middle">{lbl}</text>\n'
+
         if y_lbl:
-            svg_content += f'    <text x="{svg_x - 3}" y="{svg_y - 3}" fill="orange" font-size="{font_size}" font-family="Helvetica" font-weight="bold" text-anchor="middle">{y_lbl}</text>\n'
+            svg_content += f'    <text x="{svg_x - 3}" y="{svg_y - 3.5}" fill="orange" font-size="{font_size - 0.5}" font-family="Helvetica" font-weight="bold" text-anchor="middle">{y_lbl}</text>\n'
         
         if b_lbl:
-            svg_content += f'    <text x="{svg_x + 3}" y="{svg_y + 5}" fill="cyan" font-size="{font_size}" font-family="Helvetica" font-weight="bold" text-anchor="middle">{b_lbl}</text>\n'
+            svg_content += f'    <text x="{svg_x + 3}" y="{svg_y + 4.5}" fill="cyan" font-size="{font_size - 0.5}" font-family="Helvetica" font-weight="bold" text-anchor="middle">{b_lbl}</text>\n'
 
 svg_content += '</svg>'
 

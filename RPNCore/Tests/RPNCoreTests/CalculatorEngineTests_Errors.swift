@@ -10,10 +10,38 @@ final class CalculatorEngineTests_Errors: XCTestCase {
         engine.executeMath("÷")
         XCTAssertEqual(engine.errorMessage, "DIVIDE BY 0")
         
-        // Clearing the error
+        // Clearing the error with C restores display without wiping stack (5.0)
+        let stackBefore = engine.stack
         engine.executeMath("C")
         XCTAssertNil(engine.errorMessage)
+        XCTAssertEqual(engine.stack, stackBefore, "Dismissing error message with C must preserve stack values")
     }
+
+    func testDivideByZeroAndDismissWithC() {
+        let engine = CalculatorEngine()
+        let controller = RetroUIController(engine: engine)
+        
+        // Cause Divide by zero (5 / 0)
+        controller.processAction(.digit5)
+        controller.processAction(.enter)
+        controller.processAction(.digit0)
+        controller.processAction(.divide)
+        
+        XCTAssertEqual(engine.errorMessage, "DIVIDE BY 0")
+        
+        // Press C to dismiss error message
+        let stackBefore = engine.stack
+        controller.processAction(.c)
+        XCTAssertNil(engine.errorMessage, "Pressing C must dismiss error message")
+        XCTAssertEqual(engine.stack, stackBefore, "Dismissing error message with C must preserve stack values")
+    }
+
+
+
+
+
+
+
     
     func testSqrtOfNegative() {
         let engine = CalculatorEngine()

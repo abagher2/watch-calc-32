@@ -476,54 +476,12 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 return String(decoding: UnsafeBufferPointer(start: yBuffer, count: len), as: UTF8.self)
             }
             
-            // Special full-precision mode
-            if isShowingFullPrecision {
-                let valStr = "\(engine.stack.first?.real ?? 0.0)"
-                var lineY = 4
-                var i = 0
-                let maxChars = 14
-                while i < valStr.count {
-                    let start = valStr.index(valStr.startIndex, offsetBy: i)
-                    let end = valStr.index(start, offsetBy: min(maxChars, valStr.count - i))
-                    renderer.drawString(String(valStr[start..<end]), x: 2, y: lineY, size: .medium, color: true)
-                    lineY += 12
-                    i += maxChars
-                }
-            } else if isShowingRegisters {
-                let getRegVal: (Int) -> Double = { idx in
-                    if idx < 4 { return engine.stack.count > idx ? engine.stack[idx].real : 0.0 }
-                    else {
-                        let vIdx = idx - 4
-                        if vIdx < 26 {
-                            let c = String(Character(UnicodeScalar(65 + vIdx)!))
-                            return engine.variables[c]?.real ?? 0.0
-                        }
-                        return 0.0
-                    }
-                }
-                let getRegName: (Int) -> String = { idx in
-                    if idx == 0 { return "X:" }
-                    if idx == 1 { return "Y:" }
-                    if idx == 2 { return "Z:" }
-                    if idx == 3 { return "T:" }
-                    let vIdx = idx - 4
-                    if vIdx < 26 { return "\(String(Character(UnicodeScalar(65 + vIdx)!))):" }
-                    return "?:"
-                }
-                
-                var stackLines: [View] = []
-                for i in 0..<4 {
-                    let regIdx = regsOffset + (3 - i)
-                    let name = getRegName(regIdx)
-                    let valStr = retroUI.doubleFormatter!(getRegVal(regIdx), engine.displayMode)
-                    stackLines.append(Text("\(name) \(valStr)", font: .small))
-                }
-                VStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
-                
-            } else {
-                // Render standard retro UI
-                retroUI.render(engine: engine, renderer: renderer)
-            }
+            retroUI.isShowingFullPrecision = isShowingFullPrecision
+            retroUI.isShowingRegisters = isShowingRegisters
+            retroUI.regsOffset = regsOffset
+            
+            // Render standard retro UI
+            retroUI.render(engine: engine, renderer: renderer)
             
             var changed = false
             if let prev = renderer.previousBuffer {

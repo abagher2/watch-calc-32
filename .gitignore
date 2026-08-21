@@ -93,3 +93,4 @@ swift.pkg
 swift_expanded/
 *.txt
 Hardware/designs/anim_frames/**
+Hardware/output/WatchCalc32_PCBWay_Manufacturing/**

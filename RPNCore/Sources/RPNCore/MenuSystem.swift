@@ -33,6 +33,27 @@ public enum CalculatorMenu: String, CaseIterable {
     case statStdDev = "s,σ"
     case lr = "L.R."
     
+    public init?(rawValue: String) {
+        if rawValue == "DISP" { self = .disp }
+        else if rawValue == "MODES" { self = .modes }
+        else if rawValue == "BASE" { self = .base }
+        else if rawValue == "CONST" { self = .const }
+        else if rawValue == "FLAGS" { self = .flags }
+        else if rawValue == "CLEAR" { self = .clear }
+        else if rawValue == "PARTS" { self = .parts }
+        else if rawValue == "PROB" { self = .prob }
+        else if rawValue == "SUMS" { self = .sums }
+        else if rawValue == "STAT" { self = .stat }
+        else if rawValue == "EQN" { self = .eqn }
+        else if rawValue == "MEM" { self = .mem }
+        else if rawValue == "x?y" { self = .testXY }
+        else if rawValue == "x?0" { self = .testX0 }
+        else if rawValue == "x̄,ȳ" { self = .statMean }
+        else if rawValue == "s,σ" { self = .statStdDev }
+        else if rawValue == "L.R." { self = .lr }
+        else { return nil }
+    }
+    
     public var items: [MenuItem] {
 
         switch self {
@@ -70,7 +91,8 @@ public enum CalculatorMenu: String, CaseIterable {
         ]
         case .clear: return [
             MenuItem(label: "Σ", action: "CLΣ"), MenuItem(label: "PRGM", action: "CLPRGM"),
-            MenuItem(label: "REGS", action: "CLREGS"), MenuItem(label: "ALL", action: "CLALL")
+            MenuItem(label: "REGS", action: "CLREGS"), MenuItem(label: "VARS", action: "CLVARS"),
+            MenuItem(label: "STK", action: "CLSTK"), MenuItem(label: "ALL", action: "CLALL")
         ]
         case .parts: return [
             MenuItem(label: "INT", action: "INTG"), MenuItem(label: "FRAC"), MenuItem(label: "ABS"), MenuItem(label: "SGN")

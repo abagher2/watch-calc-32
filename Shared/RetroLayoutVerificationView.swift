@@ -8,9 +8,21 @@ public struct RetroLayoutVerificationView: View {
     public enum VerificationScenario: String, CaseIterable, Identifiable {
         case stack = "Single Number (HP-32SII)"
         case annunciators = "All Annunciators"
-
+        case plotMode = "Plot Graph"
+        case equationMode = "Equation Mode"
+        case c47Solve = "Solve Prompt"
         case menuBase = "BASE Menu"
         case menuDisp = "DISP Menu"
+        case menuModes = "MODES Menu"
+        case menuFlags = "FLAGS Menu"
+        case menuClear = "CLEAR Menu"
+        case menuParts = "PARTS Menu"
+        case menuProb = "PROB Menu"
+        case menuSums = "SUMS Menu"
+        case menuStat = "STAT Menu"
+        case menuEqn = "EQN Menu"
+        case menuMem = "MEM Menu"
+        case menuConst = "CONST Menu"
         case fixPrompt = "FIX Digit Prompt"
         case showMode = "SHOW (Full Precision)"
         case regsView = "REGS Viewer"
@@ -173,12 +185,29 @@ public struct RetroLayoutVerificationView: View {
             newEngine.angleMode = .rad
             newEngine.complexMode = true
 
-            
-        case .menuBase:
-            newController.processAction(.base)
-            
-        case .menuDisp:
-            newController.processAction(.disp)
+        case .plotMode:
+            newEngine.generatePlot(variable: "X", explicitMin: -10, explicitMax: 10)
+            newEngine.requestPlot = true
+
+        case .equationMode:
+            newEngine.isEquationMode = true
+            newEngine.currentEquation = "SIN(X)+COS(Y)"
+
+        case .c47Solve:
+            newController.processAction(.solve)
+
+        case .menuBase: newController.processAction(.base)
+        case .menuDisp: newController.processAction(.disp)
+        case .menuModes: newController.processAction(.modes)
+        case .menuFlags: newController.processAction(.flags)
+        case .menuClear: newController.processAction(.clear)
+        case .menuParts: newController.processAction(.parts)
+        case .menuProb: newController.processAction(.prob)
+        case .menuSums: newController.processAction(.sums)
+        case .menuStat: newController.processAction(.statMean)
+        case .menuEqn: newController.processAction(.eqn)
+        case .menuMem: newController.processAction(.mem)
+        case .menuConst: newController.processAction(.const)
             
         case .fixPrompt:
             newController.processAction(.disp)

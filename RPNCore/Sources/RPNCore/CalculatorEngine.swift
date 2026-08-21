@@ -253,7 +253,9 @@ public class CalculatorEngine {
     public var isPlotLoading: Bool = false
     public var plotData: [(Double, Double)] = []
     public var plotMarkers: [(Double, Double)] = []
+    public var selectedPlotMarkerIndex: Int? = nil
     public var isStatPlot: Bool = false
+    public var isTestMode: Bool = false
     public var isPlotSRequested: Bool = false
     public var autoReturnToMainPad: Bool = true
     public var lastDispDigits: Int = 4
@@ -524,6 +526,8 @@ public class CalculatorEngine {
     public func clearPrograms() {
         programs.removeAll()
         currentProgramSteps.removeAll()
+        currentProgramLabel = ""
+        currentEquation = ""
         isProgrammingMode = false
         isEquationMode = false
         updateDisplay()
@@ -550,6 +554,14 @@ public class CalculatorEngine {
     
     public func clearVars() {
         variables.removeAll()
+        updateDisplay()
+    }
+    
+    public func clearStack() {
+        stack = Array(repeating: CalculatorValue(), count: stackSizeLimit)
+        lastX = CalculatorValue()
+        isBuildingNumber = false
+        currentInputLength = 0
         updateDisplay()
     }
     
@@ -954,7 +966,19 @@ public class CalculatorEngine {
         updateDisplay()
     }
     
+    @discardableResult
+    public func clearError() -> Bool {
+        if errorMessage != nil {
+            errorMessage = nil
+            stackLiftEnabled = false
+            updateDisplay()
+            return true
+        }
+        return false
+    }
+    
     public func clearX() {
+        if clearError() { return }
         if isProgrammingMode {
             currentProgramSteps.removeAll()
             updateProgramDisplay()
@@ -972,7 +996,8 @@ public class CalculatorEngine {
     }
     
     public func backspace() {
-        errorMessage = nil
+        if clearError() { return }
+
         if isProgrammingMode {
             if !currentProgramSteps.isEmpty {
                 currentProgramSteps.removeLast()
@@ -1088,6 +1113,17 @@ public class CalculatorEngine {
             return
         }
         
+        if operation.count == 1 {
+            let char = operation.first!
+            if char >= "0" && char <= "9" {
+                if let ascii = char.asciiValue {
+                    let d = Int(ascii - 48)
+                    digit(d)
+                    return
+                }
+            }
+        }
+        
         handleCommand(operation)
     }
     
@@ -1099,7 +1135,16 @@ public class CalculatorEngine {
             return
         }
         
+        let hadError = errorMessage != nil
         errorMessage = nil
+        if hadError {
+            stackLiftEnabled = false
+            if (operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" || operation == "CLX" || operation == "<-") {
+                updateDisplay()
+                return
+            }
+        }
+
         if isAssigning {
             isAssigning = false
             if operation == "CLEAR" {
@@ -1410,11 +1455,21 @@ public class CalculatorEngine {
         case "CLALL":
             clearAll()
             return
-        case "CLREGS":
+        case "CLREGS", "CLVARS":
             clearVars()
+            return
+        case "CLSTK":
+            clearStack()
+            return
+        case "CLPRGM":
+            clearPrograms()
             return
         case "CLΣ":
             clearStats()
+            return
+        case "TEST":
+            isTestMode.toggle()
+            updateDisplay()
             return
         case "RTN":
             if isProgrammingMode {
@@ -1622,6 +1677,16 @@ public class CalculatorEngine {
         case "x̂": calculateLinearEstimation()
         
         case "PLOT": generatePlot()
+        case "STK4":
+            stackSizeLimit = 4
+            if stack.count > 4 { stack = Array(stack.prefix(4)) }
+            updateDisplay()
+        case "STK8":
+            stackSizeLimit = 8
+            updateDisplay()
+        case "STKINF":
+            stackSizeLimit = 999
+            updateDisplay()
         case "RAD": angleMode = .rad
         case "DEG": angleMode = .deg
         case "GRD": angleMode = .grd

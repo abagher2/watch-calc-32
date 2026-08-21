@@ -1,3 +1,5 @@
+#if !hasFeature(Embedded)
+
 import Foundation
 
 public class RetroUIController {
@@ -19,7 +21,39 @@ public class RetroUIController {
     public func processAction(_ op: CalculatorOperation) {
         var finalOp = op
         
+        // HP-32SII Error Message Reset Handling:
+        // When an error is displayed, pressing C (or CLEAR / backspace) clears the error message
+        // and restores the normal display without altering stack or register contents.
+        if engine.errorMessage != nil {
+            engine.errorMessage = nil
+            if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+                return
+            }
+        }
+        
+        if engine.isTestMode {
+            if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+                engine.isTestMode = false
+            }
+            return
+        }
+        
+        if engine.requestPlot {
+            if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+                engine.requestPlot = false
+                engine.selectedPlotMarkerIndex = nil
+                return
+            }
+            if finalOp == .lfu0 || finalOp.stringValue == "LFU_0" { engine.selectedPlotMarkerIndex = 0; return }
+            if finalOp == .lfu1 || finalOp.stringValue == "LFU_1" { engine.selectedPlotMarkerIndex = 1; return }
+            if finalOp == .lfu2 || finalOp.stringValue == "LFU_2" { engine.selectedPlotMarkerIndex = 2; return }
+            if finalOp == .lfu3 || finalOp.stringValue == "LFU_3" { engine.selectedPlotMarkerIndex = 3; return }
+            if finalOp == .lfu4 || finalOp.stringValue == "LFU_4" { engine.selectedPlotMarkerIndex = 4; return }
+            if finalOp == .lfu5 || finalOp.stringValue == "LFU_5" { engine.selectedPlotMarkerIndex = 5; return }
+        }
+        
         if finalOp == .show {
+
             retroUI.isShowingFullPrecision = true
             return
         }
@@ -268,6 +302,6 @@ public class RetroUIController {
         retroUI.doubleFormatter = { [weak engine] val, mode in
             return engine?.formatNumber(val) ?? "\(val)"
         }
-        retroUI.render(engine: engine, renderer: renderer)
     }
 }
+#endif

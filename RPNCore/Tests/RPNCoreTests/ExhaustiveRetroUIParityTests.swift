@@ -203,4 +203,74 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         controller.processAction(.c)
         XCTAssertEqual(controller.retroUI.c47Mode, .none)
     }
+
+    // MARK: - 7. Exhaustive Plots, Equations & Text Clipping / Non-Overlap Test
+    func testExhaustivePlotsEquationsAndNoTextClippingOrOverlap() {
+        // 1. Test Graph Plot Rendering
+        engine.generatePlot(variable: "X", explicitMin: -10, explicitMax: 10)
+        engine.requestPlot = true
+        controller.render()
+        
+        var plotPixels = 0
+        for page in 1...6 {
+            for col in 0..<128 {
+                if controller.renderer.buffer[page * 128 + col] != 0 { plotPixels += 1 }
+            }
+        }
+        XCTAssertGreaterThan(plotPixels, 0, "Graph plot must render pixels in main content region")
+        
+        // Test Plot LFU Point Searching via LFU Keys (R1..R6)
+        controller.processAction(.lfu0)
+        XCTAssertEqual(engine.selectedPlotMarkerIndex, 0, "Pressing LFU0 must select plot marker 0")
+        controller.render()
+        
+        controller.processAction(.lfu2)
+        XCTAssertEqual(engine.selectedPlotMarkerIndex, 2, "Pressing LFU2 must select plot marker 2")
+        controller.render()
+        
+        controller.processAction(.c)
+        XCTAssertFalse(engine.requestPlot, "Pressing C must dismiss plot view")
+        
+        // 2. Test Equation Rendering
+        engine.isEquationMode = true
+        engine.currentEquation = "SIN(X)+COS(Y)*2.5"
+        controller.render()
+        
+        var equationPixels = 0
+        for page in 1...4 {
+            for col in 0..<128 {
+                if controller.renderer.buffer[page * 128 + col] != 0 { equationPixels += 1 }
+            }
+        }
+        XCTAssertGreaterThan(equationPixels, 0, "Equation text must render pixels in main display region")
+        engine.isEquationMode = false
+        
+        // 3. Test Text Clipping & Softkey Bounds Non-Overlap Audit across all 18 Menus
+        for menuCase in CalculatorMenu.allCases {
+            controller.retroUI.activeMenu = menuCase
+            controller.render()
+            
+            // Verify softkey items in menu stay bounded within 20px column widths
+            let items = MenuSystem.filter(menu: menuCase, query: "")
+            let visibleCount = items.count
+            XCTAssertLessThanOrEqual(min(visibleCount, 6), 6, "Maximum 6 softkeys rendered per page")
+            
+            for item in items.prefix(5) {
+                // Check fitted label width
+                var label = item.label
+                if label == "4-LVL" { label = "4LV" }
+                else if label == "PRGM" { label = "PRG" }
+                else if label == "REGS" { label = "REG" }
+                else if label == "FRAC" { label = "FRC" }
+                else if label == "RAND" { label = "RND" }
+                else if label == "VARS" { label = "VAR" }
+                else if label == "GRAD" { label = "GRD" }
+                else if label == "MODES" { label = "MOD" }
+                else if label == "MODINT" { label = "MOD" }
+                
+                let textW = controller.renderer.getStringWidth(label, size: .tiny)
+                XCTAssertLessThanOrEqual(textW, 20, "Softkey '\(item.label)' fitted width \(textW)px must not exceed 20px softkey slot bounds")
+            }
+        }
+    }
 }

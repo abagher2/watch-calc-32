@@ -365,30 +365,49 @@ struct ButtonView: View {
 
 
 import CoreHaptics
-
-import CoreHaptics
+import UIKit
 
 class HapticManager {
     static let shared = HapticManager()
     private var engine: CHHapticEngine?
     
     init() {
-        do {
-            engine = try CHHapticEngine()
-            engine?.playsHapticsOnly = true // Strictly NO AUDIO
-            try engine?.start()
-        } catch { }
+        prepareEngine()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
     }
     
-    private func playPattern(intensity: Float, sharpness: Float) {
+    @objc private func handleForeground() {
+        prepareEngine()
+    }
+    
+    func prepareEngine() {
         guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
         do {
             if engine == nil {
                 engine = try CHHapticEngine()
                 engine?.playsHapticsOnly = true
-                try engine?.start()
+                engine?.stoppedHandler = { [weak self] _ in
+                    self?.engine = nil
+                }
+                engine?.resetHandler = { [weak self] in
+                    try? self?.engine?.start()
+                }
             }
-            
+            try engine?.start()
+        } catch {
+            engine = nil
+        }
+    }
+    
+    private func playPattern(intensity: Float, sharpness: Float) {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        prepareEngine()
+        do {
             let hapticEvent = CHHapticEvent(
                 eventType: .hapticTransient,
                 parameters: [
@@ -401,7 +420,9 @@ class HapticManager {
             let pattern = try CHHapticPattern(events: [hapticEvent], parameters: [])
             let player = try engine?.makePlayer(with: pattern)
             try player?.start(atTime: 0)
-        } catch { }
+        } catch {
+            engine = nil
+        }
     }
     
     func playBoundary() { playPattern(intensity: 0.7, sharpness: 0.5) }

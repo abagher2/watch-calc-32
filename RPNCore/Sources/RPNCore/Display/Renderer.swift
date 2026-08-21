@@ -1,16 +1,44 @@
+#if !hasFeature(Embedded)
+import Foundation
+#endif
+
 public class Renderer {
     public var buffer: [UInt8]
     public var previousBuffer: [UInt8]?
+    
+    public var detectOverlap: Bool = false
+    public var hasOverlap: Bool = false
     
     public init() {
         buffer = [UInt8](repeating: 0, count: 1024)
         previousBuffer = nil
     }
     
+    public func fitSoftkeyLabel(_ rawLabel: String) -> String {
+        switch rawLabel {
+        case "4-LVL": return "4LV"
+        case "PRGM": return "PRG"
+        case "REGS": return "REG"
+        case "FRAC": return "FRC"
+        case "RAND": return "RND"
+        case "VARS": return "VAR"
+        case "GRAD": return "GRD"
+        case "MODES": return "MOD"
+        case "MODINT": return "MOD"
+        default:
+            var l = rawLabel
+            while getStringWidth(l, size: .tiny) > 20 && !l.isEmpty {
+                l.removeLast()
+            }
+            return l
+        }
+    }
+    
     public func clear() {
         for i in 0..<1024 {
             buffer[i] = 0
         }
+        hasOverlap = false
     }
     
     public func setPixel(x: Int, y: Int, color: Bool) {
@@ -22,6 +50,9 @@ public class Renderer {
         let index = page * 128 + x
         
         if color {
+            if detectOverlap && (buffer[index] & UInt8(1 << bit)) != 0 {
+                hasOverlap = true
+            }
             buffer[index] |= UInt8(1 << bit)
         } else {
             buffer[index] &= ~UInt8(1 << bit)
@@ -177,39 +208,42 @@ public class Renderer {
         if !query.isEmpty {
             drawString("Search: \(query)_", x: 2, y: 38, size: .small, color: true)
         }
-        // Render soft keys
-        var items = MenuSystem.filter(menu: menu, query: query)
-        if offset > 0 {
-            items = Array(items.dropFirst(offset))
-        }
-        
         let segmentWidth = 128 / 6
+        let items = MenuSystem.filter(menu: menu, query: query)
+        let visibleCount = items.count - offset
+        let isMore = visibleCount > 6
         
-        var slots = [Int]()
-        let visibleCount = items.count
-        if visibleCount == 4 { slots = [0, 1, 4, 5] }
-        else if visibleCount == 5 { slots = [0, 1, 2, 4, 5] }
-        else { slots = [0, 1, 2, 3, 4, 5] }
+        let displayCount = isMore ? 5 : min(visibleCount, 6)
         
-        for i in 0..<min(6, items.count) {
-            let item = items[i]
-            let slotIndex = (items.count > 6) ? i : slots[i]
-            let xOffset = slotIndex * segmentWidth
+        for i in 0..<displayCount {
+            let itemIndex = offset + i
+            if itemIndex >= items.count { break }
+            let item = items[itemIndex]
             
-            if items.count > 6 && i == 5 {
-                fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
-                let textW = getStringWidth("MORE▶", size: .tiny)
-                let textX = xOffset + (segmentWidth - 1 - textW) / 2
-                drawString("MORE▶", x: textX, y: 55, size: .tiny, color: false)
-                continue
+            var colIndex = i
+            if !isMore {
+                if visibleCount == 4 {
+                    if i >= 2 { colIndex = i + 2 }
+                } else if visibleCount == 5 {
+                    if i >= 3 { colIndex = i + 1 }
+                }
             }
             
+            let xOffset = colIndex * segmentWidth
             fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
-            var label = item.label
-            if label.count > 5 { label = String(label.prefix(5)) }
+            
+            let label = fitSoftkeyLabel(item.label)
             let textW = getStringWidth(label, size: .tiny)
             let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
             drawString(label, x: textX, y: 55, size: .tiny, color: false)
+        }
+        
+        if isMore {
+            let xOffset = 5 * segmentWidth
+            fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
+            let textW = getStringWidth("MORE▶", size: .tiny)
+            let textX = xOffset + (segmentWidth - 1 - textW) / 2
+            drawString("MORE▶", x: textX, y: 55, size: .tiny, color: false)
         }
     }
     
@@ -217,11 +251,9 @@ public class Renderer {
         let segmentWidth = 128 / 6
         for i in 0..<6 {
             let xOffset = i * segmentWidth
-            guard var funcName = manager.slots[i] else { continue }
+            guard let rawName = manager.slots[i] else { continue }
             
-            if funcName == "MODINT" { funcName = "MOD" }
-            if funcName.count > 5 { funcName = String(funcName.prefix(5)) }
-            
+            let funcName = fitSoftkeyLabel(rawName)
             fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
             
             let textW = getStringWidth(funcName, size: .tiny)
@@ -233,30 +265,39 @@ public class Renderer {
 
 #if canImport(CoreGraphics)
 import CoreGraphics
-import Foundation
 
 public extension Renderer {
     func toCGImage(
-        pixelColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (0, 0, 0, 255),
-        backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (150, 165, 140, 255)
+        pixelColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (10, 20, 10, 255),
+        backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (160, 180, 150, 255),
+        scale: Int = 1
     ) -> CGImage? {
-        let width = 128
-        let height = 64
+        let baseW = 128
+        let baseH = 64
+        let s = max(1, scale)
+        let width = baseW * s
+        let height = baseH * s
         var rgbaPixels = [UInt8](repeating: 0, count: width * height * 4)
         
-        for y in 0..<height {
+        for y in 0..<baseH {
             let page = y / 8
             let bit = y % 8
-            for x in 0..<width {
+            for x in 0..<baseW {
                 let bufferIndex = page * 128 + x
                 let isPixelOn = (buffer[bufferIndex] & UInt8(1 << bit)) != 0
-                let pixelOffset = (y * width + x) * 4
                 let color = isPixelOn ? pixelColor : backgroundColor
                 
-                rgbaPixels[pixelOffset]     = color.r
-                rgbaPixels[pixelOffset + 1] = color.g
-                rgbaPixels[pixelOffset + 2] = color.b
-                rgbaPixels[pixelOffset + 3] = color.a
+                for sy in 0..<s {
+                    let py = y * s + sy
+                    for sx in 0..<s {
+                        let px = x * s + sx
+                        let pixelOffset = (py * width + px) * 4
+                        rgbaPixels[pixelOffset]     = color.r
+                        rgbaPixels[pixelOffset + 1] = color.g
+                        rgbaPixels[pixelOffset + 2] = color.b
+                        rgbaPixels[pixelOffset + 3] = color.a
+                    }
+                }
             }
         }
         

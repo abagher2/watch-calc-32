@@ -73,9 +73,9 @@ for r_idx, row in enumerate(rows):
 # Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
 WALL   = 2.3   # Base wall thickness (thickened to support rails)
-cw     = pcb_width  + 8    # chassis width (78.65)
-fp_w   = cw - 2*WALL       # faceplate width matches inner cavity (75.25)
-fp_h   = pcb_height + 8    # faceplate height
+cw     = pcb_width + 2*WALL + 0.4    # chassis outer width
+fp_w   = pcb_width + 0.4             # faceplate width (matches inner cavity exactly)
+fp_h   = pcb_height + 0.4            # faceplate height
 corner = 6.0
 
 # Internal Component Heights (mm)
@@ -138,56 +138,47 @@ module key_button(w, h, label) {{
     dh = bh + 1.0;  
     top_z = {plunger_h + stem_h + diamond_h + up_stem_h + wedge_h};
 
-    difference() {{
-        union() {{
-            // Z=0.0 to 1.5 : Plunger (rectangular pad)
-            translate([0, 0, {plunger_h/2}])
-                cube([{pw}, {ph}, {plunger_h}], center=true);
+    union() {{
+        // Z=0.0 to 1.5 : Plunger (rectangular pad)
+        translate([0, 0, {plunger_h/2}])
+            cube([{pw}, {ph}, {plunger_h}], center=true);
 
-            // Z=1.5 to 2.5 : Stem (rectangular)
-            translate([0, 0, {plunger_h + stem_h/2}])
-                cube([{pw}, {ph}, {stem_h}], center=true);
+        // Z=1.5 to 2.5 : Stem (rectangular)
+        translate([0, 0, {plunger_h + stem_h/2}])
+            cube([{pw}, {ph}, {stem_h}], center=true);
 
-            // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
-            button_flange(w, h, 0);
+        // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
+        button_flange(w, h, 0);
 
-            // Z=3.0 to 4.6 : Upper Stem (rounded)
-            // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
-            translate([0, 0, {plunger_h + stem_h + diamond_h}])
-                hull() {{
-                    for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
-                        translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
-                }}
-                
-            // Z=4.6 to 5.6 : Key Cap Base Chamfer (45 degrees, no support needed)
-            // Eliminates the flat overhang that sags and fuses to the faceplate
-            translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
-                hull() {{
-                    // Bottom of chamfer matches upper stem
-                    for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
-                        translate([x, y, 0]) cylinder(r=0.5, h=0.01);
-                    // Top of chamfer matches full keycap base (1.0mm overhang over 1.0mm height = 45 deg)
-                    for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                        translate([x, y, 1.0]) cylinder(r=1.0, h=0.01);
-                }}
-                
-            // Z=5.6 to 7.4 : Key Cap Top (Flat, rounded chiclet style)
-            translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h + 1.0}])
-                hull() {{
-                    for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                        translate([x, y, 0]) cylinder(r=1.0, h=0.01);
-                    // Top of the keycap (flat, slightly smaller radius for soft edge)
-                    for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                        translate([x, y, {wedge_h - 1.0}]) cylinder(r=0.8, h=0.01);
-                }}
-        }}
-        
-        // Sunken label at the top surface (0.6mm deep)
-        if (label != "") {{
-            translate([0, 0, top_z - 0.6])
-                linear_extrude(1.0)
-                    text(label, size=min(bw, bh)*0.55, font="Helvetica:style=Bold", halign="center", valign="center");
-        }}
+        // Z=3.0 to 4.6 : Upper Stem (rounded)
+        // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
+        translate([0, 0, {plunger_h + stem_h + diamond_h}])
+            hull() {{
+                for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
+                    translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
+            }}
+            
+        // Z=4.6 to 5.6 : Key Cap Base Chamfer (45 degrees, no support needed)
+        // Eliminates the flat overhang that sags and fuses to the faceplate
+        translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
+            hull() {{
+                // Bottom of chamfer matches upper stem
+                for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
+                    translate([x, y, 0]) cylinder(r=0.5, h=0.01);
+                // Top of chamfer matches full keycap base (1.0mm overhang over 1.0mm height = 45 deg)
+                for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                    translate([x, y, 1.0]) cylinder(r=1.0, h=0.01);
+            }}
+            
+        // Z=5.6 to 7.4 : Key Cap Top (Flat, rounded chiclet style)
+        translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h + 1.0}])
+            hull() {{
+                for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                    translate([x, y, 0]) cylinder(r=1.0, h=0.01);
+                // Top of the keycap (flat, slightly smaller radius for soft edge)
+                for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                    translate([x, y, {wedge_h - 1.0}]) cylinder(r=0.8, h=0.01);
+            }}
     }}
 }}
 
@@ -387,16 +378,16 @@ module chassis_shell() {{
             cube([cw - 2*wall, {plate_t} + 0.1, ch - wall + 0.1]);
             
         // 2. Tier 2: Switch Gap (Y = plate_t to plate_t + TACTILE_H)
-        translate([wall + 6.0, {plate_t}, -0.1])
-            cube([cw - 2*wall - 12.0, {TACTILE_H}, ch - wall + 0.1]);
+        translate([wall + 3.0, {plate_t}, -0.1])
+            cube([cw - 2*wall - 6.0, {TACTILE_H}, ch - wall + 0.1]);
             
         // 3. Tier 3: PCB Slot (Y = plate_t + TACTILE_H to + PCB_T)
-        translate([wall + 4.0, {plate_t} + {TACTILE_H}, -0.1])
-            cube([cw - 2*wall - 8.0, {PCB_T}, ch - wall + 0.1]);
+        translate([wall, {plate_t} + {TACTILE_H}, -0.1])
+            cube([cw - 2*wall, {PCB_T}, ch - wall + 0.1]);
             
         // 4. Tier 4: Battery & Component Clearance
-        translate([wall + 6.0, {plate_t} + {TACTILE_H} + {PCB_T}, -0.1])
-            cube([cw - 2*wall - 12.0, D - wall - ({plate_t} + {TACTILE_H} + {PCB_T}) + 0.1, ch - wall + 0.1]);
+        translate([wall + 3.0, {plate_t} + {TACTILE_H} + {PCB_T}, -0.1])
+            cube([cw - 2*wall - 6.0, D - wall - ({plate_t} + {TACTILE_H} + {PCB_T}) + 0.1, ch - wall + 0.1]);
     }}
 }}
 module rim_walls() {{
@@ -565,7 +556,7 @@ top_cap();
     rail_d    = GROOVE_D - 0.1   # rail tab depth (0.1mm clearance)
     wedge_len = 30
     wedge_rise = wedge_len * math.tan(math.radians(10))  # 5.29mm at 10°
-    cov_ow    = fp_w + 2 * (cov_wall + cov_clear)        # 83.45mm
+    cov_ow    = cw + 2 * (cov_wall + cov_clear)          # total outer width
 
     cover = f"""
 // WatchCalc 32 C-Cover — v3 PLA BACK COVER
@@ -744,12 +735,17 @@ if __name__ == "__main__":
         ("buttons",        "designs/buttons.scad",        "../scratch/stl/buttons.stl"),
     ]
 
+    procs = []
     for label, src, dst in tasks:
-        r = subprocess.run(["openscad", "-o", dst, src], capture_output=True, text=True)
-        if r.returncode == 0:
+        p = subprocess.Popen(["openscad", "-o", dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        procs.append((label, p))
+        
+    for label, p in procs:
+        stdout, stderr = p.communicate()
+        if p.returncode == 0:
             print(f"  ✓ {label}.stl")
         else:
-            print(f"  ✗ {label} ERRORS:\n{r.stderr[-800:]}")
+            print(f"  ✗ {label} ERRORS:\n{stderr[-800:]}")
 
     mfg_3d = "output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files"
     os.makedirs(mfg_3d, exist_ok=True)

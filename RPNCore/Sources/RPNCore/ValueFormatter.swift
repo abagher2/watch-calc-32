@@ -15,22 +15,6 @@ public class FoundationValueFormatter: ValueFormatter {
     public func format(value: Double, mode: CalculatorEngine.DisplayMode) -> String {
         let val = value
         
-        // Handle Fractions
-        if case .all = mode {
-            let valAbs = abs(val)
-            let whole = Int64(valAbs)
-            let remainder = valAbs - Double(whole)
-            let sign = val < 0 ? -1 : 1
-            
-            if remainder > 1e-6 {
-                let num = Int64(round(remainder * 1_000_000))
-                let den = Int64(1_000_000)
-                // Assuming Rational limits logic is applied elsewhere or simplified here
-                // We'll reproduce the basic fraction formatting from CalculatorEngine
-                // We'd normally use RationalModule here, but let's keep it simple or import it.
-            }
-        }
-        
         let formatter = NumberFormatter()
         formatter.usesGroupingSeparator = false
         formatter.decimalSeparator = "."
