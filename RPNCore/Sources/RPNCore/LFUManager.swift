@@ -8,7 +8,7 @@ import Observation
 public class LFUManager {
     // 6 slots for functions (to match the 6 UI keys available for LFU)
     // Using String to represent the function name, e.g., "SIN", "%CHG", etc.
-    public var slots: [String?] = Array(repeating: nil, count: 6)
+    public var slots: [String?] = ["SIN", "COS", "TAN", "LN", "e^x", "√x"]
     
     // Usage counts for functions
     private var usageCounts: [String: Int] = [:]

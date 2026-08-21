@@ -112,6 +112,15 @@ uint64_t hw_time_us(void) {
     return time_us_64();
 }
 
-void format_double_c(double val, uint8_t* buffer, int max_len) {
-    snprintf((char*)buffer, max_len, "%.7g", val);
+void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int places) {
+    if (mode == 1) { // FIX
+        snprintf((char*)buffer, max_len, "%.*f", places, val);
+    } else if (mode == 2) { // SCI
+        snprintf((char*)buffer, max_len, "%.*e", places, val);
+    } else if (mode == 3) { // ENG
+        // C doesn't have a direct format specifier for ENG, so we fallback to 'g' with the given places
+        snprintf((char*)buffer, max_len, "%.*g", places, val);
+    } else { // ALL
+        snprintf((char*)buffer, max_len, "%.14g", val);
+    }
 }

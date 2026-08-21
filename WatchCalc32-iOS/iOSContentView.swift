@@ -37,13 +37,14 @@ struct iOSContentView: View {
         .modifier(iOSMenuModifier())
         .modifier(AlphaPromptModifier(engine: engine))
         .foregroundColor(.white)
-        .sheet(isPresented: $showingPlot) {
+        .opacity(engine.requestPlot ? 1.0 : 1.0)
+        .fullScreenCover(isPresented: $showingPlot) {
             FullScreenPlotView()
                 .environment(engine)
         }
         .onChange(of: engine.requestPlot) { oldValue, newValue in
             if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     showingPlot = true
                     engine.requestPlot = false
                 }
@@ -106,55 +107,66 @@ struct iOSContentView: View {
         
         VStack(alignment: .trailing, spacing: 2) {
             HStack(alignment: .top) {
-                
-                VStack(alignment: .trailing, spacing: 2) {
-                    LCDAnnunciatorsView(
-                        engine: engine,
-                        font: .system(size: 12, weight: .bold),
-                        foregroundColor: themeManager.theme.lcdTextColor.opacity(0.6),
-                        yellowShiftColor: themeManager.theme.yellowShiftColor,
-                        blueShiftColor: themeManager.theme.blueShiftColor,
-                        shift1Label: themeManager.theme.shift1Label,
-                        shift2Label: themeManager.theme.shift2Label,
-                        spacing: 12
-                    )
-                    .padding(.horizontal, 8)
-                    Spacer()
-                    LCDDisplayView(
-                        engine: engine,
-                        font: .system(size: 38, weight: .medium, design: .monospaced),
-                        foregroundColor: themeManager.theme.lcdTextColor
-                    )
-                }
-                .padding()
-                .frame(maxWidth: lcdMaxWidth, maxHeight: 90, alignment: .bottomLeading)
-                .background(
-                    AnyView(
-                        Group {
-                            if themeManager.activeThemeType == .beta {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(Color.white.opacity(0.05))
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(.ultraThinMaterial)
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
-                                    )
-                            } else {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(themeManager.theme.lcdBackgroundColor.shadow(.inner(color: themeManager.theme.lcdTextColor.opacity(0.6), radius: 4, x: 0, y: 3)))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .strokeBorder(LinearGradient(gradient: Gradient(colors: [.black.opacity(0.5), .black.opacity(0.1), .white.opacity(0.2)]), startPoint: .top, endPoint: .bottom), lineWidth: 2)
-                                    )
+                if themeManager.activeThemeType == .retro {
+                    RetroLCDView(engine: engine)
+                        .padding(4)
+                        .frame(maxWidth: lcdMaxWidth, maxHeight: 90)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(themeManager.theme.lcdBackgroundColor)
+                        )
+                        .padding(.horizontal, lcdPadHoriz)
+                        .padding(.top, lcdPadTop)
+                } else {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        LCDAnnunciatorsView(
+                            engine: engine,
+                            font: .system(size: 12, weight: .bold),
+                            foregroundColor: themeManager.theme.lcdTextColor.opacity(0.6),
+                            yellowShiftColor: themeManager.theme.yellowShiftColor,
+                            blueShiftColor: themeManager.theme.blueShiftColor,
+                            shift1Label: themeManager.theme.shift1Label,
+                            shift2Label: themeManager.theme.shift2Label,
+                            spacing: 12
+                        )
+                        .padding(.horizontal, 8)
+                        Spacer()
+                        LCDDisplayView(
+                            engine: engine,
+                            font: .system(size: 38, weight: .medium, design: .monospaced),
+                            foregroundColor: themeManager.theme.lcdTextColor
+                        )
+                    }
+                    .padding()
+                    .frame(maxWidth: lcdMaxWidth, maxHeight: 90, alignment: .bottomLeading)
+                    .background(
+                        AnyView(
+                            Group {
+                                if themeManager.activeThemeType == .beta {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color.white.opacity(0.05))
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(.ultraThinMaterial)
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
+                                        )
+                                } else {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(themeManager.theme.lcdBackgroundColor.shadow(.inner(color: themeManager.theme.lcdTextColor.opacity(0.6), radius: 4, x: 0, y: 3)))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .strokeBorder(LinearGradient(gradient: Gradient(colors: [.black.opacity(0.5), .black.opacity(0.1), .white.opacity(0.2)]), startPoint: .top, endPoint: .bottom), lineWidth: 2)
+                                        )
+                                }
                             }
-                        }
+                        )
                     )
-                )
-                .padding(.horizontal, lcdPadHoriz)
-                .padding(.top, lcdPadTop)
+                    .padding(.horizontal, lcdPadHoriz)
+                    .padding(.top, lcdPadTop)
+                }
                 
                 Spacer()
                 nameplateView(compact: true)
@@ -199,55 +211,68 @@ struct iOSContentView: View {
         let numpadPadHoriz: CGFloat = isPad ? 24 : 8
         let numpadPadBottom: CGFloat = isPad ? 48 : 32
         
-        VStack(alignment: .trailing, spacing: 2) {
-            LCDAnnunciatorsView(
-                engine: engine,
-                font: .system(size: 12, weight: .bold),
-                foregroundColor: themeManager.theme.lcdTextColor.opacity(0.6),
-                yellowShiftColor: themeManager.theme.yellowShiftColor,
-                blueShiftColor: themeManager.theme.blueShiftColor,
-                shift1Label: themeManager.theme.shift1Label,
-                shift2Label: themeManager.theme.shift2Label,
-                spacing: 12
-            )
-            .padding(.horizontal, 8)
-            Spacer()
-            LCDDisplayView(
-                engine: engine,
-                font: .system(size: lcdFontSize, weight: .medium, design: .monospaced),
-                foregroundColor: themeManager.theme.lcdTextColor
-            )
-        }
-        .padding()
-        .frame(maxWidth: lcdMaxWidth, maxHeight: .infinity, alignment: .bottomTrailing)
-        .frame(maxHeight: lcdMaxHeight)
-        .background(
-            AnyView(
-                Group {
-                    if themeManager.activeThemeType == .beta {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.primary.opacity(0.08))
-                            .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(.ultraThinMaterial)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
-                            )
-                    } else {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(themeManager.theme.lcdBackgroundColor.shadow(.inner(color: themeManager.theme.lcdTextColor.opacity(0.6), radius: 4, x: 0, y: 3)))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(LinearGradient(gradient: Gradient(colors: [.black.opacity(0.5), .black.opacity(0.1), .white.opacity(0.2)]), startPoint: .top, endPoint: .bottom), lineWidth: 2)
-                            )
+        if themeManager.activeThemeType == .retro {
+            RetroLCDView(engine: engine)
+                .padding(4)
+                .frame(maxWidth: lcdMaxWidth, maxHeight: lcdMaxHeight)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(themeManager.theme.lcdBackgroundColor)
+                )
+                .padding(.horizontal, lcdPadHoriz)
+                .padding(.top, lcdPadTop)
+        } else {
+            VStack(alignment: .trailing, spacing: 2) {
+                LCDAnnunciatorsView(
+                    engine: engine,
+                    font: .system(size: 12, weight: .bold),
+                    foregroundColor: themeManager.theme.lcdTextColor.opacity(0.6),
+                    yellowShiftColor: themeManager.theme.yellowShiftColor,
+                    blueShiftColor: themeManager.theme.blueShiftColor,
+                    shift1Label: themeManager.theme.shift1Label,
+                    shift2Label: themeManager.theme.shift2Label,
+                    spacing: 12
+                )
+                .padding(.horizontal, 8)
+                Spacer()
+                LCDDisplayView(
+                    engine: engine,
+                    font: .system(size: lcdFontSize, weight: .medium, design: .monospaced),
+                    foregroundColor: themeManager.theme.lcdTextColor
+                )
+            }
+            .padding()
+            .frame(maxWidth: lcdMaxWidth, maxHeight: .infinity, alignment: .bottomTrailing)
+            .frame(maxHeight: lcdMaxHeight)
+            .background(
+                AnyView(
+                    Group {
+                        if themeManager.activeThemeType == .beta {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.primary.opacity(0.08))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(.ultraThinMaterial)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
+                                )
+                        } else {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(themeManager.theme.lcdBackgroundColor.shadow(.inner(color: themeManager.theme.lcdTextColor.opacity(0.6), radius: 4, x: 0, y: 3)))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(LinearGradient(gradient: Gradient(colors: [.black.opacity(0.5), .black.opacity(0.1), .white.opacity(0.2)]), startPoint: .top, endPoint: .bottom), lineWidth: 2)
+                                )
+                        }
                     }
-                }
+                )
             )
-        )
-        .padding(.horizontal, lcdPadHoriz)
-        .padding(.top, lcdPadTop)
+            .padding(.horizontal, lcdPadHoriz)
+            .padding(.top, lcdPadTop)
+        }
+
         
         if isPad {
             HStack {
@@ -614,6 +639,10 @@ struct iOSMenuModifier: ViewModifier {
     }
     
     private func handleMenuCommand(_ command: CalculatorOperation) {
+        if themeManager.activeThemeType == .retro {
+            // Retro theme processes all menu commands via RetroUIController directly on the pixel LCD.
+            return
+        }
         switch command {
         case .base: activeMenu = .base
         case .flags: activeMenu = .flags
@@ -642,6 +671,7 @@ struct iOSMenuModifier: ViewModifier {
             print("Unhandled iOS Menu: \(command)")
         }
     }
+
 }
 
 struct FlagsMenuView: View {

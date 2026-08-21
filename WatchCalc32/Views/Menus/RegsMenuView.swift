@@ -56,7 +56,11 @@ struct RegsMenuView: View {
                         }
                     }
                 }
+                #if os(watchOS)
                 .navigationTitle("REGS")
+                #else
+                .navigationTitle("Registers")
+                #endif
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Close") {

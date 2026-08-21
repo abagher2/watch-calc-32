@@ -46,6 +46,7 @@
 		8BCEA9AD4BE3FDC82F67D010 /* ConstantsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */; };
 		8E133F9F14E8CAB073E46BE7 /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867C279760D0F90BED087D9 /* MemMenuView.swift */; };
 		8F2CD154257150221461C64A /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D33BB3B4DA42ECDFA2BE965 /* iOSApp.swift */; };
+		91A4231DBB3C747B0EFBCCF8 /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 03D17C91C142DFF0B3CD789A /* RPNCore */; };
 		930B9EBAF5C04B648B9A582A /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFB9D54733526F37B234936 /* ClearMenuView.swift */; };
 		9B792CDE5DDE6C438A39E1FE /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */; };
 		9B8CC1E2050EE6AE52829CB5 /* EquationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43437D0D28BC0EDF2F8C80AD /* EquationListView.swift */; };
@@ -64,6 +65,7 @@
 		DBA4D84D6FB8B8259EEBF518 /* WatchCalc32App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EA20C7632AAC2FF0C51C4E /* WatchCalc32App.swift */; };
 		DF0A48DEF4F748B9060702B0 /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFB9D54733526F37B234936 /* ClearMenuView.swift */; };
 		E0FFBF5DFAB29F2C25AC8F10 /* PioneerButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF192A74FFF113EE59586474 /* PioneerButtonStyle.swift */; };
+		E79D5E0C53308448AB279C11 /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = DF09DC95AF23E25ED70C515D /* RPNCore */; };
 		EBFF1352BB8199A314F3A59A /* CalcButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A603ECAFE549C00B0F724057 /* CalcButton.swift */; };
 		EE3CDD51880ED63702FCF356 /* TestEquationEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6F0F53804807111845D7AF /* TestEquationEntry.swift */; };
 		F08B8D73732959DF2930E4AD /* UpperMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD288C4367AE97EE044B621 /* UpperMatrixView.swift */; };
@@ -169,11 +171,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		56088B538AB65B22461EFFB5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				91A4231DBB3C747B0EFBCCF8 /* RPNCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		58682FF8286FC0BC4DA5EE6D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				2E19AF56A6420AF45BC735AA /* RPNCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6207F0CE7C396CA81E9F2BD2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E79D5E0C53308448AB279C11 /* RPNCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,6 +380,7 @@
 			buildConfigurationList = 733FF94E5AE48888F38CF092 /* Build configuration list for PBXNativeTarget "WatchCalc32UITests" */;
 			buildPhases = (
 				90427866A991EE31FCDFCD79 /* Sources */,
+				56088B538AB65B22461EFFB5 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -370,6 +389,7 @@
 			);
 			name = WatchCalc32UITests;
 			packageProductDependencies = (
+				03D17C91C142DFF0B3CD789A /* RPNCore */,
 			);
 			productName = WatchCalc32UITests;
 			productReference = 8869FFBAFCD814FA507BFBF7 /* WatchCalc32UITests.xctest */;
@@ -422,6 +442,7 @@
 			buildConfigurationList = 06994EF3E9EE429EFA801786 /* Build configuration list for PBXNativeTarget "WatchCalc32ContainerUITests" */;
 			buildPhases = (
 				CA0DC42E00F703CD77F93CCC /* Sources */,
+				6207F0CE7C396CA81E9F2BD2 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -430,6 +451,7 @@
 			);
 			name = WatchCalc32ContainerUITests;
 			packageProductDependencies = (
+				DF09DC95AF23E25ED70C515D /* RPNCore */,
 			);
 			productName = WatchCalc32ContainerUITests;
 			productReference = 83DB61D67A7DBEC21EE4B046 /* WatchCalc32ContainerUITests.xctest */;
@@ -934,11 +956,19 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		03D17C91C142DFF0B3CD789A /* RPNCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RPNCore;
+		};
 		203CA19B9100ADCABC7E6EC4 /* RPNCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RPNCore;
 		};
 		4F6B69E0A8BEA8AE3B3005FF /* RPNCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RPNCore;
+		};
+		DF09DC95AF23E25ED70C515D /* RPNCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RPNCore;
 		};

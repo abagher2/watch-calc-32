@@ -1,5 +1,6 @@
 import XCTest
 import Foundation
+import RPNCore
 
 /// Hardware-In-the-Loop (HIL) Tests for the WatchCalc 32 Firmware
 /// These tests connect to a running QEMU instance over a TCP socket
@@ -122,5 +123,66 @@ final class FirmwareHILTests: XCTestCase {
         // Since HEX mode formats X differently
         // We can just verify the menu interaction didn't crash and returned to normal
         XCTAssertTrue(screen.contains("X: 0"), "Screen did not return to normal view after menu execution")
+    }
+
+    func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
+        sendCommand("C")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        for step in testCase.steps {
+            sendCommand(step.op)
+            if let expected = step.expectedX {
+                let screen = readScreen(expecting: "X: \(expected)")
+                XCTAssertTrue(screen.contains("X: \(expected)") || screen.contains("X: \(expected).0000"), "[\(testCase.name)] Expected X to contain: \(expected) but got screen: \(screen)")
+            }
+        }
+    }
+
+    func testSharedBasicMathUI() {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "BasicMathUI" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find BasicMathUI test case")
+        }
+    }
+
+    func testSharedCalculationEfficiency() {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "CalculationEfficiency" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find CalculationEfficiency test case")
+        }
+    }
+
+    func testSharedStoRcl() {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "StoRcl" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find StoRcl test case")
+        }
+    }
+
+    func testSharedModuloAndRemainder() {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "ModuloAndRemainder" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find ModuloAndRemainder test case")
+        }
+    }
+
+    func testSharedMiToKm() {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "MiToKm" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find MiToKm test case")
+        }
+    }
+
+    func testSharedAll32SIIMathOperations() {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "All32SIIMathOperations" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find All32SIIMathOperations test case")
+        }
     }
 }

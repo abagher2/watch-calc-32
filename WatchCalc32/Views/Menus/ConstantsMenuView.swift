@@ -44,7 +44,11 @@ struct ConstantsMenuView: View {
                 }
             }
             .searchable(text: $searchText, prompt: "Search Constants")
+            #if os(watchOS)
             .navigationTitle("CNST")
+            #else
+            .navigationTitle("Constants")
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {

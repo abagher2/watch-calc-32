@@ -104,17 +104,119 @@ public class BasicValueFormatter: ValueFormatter {
     public init() {}
     
     public func format(value: Double, mode: CalculatorEngine.DisplayMode) -> String {
-        // Very basic bare-metal formatting fallback
-        // E.g. "\(value)"
-        var str = _formatDouble(value)
+        let val = value
+        if val.isNaN { return "INVALID DATA" }
+        if val.isInfinite { return val < 0 ? "-OVERFLOW" : "OVERFLOW" }
+        
+        switch mode {
+        case .fix(let places):
+            return formatFix(val, places: places)
+        case .sci(let places):
+            return formatSci(val, places: places)
+        case .eng(let places):
+            return formatEng(val, places: places)
+        case .all:
+            return formatAll(val)
+        }
+    }
+    
+    private func formatFix(_ val: Double, places: Int) -> String {
+        if abs(val) >= 1e12 || (val != 0 && abs(val) < 1e-11) {
+            return formatSci(val, places: places)
+        }
+        let sign = val < 0 ? "-" : ""
+        let absVal = abs(val)
+        
+        var multiplier = 1.0
+        for _ in 0..<places { multiplier *= 10.0 }
+        let rounded = (absVal * multiplier + 0.5).rounded(.down) / multiplier
+        
+        let intPart = Int64(rounded)
+        let fracPartDouble = (rounded - Double(intPart)) * multiplier
+        let fracPartInt = Int64((fracPartDouble + 0.5).rounded(.down))
+        
+        if places == 0 {
+            return "\(sign)\(intPart)"
+        } else {
+            let fracStr = String(fracPartInt)
+            let paddedFrac = String(repeating: "0", count: max(0, places - fracStr.count)) + fracStr
+            return "\(sign)\(intPart).\(paddedFrac)"
+        }
+    }
+    
+    private func formatSci(_ val: Double, places: Int) -> String {
+        if val == 0 {
+            let fracStr = String(repeating: "0", count: places)
+            return places > 0 ? "0.\(fracStr)E0" : "0E0"
+        }
+        let sign = val < 0 ? "-" : ""
+        let absVal = abs(val)
+        var exp = Int(floor(log10(absVal)))
+        var mantissa = absVal / pow(10.0, Double(exp))
+        if mantissa >= 10.0 {
+            mantissa /= 10.0
+            exp += 1
+        }
+        
+        var multiplier = 1.0
+        for _ in 0..<places { multiplier *= 10.0 }
+        let roundedMantissa = (mantissa * multiplier + 0.5).rounded(.down) / multiplier
+        
+        let intPart = Int64(roundedMantissa)
+        let fracPartDouble = (roundedMantissa - Double(intPart)) * multiplier
+        let fracPartInt = Int64((fracPartDouble + 0.5).rounded(.down))
+        
+        let expSign = exp < 0 ? "-" : ""
+        let absExp = abs(exp)
+        
+        if places == 0 {
+            return "\(sign)\(intPart)E\(expSign)\(absExp)"
+        } else {
+            let fracStr = String(fracPartInt)
+            let paddedFrac = String(repeating: "0", count: max(0, places - fracStr.count)) + fracStr
+            return "\(sign)\(intPart).\(paddedFrac)E\(expSign)\(absExp)"
+        }
+    }
+    
+    private func formatEng(_ val: Double, places: Int) -> String {
+        if val == 0 {
+            let fracStr = String(repeating: "0", count: places)
+            return places > 0 ? "0.\(fracStr)E0" : "0E0"
+        }
+        let sign = val < 0 ? "-" : ""
+        let absVal = abs(val)
+        var exp = Int(floor(log10(absVal)))
+        let rem = ((exp % 3) + 3) % 3
+        exp -= rem
+        let mantissa = absVal / pow(10.0, Double(exp))
+        
+        var multiplier = 1.0
+        for _ in 0..<places { multiplier *= 10.0 }
+        let roundedMantissa = (mantissa * multiplier + 0.5).rounded(.down) / multiplier
+        
+        let intPart = Int64(roundedMantissa)
+        let fracPartDouble = (roundedMantissa - Double(intPart)) * multiplier
+        let fracPartInt = Int64((fracPartDouble + 0.5).rounded(.down))
+        
+        let expSign = exp < 0 ? "-" : ""
+        let absExp = abs(exp)
+        
+        if places == 0 {
+            return "\(sign)\(intPart)E\(expSign)\(absExp)"
+        } else {
+            let fracStr = String(fracPartInt)
+            let paddedFrac = String(repeating: "0", count: max(0, places - fracStr.count)) + fracStr
+            return "\(sign)\(intPart).\(paddedFrac)E\(expSign)\(absExp)"
+        }
+    }
+    
+    private func formatAll(_ val: Double) -> String {
+        var str = _formatDouble(val)
         if str.hasSuffix(".0") {
             str.removeLast(2)
         }
-        
-        let maxLength = 12
-        if str.count > maxLength {
-            // Very naive truncation
-            str = String(str.prefix(maxLength))
+        if str.count > 12 {
+            str = String(str.prefix(12))
         }
         return str
     }
@@ -124,3 +226,4 @@ public class BasicValueFormatter: ValueFormatter {
         return "\(stepCount)"
     }
 }
+

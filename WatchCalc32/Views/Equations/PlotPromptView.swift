@@ -12,6 +12,7 @@ struct PlotPromptView: View {
     @State private var lowerLimit = "-3"
     @State private var upperLimit = "3"
     @AppStorage("plotPushMode") private var plotPushMode: Int = 0
+    @State private var actionToExecute: String? = nil
     
     private func updateVariables() {
         if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
@@ -31,6 +32,7 @@ struct PlotPromptView: View {
                     Text("Equation").tag("Equation")
                     Text("Statistics Data").tag("Statistics Data")
                 }
+                .pickerStyle(.inline)
                 
                 Section("Plot Interaction") {
                     Picker("Tap Action", selection: $plotPushMode) {
@@ -107,20 +109,7 @@ struct PlotPromptView: View {
                 
                 Section {
                     Button {
-                        engine.statusMessage = "CALCULATING"
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            if plotSource == "Statistics Data" {
-                                engine.generatePlot()
-                            } else {
-                                if !selectedProgramLabel.isEmpty {
-                                    engine.currentProgramLabel = selectedProgramLabel
-                                }
-                                if let low = Double(lowerLimit), let up = Double(upperLimit) {
-                                    engine.generatePlot(variable: selectedVar, explicitMin: low, explicitMax: up)
-                                }
-                            }
-                            engine.statusMessage = nil
-                        }
+                        actionToExecute = "plot"
                         dismiss()
                     } label: {
                         Text("Plot")
@@ -132,20 +121,7 @@ struct PlotPromptView: View {
                     
                     if plotSource == "Equation" {
                         Button {
-                            engine.statusMessage = "INTEGRATING"
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                if !selectedProgramLabel.isEmpty {
-                                    engine.currentProgramLabel = selectedProgramLabel
-                                }
-                                if let low = Double(lowerLimit), let up = Double(upperLimit) {
-                                    if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
-                                        _ = engine.integrate(variable: selectedVar, lower: low, upper: up, program: program)
-                                        engine.isPlotSRequested = false
-                                        engine.requestPlot = true
-                                    }
-                                }
-                                engine.statusMessage = nil
-                            }
+                            actionToExecute = "integrate"
                             dismiss()
                         } label: {
                             Text("Integrate & Plot Area")
@@ -165,6 +141,7 @@ struct PlotPromptView: View {
                 }
             }
             .onAppear {
+                print("PLOT_PROMPT_DEBUG: programs = \(engine.programs.map { "\($0.label):\($0.steps)" })")
                 if engine.isBuildingNumber {
                     engine.commitInput()
                 }
@@ -183,6 +160,39 @@ struct PlotPromptView: View {
                     selectedProgramLabel = first.label
                 }
                 updateVariables()
+            }
+            .onDisappear {
+                if actionToExecute == "plot" {
+                    engine.statusMessage = "CALCULATING"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if plotSource == "Statistics Data" {
+                            engine.generatePlot()
+                        } else {
+                            if !selectedProgramLabel.isEmpty {
+                                engine.currentProgramLabel = selectedProgramLabel
+                            }
+                            if let low = Double(lowerLimit), let up = Double(upperLimit) {
+                                engine.generatePlot(variable: selectedVar, explicitMin: low, explicitMax: up)
+                            }
+                        }
+                        engine.statusMessage = nil
+                    }
+                } else if actionToExecute == "integrate" {
+                    engine.statusMessage = "INTEGRATING"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        if !selectedProgramLabel.isEmpty {
+                            engine.currentProgramLabel = selectedProgramLabel
+                        }
+                        if let low = Double(lowerLimit), let up = Double(upperLimit) {
+                            if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
+                                _ = engine.integrate(variable: selectedVar, lower: low, upper: up, program: program)
+                                engine.isPlotSRequested = false
+                                engine.requestPlot = true
+                            }
+                        }
+                        engine.statusMessage = nil
+                    }
+                }
             }
         }
     }

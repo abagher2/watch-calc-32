@@ -55,6 +55,7 @@ targets:
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: WatchCalc32
+      - package: RPNCore
 
   WatchCalc32ContainerUITests:
     type: bundle.ui-testing
@@ -67,6 +68,7 @@ targets:
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: WatchCalc32Container
+      - package: RPNCore
 
 schemes:
   WatchCalc32Container:

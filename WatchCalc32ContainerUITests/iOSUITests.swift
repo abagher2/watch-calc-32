@@ -1,4 +1,5 @@
 import XCTest
+import RPNCore
 
 @MainActor final class iOSUITests: XCTestCase {
 
@@ -59,57 +60,73 @@ import XCTest
         }
     }
 
-    func testBasicMathUI() throws {
+    func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
         let app = XCUIApplication()
         app.launchArguments = ["-UITesting"]
         setupSnapshot(app)
         app.launch()
-
-        // Give the UI a second to layout
-        Thread.sleep(forTimeInterval: 1.0)
         
-        // 42 ENTER 5 x = 210
-        app.buttons["btn_4"].tap()
-        app.buttons["btn_2"].tap()
-        app.buttons["invisible_ENTER"].tap()
-        app.buttons["btn_5"].tap()
-        app.buttons["func_×"].tap()
+        Thread.sleep(forTimeInterval: 1.0)
+        clearAll(app: app)
+        
+        for step in testCase.steps {
+            let op = step.op
+            if op == "SHIFT_YELLOW" {
+                app.buttons["btn_yellow_shift"].tap()
+            } else if op == "SHIFT_BLUE" {
+                app.buttons["btn_blue_shift"].tap()
+            } else if op == "ENTER" {
+                app.buttons["invisible_ENTER"].tap()
+            } else if op == "<-" {
+                app.buttons["func_<-"].tap()
+            } else if ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].contains(op) {
+                app.buttons["btn_\(op)"].tap()
+            } else if op == "A" {
+                #if os(watchOS)
+                let textField = app.textFields.firstMatch
+                if textField.waitForExistence(timeout: 2.0) {
+                    textField.tap()
+                    textField.typeText("A\n")
+                }
+                #else
+                app.buttons["func_√x"].tap()
+                #endif
+            } else if op == "LFU_0" {
+                app.buttons["Integer Part"].tap()
+            } else if op == "LFU_1" {
+                app.buttons["Fractional Part"].tap()
+            } else {
+                let buttonId = "func_\(op)"
+                if app.buttons[buttonId].exists {
+                    app.buttons[buttonId].tap()
+                } else {
+                    app.buttons[op].tap()
+                }
+            }
+            
+            if let expected = step.expectedX {
+                let display = app.staticTexts["lcd_display"]
+                XCTAssertTrue(display.waitForExistence(timeout: 2.0))
+                XCTAssertTrue(display.label.contains(expected), "[\(testCase.name)] Expected screen to contain \(expected), but got: \(display.label)")
+            }
+        }
+    }
 
-        let label = app.staticTexts["210"]
-        if !label.waitForExistence(timeout: 2.0) {
-            print(app.debugDescription)
-            XCTFail("Expected 210 in the X register")
+    func testBasicMathUI() throws {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "BasicMathUI" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find BasicMathUI test case")
         }
     }
 
     func testCalculationEfficiency() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting"]
-        setupSnapshot(app)
-        app.launch()
-
-        Thread.sleep(forTimeInterval: 1.0)
-        clearAll(app: app)
-
-        // 42 ENTER 5 x 5 + 42 +
-        app.buttons["btn_4"].tap()
-        app.buttons["btn_2"].tap()
-        app.buttons["invisible_ENTER"].tap()
-        app.buttons["btn_5"].tap()
-        app.buttons["func_×"].tap()
-
-        app.buttons["btn_5"].tap()
-        app.buttons["func_+"].tap()
-
-        app.buttons["btn_4"].tap()
-        app.buttons["btn_2"].tap()
-        app.buttons["func_+"].tap()
-        
-        let label = app.staticTexts["257"]
-        XCTAssertTrue(label.waitForExistence(timeout: 2.0), "Expected 257 in the X register")
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "CalculationEfficiency" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find CalculationEfficiency test case")
+        }
     }
-
-
 
     func testSolve() throws {
         let app = XCUIApplication()
@@ -129,138 +146,35 @@ import XCTest
     }
 
     func testStoRcl() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting"]
-        setupSnapshot(app)
-        app.launch()
-
-        Thread.sleep(forTimeInterval: 1.0)
-        clearAll(app: app)
-
-        // Type 42 ENTER
-        app.buttons["btn_4"].tap()
-        app.buttons["btn_2"].tap()
-        app.buttons["invisible_ENTER"].tap()
-        
-        // STO -> "A"
-        app.buttons["func_STO"].tap()
-        // Wait for sheet
-        Thread.sleep(forTimeInterval: 1.0)
-        #if os(watchOS)
-        let textField = app.textFields.firstMatch
-        if textField.waitForExistence(timeout: 2.0) {
-            textField.tap()
-            textField.typeText("A\n")
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "StoRcl" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find StoRcl test case")
         }
-        #else
-        app.buttons["func_√x"].tap()
-        #endif
-
-        // Clear (Backspace)
-        app.buttons["func_<-"].tap()
-        
-        // RCL -> "A"
-        app.buttons["func_RCL"].tap()
-        Thread.sleep(forTimeInterval: 1.0)
-        #if os(watchOS)
-        let rclTextField = app.textFields.firstMatch
-        if rclTextField.waitForExistence(timeout: 2.0) {
-            rclTextField.tap()
-            rclTextField.typeText("A\n")
-        }
-        #else
-        app.buttons["func_√x"].tap()
-        #endif
-
-        // Wait for answer
-        Thread.sleep(forTimeInterval: 1.0)
-        let label = app.staticTexts["42"]
-        XCTAssertTrue(label.waitForExistence(timeout: 2.0), "Expected 42 to be recalled")
     }
 
     func testAll32SIIMathOperations() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting"]
-        setupSnapshot(app)
-        app.launch()
-        
-        Thread.sleep(forTimeInterval: 1.0)
-
-        clearAll(app: app)
-
-        // 1. Error Correction Testing: SQRT(NEG)
-        app.buttons["btn_1"].tap()
-        XCTAssertEqual(app.staticTexts["1"].exists, true)
-        app.buttons["btn_0"].tap()
-        XCTAssertEqual(app.staticTexts["10"].exists, true)
-        app.buttons["invisible_ENTER"].tap()
-        XCTAssertEqual(app.staticTexts["10"].exists, true)
-        app.buttons["func_+/-"].tap()
-        XCTAssertEqual(app.staticTexts["-10"].exists, true)
-#if os(watchOS)
-        app.buttons["func_LFU_4"].tap() // √x is now LFU_4
-#else
-        app.buttons["func_√x"].tap()
-#endif
-        
-        if !app.staticTexts["SQRT(NEG)"].waitForExistence(timeout: 2.0) {
-            let xLabel = app.staticTexts.firstMatch.label // Fallback for debugging
-            XCTFail("Expected SQRT(NEG), but got: '\(xLabel)'")
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "All32SIIMathOperations" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find All32SIIMathOperations test case")
         }
-        
-        app.buttons["func_<-"].tap()
-        
-        app.buttons["btn_1"].tap()
-        app.buttons["btn_0"].tap()
-        app.buttons["invisible_ENTER"].tap()
-#if os(watchOS)
-        app.buttons["func_LFU_4"].tap()
-#else
-        app.buttons["func_√x"].tap()
-#endif
-        
-        // 2. Test Division by Zero
-        clearAll(app: app)
-        app.buttons["btn_5"].tap()
-        app.buttons["invisible_ENTER"].tap()
-        app.buttons["btn_0"].tap()
-        app.buttons["func_÷"].tap()
-        
-        let divByZeroPredicate = NSPredicate(format: "label == 'DIVIDE BY 0'")
-        let divByZeroText = app.staticTexts.element(matching: divByZeroPredicate)
-        if !divByZeroText.waitForExistence(timeout: 2.0) {
-            print(app.debugDescription)
-            XCTFail("Expected DIVIDE BY 0")
+    }
+    
+    func testModuloAndRemainder() throws {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "ModuloAndRemainder" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find ModuloAndRemainder test case")
         }
-        app.buttons["func_<-"].tap()
+    }
 
-        // 3. Test Factorial of non-integer
-        clearAll(app: app)
-        app.buttons["btn_2"].tap()
-        app.buttons["btn_."].tap()
-        app.buttons["btn_5"].tap()
-        app.buttons["invisible_ENTER"].tap()
-        app.buttons["btn_yellow_shift"].tap()
-#if os(watchOS)
-        app.buttons["func_LFU_2"].tap() // 1/x is LFU_2, yellow shift is x!
-#else
-        app.buttons["func_1/x"].tap()
-#endif
-        XCTAssertTrue(app.staticTexts["INVALID DATA"].waitForExistence(timeout: 2.0))
-
-        app.buttons["func_<-"].tap()
-
-        // Valid factorial
-        typeNumber(5.0, app: app)
-        app.buttons["btn_yellow_shift"].tap()
-#if os(watchOS)
-        app.buttons["func_LFU_2"].tap() // FACT
-#else
-        app.buttons["func_1/x"].tap()
-#endif
-        
-        let factText = app.staticTexts["120"]
-        XCTAssertTrue(factText.waitForExistence(timeout: 2.0), "Expected 120 in the X register")
+    func testMiToKm() throws {
+        if let tc = SharedMathTestCases.cases.first(where: { $0.name == "MiToKm" }) {
+            runSharedTestCase(tc)
+        } else {
+            XCTFail("Could not find MiToKm test case")
+        }
     }
 }
 
@@ -473,6 +387,9 @@ import XCTest
     } else {
         #if os(watchOS)
         app.swipeUp()
+        #else
+        app.collectionViews.firstMatch.swipeUp()
+        Thread.sleep(forTimeInterval: 0.5)
         #endif
         app.buttons["btn_plot_execute"].tap()
     }
@@ -551,6 +468,9 @@ import XCTest
     } else {
         #if os(watchOS)
         app.swipeUp()
+        #else
+        app.collectionViews.firstMatch.swipeUp()
+        Thread.sleep(forTimeInterval: 0.5)
         #endif
         app.buttons["btn_plot_execute"].tap()
     }
@@ -607,6 +527,9 @@ import XCTest
     } else {
         #if os(watchOS)
         app.swipeUp()
+        #else
+        app.collectionViews.firstMatch.swipeUp()
+        Thread.sleep(forTimeInterval: 0.5)
         #endif
         app.buttons["btn_plot_execute"].tap()
     }
@@ -682,8 +605,8 @@ import XCTest
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
     app.buttons["func_XEQ"].tap()
-    XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
-    app.staticTexts["NPDF"].tap()
+    XCTAssertTrue(app.buttons["Evaluate"].waitForExistence(timeout: 5))
+    app.buttons["Evaluate"].tap()
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 1.5) // Wait for sheet to fully dismiss
 
@@ -702,6 +625,10 @@ import XCTest
     
     // Wait a little for integration to run
     sleep(2)
+
+    print("--- APP DEBUG DESCRIPTION ---")
+    print(app.debugDescription)
+    print("-----------------------------")
 
     // Plot should open automatically
     XCTAssertTrue(app.buttons["btn_plot_c"].waitForExistence(timeout: 25.0))
@@ -762,6 +689,9 @@ import XCTest
     } else {
         #if os(watchOS)
         app.swipeUp()
+        #else
+        app.collectionViews.firstMatch.swipeUp()
+        Thread.sleep(forTimeInterval: 0.5)
         #endif
         app.buttons["btn_plot_execute"].tap()
     }
@@ -941,192 +871,7 @@ import XCTest
     }
   }
 
-  func testAll32SIIMathOperations() throws {
-    let app = XCUIApplication()
-    app.launchArguments = ["-UITesting"]
-    setupSnapshot(app)
-    app.launch()
-    let display = app.staticTexts["lcd_display"]
-    XCTAssertTrue(display.waitForExistence(timeout: 5))
 
-    clearAll(app: app)
-
-    let randomPositive = Double.random(in: 1...1e24)
-    let randomNegative = Double.random(in: -1e24 ... -1)
-
-    // Helper to verify length
-    func verifyConstraint() {
-        Thread.sleep(forTimeInterval: 0.1)
-        XCTAssertTrue(display.label.count <= 12, "Length exceeded 12: \(display.label)")
-    }
-
-    // 1. Error Correction Testing
-    navigateToNumericPad(app: app)
-    typeNumber(randomNegative, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_√x"].tap()
-    verifyConstraint()
-    XCTAssertEqual(display.label, "SQRT(NEG)")
-    
-    navigateToArithmeticPad(app: app)
-    app.buttons["func_<-"].tap()
-    
-    navigateToNumericPad(app: app)
-    typeNumber(randomPositive, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_√x"].tap()
-    verifyConstraint()
-    XCTAssertNotEqual(display.label, "SQRT(NEG)")
-
-    // 2. Domain error on ASIN
-    clearAll(app: app)
-    navigateToNumericPad(app: app)
-    typeNumber(10.0, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_SIN"].tap() // ASIN
-    verifyConstraint()
-    XCTAssertEqual(display.label, "INVALID DATA")
-
-    navigateToArithmeticPad(app: app)
-    app.buttons["func_<-"].tap()
-
-    // Valid ASIN
-    navigateToNumericPad(app: app)
-    let randomFraction = Double.random(in: -1...1)
-    typeNumber(randomFraction, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_SIN"].tap() // ASIN
-    verifyConstraint()
-    XCTAssertNotEqual(display.label, "INVALID DATA")
-
-    // 3. Test LN Error (<= 0)
-    clearAll(app: app)
-    navigateToNumericPad(app: app)
-    typeNumber(randomNegative, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_LN"].tap()
-    verifyConstraint()
-    XCTAssertEqual(display.label, "LOG(NEG)")
-
-    navigateToArithmeticPad(app: app)
-    app.buttons["func_<-"].tap()
-
-    navigateToNumericPad(app: app)
-    typeNumber(randomPositive, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_LN"].tap()
-    verifyConstraint()
-    XCTAssertNotEqual(display.label, "LOG(NEG)")
-    
-    // 4. Test Division by Zero
-    clearAll(app: app)
-    navigateToNumericPad(app: app)
-    typeNumber(randomPositive, app: app)
-    typeNumber(0.0, app: app)
-    navigateToArithmeticPad(app: app)
-    app.buttons["func_÷"].tap()
-    verifyConstraint()
-    XCTAssertEqual(display.label, "DIVIDE BY 0")
-    
-    app.buttons["func_<-"].tap()
-    
-    navigateToNumericPad(app: app)
-    typeNumber(randomPositive, app: app)
-    typeNumber(Double.random(in: 1...100), app: app)
-    navigateToArithmeticPad(app: app)
-    app.buttons["func_÷"].tap()
-    verifyConstraint()
-    XCTAssertNotEqual(display.label, "DIVIDE BY 0")
-
-    // 5. Test Factorial of non-integer
-    clearAll(app: app)
-    navigateToNumericPad(app: app)
-    typeNumber(2.5, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_1/x"].tap() // FACT
-    verifyConstraint()
-    XCTAssertEqual(display.label, "INVALID DATA")
-
-    navigateToArithmeticPad(app: app)
-    app.buttons["func_<-"].tap()
-
-    navigateToNumericPad(app: app)
-    typeNumber(5.0, app: app)
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_1/x"].tap() // FACT
-    verifyConstraint()
-    XCTAssertEqual(display.label, "120")
-
-    // 6. Chain operations dynamically to test all UI combinations
-    let chainedValue = Double.random(in: 1...100)
-    clearAll(app: app)
-    navigateToNumericPad(app: app)
-    typeNumber(chainedValue, app: app)
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_SIN"].tap()
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_COS"].tap()
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_TAN"].tap()
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_e^x"].tap()
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_LN"].tap() // LOG is yellow LN
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_e^x"].tap() // 10^x
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["func_1/x"].tap() // 1/x
-    verifyConstraint()
-
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_√x"].tap() // x^2
-    verifyConstraint()
-
-    // 7. Parts Menu (IP and FP)
-    clearAll(app: app)
-    navigateToNumericPad(app: app)
-    typeNumber(10.3, app: app)
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_√x"].tap() // PARTS menu
-#if os(watchOS)
-    app.buttons["IP (Integer Part)"].tap()
-#else
-    app.buttons["Integer Part"].tap()
-#endif
-    verifyConstraint()
-    
-    navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_√x"].tap() // PARTS menu
-#if os(watchOS)
-    app.buttons["FP (Fractional Part)"].tap()
-#else
-    app.buttons["Fractional Part"].tap()
-#endif
-    verifyConstraint()
-  }
   
     @MainActor func testAppStoreScreenshots() throws {
     let app = XCUIApplication()
@@ -1258,6 +1003,10 @@ import XCTest
     // Plot (func_PLOT)
     slowTap(app.buttons["func_PLOT"], name: "Plot")
     
+    #if !os(watchOS)
+    app.collectionViews.firstMatch.swipeUp()
+    Thread.sleep(forTimeInterval: 0.5)
+    #endif
     if app.buttons["btn_integrate_execute"].waitForExistence(timeout: 2.0) {
         app.buttons["btn_integrate_execute"].tap()
     }
@@ -1419,6 +1168,10 @@ import XCTest
     // Plot (func_PLOT)
     slowTap(app.buttons["func_PLOT"], name: "Plot")
     
+    #if !os(watchOS)
+    app.collectionViews.firstMatch.swipeUp()
+    Thread.sleep(forTimeInterval: 0.5)
+    #endif
     if app.buttons["btn_integrate_execute"].waitForExistence(timeout: 2.0) {
         app.buttons["btn_integrate_execute"].tap()
     }
@@ -1505,6 +1258,9 @@ import XCTest
     } else {
         #if os(watchOS)
         app.swipeUp()
+        #else
+        app.collectionViews.firstMatch.swipeUp()
+        Thread.sleep(forTimeInterval: 0.5)
         #endif
         app.buttons["btn_plot_execute"].tap()
     }
@@ -1514,89 +1270,6 @@ import XCTest
     
     // The test passes if the plot doesn't crash.
     // Regression line should be visible in the view.
-  }
-
-      func testModuloAndRemainder() throws {
-    let app = XCUIApplication()
-    app.launchArguments = ["-UITesting"]
-    setupSnapshot(app)
-    app.launch()
-
-    let display = app.staticTexts["lcd_display"]
-    XCTAssertTrue(display.waitForExistence(timeout: 5))
-
-    // Test MOD: 10 ENTER 3 MOD -> 1
-    app.buttons["btn_1"].tap()
-    app.buttons["btn_0"].tap()
-    app.buttons["invisible_ENTER"].tap()
-    app.buttons["btn_3"].tap()
-    
-    // Swipe left to Arithmetic Pad
-#if os(watchOS)
-    #if os(watchOS)
-    app.swipeLeft()
-    #endif
-#endif
-    
-    // Press blue-shift -> +/- (MOD)
-    app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_+/-"].tap()
-    
-    XCTAssertEqual(display.label, "1")
-    
-    // Swipe right to get back to Numpad for numbers
-#if os(watchOS)
-    #if os(watchOS)
-    app.swipeRight()
-    #endif
-#endif
-    
-    // Test INT÷: 10 ENTER 3 INT÷ -> X:3, Y:1
-    app.buttons["btn_1"].tap()
-    app.buttons["btn_0"].tap()
-    app.buttons["invisible_ENTER"].tap()
-    app.buttons["btn_3"].tap()
-    
-    // Swipe left to Arithmetic Pad
-#if os(watchOS)
-    #if os(watchOS)
-    app.swipeLeft()
-    #endif
-#endif
-    
-    // Press blue-shift -> E (INT÷)
-    app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_E"].tap()
-    
-    // X is quotient (3)
-    XCTAssertEqual(display.label, "3")
-    // swap to see Y (Remainder = 1)
-    app.buttons["func_x<>y"].tap()
-    XCTAssertEqual(display.label, "1")
-  }
-
-  func testMiToKm() throws {
-    let app = XCUIApplication()
-    app.launchArguments = ["-UITesting"]
-    setupSnapshot(app)
-    app.launch()
-
-    let display = app.staticTexts["lcd_display"]
-    XCTAssertTrue(display.waitForExistence(timeout: 5))
-
-    // 10 mi -> km
-    app.buttons["btn_1"].tap()
-    app.buttons["btn_0"].tap()
-    
-    app.buttons["btn_yellow_shift"].tap()
-    app.buttons["btn_9"].tap() // >km / >mi
-
-    if app.buttons[">km"].waitForExistence(timeout: 2.0) {
-        app.buttons[">km"].tap()
-    }
-    
-    // 10 mi * 1.60934 = 16.0934
-    XCTAssertTrue(display.label.contains("16.0934"))
   }
 
     func testIntegrationPlotArea() throws {
@@ -1614,10 +1287,6 @@ import XCTest
     app.buttons["btn_add_eqn"].tap()
     Thread.sleep(forTimeInterval: 2.0)
 
-    // Naming equation "A" (func_XEQ submits 'A' when waiting for label)
-    app.buttons["func_XEQ"].tap()
-    Thread.sleep(forTimeInterval: 2.0)
-
     navigateToLFUPad(app: app)
     typeX(app: app)
 
@@ -1626,18 +1295,26 @@ import XCTest
     app.buttons["btn_yellow_shift"].tap()
     app.buttons["func_√x"].tap() // x^2
 
-    app.staticTexts["lcd_display"].tap() // Save
-    Thread.sleep(forTimeInterval: 1.5) // Wait for sheet to fully dismiss
+    // Save & Exit Programming Mode (Blue shift + +/RTN)
+    app.buttons["btn_blue_shift"].tap()
+    app.buttons["func_+"].tap()
+    Thread.sleep(forTimeInterval: 1.5) // Wait for state to settle
 
     // 2. Open plot menu
     navigateToNumericPad(app: app)
     app.buttons["func_PLOT"].tap()
 
+    print("--- PLOT PROMPT SCREEN DEBUG DESCRIPTION ---")
+    print(app.debugDescription)
+    print("---------------------------------------------")
+
+    // Ensure Equation is selected as source
     XCTAssertTrue(app.buttons["Equation"].waitForExistence(timeout: 2.0))
     app.buttons["Equation"].tap()
 
-    XCTAssertTrue(app.staticTexts["A"].waitForExistence(timeout: 2.0))
-    app.staticTexts["A"].tap()
+    // Scroll down to reveal execute buttons
+    app.collectionViews.firstMatch.swipeUp()
+    Thread.sleep(forTimeInterval: 0.5)
 
     XCTAssertTrue(app.buttons["Integrate & Plot Area"].waitForExistence(timeout: 2.0))
     app.buttons["Integrate & Plot Area"].tap()
@@ -1660,9 +1337,15 @@ import XCTest
     // Tap PLOT
     app.buttons["func_PLOT"].tap()
     
-    // Select Plot
-    XCTAssertTrue(app.buttons["Plot"].waitForExistence(timeout: 2.0))
-    app.buttons["btn_plot_execute"].tap()
+    if app.buttons["Plot"].waitForExistence(timeout: 2.0) {
+        app.buttons["Plot"].tap()
+    } else {
+        #if !os(watchOS)
+        app.collectionViews.firstMatch.swipeUp()
+        Thread.sleep(forTimeInterval: 0.5)
+        #endif
+        app.buttons["btn_plot_execute"].tap()
+    }
 
     // Wait for plot view
     let plotChart = app.otherElements["plot_chart"]
@@ -1758,17 +1441,27 @@ import XCTest
         app.buttons["btn_yellow_shift"].tap()
         app.buttons["func_PLOT"].tap()
         
-        XCTAssertTrue(app.staticTexts["CONST"].waitForExistence(timeout: 2.0))
+        #if os(watchOS)
+        XCTAssertTrue(app.staticTexts["CNST"].waitForExistence(timeout: 2.0))
+        #else
+        XCTAssertTrue(app.staticTexts["Constants"].waitForExistence(timeout: 2.0))
+        #endif
         
-        // Search is flaky on watchOS UI tests, but we can verify it opened
-        // and we could try to tap the first constant just to verify it dismisses
+        // Tap the first cell (Pi) to verify behavior
         if constantName == "Pi" {
-            let piText = app.staticTexts["Pi"]
-            if piText.waitForExistence(timeout: 2.0) {
-                piText.tap()
+            let piButton = app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] 'Pi'")).firstMatch
+            if piButton.waitForExistence(timeout: 2.0) {
+                piButton.tap()
+                Thread.sleep(forTimeInterval: 0.8) // Wait for sheet to dismiss
                 XCTAssertTrue(display.waitForExistence(timeout: 2.0))
                 XCTAssertTrue(display.label.contains("3.1415"))
                 app.buttons["func_<-"].tap() // Clear for next
+            } else {
+                if app.buttons["Close"].exists {
+                    app.buttons["Close"].tap()
+                } else {
+                    app.buttons["Cancel"].firstMatch.tap()
+                }
             }
         } else {
             // Dismiss menu

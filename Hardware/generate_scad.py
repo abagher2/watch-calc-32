@@ -66,13 +66,13 @@ for r_idx, row in enumerate(rows):
         lbl = (labels[r_idx][c_idx]
                if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
         b['label'] = lbl
-        b['w']     = 7.5 if r_idx == 0 else (16.0 if lbl == "ENTER" else 8.0 if lbl in ("f","g","C") else 7.0)
-        b['h']     = 5.0
+        b['w']     = 7.5 if r_idx == 0 else (16.0 if lbl == "ENTER" else 8.0 if lbl in ("f","g","C") else 7.5)
+        b['h']     = 6.0
 
 # ─────────────────────────────────────────────────────────
 # Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
-WALL   = 1.7   # Base wall thickness
+WALL   = 2.3   # Base wall thickness (thickened to support rails)
 cw     = pcb_width  + 8    # chassis width (78.65)
 fp_w   = cw - 2*WALL       # faceplate width matches inner cavity (75.25)
 fp_h   = pcb_height + 8    # faceplate height
@@ -99,7 +99,7 @@ chassis_screws = [
 ]
 
 def generate_scad():
-    os.makedirs("designs/stl", exist_ok=True)
+    os.makedirs("../scratch/stl", exist_ok=True)
 
     # ═══════════════════════════════════════════════════════
     # FACEPLATE — printed FACE-UP
@@ -108,13 +108,13 @@ def generate_scad():
     # Plungers are at Z=0 (printing directly on bed).
     # Micro-supports bridge plunger and faceplate wall at Z=0.
     # ═══════════════════════════════════════════════════════
-    gap         = 0.40   # print-in-place clearance (0.40mm for FDM)
+    gap         = 0.50   # print-in-place clearance (0.50mm for FDM — generous for kids toy)
     rim_h       = 4.0    # protective rim wall height above plate surface (keeps buttons safe)
     plunger_h   = 1.0    # Z=0.0 to 1.0
     stem_h      = 0.5    # Z=1.0 to 1.5
     diamond_h   = 1.5    # Z=1.5 to 3.0 (exactly 1.0mm below top of 4.0mm plate)
-    up_stem_h   = 1.0    # Z=3.0 to 4.0
-    wedge_h     = 2.8    # Z=4.0 to 6.8 (keycap)
+    up_stem_h   = 1.6    # Z=3.0 to 4.6 (Provides 0.6mm travel clearance above 4.0mm faceplate)
+    wedge_h     = 2.8    # Z=4.6 to 7.4 (keycap)
     
     # Plunger dimensions (large for bed adhesion and switch pressing)
     pw = 6.0
@@ -148,22 +148,34 @@ module key_button(w, h, label) {{
     // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
     button_flange(w, h, 0);
 
-    // Z=4.5 to 6.0 : Upper Stem (rounded)
+    // Z=3.0 to 4.6 : Upper Stem (rounded)
     // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
     translate([0, 0, {plunger_h + stem_h + diamond_h}])
         hull() {{
             for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
                 translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
         }}
-    // Z=6.0 to 8.5 : Key Cap (Flat, rounded chiclet style)
+        
+    // Z=4.6 to 5.6 : Key Cap Base Chamfer (45 degrees, no support needed)
+    // Eliminates the flat overhang that sags and fuses to the faceplate
     translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
         hull() {{
-            // Base of the keycap
+            // Bottom of chamfer matches upper stem
+            for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
+                translate([x, y, 0]) cylinder(r=0.5, h=0.01);
+            // Top of chamfer matches full keycap base (1.0mm overhang over 1.0mm height = 45 deg)
+            for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
+                translate([x, y, 1.0]) cylinder(r=1.0, h=0.01);
+        }}
+        
+    // Z=5.6 to 7.4 : Key Cap Top (Flat, rounded chiclet style)
+    translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h + 1.0}])
+        hull() {{
             for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
                 translate([x, y, 0]) cylinder(r=1.0, h=0.01);
             // Top of the keycap (flat, slightly smaller radius for soft edge)
             for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                translate([x, y, {wedge_h}]) cylinder(r=0.8, h=0.01);
+                translate([x, y, {wedge_h - 1.0}]) cylinder(r=0.8, h=0.01);
         }}
 }}
 
@@ -199,28 +211,51 @@ module button_flange(w, h, gap) {{
 }}
 
 module button_pocket(x, y, w, h) {{
-    // The pocket must accommodate the button in the UNPRESSED state (Z=0)
-    // and PRESSED state (Z=-1.0).
+    // Pocket mirrors the exact button_flange shape + GAP at every Z height.
+    // This guarantees GAP clearance through the full diamond cross-section.
     translate([x, y, 0]) {{
-        // Lower hole (accommodates plunger/stem travel down to Z=-1)
-        // From Z=0 to Z=1.7 (unpressed stem top).
+        // 1. Plunger/stem cavity: Z=0 to Z=1.5
         translate([0, 0, {(plunger_h + stem_h)/2}])
             cube([{pw} + GAP*2, {ph} + GAP*2, {plunger_h + stem_h}], center=true);
 
-        // Flange cavity: Simplified straight extrusion from Z=0.5 to Z=3.0
-        // Avoids computationally explosive CSG hulling of multiple button_flange states.
-        translate([0, 0, 0.5])
+        // 2. Diamond lower half (expanding): Z=1.5 to Z=2.25
+        //    Mirrors button_flange lower half: pw×ph → (w+1)×(h+1), with +GAP
+        translate([0, 0, {plunger_h + stem_h}])
             hull() {{
-                for(dx=[-(w)/2+1.0, (w)/2-1.0], dy=[-(h)/2+1.0, (h)/2-1.0])
-                    translate([dx, dy, 0]) cylinder(r=1.5 + GAP, h=2.5);
+                cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
+                translate([0, 0, {diamond_h/2}])
+                    cube([w + 1.0 + GAP*2, h + 1.0 + GAP*2, 0.01], center=true);
             }}
 
-        // Upper hole: Must cut all the way through faceplate top
-        // Matches the 1.5mm inset of the up_stem to create a thick retention lip.
+        // 3. Diamond upper half (contracting): Z=2.25 to Z=3.0
+        //    Mirrors button_flange upper half: (w+1)×(h+1) → rounded rect, with +GAP
+        translate([0, 0, {plunger_h + stem_h + diamond_h/2}])
+            hull() {{
+                cube([w + 1.0 + GAP*2, h + 1.0 + GAP*2, 0.01], center=true);
+                translate([0, 0, {diamond_h/2}])
+                    for(ddx=[-w/2+1.0, w/2-1.0], ddy=[-h/2+1.0, h/2-1.0])
+                        translate([ddx, ddy, 0]) cylinder(r=1.0 + GAP, h=0.01);
+            }}
+
+        // 4. Retention taper: Z=3.0 to Z=4.0 (45° chamfer, eliminates bridge infill)
+        //    Smoothly connects diamond endpoint to upper hole — no flat step!
+        //    1.0mm overhang over 1.0mm height = exactly 45°
+        translate([0, 0, {plunger_h + stem_h + diamond_h}])
+            hull() {{
+                // Bottom (Z=3.0): matches diamond upper half endpoint
+                for(ddx=[-w/2+1.0, w/2-1.0], ddy=[-h/2+1.0, h/2-1.0])
+                    translate([ddx, ddy, 0]) cylinder(r=1.0 + GAP, h=0.01);
+                // Top (Z=4.0): matches upper hole size
+                translate([0, 0, {plate_t - (plunger_h + stem_h + diamond_h)}])
+                    for(dx=[-(w)/2+1.5, (w)/2-1.5], dy=[-(h)/2+1.5, (h)/2-1.5])
+                        translate([dx, dy, 0]) cylinder(r=0.5 + GAP, h=0.01);
+            }}
+
+        // 5. Upper hole: Z=3.0 to Z=5.0 (breaks through faceplate top)
         translate([0, 0, {plunger_h + stem_h + diamond_h}])
             hull() {{
                 for(dx=[-(w)/2+1.5, (w)/2-1.5], dy=[-(h)/2+1.5, (h)/2-1.5])
-                    translate([dx, dy, 0]) cylinder(r=0.5 + GAP, h={up_stem_h + 1.0}); // Extra height to break through
+                    translate([dx, dy, 0]) cylinder(r=0.5 + GAP, h={up_stem_h + 1.0});
             }}
     }}
 }}
@@ -228,12 +263,8 @@ module button_pocket(x, y, w, h) {{
 module faceplate_body() {{
     // Base plate — rim walls are on chassis now (DM32 style protection)
     // 0.3mm clearance on all edges allows smooth slide-in from display end
-    hull() {{
-        translate([cr, cr, 0])           cylinder(r=cr, h=pt);
-        translate([fp_w-cr, cr, 0])      cylinder(r=cr, h=pt);
-        translate([cr, fp_h-cr, 0])      cylinder(r=cr, h=pt);
-        translate([fp_w-cr, fp_h-cr, 0]) cylinder(r=cr, h=pt);
-    }}
+    // Sharp rectangular corners to sit flush inside the chassis cavity
+    cube([fp_w, fp_h, pt]);
 }}
 
 
@@ -258,10 +289,12 @@ module faceplate() {{
 
         // Button pockets
 """
+    pad_x = (fp_w - pcb_width) / 2
+    pad_y = (fp_h - pcb_height) / 2
     for row in rows:
         for b in row:
-            ox = b['x'] + 4   
-            oy = b['y'] + 4
+            ox = b['x'] + pad_x
+            oy = b['y'] + pad_y
             faceplate += f"        button_pocket({ox:.3f}, {oy:.3f}, {b['w']}, {b['h']});\n"
 
     # No screw holes in faceplate — top cap lip retains faceplate and PCB
@@ -315,7 +348,7 @@ color("Silver") {
 // WatchCalc 32 Chassis — v8 (Closed Top, Bottom-Loading)
 $fn = 24;
 cw   = {cw:.3f};
-ch   = {fp_h:.3f};
+ch   = {fp_h + WALL:.3f};
 D    = {D:.3f};
 wall = {WALL:.3f};
 batt_w = {batt_w}; batt_h = {batt_h}; batt_z = {batt_z:.2f};
@@ -324,9 +357,20 @@ junc = {junc_z:.2f};
 
 module chassis_shell() {{
     difference() {{
-        cube([cw, D, ch]);
+        // Chassis shell: sharp front corners (connect to rim walls), rounded back corners (r=3)
+        hull() {{
+            // Front left
+            translate([0, 0, 0]) cube([3, 3, ch]);
+            // Front right
+            translate([cw-3, 0, 0]) cube([3, 3, ch]);
+            // Back left (rounded)
+            translate([3, D-3, 0]) cylinder(r=3, h=ch);
+            // Back right (rounded)
+            translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
+        }}
         
         // 1. Tier 1: Faceplate Cavity (Y = 0 to plate_t)
+        // Extends from Z=-0.1 up to Z=ch-wall (fp_h), leaving the top wall intact to lock the faceplate
         translate([wall, -0.1, -0.1])
             cube([cw - 2*wall, {plate_t} + 0.1, ch - wall + 0.1]);
             
@@ -387,6 +431,11 @@ module screw_bosses() {{
 module railway_grooves() {{
     translate([-0.1, GY, 0])        cube([GCD+0.1, GCW, ch]);
     translate([cw-GCD, GY, 0])      cube([GCD+0.1, GCW, ch]);
+    
+    // Friction-lock bumps near the bottom (Z=5) to snap the cover in place
+    // A 0.4mm protrusion into the groove
+    translate([-0.1, GY + GCW/2, 5.0]) rotate([0, 90, 0]) cylinder(d=GCW, h=GCD+0.5, $fn=16);
+    translate([cw-GCD-0.4, GY + GCW/2, 5.0]) rotate([0, 90, 0]) cylinder(d=GCW, h=GCD+0.5, $fn=16);
 }}
 module chassis() {{
     difference() {{
@@ -397,18 +446,22 @@ module chassis() {{
         }}
         
         // ── END CAP SCREWS ───────────────────────────────────────────────
-        // 3.4mm clearance bore through chassis walls at Y=2, Z=1.5.
-        // Screw head rests in a shallow 6mm dia recess (0.8mm deep) on exterior.
-        // Screw threads into end cap boss pilot at X=3..7.
+        // Screw head recess (6mm) on exterior, clearance bore (3.4mm) through wall
+        // AND through 2mm air gap to reach inset boss. Boss starts at wall+2.
         // Left
-        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=6.0, h=0.8);   // head recess
-        translate([-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=3.4, h=wall+0.2); // clearance bore
+        translate([-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=6.0, h=0.8);   // head recess
+        translate([-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=3.4, h=wall+2.2); // clearance bore to boss
         // Right
-        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d=6.0, h=0.8);
-        translate([cw+0.1, 2.0, 1.5]) rotate([0, -90, 0]) cylinder(d=3.4, h=wall+0.2);
+        translate([cw+0.1, 2.0, 3.5]) rotate([0, -90, 0]) cylinder(d=6.0, h=0.8);
+        translate([cw+0.1, 2.0, 3.5]) rotate([0, -90, 0]) cylinder(d=3.4, h=wall+2.2);
         
         // ── CLOSED TOP ───────────────────────────────────────────────────
         // Display end (Z=ch) is solid. PCB+Faceplate load from bottom (Z=0).
+        // The Tier 1 cavity ends at Z=ch-wall, creating a locking lip for the faceplate.
+        
+        // ── RAILWAY GROOVES ──────────────────────────────────────────────
+        // 2 straight grooves for the sliding cover
+        railway_grooves();
     }}
 }}
 chassis();
@@ -446,32 +499,33 @@ module top_cap() {{
     union() {{
         difference() {{
             // ── MAIN PLATE (below chassis, Z=-cap_t to Z=0) ─────────
+            // Sharp front corners, rounded back corners (r=3)
+            // Front edge extends to Y=-{plate_t} to cover the full bezel/rim area
+            // and retain the faceplate
             hull() {{
-                for(x=[3, cw-3], y=[3, D-3])
-                    translate([x, y, -cap_t]) cylinder(r=3, h=cap_t);
+                translate([0, -{plate_t}, -cap_t]) cube([3, 3, cap_t]);
+                translate([cw-3, -{plate_t}, -cap_t]) cube([3, 3, cap_t]);
+                translate([3, D-3, -cap_t]) cylinder(r=3, h=cap_t);
+                translate([cw-3, D-3, -cap_t]) cylinder(r=3, h=cap_t);
             }}
         }}
         // ── SCREW BOSSES (project upward into Tier 1 cavity) ────────
-        // Bosses sit at X=wall (left) and X=cw-wall-4 (right), Y=0..4, Z=0..3.
-        // M3 screw enters from cap exterior through boss → threads into chassis.
-        // Countersink on cap exterior (X=wall face / X=cw-wall face).
-        // 3.4mm clearance bore through boss body. 2.5mm pilot in chassis.
+        // Bosses inset 2mm from chassis inner wall to avoid overlapping wall material.
+        // Screw clearance bore in chassis extends through wall + 2mm gap to reach boss.
+        // 2.5mm pilot hole in boss provides thread engagement.
         
-        // Left boss — starts at X=3 (matches hull corner, fully connected → manifold)
+        // Left boss — inset 2mm from inner wall (X=wall+2 to X=wall+6)
         difference() {{
-            translate([3, 0, 0]) cube([4, 4, 3]);
-            // 2.5mm pilot enters from left face (X=3), screw tip threads here
-            translate([2.9, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
+            translate([wall+2, 0, 0]) cube([4, 4, 5]);
+            translate([wall+2-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
         }}
-        // Right boss — at X=cw-7..cw-3 (matches right hull corner)
+        // Right boss — inset 2mm from inner wall (X=cw-wall-6 to X=cw-wall-2)
         difference() {{
-            translate([cw-7, 0, 0]) cube([4, 4, 3]);
-            translate([cw-7-0.1, 2.0, 1.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
+            translate([cw-wall-6, 0, 0]) cube([4, 4, 5]);
+            translate([cw-wall-6-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
         }}
-        // ── FRONT BEZEL LIP (completes DM32-style rim) ──────────────
-        // Extends forward in -Y, from Z=-wall to Z=0.
-        // This sits flush with the chassis rim_walls at Z=0.
-        translate([0, -lip_h, -wall]) cube([cw, lip_h, wall]);
+        // ── FRONT BEZEL LIP ──
+        // (Removed to avoid requiring supports during 3D printing)
     }}
 }}
 top_cap();
@@ -562,11 +616,19 @@ module c_cover() {{
 
     // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
     // Left flange rail tab
-    translate([-(cov_clear) + cov_wall - cov_wall, GROOVE_Z - cov_clear, -2])
-        cube([rail_d, rail_w, cov_h]);
-    // Right flange rail tab
-    translate([cw + cov_clear, GROOVE_Z - cov_clear, -2])
-        cube([rail_d, rail_w, cov_h]);
+    difference() {{
+        translate([-(cov_clear) + cov_wall - cov_wall, GROOVE_Z - cov_clear, -2])
+            cube([rail_d, rail_w, cov_h]);
+        // Lock notch at Z=5
+        translate([-cov_clear-0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) rotate([0, 90, 0]) cylinder(d=rail_w+0.2, h=rail_d+0.5, $fn=16);
+    }}
+    // Right flange rail tab (translated inwards by rail_d)
+    difference() {{
+        translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, -2])
+            cube([rail_d, rail_w, cov_h]);
+        // Lock notch at Z=5
+        translate([cw + cov_clear - rail_d - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) rotate([0, 90, 0]) cylinder(d=rail_w+0.2, h=rail_d+0.5, $fn=16);
+    }}
 }}
 c_cover();
 """
@@ -660,15 +722,15 @@ if __name__ == "__main__":
     generate_scad()
 
     print("\nCompiling STLs...")
-    jobs = [
-        ("faceplate",      "designs/faceplate.scad",      "designs/stl/faceplate.stl"),
-        ("chassis",        "designs/chassis.scad",        "designs/stl/chassis.stl"),
-        ("top_cap",        "designs/top_cap.scad",        "designs/stl/top_cap.stl"),
-        ("sliding_cover",  "designs/sliding_cover.scad",  "designs/stl/sliding_cover.stl"),
-        ("buttons",        "designs/buttons.scad",        "designs/stl/buttons.stl"),
+    tasks = [
+        ("faceplate",      "designs/faceplate.scad",      "../scratch/stl/faceplate.stl"),
+        ("chassis",        "designs/chassis.scad",        "../scratch/stl/chassis.stl"),
+        ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
+        ("sliding_cover",  "designs/sliding_cover.scad",  "../scratch/stl/sliding_cover.stl"),
+        ("buttons",        "designs/buttons.scad",        "../scratch/stl/buttons.stl"),
     ]
 
-    for label, src, dst in jobs:
+    for label, src, dst in tasks:
         r = subprocess.run(["openscad", "-o", dst, src], capture_output=True, text=True)
         if r.returncode == 0:
             print(f"  ✓ {label}.stl")
@@ -677,7 +739,7 @@ if __name__ == "__main__":
 
     mfg_3d = "output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files"
     os.makedirs(mfg_3d, exist_ok=True)
-    for _, _, stl in jobs:
+    for _, _, stl in tasks:
         fname = os.path.basename(stl)
         subprocess.run(["cp", stl, f"{mfg_3d}/{fname}"])
         subprocess.run(["cp", stl, f"./{fname}"])

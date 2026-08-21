@@ -52,7 +52,11 @@ struct MemMenuView: View {
                 
 
             }
+            #if os(watchOS)
             .navigationTitle("MEM")
+            #else
+            .navigationTitle("Memory")
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

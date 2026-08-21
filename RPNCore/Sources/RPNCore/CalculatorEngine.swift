@@ -11,6 +11,37 @@ import Observation
 import RationalModule
 #endif
 
+internal func parseDoubleSlice(_ slice: ArraySlice<UInt8>, exponent: String? = nil) -> Double {
+    var val = 0.0
+    var sign = 1.0
+    var parsingFraction = false
+    var fractionDivisor = 10.0
+    
+    for ch in slice {
+        if ch == 45 { // '-'
+            sign = -1.0
+        } else if ch == 46 { // '.'
+            parsingFraction = true
+        } else if ch >= 48 && ch <= 57 { // '0' to '9'
+            let digit = Double(ch - 48)
+            if parsingFraction {
+                val += digit / fractionDivisor
+                fractionDivisor *= 10.0
+            } else {
+                val = val * 10.0 + digit
+            }
+        }
+    }
+    
+    var finalVal = val * sign
+    
+    if let expStr = exponent, let expVal = parseInt(expStr) {
+        finalVal *= _pow(10.0, Double(expVal))
+    }
+    
+    return finalVal
+}
+
 #if hasFeature(Embedded)
 public enum DummyCharacterSet { case whitespacesAndNewlines }
 extension String {
@@ -59,6 +90,7 @@ internal func _substringToString(_ substring: Substring) -> String {
     return s
 }
 internal func _formatDouble(_ value: Double) -> String { return "\(value)" }
+
 internal func parseDouble(_ text: String) -> Double? {
     var val = 0.0
     var sign = 1.0
@@ -176,7 +208,7 @@ internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 
 #if hasFeature(Embedded)
 @_silgen_name("format_double_c")
-func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32)
+func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32, _ mode: Int32, _ places: Int32)
 #endif
 
 #if !hasFeature(Embedded)
@@ -575,6 +607,7 @@ public class CalculatorEngine {
     
     public func digit(_ d: Int) {
         if isWaitingForLabel { return }
+        errorMessage = nil
         
         if isProgrammingMode {
             if let last = currentProgramSteps.last, isProgramNumberStep(last) {
@@ -660,6 +693,7 @@ public class CalculatorEngine {
     }
     
     public func decimal() {
+        errorMessage = nil
         if isProgrammingMode {
             if let last = currentProgramSteps.last, isProgramNumberStep(last) {
                 currentProgramSteps[currentProgramSteps.count - 1] = last + "."
@@ -705,6 +739,7 @@ public class CalculatorEngine {
     }
     
     public func toggleSign() {
+        errorMessage = nil
         if isProgrammingMode {
             if let last = currentProgramSteps.last, isProgramNumberStep(last) {
                 if let eIndex = last.lastIndex(of: "E") {
@@ -838,30 +873,7 @@ public class CalculatorEngine {
                         val = 0.0
                     }
                 } else {
-                    #if hasFeature(Embedded)
-                    var tempBuffer = currentInputBuffer
-                    var tempLength = currentInputLength
-                    if isBuildingExponent {
-                        tempBuffer[tempLength] = 101 // 'e'
-                        for char in currentExponent.utf8 {
-                            tempLength += 1
-                            tempBuffer[tempLength] = char
-                        }
-                        tempLength += 1
-                    }
-                    tempBuffer[tempLength] = 0
-                    val = tempBuffer.withUnsafeBufferPointer { ptr in
-                        ptr.baseAddress!.withMemoryRebound(to: CChar.self, capacity: tempLength + 1) { cptr in
-                            strtod(cptr, nil)
-                        }
-                    }
-                    #else
-                    var valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
-                    if isBuildingExponent {
-                        valString += "e\(currentExponent)"
-                    }
-                    val = parseDouble(valString) ?? 0.0
-                    #endif
+                    val = parseDoubleSlice(currentInputBuffer[0..<currentInputLength], exponent: isBuildingExponent ? currentExponent : nil)
                 }
             }
             
@@ -907,6 +919,7 @@ public class CalculatorEngine {
     }
     
     public func enter() {
+        errorMessage = nil
         if alphaAction == .promptVar {
             if isBuildingNumber { commitInput() }
             if let varName = pendingEquationVars.first {
@@ -957,6 +970,7 @@ public class CalculatorEngine {
     }
     
     public func backspace() {
+        errorMessage = nil
         if isProgrammingMode {
             if !currentProgramSteps.isEmpty {
                 currentProgramSteps.removeLast()
@@ -1000,10 +1014,7 @@ public class CalculatorEngine {
             }
             updateCurrentInputDisplay()
         } else {
-            for i in 0..<(stackSizeLimit - 1) {
-                stack[i] = stack[i+1]
-            }
-            stack[stackSizeLimit - 1] = CalculatorValue()
+            stack[0] = CalculatorValue()
             updateDisplay()
         }
     }
@@ -2482,16 +2493,41 @@ public class CalculatorEngine {
         }
     }
     
+    
+    private func _populateBufferWithString(_ str: String) {
+        var len = 0
+        for char in str.utf8 {
+            if len < 63 {
+                displayXBuffer[len] = char
+                len += 1
+            }
+        }
+        displayXBuffer[len] = 0
+        displayXLength = len
+    }
+
     public func updateDisplay() {
         if isSilent { return }
-        
-        if isEquationMode {
+                if isEquationMode {
             promptString = currentEquation.isEmpty ? "EQN=" : currentEquation
             displayX = promptString!
+            #if hasFeature(Embedded)
+            _populateBufferWithString(displayX)
+            #endif
             return
         }
         if isProgrammingMode {
             displayX = promptString ?? "00 LBL \(currentProgramLabel)"
+            #if hasFeature(Embedded)
+            _populateBufferWithString(displayX)
+            #endif
+            return
+        }
+        if let prompt = promptString {
+            displayX = prompt
+            #if hasFeature(Embedded)
+            _populateBufferWithString(prompt)
+            #endif
             return
         }
         
@@ -2501,8 +2537,16 @@ public class CalculatorEngine {
         if !isBuildingNumber {
             if stack[0].isComplex {
                 #if hasFeature(Embedded)
+                var cMode: Int32 = 0
+                var cPlaces: Int32 = 0
+                switch displayMode {
+                case .fix(let p): cMode = 1; cPlaces = Int32(p)
+                case .sci(let p): cMode = 2; cPlaces = Int32(p)
+                case .eng(let p): cMode = 3; cPlaces = Int32(p)
+                case .all: cMode = 0; cPlaces = 0
+                }
                 displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                    format_double_c(stack[0].real, ptr.baseAddress!, 32)
+                    format_double_c(stack[0].real, ptr.baseAddress!, 32, cMode, cPlaces)
                 }
                 var len = 0
                 while len < 64 && displayXBuffer[len] != 0 { len += 1 }
@@ -2514,7 +2558,7 @@ public class CalculatorEngine {
                     len += 3
                     
                     displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                        format_double_c(stack[0].imag, ptr.baseAddress!.advanced(by: len), Int32(64 - len))
+                        format_double_c(stack[0].imag, ptr.baseAddress!.advanced(by: len), Int32(64 - len), cMode, cPlaces)
                     }
                     while len < 64 && displayXBuffer[len] != 0 { len += 1 }
                     
@@ -2532,12 +2576,32 @@ public class CalculatorEngine {
                 #endif
             } else {
                 #if hasFeature(Embedded)
-                displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                    format_double_c(stack[0].real, ptr.baseAddress!, 64)
+                if baseMode != .dec {
+                    let intVal = Int64(stack[0].real)
+                    let strVal: String
+                    switch baseMode {
+                    case .hex: strVal = String(intVal, radix: 16, uppercase: true) + "h"
+                    case .oct: strVal = String(intVal, radix: 8) + "o"
+                    case .bin: strVal = String(intVal, radix: 2) + "b"
+                    default: strVal = "0"
+                    }
+                    _populateBufferWithString(strVal)
+                } else {
+                    var cMode: Int32 = 0
+                    var cPlaces: Int32 = 0
+                    switch displayMode {
+                    case .fix(let p): cMode = 1; cPlaces = Int32(p)
+                    case .sci(let p): cMode = 2; cPlaces = Int32(p)
+                    case .eng(let p): cMode = 3; cPlaces = Int32(p)
+                    case .all: cMode = 0; cPlaces = 0
+                    }
+                    displayXBuffer.withUnsafeMutableBufferPointer { ptr in
+                        format_double_c(stack[0].real, ptr.baseAddress!, 64, cMode, cPlaces)
+                    }
+                    var len = 0
+                    while len < 64 && displayXBuffer[len] != 0 { len += 1 }
+                    displayXLength = len
                 }
-                var len = 0
-                while len < 64 && displayXBuffer[len] != 0 { len += 1 }
-                displayXLength = len
                 #else
                 displayX = formatNumber(stack[0].real)
                 #endif

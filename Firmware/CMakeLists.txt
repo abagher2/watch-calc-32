@@ -12,7 +12,7 @@ enable_language(Swift)
 set(SWIFT_TARGET "armv6m-none-none-eabi") # rp2040
 list(APPEND CLANG_ARCH_ABI_FLAGS "-Xcc -mfloat-abi=soft")
 
-file(GLOB RPN_CORE_SOURCES "../RPNCore/Sources/RPNCore/*.swift")
+file(GLOB RPN_CORE_SOURCES "../RPNCore/Sources/RPNCore/*.swift" "../RPNCore/Sources/RPNCore/Display/*.swift")
 file(GLOB RATIONAL_SOURCES "../RPNCore/.build/checkouts/swift-rational/Sources/RationalModule/*.swift")
 list(FILTER RATIONAL_SOURCES EXCLUDE REGEX "Rational\\+AlgebraicField\\.swift$")
 file(GLOB FIRMWARE_SOURCES "*.swift" "core/*.swift" "display/*.swift")

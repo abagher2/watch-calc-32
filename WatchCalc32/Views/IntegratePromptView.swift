@@ -10,6 +10,7 @@ struct IntegratePromptView: View {
     @State private var selectedVar = ""
     @State private var lowerLimit = "0"
     @State private var upperLimit = "1"
+    @State private var shouldEvaluate = false
     
     private func updateVariables() {
         if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
@@ -83,25 +84,7 @@ struct IntegratePromptView: View {
                         if !selectedProgramLabel.isEmpty {
                             engine.currentProgramLabel = selectedProgramLabel
                         }
-                        if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }),
-                           let low = Double(lowerLimit),
-                           let up = Double(upperLimit) {
-                            if engine.stack.count >= 2 {
-                                engine.drop()
-                                engine.drop()
-                            }
-                            engine.statusMessage = "INTEGRATING"
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                _ = engine.integrate(variable: selectedVar, lower: low, upper: up, program: program)
-                                if engine.isPlotSRequested {
-                                    engine.isPlotSRequested = false
-                                    engine.integrationLimits = (min(low, up), max(low, up))
-                                    engine.generatePlot(variable: selectedVar, explicitMin: low, explicitMax: up)
-                                    engine.requestPlot = true
-                                }
-                                engine.statusMessage = nil
-                            }
-                        }
+                        shouldEvaluate = true
                         dismiss()
                     } label: {
                         Text("Evaluate")
@@ -132,6 +115,29 @@ struct IntegratePromptView: View {
                     selectedProgramLabel = first.label
                 }
                 updateVariables()
+            }
+            .onDisappear {
+                if shouldEvaluate {
+                    if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }),
+                       let low = Double(lowerLimit),
+                       let up = Double(upperLimit) {
+                        if engine.stack.count >= 2 {
+                            engine.drop()
+                            engine.drop()
+                        }
+                        engine.statusMessage = "INTEGRATING"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            _ = engine.integrate(variable: selectedVar, lower: low, upper: up, program: program)
+                            if engine.isPlotSRequested {
+                                engine.isPlotSRequested = false
+                                engine.integrationLimits = (min(low, up), max(low, up))
+                                engine.generatePlot(variable: selectedVar, explicitMin: low, explicitMax: up)
+                                engine.requestPlot = true
+                            }
+                            engine.statusMessage = nil
+                        }
+                    }
+                }
             }
         }
     }

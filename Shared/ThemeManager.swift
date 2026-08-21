@@ -5,6 +5,7 @@ enum ThemeType: String, CaseIterable, Identifiable {
     case pioneerBrown = "Pioneer Brown"
     case pioneerPurpleGreen = "Pioneer Purple/Green"
     case dm32 = "DM32"
+    case retro = "Retro (Pixel LCD)"
     
     var id: String { self.rawValue }
 }
@@ -116,6 +117,25 @@ struct DM32Theme: AppTheme {
     var isDarkChassis: Bool = true
 }
 
+struct RetroTheme: AppTheme {
+    var chassisColor: Color = Color(red: 0.15, green: 0.15, blue: 0.15)
+    var digitKeyColor: Color = Color(white: 0.18)
+    var functionKeyColor: Color = Color(white: 0.18)
+    var digitTextColor: Color = .white
+    var functionTextColor: Color = .white
+    
+    var yellowShiftColor: Color = Color(red: 0.95, green: 0.55, blue: 0.1)
+    var blueShiftColor: Color = Color(red: 0.2, green: 0.6, blue: 0.8)
+    
+    var shift1Label: String = "f"
+    var shift2Label: String = "g"
+    
+    var lcdBackgroundColor: Color = Color(red: 0.61, green: 0.68, blue: 0.56)
+    var lcdTextColor: Color = Color(red: 0.1, green: 0.12, blue: 0.1)
+    
+    var isDarkChassis: Bool = true
+}
+
 class ThemeManager: ObservableObject {
     @Published var activeThemeType: ThemeType = .beta
     
@@ -125,6 +145,8 @@ class ThemeManager: ObservableObject {
         case .pioneerBrown: return PioneerBrownTheme()
         case .pioneerPurpleGreen: return PioneerPurpleGreenTheme()
         case .dm32: return DM32Theme()
+        case .retro: return RetroTheme()
         }
     }
 }
+
