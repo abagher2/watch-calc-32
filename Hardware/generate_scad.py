@@ -1,5 +1,7 @@
 import os
 import sys
+import wx
+app = wx.App(False)
 import pcbnew
 import subprocess
 
@@ -153,31 +155,26 @@ module key_button(w, h, label) {{
     bh = h;  
 
     union() {{
-        // Z=0.0 to 1.5 : Button Base (Wide, rests on bed)
-        // Has a 5x5mm hollow pocket on the bottom for the tactile switch!
-        difference() {{
-            translate([0, 0, 0.75])
-                cube([{pw} + 1.6, {ph} + 1.6, 1.5], center=true);
-            // Pocket for tactile switch (Z=0 to 1.2)
-            translate([0, 0, 0.6])
-                cube([5.0, 5.0, 1.2], center=true);
-        }}
+        // Z=0.0 to 1.0 : Button Base Flange (Solid, rests on bed)
+        // No micro-supports needed. When assembled, this will drop 1.5mm into the Switch Gap.
+        translate([0, 0, 0.5])
+            cube([{pw} + 2.0, {ph} + 2.0, 1.0], center=true);
 
-        // Z=1.5 to 3.0 : Retention Cone (Tapers inward at 45-ish degrees)
-        // Base is pw+1.6, top is pw. No supports needed.
-        translate([0, 0, 1.5])
+        // Z=1.0 to 2.0 : Retention Cone (Tapers inward at 45-ish degrees)
+        translate([0, 0, 1.0])
             hull() {{
-                cube([{pw} + 1.6, {ph} + 1.6, 0.01], center=true);
-                translate([0, 0, 1.5]) 
+                cube([{pw} + 2.0, {ph} + 2.0, 0.01], center=true);
+                translate([0, 0, 1.0]) 
                     cube([{pw}, {ph}, 0.01], center=true);
             }}
 
-        // Z=3.0 to 4.5 : Key Cap Base
-        translate([0, 0, 3.0])
+        // Z=2.0 to 4.5 : Key Cap Shaft (pw x ph)
+        // Tall shaft because it drops down by 1.5mm during assembly!
+        translate([0, 0, 2.0])
             hull() {{
                 cube([{pw}, {ph}, 0.01], center=true);
                 for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                    translate([x, y, 1.5]) cylinder(r=1.0, h=0.01);
+                    translate([x, y, 2.5]) cylinder(r=1.0, h=0.01);
             }}
             
         // Z=4.5 to 6.0 : Key Cap Top (Rounded chiclet)
@@ -194,20 +191,20 @@ module key_button(w, h, label) {{
 module button_pocket(x, y, w, h) {{
     // Matches the button shape exactly with +GAP clearance.
     translate([x, y, 0]) {{
-        // Z=0 to 1.5 : Base Pocket
-        translate([0, 0, 0.75])
-            cube([{pw} + 1.6 + GAP*2, {ph} + 1.6 + GAP*2, 1.5], center=true);
+        // Z=0 to 1.0 : Base Pocket
+        translate([0, 0, 0.5])
+            cube([{pw} + 2.0 + GAP*2, {ph} + 2.0 + GAP*2, 1.0], center=true);
 
-        // Z=1.5 to 3.0 : Retention Cone Pocket
-        translate([0, 0, 1.5])
+        // Z=1.0 to 2.0 : Retention Cone Pocket
+        translate([0, 0, 1.0])
             hull() {{
-                cube([{pw} + 1.6 + GAP*2, {ph} + 1.6 + GAP*2, 0.01], center=true);
-                translate([0, 0, 1.5]) 
+                cube([{pw} + 2.0 + GAP*2, {ph} + 2.0 + GAP*2, 0.01], center=true);
+                translate([0, 0, 1.0]) 
                     cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
             }}
 
-        // Z=3.0 to 5.0 : Upper Hole (Breaks through top of faceplate)
-        translate([0, 0, 3.0])
+        // Z=2.0 to 4.0 : Upper Hole (Breaks through top of faceplate)
+        translate([0, 0, 2.0])
             hull() {{
                 cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
                 translate([0, 0, 2.0]) 
@@ -278,12 +275,10 @@ color("Silver") {
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
             btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
-            sup_str = f"    micro_supports({ox:.3f}, {oy:.3f}, {b['w']}, {b['h']});\n"
             
             faceplate_mjf += btn_str
             
             faceplate_fdm += btn_str
-            faceplate_fdm += sup_str
 
     faceplate_mjf += "}\n"
     faceplate_fdm += "}\n"
@@ -317,6 +312,7 @@ color("Silver") {
     chassis = f"""
 // WatchCalc 32 Chassis — v8 (Closed Top, Bottom-Loading)
 $fn = 24;
+pt   = {pt:.3f};
 cw   = {cw:.3f};
 ch   = {fp_h + WALL:.3f};
 D    = {D:.3f};
@@ -341,16 +337,16 @@ module chassis_shell() {{
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        // Tiers 1-2: Combined Faceplate + PCB Slot cavity (No Switch Gap spacer, faceplate sits flush on PCB)
-        // Width is cw - 2*wall. Depth is pt + PCB_T
+        // Tiers 1-3: Combined Faceplate + Switch Gap + PCB Slot cavity
+        // Width is cw - 2*wall. Depth is pt + TACTILE_H + PCB_T
         // Extends from Z=-0.1 up to Z=ch-wall (fp_h), leaving the top wall intact to lock the assembly
         translate([wall, -0.1, -0.1])
-            cube([cw - 2*wall, pt + {PCB_T} + 0.1, ch - wall + 0.1]);
+            cube([cw - 2*wall, pt + {TACTILE_H} + {PCB_T} + 0.1, ch - wall + 0.1]);
             
-        // 3. Tier 3: Battery & Component Clearance
+        // 4. Tier 4: Battery & Component Clearance
         // Starts at X = wall + 3.0 to create the 3mm ledge for the PCB to rest against
-        translate([wall + 3.0, pt + {PCB_T}, -0.1])
-            cube([cw - 2*wall - 6.0, D - wall - (pt + {PCB_T}) + 0.1, ch - wall + 0.1]);
+        translate([wall + 3.0, pt + {TACTILE_H} + {PCB_T}, -0.1])
+            cube([cw - 2*wall - 6.0, D - wall - (pt + {TACTILE_H} + {PCB_T}) + 0.1, ch - wall + 0.1]);
     }}
 }}
 module rim_walls() {{

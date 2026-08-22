@@ -1067,6 +1067,7 @@ public class CalculatorEngine {
             }
             stack[stackSizeLimit - 1] = x
         }
+        stackLiftEnabled = true
         updateDisplay()
     }
     
@@ -1076,6 +1077,7 @@ public class CalculatorEngine {
             let last = stack.removeLast()
             pushToStack(last)
         }
+        stackLiftEnabled = true
         updateDisplay()
     }
     
@@ -1091,6 +1093,7 @@ public class CalculatorEngine {
             stack[0] = stack[1]
             stack[1] = temp
         }
+        stackLiftEnabled = true
         updateDisplay()
     }
     // MARK: - Math Operations
@@ -2136,6 +2139,7 @@ public class CalculatorEngine {
         statSumXY += x * y
         statPoints.append(StatPoint(x: x, y: y))
         stack[0] = CalculatorValue(real: statN)
+        stackLiftEnabled = false
     }
     
     private func removeStat() {
@@ -2154,6 +2158,7 @@ public class CalculatorEngine {
             }
         }
         stack[0] = CalculatorValue(real: statN)
+        stackLiftEnabled = false
     }
     
     private func calculateMean(y: Bool = false) {
@@ -2501,7 +2506,6 @@ public class CalculatorEngine {
             stack[i] = stack[i-1]
         }
         stack[0] = value
-        stackLiftEnabled = true
     }
 
     public func startAlpha() {
