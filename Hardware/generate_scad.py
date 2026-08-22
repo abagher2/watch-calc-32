@@ -72,7 +72,7 @@ for r_idx, row in enumerate(rows):
 # ─────────────────────────────────────────────────────────
 # Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
-WALL   = 2.3   # Base wall thickness (thickened to support rails)
+WALL   = 1.8   # Base wall thickness (slimmed down for premium look)
 cw     = pcb_width + 2*WALL + 0.4    # chassis outer width
 fp_w   = pcb_width + 0.4             # faceplate width (matches inner cavity exactly)
 fp_h   = pcb_height + 0.4            # faceplate height
@@ -124,8 +124,9 @@ def generate_scad():
     # Plungers are at Z=0 (printing directly on bed).
     # Micro-supports bridge plunger and faceplate wall at Z=0.
     # ═══════════════════════════════════════════════════════
-    gap         = 0.50   # print-in-place clearance (0.50mm for FDM — generous for kids toy)
+    gap         = 0.40   # print-in-place clearance
     rim_h       = 4.0    # protective rim wall height above plate surface (keeps buttons safe)
+    pt          = 3.0    # Faceplate overall thickness
     plunger_h   = 0.5    # Z=0.0 to 0.5
     stem_h      = 0.3    # Z=0.5 to 0.8
     diamond_h   = 1.2    # Z=0.8 to 2.0 (exactly 1.0mm below top of 3.0mm plate)
@@ -150,131 +151,67 @@ GAP  = {gap};
 module key_button(w, h, label) {{
     bw = w;  
     bh = h;  
-    dw = bw + 1.0;  // diamond width
-    dh = bh + 1.0;  
-    top_z = {plunger_h + stem_h + diamond_h + up_stem_h + wedge_h};
 
     union() {{
-        // Z=0.0 to 1.5 : Plunger (rectangular pad)
-        translate([0, 0, {plunger_h/2}])
-            cube([{pw}, {ph}, {plunger_h}], center=true);
+        // Z=0.0 to 1.5 : Button Base (Wide, rests on bed)
+        // Has a 5x5mm hollow pocket on the bottom for the tactile switch!
+        difference() {{
+            translate([0, 0, 0.75])
+                cube([{pw} + 1.6, {ph} + 1.6, 1.5], center=true);
+            // Pocket for tactile switch (Z=0 to 1.2)
+            translate([0, 0, 0.6])
+                cube([5.0, 5.0, 1.2], center=true);
+        }}
 
-        // Z=1.5 to 2.5 : Stem (rectangular)
-        translate([0, 0, {plunger_h + stem_h/2}])
-            cube([{pw}, {ph}, {stem_h}], center=true);
-
-        // Z=1.7 to 3.2 : Diamond Flange (chamfered <> for no-support printing)
-        button_flange(w, h, 0);
-
-        // Z=3.0 to 4.6 : Upper Stem (rounded)
-        // Uses 1.5mm inset (r=0.5) to create a massive retention lip on the Faceplate
-        translate([0, 0, {plunger_h + stem_h + diamond_h}])
+        // Z=1.5 to 3.0 : Retention Cone (Tapers inward at 45-ish degrees)
+        // Base is pw+1.6, top is pw. No supports needed.
+        translate([0, 0, 1.5])
             hull() {{
-                for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
-                    translate([x, y, 0]) cylinder(r=0.5, h={up_stem_h});
+                cube([{pw} + 1.6, {ph} + 1.6, 0.01], center=true);
+                translate([0, 0, 1.5]) 
+                    cube([{pw}, {ph}, 0.01], center=true);
             }}
-            
-        // Z=4.6 to 5.6 : Key Cap Base Chamfer (45 degrees, no support needed)
-        // Eliminates the flat overhang that sags and fuses to the faceplate
-        translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h}])
+
+        // Z=3.0 to 4.5 : Key Cap Base
+        translate([0, 0, 3.0])
             hull() {{
-                // Bottom of chamfer matches upper stem
-                for(x=[-bw/2+1.5, bw/2-1.5], y=[-bh/2+1.5, bh/2-1.5])
-                    translate([x, y, 0]) cylinder(r=0.5, h=0.01);
-                // Top of chamfer matches full keycap base (1.0mm overhang over 1.0mm height = 45 deg)
+                cube([{pw}, {ph}, 0.01], center=true);
                 for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                    translate([x, y, 1.0]) cylinder(r=1.0, h=0.01);
+                    translate([x, y, 1.5]) cylinder(r=1.0, h=0.01);
             }}
             
-        // Z=5.6 to 7.4 : Key Cap Top (Flat, rounded chiclet style)
-        translate([0, 0, {plunger_h + stem_h + diamond_h + up_stem_h + 1.0}])
+        // Z=4.5 to 6.0 : Key Cap Top (Rounded chiclet)
+        translate([0, 0, 4.5])
             hull() {{
                 for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
                     translate([x, y, 0]) cylinder(r=1.0, h=0.01);
-                // Top of the keycap (flat, slightly smaller radius for soft edge)
                 for(x=[-bw/2+1, bw/2-1], y=[-bh/2+1, bh/2-1])
-                    translate([x, y, {wedge_h - 1.0}]) cylinder(r=0.8, h=0.01);
+                    translate([x, y, 1.5]) cylinder(r=0.8, h=0.01);
             }}
     }}
 }}
 
-module micro_supports(x, y, w, h) {{
-    // Break-away tabs linking plunger to faceplate wall at Z=0
-    // 0.4mm thick (2 layers), 1.0mm wide
-    // Left/Right
-    translate([x - {pw/2 + gap/2}, y, 0.2]) cube([{gap}, 1.0, 0.4], center=true);
-    translate([x + {pw/2 + gap/2}, y, 0.2]) cube([{gap}, 1.0, 0.4], center=true);
-    // Top/Bottom
-    translate([x, y - {ph/2 + gap/2}, 0.2]) cube([1.0, {gap}, 0.4], center=true);
-    translate([x, y + {ph/2 + gap/2}, 0.2]) cube([1.0, {gap}, 0.4], center=true);
-}}
-
-module button_flange(w, h, gap) {{
-    bw = w; bh = h;
-    dw = bw + 1.0 + gap*2;
-    dh = bh + 1.0 + gap*2;
-    // Lower half expands
-    translate([0, 0, {plunger_h + stem_h}])
-        hull() {{
-            cube([{pw} + gap*2, {ph} + gap*2, 0.01], center=true);
-            translate([0, 0, {diamond_h/2}]) cube([dw, dh, 0.01], center=true);
-        }}
-    // Upper half contracts smoothly to rounded rectangle
-    translate([0, 0, {plunger_h + stem_h + diamond_h/2}])
-        hull() {{
-            cube([dw, dh, 0.1], center=true);
-            translate([0, 0, {diamond_h/2}])
-                for(x=[-bw/2+1.0, bw/2-1.0], y=[-bh/2+1.0, bh/2-1.0])
-                    translate([x, y, 0]) cylinder(r=1.0 + gap, h=0.1);
-        }}
-}}
-
 module button_pocket(x, y, w, h) {{
-    // Pocket mirrors the exact button_flange shape + GAP at every Z height.
-    // This guarantees GAP clearance through the full diamond cross-section.
+    // Matches the button shape exactly with +GAP clearance.
     translate([x, y, 0]) {{
-        // 1. Plunger/stem cavity: Z=0 to Z=1.5
-        translate([0, 0, {(plunger_h + stem_h)/2}])
-            cube([{pw} + GAP*2, {ph} + GAP*2, {plunger_h + stem_h}], center=true);
+        // Z=0 to 1.5 : Base Pocket
+        translate([0, 0, 0.75])
+            cube([{pw} + 1.6 + GAP*2, {ph} + 1.6 + GAP*2, 1.5], center=true);
 
-        // 2. Diamond lower half (expanding): Z=1.5 to Z=2.25
-        //    Mirrors button_flange lower half: pw×ph → (w+1)×(h+1), with +GAP
-        translate([0, 0, {plunger_h + stem_h}])
+        // Z=1.5 to 3.0 : Retention Cone Pocket
+        translate([0, 0, 1.5])
+            hull() {{
+                cube([{pw} + 1.6 + GAP*2, {ph} + 1.6 + GAP*2, 0.01], center=true);
+                translate([0, 0, 1.5]) 
+                    cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
+            }}
+
+        // Z=3.0 to 5.0 : Upper Hole (Breaks through top of faceplate)
+        translate([0, 0, 3.0])
             hull() {{
                 cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
-                translate([0, 0, {diamond_h/2}])
-                    cube([w + 1.0 + GAP*2, h + 1.0 + GAP*2, 0.01], center=true);
-            }}
-
-        // 3. Diamond upper half (contracting): Z=2.25 to Z=3.0
-        //    Mirrors button_flange upper half: (w+1)×(h+1) → rounded rect, with +GAP
-        translate([0, 0, {plunger_h + stem_h + diamond_h/2}])
-            hull() {{
-                cube([w + 1.0 + GAP*2, h + 1.0 + GAP*2, 0.01], center=true);
-                translate([0, 0, {diamond_h/2}])
-                    for(ddx=[-w/2+1.0, w/2-1.0], ddy=[-h/2+1.0, h/2-1.0])
-                        translate([ddx, ddy, 0]) cylinder(r=1.0 + GAP, h=0.01);
-            }}
-
-        // 4. Retention taper: Z=3.0 to Z=4.0 (45° chamfer, eliminates bridge infill)
-        //    Smoothly connects diamond endpoint to upper hole — no flat step!
-        //    1.0mm overhang over 1.0mm height = exactly 45°
-        translate([0, 0, {plunger_h + stem_h + diamond_h}])
-            hull() {{
-                // Bottom (Z=3.0): matches diamond upper half endpoint
-                for(ddx=[-w/2+1.0, w/2-1.0], ddy=[-h/2+1.0, h/2-1.0])
-                    translate([ddx, ddy, 0]) cylinder(r=1.0 + GAP, h=0.01);
-                // Top (Z=4.0): matches upper hole size
-                translate([0, 0, {plate_t - (plunger_h + stem_h + diamond_h)}])
-                    for(dx=[-(w)/2+1.5, (w)/2-1.5], dy=[-(h)/2+1.5, (h)/2-1.5])
-                        translate([dx, dy, 0]) cylinder(r=0.5 + GAP, h=0.01);
-            }}
-
-        // 5. Upper hole: Z=3.0 to Z=5.0 (breaks through faceplate top)
-        translate([0, 0, {plunger_h + stem_h + diamond_h}])
-            hull() {{
-                for(dx=[-(w)/2+1.5, (w)/2-1.5], dy=[-(h)/2+1.5, (h)/2-1.5])
-                    translate([dx, dy, 0]) cylinder(r=0.5 + GAP, h={up_stem_h + 1.0});
+                translate([0, 0, 2.0]) 
+                    cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
             }}
     }}
 }}
@@ -404,29 +341,23 @@ module chassis_shell() {{
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        // 1. Tier 1: Faceplate Cavity (Y = 0 to plate_t)
-        // Extends from Z=-0.1 up to Z=ch-wall (fp_h), leaving the top wall intact to lock the faceplate
+        // Tiers 1-2: Combined Faceplate + PCB Slot cavity (No Switch Gap spacer, faceplate sits flush on PCB)
+        // Width is cw - 2*wall. Depth is pt + PCB_T
+        // Extends from Z=-0.1 up to Z=ch-wall (fp_h), leaving the top wall intact to lock the assembly
         translate([wall, -0.1, -0.1])
-            cube([cw - 2*wall, {plate_t} + 0.1, ch - wall + 0.1]);
+            cube([cw - 2*wall, pt + {PCB_T} + 0.1, ch - wall + 0.1]);
             
-        // 2. Tier 2: Switch Gap (Y = plate_t to plate_t + TACTILE_H)
-        translate([wall + 3.0, {plate_t}, -0.1])
-            cube([cw - 2*wall - 6.0, {TACTILE_H}, ch - wall + 0.1]);
-            
-        // 3. Tier 3: PCB Slot (Y = plate_t + TACTILE_H to + PCB_T)
-        translate([wall, {plate_t} + {TACTILE_H}, -0.1])
-            cube([cw - 2*wall, {PCB_T}, ch - wall + 0.1]);
-            
-        // 4. Tier 4: Battery & Component Clearance
-        translate([wall + 3.0, {plate_t} + {TACTILE_H} + {PCB_T}, -0.1])
-            cube([cw - 2*wall - 6.0, D - wall - ({plate_t} + {TACTILE_H} + {PCB_T}) + 0.1, ch - wall + 0.1]);
+        // 3. Tier 3: Battery & Component Clearance
+        // Starts at X = wall + 3.0 to create the 3mm ledge for the PCB to rest against
+        translate([wall + 3.0, pt + {PCB_T}, -0.1])
+            cube([cw - 2*wall - 6.0, D - wall - (pt + {PCB_T}) + 0.1, ch - wall + 0.1]);
     }}
 }}
 module rim_walls() {{
     // DM32/HP32SII-style bezel. rim_d=4mm matches faceplate thickness.
     // Buttons recessed 1.2mm below rim — calculator can lie face-down safely.
-    rim_d = {plate_t};
-    lip   = 2.0;  // small retention chamfer lip at faceplate level
+    rim_d = pt;
+    lip   = 0.5;  // tiny retention chamfer lip at faceplate level for sleek bezel
 
     // Outer rim walls (left, right, top crossbar) with rounded front corners (r=3.0)
     r = 3.0;
@@ -463,13 +394,13 @@ module rim_walls() {{
             polygon([[0,0],[lip,0],[0,-rim_d]]);
 }}
 module screw_bosses() {{
-    // Internal bosses on the inside of left/right walls at the keypad end.
-    // Provide thread material for M3 screws WITHOUT protruding outside.
+    // Internal bosses on the inside of left/right walls at the keypad end (Z=0).
+    // Positioned at the BACK (Y = D - wall - 4) so they don't block the Faceplate track!
     // Boss: 4mm wide × 4mm deep × 3mm tall, flush with exterior wall face.
-    // Left (X = wall to wall+4, Y = 0 to 4, Z = 0 to 3)
-    translate([wall, 0, 0])       cube([4, 4, 3]);
-    // Right (X = cw-wall-4 to cw-wall, Y = 0 to 4, Z = 0 to 3)
-    translate([cw-wall-4, 0, 0])  cube([4, 4, 3]);
+    // Left
+    translate([wall, D - wall - 4, 0])       cube([4, 4, 3]);
+    // Right
+    translate([cw-wall-4, D - wall - 4, 0])  cube([4, 4, 3]);
 }}
 module railway_grooves() {{
     translate([-0.1, GY, 0])        cube([GCD+0.1, GCW, ch]);

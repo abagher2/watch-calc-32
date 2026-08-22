@@ -742,6 +742,9 @@ public class CalculatorEngine {
         if baseMode != .dec { return } // No decimals in bases
         if isBuildingExponent { return }
         if !isBuildingNumber {
+            if stackLiftEnabled && !stack.isEmpty {
+                pushToStack(stack[0])
+            }
             isBuildingNumber = true
             currentInputBuffer[0] = 48; currentInputBuffer[1] = 46; currentInputLength = 2
             hasDecimal = true
@@ -1798,6 +1801,8 @@ public class CalculatorEngine {
             stack.append(result)
         }
         
+        stackLiftEnabled = true
+        
         if stack.isEmpty {
             stack.append(CalculatorValue())
         }
@@ -1841,6 +1846,8 @@ public class CalculatorEngine {
         drop()
         stack[1] = CalculatorValue(real: result.real)
         stack[0] = CalculatorValue(real: result.imag)
+        
+        stackLiftEnabled = true
     }
     
     @inline(__always)
@@ -1869,6 +1876,8 @@ public class CalculatorEngine {
                 stack.append(CalculatorValue())
             }
         }
+        
+        stackLiftEnabled = true
     }
     
     public func generatePlot(variable: String? = nil, explicitMin: Double? = nil, explicitMax: Double? = nil) {
@@ -2109,6 +2118,8 @@ public class CalculatorEngine {
         } else {
             stack.append(result)
         }
+        
+        stackLiftEnabled = true
     }
     
     // MARK: - Statistics
@@ -2490,6 +2501,7 @@ public class CalculatorEngine {
             stack[i] = stack[i-1]
         }
         stack[0] = value
+        stackLiftEnabled = true
     }
 
     public func startAlpha() {
