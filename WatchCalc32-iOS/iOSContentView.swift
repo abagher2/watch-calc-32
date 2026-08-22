@@ -577,7 +577,7 @@ struct iOSMenuModifier: ViewModifier {
                 }.navigationTitle("Base"))
             } else { return AnyView(EmptyView()) }
         case .testXY:
-            if let calcMenu = CalculatorMenu(rawValue: "x?y") {
+            if let calcMenu = CalculatorMenu(rawValue: "𝑥?𝑦") {
                 return AnyView(List {
                     ForEach(calcMenu.items, id: \.label) { item in
                         Button(item.label) { engine.executeMath(item.action); activeMenu = nil }
@@ -585,7 +585,7 @@ struct iOSMenuModifier: ViewModifier {
                 }.navigationTitle("Test x ? y"))
             } else { return AnyView(EmptyView()) }
         case .testX0:
-            if let calcMenu = CalculatorMenu(rawValue: "x?0") {
+            if let calcMenu = CalculatorMenu(rawValue: "𝑥?0") {
                 return AnyView(List {
                     ForEach(calcMenu.items, id: \.label) { item in
                         Button(item.label) { engine.executeMath(item.action); activeMenu = nil }

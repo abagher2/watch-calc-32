@@ -30,7 +30,7 @@ struct RegsMenuView: View {
                     
                     Section(header: Text("Last X")) {
                         HStack {
-                            Text("LASTx")
+                            Text("LAST𝑥")
                                 .fontWeight(.semibold)
                                 .frame(width: 44, alignment: .leading)
                             Spacer()

@@ -47,7 +47,7 @@ final class CalculatorEngineTests_Errors: XCTestCase {
         let engine = CalculatorEngine()
         engine.digit(5)
         engine.toggleSign() // -5
-        engine.executeMath("√x")
+        engine.executeMath("√𝑥")
         XCTAssertEqual(engine.errorMessage, "INVALID DATA")
     }
     

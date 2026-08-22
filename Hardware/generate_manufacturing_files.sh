@@ -21,6 +21,6 @@ cd ../..
 
 echo "Creating Local 3D Printing Zip..."
 rm -f WatchCalc32_Local_3D_Printing.zip
-zip -j WatchCalc32_Local_3D_Printing.zip ../scratch/stl/chassis.stl ../scratch/stl/top_cap.stl ../scratch/stl/sliding_cover.stl ../scratch/stl/feet.stl ../scratch/stl/tpu_feet.stl ../scratch/stl/faceplate_fdm.stl ../scratch/stl/buttons.stl ../scratch/stl/back_cover.stl ../scratch/stl/battery_door.stl
+zip -j WatchCalc32_Local_3D_Printing.zip ../scratch/stl/chassis.stl ../scratch/stl/chassis_tapered.stl ../scratch/stl/top_cap.stl ../scratch/stl/sliding_cover.stl ../scratch/stl/feet.stl ../scratch/stl/tpu_feet.stl ../scratch/stl/faceplate_fdm.stl ../scratch/stl/buttons.stl ../scratch/stl/back_cover.stl ../scratch/stl/battery_door.stl
 
 echo "Done!"

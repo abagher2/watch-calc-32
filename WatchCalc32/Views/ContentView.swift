@@ -428,7 +428,7 @@ struct ContentView: View {
                     engine.shiftState = (engine.shiftState == 1) ? 0 : 1
                 }
             }) {
-                if themeManager.activeThemeType == .dm32 {
+                if themeManager.activeThemeType == .retro {
                     Text(" ")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundColor(.white)
@@ -475,7 +475,7 @@ struct ContentView: View {
                     engine.shiftState = (engine.shiftState == 2) ? 0 : 2
                 }
             }) {
-                if themeManager.activeThemeType == .dm32 {
+                if themeManager.activeThemeType == .retro {
                     Text(" ")
                         .font(.system(size: 14, weight: .bold, design: .monospaced))
                         .foregroundColor(.white)

@@ -26,9 +26,9 @@ public enum CalculatorMenu: String, CaseIterable {
     case sums = "SUMS"
     case stat = "STAT"
     case mem = "MEM"
-    case testXY = "x?y"
-    case testX0 = "x?0"
-    case statMean = "x̄,ȳ"
+    case testXY = "𝑥?𝑦"
+    case testX0 = "𝑥?0"
+    case statMean = "𝑥̄,𝑦̄"
     case statStdDev = "s,σ"
     case lr = "L.R."
     
@@ -44,9 +44,9 @@ public enum CalculatorMenu: String, CaseIterable {
         else if rawValue == "SUMS" { self = .sums }
         else if rawValue == "STAT" { self = .stat }
         else if rawValue == "MEM" { self = .mem }
-        else if rawValue == "x?y" { self = .testXY }
-        else if rawValue == "x?0" { self = .testX0 }
-        else if rawValue == "x̄,ȳ" { self = .statMean }
+        else if rawValue == "𝑥?𝑦" { self = .testXY }
+        else if rawValue == "𝑥?0" { self = .testX0 }
+        else if rawValue == "𝑥̄,𝑦̄" { self = .statMean }
         else if rawValue == "s,σ" { self = .statStdDev }
         else if rawValue == "L.R." { self = .lr }
         else { return nil }
@@ -96,7 +96,7 @@ public enum CalculatorMenu: String, CaseIterable {
             MenuItem(label: "INT", action: "INTG"), MenuItem(label: "FRAC"), MenuItem(label: "ABS"), MenuItem(label: "SGN")
         ]
         case .prob: return [
-            MenuItem(label: "nPr"), MenuItem(label: "nCr"), MenuItem(label: "!", action: "x!"), MenuItem(label: "RAND")
+            MenuItem(label: "nPr"), MenuItem(label: "nCr"), MenuItem(label: "!", action: "𝑥!"), MenuItem(label: "RAND")
         ]
         case .sums: return [
             MenuItem(label: "Σx"), MenuItem(label: "Σy"), MenuItem(label: "Σx²"), MenuItem(label: "Σy²"), MenuItem(label: "Σxy"), MenuItem(label: "n")

@@ -29,16 +29,16 @@ final class LFUManagerTests: XCTestCase {
         // Let's verify that "SIN" is present in the slots.
         XCTAssertTrue(manager.slots.contains("SIN"), "SIN should be in one of the slots")
         
-        // Now we execute a 7th function (e.g., "√x") a bunch of times
+        // Now we execute a 7th function (e.g., "√𝑥") a bunch of times
         // It should evict the least frequently used function ("SIN")
         for _ in 0..<5 {
-            manager.recordUsage(of: "√x")
+            manager.recordUsage(of: "√𝑥")
         }
         
         // Verify that "SIN" is NO LONGER in the slots
         XCTAssertFalse(manager.slots.contains("SIN"), "SIN should have been evicted")
         
-        // Verify that "√x" IS in the slots
-        XCTAssertTrue(manager.slots.contains("√x"), "√x should be in one of the slots")
+        // Verify that "√𝑥" IS in the slots
+        XCTAssertTrue(manager.slots.contains("√𝑥"), "√x should be in one of the slots")
     }
 }

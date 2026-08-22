@@ -183,7 +183,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         engine.isProgrammingMode = false
     }
 
-    // MARK: - 6. Exhaustive C47 Solver / Integrator Emulation Test
+    // MARK: - 6. Exhaustive Advanced Solver / Integrator Emulation Test
     func testExhaustiveSolverAndIntegratorEmulation() {
         // Add test program
         let prog = CalculatorEngine.Program(label: "F", steps: ["X", "2", "^", "1", "-"])
@@ -194,7 +194,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         XCTAssertEqual(controller.retroUI.c47Mode, .solve)
         controller.render()
         
-        // Manually select program for C47 emulation test
+        // Manually select program for Advanced emulation test
         controller.retroUI.c47Program = prog
         XCTAssertEqual(controller.retroUI.c47Program?.label, "F")
         

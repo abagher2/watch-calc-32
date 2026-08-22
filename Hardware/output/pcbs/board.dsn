@@ -102,7 +102,7 @@
       (place MCU1 44500 139000 back 0)
     )
     (component "JST_PH_S2B-PH-K_02x2.00mm_Angled"
-      (place JST1 35000 8000 back 0)
+      (place JST1 35000 140000 back 0)
     )
   )
   (library

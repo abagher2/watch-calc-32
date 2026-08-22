@@ -1,7 +1,7 @@
 import pcbnew
 import base64
 
-board_path = "Hardware/calculator.kicad_pcb"
+board_path = "output/pcbs/calculator.kicad_pcb"
 board = pcbnew.LoadBoard(board_path)
 
 bbox = board.GetBoardEdgesBoundingBox()
@@ -39,9 +39,9 @@ if current_row:
     rows.append(current_row)
 
 labels = [
-    ["√x", "e^x", "LN", "y^x", "1/x", "Σ+"],
+    ["√𝑥", "𝑒ˣ", "LN", "𝑦ˣ", "1/𝑥", "Σ+"],
     ["STO", "RCL", "R↓", "SIN", "COS", "TAN"],
-    ["ENTER", "x<>y", "+/-", "E", "<-"],
+    ["ENTER", "𝑥≷𝑦", "+/-", "E", "<-"],
     ["XEQ", "7", "8", "9", "÷"],
     ["yellow", "4", "5", "6", "×"],
     ["blue", "1", "2", "3", "-"],
@@ -49,11 +49,11 @@ labels = [
 ]
 
 label_map = {
-    "√x": ("𝑥²", "PARTS"),
-    "e^x": ("10ˣ", "PROB"),
+    "√𝑥": ("𝑥²", "PARTS"),
+    "𝑒ˣ": ("10ˣ", "PROB"),
     "LN": ("LOG", "L.R."),
-    "y^x": ("ˣ√𝑦", "x̄,ȳ"),
-    "1/x": ("𝑥!", "s,σ"),
+    "𝑦ˣ": ("ˣ√𝑦", "𝑥̄,𝑦̄"),
+    "1/𝑥": ("𝑥!", "s,σ"),
     "Σ+": ("Σ-", "SUMS"),
     "STO": ("CMPLX", "EQN"),
     "RCL": ("RND", "SCRL"),
@@ -62,7 +62,7 @@ label_map = {
     "COS": ("ACOS", "%"),
     "TAN": ("ATAN", "%CHG"),
     "ENTER": ("LAST𝑥", "SHOW"),
-    "x<>y": ("MEM", "𝑥><?"),
+    "𝑥≷𝑦": ("MEM", "𝑥≷?"),
     "+/-": ("MODES", ""),
     "E": ("DISP", ""),
     "<-": ("CLEAR", ""),
@@ -70,8 +70,8 @@ label_map = {
     "7": ("↓", "SOLVE"),
     "8": ("↑", "∫"),
     "9": ("▸km", "▸mi"),
-    "/": ("x?y", "x?0"),
-    "4": ("▸θ,r", "▸𝑦,𝑥"),
+    "/": ("𝑥?𝑦", "𝑥?0"),
+    "4": ("▸θ,𝑟", "▸𝑦,𝑥"),
     "5": ("▸HR", "▸HMS"),
     "6": ("▸DEG", "▸RAD"),
     "*": ("BASE", "FLAGS"),
@@ -109,14 +109,26 @@ for r_idx, row in enumerate(rows):
         y_lbl = y_lbl.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         b_lbl = b_lbl.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
         
+        # Center label (straight)
         if lbl and lbl not in ("yellow", "blue"):
             svg_content += f'    <text x="{svg_x}" y="{svg_y + 1}" fill="white" font-size="2.5" font-family="Helvetica" font-weight="bold" text-anchor="middle">{lbl}</text>\n'
 
+        # Generate unique IDs for the paths based on coordinates
+        path_id = f"btn_{int(svg_x)}_{int(svg_y)}"
+        r_top = 4.0
+        r_bot = 4.2
+
+        if y_lbl or b_lbl:
+            # Top Arc (sweep 0 goes UP)
+            svg_content += f'    <path id="{path_id}_top" d="M {svg_x - r_top} {svg_y} A {r_top} {r_top} 0 0 0 {svg_x + r_top} {svg_y}" fill="none"/>\n'
+            # Bottom Arc (sweep 1 goes DOWN)
+            svg_content += f'    <path id="{path_id}_bot" d="M {svg_x - r_bot} {svg_y} A {r_bot} {r_bot} 0 0 1 {svg_x + r_bot} {svg_y}" fill="none"/>\n'
+
         if y_lbl:
-            svg_content += f'    <text x="{svg_x - 3}" y="{svg_y - 3.5}" fill="orange" font-size="{font_size - 0.5}" font-family="Helvetica" font-weight="bold" text-anchor="middle">{y_lbl}</text>\n'
+            svg_content += f'    <text fill="orange" font-size="{font_size - 0.5}" font-family="Helvetica" font-weight="bold"><textPath href="#{path_id}_top" startOffset="50%" text-anchor="middle">{y_lbl}</textPath></text>\n'
         
         if b_lbl:
-            svg_content += f'    <text x="{svg_x + 3}" y="{svg_y + 4.5}" fill="cyan" font-size="{font_size - 0.5}" font-family="Helvetica" font-weight="bold" text-anchor="middle">{b_lbl}</text>\n'
+            svg_content += f'    <text fill="cyan" font-size="{font_size - 0.5}" font-family="Helvetica" font-weight="bold" dominant-baseline="hanging"><textPath href="#{path_id}_bot" startOffset="50%" text-anchor="middle">{b_lbl}</textPath></text>\n'
 
 svg_content += '</svg>'
 

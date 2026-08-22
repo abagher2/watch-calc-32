@@ -1,7 +1,3 @@
-#if !hasFeature(Embedded)
-
-import Foundation
-
 public class RetroUIController {
 
     public let engine: CalculatorEngine
@@ -102,7 +98,7 @@ public class RetroUIController {
             return
         }
         
-        // C47 Modes
+        // Advanced Modes
         if finalOp == .solve || finalOp == .integrate || finalOp == .plot || finalOp == .xeq {
             if finalOp == .solve { retroUI.c47Mode = .solve }
             if finalOp == .integrate { retroUI.c47Mode = .integrate }
@@ -147,6 +143,8 @@ public class RetroUIController {
                         engine.statusMessage = nil
                         retroUI.c47Mode = .none
                         retroUI.c47Program = nil
+                    } else {
+                        retroUI.c47SelectedVar = varName
                     }
                 }
                 return
@@ -154,7 +152,7 @@ public class RetroUIController {
             
             if finalOp.stringValue == "C47_EXEC" {
                 if retroUI.c47Mode == .plot {
-                    engine.generatePlot(variable: "X", explicitMin: -10, explicitMax: 10)
+                    engine.generatePlot(variable: retroUI.c47SelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
                 } else if retroUI.c47Mode == .xeq, let prog = retroUI.c47Program {
                     engine.currentProgramLabel = prog.label
@@ -176,7 +174,20 @@ public class RetroUIController {
         }
         
         if engine.shiftState > 0 {
+            var shiftedOp = finalOp
+            for key in HP32KeyMap.standardGrid {
+                if key.primaryAction == op {
+                    if engine.shiftState == 1, let yellow = key.yellowAction { shiftedOp = yellow }
+                    else if engine.shiftState == 2, let blue = key.blueAction { shiftedOp = blue }
+                    break
+                }
+            }
             engine.setShift(0)
+            
+            if shiftedOp != finalOp {
+                processAction(shiftedOp)
+                return
+            }
         }
 
         
@@ -243,6 +254,7 @@ public class RetroUIController {
                     if selected.requiresDigit {
                         retroUI.waitingForMenuDigit = selected
                         retroUI.activeMenu = nil
+                        retroUI.menuOffset = 0
                     } else {
                         if selected.action == "REGS" {
                             retroUI.isShowingRegisters = true
@@ -252,6 +264,7 @@ public class RetroUIController {
                             lfuManager.recordUsage(of: selected.action)
                         }
                         retroUI.activeMenu = nil
+                        retroUI.menuOffset = 0
                     }
                 }
                 return
@@ -260,8 +273,10 @@ public class RetroUIController {
             if finalOp == .backspace || finalOp == .clear || finalOp == .c {
                 if !retroUI.menuAlphaQuery.isEmpty {
                     retroUI.menuAlphaQuery.removeLast()
+                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
                 } else {
                     retroUI.activeMenu = nil
+                    retroUI.menuOffset = 0
                 }
                 return
             }
@@ -314,4 +329,3 @@ public class RetroUIController {
         retroUI.render(engine: engine, renderer: renderer)
     }
 }
-#endif

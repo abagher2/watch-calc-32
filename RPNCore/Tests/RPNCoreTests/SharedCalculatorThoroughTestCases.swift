@@ -30,7 +30,7 @@ public struct SharedCalculatorThoroughTestCases {
                 addMathTest(name: "Thorough_Div_\(x * y)_\(y)", x: x * y, y: y, op: "÷", expected: Double(x))
                 // Pow
                 if j <= 3 {
-                    addMathTest(name: "Thorough_Pow_\(x)_\(y)", x: x, y: y, op: "y^x", expected: pow(Double(x), Double(y)))
+                    addMathTest(name: "Thorough_Pow_\(x)_\(y)", x: x, y: y, op: "𝑦ˣ", expected: pow(Double(x), Double(y)))
                 }
             }
         }
@@ -69,9 +69,9 @@ public struct SharedCalculatorThoroughTestCases {
 
         addMathTestStr(name: "Edge_DivZero", steps: ["5", "ENTER", "0", "÷"], expected: "DIVIDE BY 0")
         addMathTestStr(name: "Edge_LogZero", steps: ["0", "LN"], expected: "DIVIDE BY 0")
-        addMathTestStr(name: "Edge_SqrtNeg", steps: ["1", "+/-", "√x"], expected: "INVALID DATA")
-        addMathTestStr(name: "Edge_FactNeg", steps: ["2", "+/-", "x!"], expected: "INVALID DATA")
-        addMathTestStr(name: "Edge_FactFrac", steps: ["2", ".", "5", "x!"], expected: "INVALID DATA")
+        addMathTestStr(name: "Edge_SqrtNeg", steps: ["1", "+/-", "√𝑥"], expected: "INVALID DATA")
+        addMathTestStr(name: "Edge_FactNeg", steps: ["2", "+/-", "𝑥!"], expected: "INVALID DATA")
+        addMathTestStr(name: "Edge_FactFrac", steps: ["2", ".", "5", "𝑥!"], expected: "INVALID DATA")
 
         generated.append(SharedCalculatorTestCase(
             name: "Edge_TinyNumber",
@@ -119,7 +119,7 @@ public struct SharedCalculatorThoroughTestCases {
         // RTN
         let prgmSteps = [
             "PRGM", "LBL", "A", "ENTER",
-            "RCL", "X", "ENTER", "x^2", "RTN", "PRGM", "CLEAR"
+            "RCL", "X", "ENTER", "𝑥²", "RTN", "PRGM", "CLEAR"
         ]
         
         return generated

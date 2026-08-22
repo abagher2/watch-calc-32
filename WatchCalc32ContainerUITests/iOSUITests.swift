@@ -46,7 +46,7 @@ import RPNCore
 
     private func clearAll(app: XCUIApplication) {
         app.buttons["btn_yellow_shift"].tap()
-        app.buttons["func_<-"].tap()
+        app.buttons["func_←"].tap()
         
         let clearAllButton = app.buttons["Clear ALL"]
         if clearAllButton.waitForExistence(timeout: 2.0) {
@@ -78,7 +78,7 @@ import RPNCore
             } else if op == "ENTER" {
                 app.buttons["invisible_ENTER"].tap()
             } else if op == "<-" {
-                app.buttons["func_<-"].tap()
+                app.buttons["func_←"].tap()
             } else if ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].contains(op) {
                 app.buttons["btn_\(op)"].tap()
             } else if op == "A" {
@@ -169,7 +169,7 @@ import RPNCore
         
         // Open CLEAR Menu (Yellow Shift + <-)
         app.buttons["btn_yellow_shift"].tap()
-        app.buttons["func_<-"].tap()
+        app.buttons["func_←"].tap()
         Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
         
         XCTAssertTrue(app.exists)
@@ -221,7 +221,7 @@ import XCTest
 
   private func clearAll(app: XCUIApplication) {
       app.buttons["btn_yellow_shift"].tap()
-      app.buttons["func_<-"].tap()
+      app.buttons["func_←"].tap()
       let clearAllButton = app.buttons["Clear ALL"]
       if clearAllButton.waitForExistence(timeout: 2.0) {
           clearAllButton.tap()
@@ -808,7 +808,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 0.5)
     
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_<-"].tap()
+    app.buttons["func_←"].tap()
 
     // Should show Clear Menu
     XCTAssertTrue(app.navigationBars["Clear"].waitForExistence(timeout: 2.0))
@@ -980,7 +980,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // eˣ
-    slowTap(app.buttons["func_e^x"], name: "e^x")
+    slowTap(app.buttons["func_e^x"], name: "𝑒ˣ")
     
     // S
     slowTap(app.buttons["func_RCL"], name: "RCL")
@@ -1000,7 +1000,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // √x
-    slowTap(app.buttons["func_√x"], name: "√x")
+    slowTap(app.buttons["func_√x"], name: "√𝑥")
     
     // ÷
     slowTap(app.buttons["func_÷"], name: "÷")
@@ -1149,7 +1149,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // eˣ
-    slowTap(app.buttons["func_e^x"], name: "e^x")
+    slowTap(app.buttons["func_e^x"], name: "𝑒ˣ")
     
     // S
     slowTap(app.buttons["func_RCL"], name: "RCL")
@@ -1169,7 +1169,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // √x
-    slowTap(app.buttons["func_√x"], name: "√x")
+    slowTap(app.buttons["func_√x"], name: "√𝑥")
     
     // ÷
     slowTap(app.buttons["func_÷"], name: "÷")
@@ -1485,7 +1485,7 @@ import XCTest
                 Thread.sleep(forTimeInterval: 0.8) // Wait for sheet to dismiss
                 XCTAssertTrue(display.waitForExistence(timeout: 2.0))
                 XCTAssertTrue(display.label.contains("3.1415"))
-                app.buttons["func_<-"].tap() // Clear for next
+                app.buttons["func_←"].tap() // Clear for next
             } else {
                 if app.buttons["Close"].exists {
                     app.buttons["Close"].tap()
@@ -1550,7 +1550,7 @@ import XCTest
         let matrix1Triggers: [(shift: XCUIElement?, btn: String, title: String?)] = [
             (yellow, "func_+/-", "Modes"),
             (blue, "func_+/-", "Display"),
-            (yellow, "func_<-", "Clear")
+            (yellow, "func_←", "Clear")
         ]
         
         for t in matrix1Triggers {
@@ -1744,7 +1744,7 @@ import XCTest
         app.launch()
         
         app.buttons["btn_yellow_shift"].tap()
-        app.buttons["func_<-"].tap()
+        app.buttons["func_←"].tap()
         
         let predicate = NSPredicate(format: "existsNoRetry == 1")
         expectation(for: predicate, evaluatedWith: app.buttons["Clear ALL"], handler: nil)

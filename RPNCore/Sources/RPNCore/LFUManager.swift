@@ -8,7 +8,7 @@ import Observation
 public class LFUManager {
     // 6 slots for functions (to match the 6 UI keys available for LFU)
     // Using String to represent the function name, e.g., "SIN", "%CHG", etc.
-    public var slots: [String?] = ["SIN", "COS", "TAN", "LN", "e^x", "√x"]
+    public var slots: [String?] = ["SIN", "COS", "TAN", "LN", "𝑒ˣ", "√𝑥"]
     
     // Usage counts for functions
     private var usageCounts: [String: Int] = [:]
@@ -156,10 +156,10 @@ public class LFUManager {
         
         switch slotIndex {
         case 0: return "LN"
-        case 1: return "e^x"
-        case 2: return "1/x"
-        case 3: return "y^x"
-        case 4: return "√x"
+        case 1: return "𝑒ˣ"
+        case 2: return "1/𝑥"
+        case 3: return "𝑦ˣ"
+        case 4: return "√𝑥"
         case 5: return "π"
         default: return ""
         }

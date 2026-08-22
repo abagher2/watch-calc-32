@@ -77,12 +77,10 @@ func isCommand(_ buf: UnsafePointer<UInt8>, _ len: Int, _ cmd: StaticString) -> 
 
 @main
 struct WatchCalcFirmware {
-    static var activeMenu: CalculatorMenu? = nil
-    static var menuOffset = 0
-    static var menuAlphaQuery: String = ""
-    static var waitingForMenuDigit: MenuItem? = nil
-    static var programScrollOffset = 0
-    static var menuItemsDisplayCache: [MenuItem] = []
+    static let engine = CalculatorEngine()
+    static let lfuManager = LFUManager()
+    static let uiController = RetroUIController(engine: engine, lfuManager: lfuManager)
+    static let renderer = Renderer()
 
 
 @inline(never)
@@ -110,14 +108,24 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     }
     
     if let op = matchOpBytes(buf, len) {
-        processAction(op, engine: engine, lfuManager: lfu)
+        if op == .off {
+            WatchCalcFirmware.isSleeping = true
+            needsDisplay = true
+            return
+        }
+        uiController.processAction(op)
     } else if let id = parseUIntBytes(buf, 0, len), let op = CalculatorOperation(rawValue: id) {
-        processAction(op, engine: engine, lfuManager: lfu)
+        if op == .off {
+            WatchCalcFirmware.isSleeping = true
+            needsDisplay = true
+            return
+        }
+        uiController.processAction(op)
     } else if isCommand(buf, len, "CLEAR_ALL") {
         engine.clearAll()
-        isShowingRegisters = false
-        isShowingFullPrecision = false
-        regsOffset = 0
+        uiController.retroUI.isShowingRegisters = false
+        uiController.retroUI.isShowingFullPrecision = false
+        uiController.retroUI.regsOffset = 0
         needsDisplay = true
     } else {
         let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -125,295 +133,6 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     }
 }
 
-@inline(never)
-static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, lfuManager: LFUManager) {
-    var finalOp = op
-    
-    if finalOp == .shiftYellow {
-        engine.setShift(1)
-        return
-    }
-    if finalOp == .shiftBlue {
-        engine.setShift(2)
-        return
-    }
-    
-    if engine.shiftState > 0 {
-        for key in HP32KeyMap.standardGrid {
-            if key.primaryAction == op {
-                if engine.shiftState == 1, let yellow = key.yellowAction { finalOp = yellow }
-                else if engine.shiftState == 2, let blue = key.blueAction { finalOp = blue }
-                break
-            }
-        }
-        engine.setShift(0)
-    }
-    
-    if finalOp == .show {
-        isShowingFullPrecision = true
-        needsDisplay = true
-        return
-    }
-    
-    if isShowingFullPrecision {
-        if finalOp == .c || finalOp == .clear || finalOp == .backspace {
-            isShowingFullPrecision = false
-            needsDisplay = true
-        }
-        return
-    }
-
-    if isShowingRegisters {
-        if finalOp == .integrate { // Up arrow
-            regsOffset = max(0, regsOffset - 1)
-            needsDisplay = true
-            return
-        }
-        if finalOp == .solve { // Down arrow
-            regsOffset += 1
-            needsDisplay = true
-            return
-        }
-        if finalOp == .c || finalOp == .clear || finalOp == .backspace || finalOp == .enter {
-            isShowingRegisters = false
-            needsDisplay = true
-            return
-        }
-        isShowingRegisters = false
-    }
-    
-    if engine.isProgrammingMode || engine.isEquationMode {
-        if finalOp == .integrate { // Up arrow
-            programScrollOffset += 1
-            needsDisplay = true
-            return
-        }
-        if finalOp == .solve { // Down arrow
-            programScrollOffset = max(0, programScrollOffset - 1)
-            needsDisplay = true
-            return
-        }
-    }
-    
-    if finalOp == .regs {
-        isShowingRegisters = true
-        regsOffset = 0
-        activeMenu = nil
-        menuOffset = 0
-        needsDisplay = true
-        return
-    }
-    
-    // C47 Modes
-    if finalOp == .solve || finalOp == .integrate || finalOp == .plot || finalOp == .xeq {
-        if finalOp == .solve { c47Mode = .solve }
-        if finalOp == .integrate { c47Mode = .integrate }
-        if finalOp == .plot { c47Mode = .plot }
-        if finalOp == .xeq { c47Mode = .xeq }
-        c47Program = nil
-        activeMenu = nil
-        menuOffset = 0
-        needsDisplay = true
-        return
-    }
-    
-    if c47Mode != .none {
-        if finalOp == .c || finalOp == .clear || finalOp == .backspace {
-            c47Mode = .none
-            c47Program = nil
-            needsDisplay = true
-            return
-        }
-        
-        if finalOp.stringValue.hasPrefix("C47_PRG_") {
-            let progLabel = String(finalOp.stringValue.dropFirst(8))
-            c47Program = engine.programs.first(where: { $0.label == progLabel })
-            needsDisplay = true
-            return
-        }
-        
-        if finalOp.stringValue.hasPrefix("C47_VAR_") {
-            let varName = String(finalOp.stringValue.dropFirst(8))
-            if engine.isBuildingNumber {
-                engine.commitInput()
-                engine.variables[varName] = engine.stack.first ?? CalculatorValue()
-            } else {
-                if c47Mode == .solve, let prog = c47Program {
-                    let target = engine.stack.first?.real ?? 0.0
-                    engine.statusMessage = "CALCULATING"
-                    // Execute solve
-                    _ = engine.solve(for: varName, program: prog, target: target)
-                    engine.statusMessage = nil
-                    c47Mode = .none
-                    c47Program = nil
-                } else if c47Mode == .integrate, let prog = c47Program {
-                    let upper = engine.stack.count > 0 ? engine.stack[0].real : 0.0
-                    let lower = engine.stack.count > 1 ? engine.stack[1].real : 0.0
-                    engine.statusMessage = "CALCULATING"
-                    _ = engine.integrate(variable: varName, lower: lower, upper: upper, program: prog)
-                    engine.statusMessage = nil
-                    c47Mode = .none
-                    c47Program = nil
-                } else {
-                    c47SelectedVar = varName
-                }
-            }
-            needsDisplay = true
-            return
-        }
-        
-        if finalOp.stringValue == "C47_EXEC" {
-            if c47Mode == .plot {
-                engine.generatePlot(variable: c47SelectedVar, explicitMin: -10, explicitMax: 10)
-                engine.requestPlot = true
-            } else if c47Mode == .xeq, let prog = c47Program {
-                engine.currentProgramLabel = prog.label
-                _ = engine.evaluateProgram(prog, variables: engine.variables)
-            }
-            c47Mode = .none
-            c47Program = nil
-            needsDisplay = true
-            return
-        }
-    }
-    
-    if finalOp == .off {
-        WatchCalcFirmware.isSleeping = true
-        needsDisplay = true
-        return
-    }
-    
-        if engine.isWaitingForAlpha {
-            if finalOp.stringValue.count == 1 {
-                if let menu = activeMenu {
-                    menuAlphaQuery.append(finalOp.stringValue)
-                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
-                } else {
-            engine.executeMath(finalOp.stringValue)
-            lfuManager.recordUsage(of: finalOp.stringValue)
-        }
-                return
-            }
-        }
-    
-    if let pendingItem = waitingForMenuDigit {
-        if let digit = parseUInt(finalOp.stringValue) {
-            engine.executeMath("\(pendingItem.action) \(digit)")
-        }
-        waitingForMenuDigit = nil
-        activeMenu = nil
-        return
-    }
-    
-    if let menu = activeMenu {
-        if finalOp.stringValue.hasPrefix("LFU_") {
-            let index = parseUInt(String(finalOp.stringValue.dropFirst(4))) ?? 0
-            
-            // Check for MORE button
-            if index == 5 && menuItemsDisplayCache.count - menuOffset > 6 {
-                menuOffset += 5
-                needsDisplay = true
-                return
-            }
-            
-            // Adjust index based on spacing mapping
-            let visibleCount = menuItemsDisplayCache.count - menuOffset
-            let isMore = visibleCount > 6
-            var actualIndex = index
-            if !isMore {
-                let count = visibleCount
-                if count == 4 {
-                    if index == 0 || index == 1 { actualIndex = index }
-                    else if index == 4 { actualIndex = 2 }
-                    else if index == 5 { actualIndex = 3 }
-                    else { return }
-                } else if count == 5 {
-                    if index == 0 || index == 1 || index == 2 { actualIndex = index }
-                    else if index == 4 { actualIndex = 3 }
-                    else if index == 5 { actualIndex = 4 }
-                    else { return }
-                }
-            }
-            actualIndex += menuOffset
-            
-            if actualIndex < menuItemsDisplayCache.count {
-                let selected = menuItemsDisplayCache[actualIndex]
-                if selected.requiresDigit {
-                    waitingForMenuDigit = selected
-                    activeMenu = nil
-                    menuOffset = 0
-                } else {
-                    if selected.action == "REGS" {
-                        isShowingRegisters = true
-                        regsOffset = 0
-                        needsDisplay = true
-                    } else {
-                        engine.executeMath(selected.action)
-                        lfuManager.recordUsage(of: selected.action)
-                    }
-                    activeMenu = nil
-                    menuOffset = 0
-                }
-            }
-            return
-        }
-        
-
-        
-        if finalOp == .backspace || finalOp == .clear || finalOp == .c {
-            if !menuAlphaQuery.isEmpty {
-                menuAlphaQuery.removeLast()
-                menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
-            } else {
-                activeMenu = nil
-                menuOffset = 0
-            }
-            return
-        }
-    }
-    
-    if let newMenu = CalculatorMenu(rawValue: finalOp.stringValue) {
-        activeMenu = newMenu
-        menuAlphaQuery = ""
-        menuOffset = 0
-        menuItemsDisplayCache = newMenu.items
-    }
-    else if finalOp.stringValue.hasPrefix("LFU_") {
-        let index = parseUInt(String(finalOp.stringValue.dropFirst(4))) ?? 0
-        if let funcName = lfuManager.slots[index] {
-            engine.executeMath(funcName)
-            lfuManager.recordUsage(of: funcName)
-        }
-    }
-    else {
-        if finalOp.stringValue.count == 1, let digit = parseUInt(finalOp.stringValue) {
-            engine.digit(digit)
-        } else if finalOp == .decimal {
-            engine.decimal()
-        } else if finalOp == .toggleSign {
-            engine.toggleSign()
-        } else if finalOp == .enter {
-            engine.enter()
-        } else if finalOp == .regs {
-            isShowingRegisters = true
-            regsOffset = 0
-            needsDisplay = true
-        } else if finalOp == .backspace || finalOp == .clear || finalOp == .c {
-            engine.backspace()
-        } else if finalOp == .e {
-            engine.startExponent()
-        } else {
-            engine.executeMath(finalOp.stringValue)
-            lfuManager.recordUsage(of: finalOp.stringValue)
-        }
-    }
-}
-
-
-    static let engine = CalculatorEngine()
-    static let lfuManager = LFUManager()
-    static let renderer = Renderer()
-    static let retroUI = RetroUI(lfuManager: lfuManager)
     static let uartBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
     static let formatBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
     static let txBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
@@ -432,18 +151,6 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     static var needsDisplay = true
     static var lastActivityTime: UInt64 = 0
     static var isSleeping = false
-
-    // UI States
-    static var isShowingFullPrecision = false
-    static var isShowingRegisters = false
-    static var regsOffset = 0
-    
-    enum C47Mode {
-        case none, solve, integrate, plot, xeq
-    }
-    static var c47Mode: C47Mode = .none
-    static var c47Program: CalculatorEngine.Program? = nil
-    static var c47SelectedVar: String = "X"
 
     static let rxRingBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 256)
     static var rxHead = 0
@@ -549,30 +256,8 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 return
             }
             
-
-            // Sync state
-            retroUI.activeMenu = activeMenu
-            retroUI.waitingForMenuDigit = waitingForMenuDigit
-            retroUI.menuAlphaQuery = menuAlphaQuery
-            retroUI.menuOffset = menuOffset
-            retroUI.programScrollOffset = programScrollOffset
-            switch c47Mode {
-            case .none: retroUI.c47Mode = .none
-            case .solve: retroUI.c47Mode = .solve
-            case .integrate: retroUI.c47Mode = .integrate
-            case .plot: retroUI.c47Mode = .plot
-            case .xeq: retroUI.c47Mode = .xeq
-            }
-            retroUI.c47Program = c47Program
-
-            // Formatter injected in main()
-            
-            retroUI.isShowingFullPrecision = isShowingFullPrecision
-            retroUI.isShowingRegisters = isShowingRegisters
-            retroUI.regsOffset = regsOffset
-            
             // Render standard retro UI
-            retroUI.render(engine: engine, renderer: renderer)
+            uiController.retroUI.render(engine: engine, renderer: renderer)
             
             var changed = false
             if let prev = renderer.previousBuffer {
@@ -596,7 +281,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         print("Booted!")
         hw_init()
         
-        retroUI.doubleFormatter = { (val, mode) in
+        uiController.retroUI.doubleFormatter = { (val, mode) in
             let yBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
             defer { yBuffer.deallocate() }
             var cMode: Int32 = 0

@@ -17,7 +17,7 @@ final class CalculatorEngineTests_Extensive: XCTestCase {
         XCTAssertEqual(engine.stack[0].real, 2.0)
         XCTAssertEqual(engine.stack[1].real, 1.0)
         
-        engine.executeMath("x<>y")
+        engine.executeMath("𝑥≷𝑦")
         XCTAssertEqual(engine.stack[0].real, 1.0)
         XCTAssertEqual(engine.stack[1].real, 2.0)
     }

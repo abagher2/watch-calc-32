@@ -406,7 +406,7 @@ public class CalculatorEngine {
         }
         #endif
         
-        let normalPDF = Program(label: "NPDF", steps: ["X", "x^2", "2", "÷", "+/-", "e^x", "2", "π", "×", "√x", "÷"])
+        let normalPDF = Program(label: "NPDF", steps: ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"])
         if !programs.contains(where: { $0.label == "NPDF" }) {
             programs.append(normalPDF)
         }
@@ -497,7 +497,7 @@ public class CalculatorEngine {
     public var activeTheme: Theme = .pioneer
     public var statusMessage: String? = nil
     
-    public enum Theme { case pioneer, dm32 }
+    public enum Theme { case pioneer, modern }
     public var baseMode: BaseMode = .dec
     public var isFractionMode: Bool = false
     public var maxDenominator: Double = 4095.0
@@ -1538,7 +1538,7 @@ public class CalculatorEngine {
         case "SCRL":
             // Scroll logic handled by UI, no-op for engine
             return
-        case "x<>y", "𝑥><𝑦":
+        case "𝑥≷𝑦", "𝑥≷𝑦":
             swapXY()
             return
         case "ASGN": isAssigning = true; return
@@ -1549,14 +1549,14 @@ public class CalculatorEngine {
         case "÷":
             if stack.count > 0 && stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
             binaryOp { $1 / $0 }
-        case "1/x":
+        case "1/𝑥":
             if stack.count > 0 && stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
             unaryOp { CalculatorValue(real: 1.0 / $0.real) }
-        case "√x": 
+        case "√𝑥": 
             if stack.count > 0 && stack[0].real < 0 { errorMessage = "INVALID DATA"; return }
             unaryOp { CalculatorValue(real: _sqrt($0.real)) }
-        case "x^2": unaryOp { CalculatorValue(real: $0.real * $0.real) }
-        case "y^x": binaryOp { CalculatorValue(real: _pow($1.real, $0.real)) }
+        case "𝑥²": unaryOp { CalculatorValue(real: $0.real * $0.real) }
+        case "𝑦ˣ": binaryOp { CalculatorValue(real: _pow($1.real, $0.real)) }
         case "%": percentOp { CalculatorValue(real: $1.real * ($0.real / 100.0)) }
         case "%CHG": percentOp { CalculatorValue(real: $1.real == 0 ? 0 : (($0.real - $1.real) / $1.real) * 100.0) }
         case "LN": 
@@ -1565,14 +1565,14 @@ public class CalculatorEngine {
                 if stack[0].real < 0 { errorMessage = "INVALID DATA"; return }
             }
             unaryOp { CalculatorValue(real: _log($0.real)) }
-        case "e^x": unaryOp { CalculatorValue(real: _exp($0.real)) }
+        case "𝑒ˣ": unaryOp { CalculatorValue(real: _exp($0.real)) }
         case "LOG": 
             if stack.count > 0 {
                 if stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
                 if stack[0].real < 0 { errorMessage = "INVALID DATA"; return }
             }
             unaryOp { CalculatorValue(real: _log10($0.real)) }
-        case "10^x": unaryOp { CalculatorValue(real: _pow(10.0, $0.real)) }
+        case "10ˣ": unaryOp { CalculatorValue(real: _pow(10.0, $0.real)) }
         case "x=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real == $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real == stack[1].real) }; return
         case "x!=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real != $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real != stack[1].real) }; return
         case "x>y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real > $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real > stack[1].real) }; return
@@ -1583,7 +1583,7 @@ public class CalculatorEngine {
         case "x>0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real > 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real > 0) }; return
         case "x<0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real < 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real < 0) }; return
         case "x<=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real <= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real <= 0) }; return
-        case "𝑥!", "x!", "n!": 
+        case "𝑥!", "𝑥!", "n!": 
             if stack.count > 0 {
                 if stack[0].real < 0 || stack[0].real != floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
             }
@@ -1638,7 +1638,7 @@ public class CalculatorEngine {
             } else {
                 unaryOp { CalculatorValue(real: fromRad(atan($0.real))) } // Naive real
             }
-        case "LASTx": commitInput(); push(lastX)
+        case "LAST𝑥": commitInput(); push(lastX)
         case "ABS": unaryOp { CalculatorValue(real: $0.magnitude) }
         case "INTG": unaryOp { CalculatorValue(real: floor($0.real)) }
         
@@ -1837,14 +1837,14 @@ public class CalculatorEngine {
         case "-": complexBinaryOp { $1 - $0 }
         case "×": complexBinaryOp { $1 * $0 }
         case "÷": complexBinaryOp { $1 / $0 }
-        case "1/x": complexUnaryOp { CalculatorValue(real: 1.0) / $0 }
-        case "√x": complexUnaryOp { CalculatorValue.sqrt($0) }
-        case "x^2": complexUnaryOp { $0 * $0 }
-        case "y^x": complexBinaryOp { CalculatorValue.pow($1, $0) }
+        case "1/𝑥": complexUnaryOp { CalculatorValue(real: 1.0) / $0 }
+        case "√𝑥": complexUnaryOp { CalculatorValue.sqrt($0) }
+        case "𝑥²": complexUnaryOp { $0 * $0 }
+        case "𝑦ˣ": complexBinaryOp { CalculatorValue.pow($1, $0) }
         case "LN": complexUnaryOp { CalculatorValue.ln($0) }
-        case "e^x": complexUnaryOp { CalculatorValue.exp($0) }
+        case "𝑒ˣ": complexUnaryOp { CalculatorValue.exp($0) }
         case "LOG": complexUnaryOp { CalculatorValue.ln($0) / CalculatorValue(real: _log(10)) }
-        case "10^x": complexUnaryOp { CalculatorValue.pow(CalculatorValue(real: 10), $0) }
+        case "10ˣ": complexUnaryOp { CalculatorValue.pow(CalculatorValue(real: 10), $0) }
         case "SIN": complexUnaryOp { CalculatorValue.sin($0) }
         case "COS": complexUnaryOp { CalculatorValue.cos($0) }
         case "+/-": complexUnaryOp { CalculatorValue(real: -$0.real, imag: -$0.imag) }
@@ -2391,7 +2391,7 @@ public class CalculatorEngine {
         } else if alphaAction == .evalEquation {
             if let program = programs.first(where: { $0.label == initialChar }) {
                 currentEvaluatingProgram = program
-                let knownCommands: Set<String> = ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR", "ENTER", "BACKSPACE", "+", "-", "×", "÷", ".", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN", "LOG", "LN", "ABS", "INTG", "FRAC", "RND", "LASTx", "x<>y", "𝑥><𝑦", "R↓", "R↑", "y^x", "xVy", "1/x", "x!", "√x", "x^2", "e^x", "10^x", "%", "%CHG", "π", "LBL", "GTO", "XEQ", "RTN", "STO", "RCL", "MEM", "PROB", "PARTS", "SUMS", "BASE", "FLAGS", "CMPLX", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "SD", "x?0", "x?y", "INT÷", "AND", "OR", "XOR", "NOT"]
+                let knownCommands: Set<String> = ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR", "ENTER", "BACKSPACE", "+", "-", "×", "÷", ".", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN", "LOG", "LN", "ABS", "INTG", "FRAC", "RND", "LAST𝑥", "𝑥≷𝑦", "𝑥≷𝑦", "R↓", "R↑", "𝑦ˣ", "xVy", "1/𝑥", "𝑥!", "√𝑥", "𝑥²", "𝑒ˣ", "10ˣ", "%", "%CHG", "π", "LBL", "GTO", "XEQ", "RTN", "STO", "RCL", "MEM", "PROB", "PARTS", "SUMS", "BASE", "FLAGS", "CMPLX", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "SD", "𝑥?0", "𝑥?𝑦", "INT÷", "AND", "OR", "XOR", "NOT"]
                 pendingEquationVars = program.steps.filter { step in
                     guard let first = step.first, first.isLetter else { return false }
                     return !knownCommands.contains(step)

@@ -48,7 +48,11 @@ targets:
     type: bundle.ui-testing
     platform: watchOS
     deploymentTarget: "10.0"
-    sources: [WatchCalc32UITests, fastlane/SnapshotHelper.swift]
+    sources:
+      - WatchCalc32UITests
+      - fastlane/SnapshotHelper.swift
+      - RPNCore/Tests/RPNCoreTests/SharedCalculatorTest.swift
+      - RPNCore/Tests/RPNCoreTests/SharedCalculatorThoroughTestCases.swift
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: rpn.calculator.WatchCalc32UITests
       SWIFT_VERSION: "5.9"
@@ -61,7 +65,11 @@ targets:
     type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "17.0"
-    sources: [WatchCalc32ContainerUITests, fastlane/SnapshotHelper.swift]
+    sources:
+      - WatchCalc32ContainerUITests
+      - fastlane/SnapshotHelper.swift
+      - RPNCore/Tests/RPNCoreTests/SharedCalculatorTest.swift
+      - RPNCore/Tests/RPNCoreTests/SharedCalculatorThoroughTestCases.swift
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: rpn.calculator.WatchCalc32ContainerUITests
       SWIFT_VERSION: "5.9"

@@ -10,6 +10,7 @@
 		039B528A371CBF3C7144A0CA /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */; };
 		047EEFCCA2FBDD94B5998163 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587C3E00D19968F12AC41028 /* iOSContentView.swift */; };
 		0C61D50BA376C36A4391B530 /* RetroLCDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C3226D5170FD47417B14ED2 /* RetroLCDView.swift */; };
+		185F7C7D03DE169582367311 /* SharedCalculatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838F0CD4917FFE82C8DB735D /* SharedCalculatorTest.swift */; };
 		1C102A21CDDD3BBBDC8C1C4A /* RetroLayoutVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916DE9D305ECF467358D921A /* RetroLayoutVerificationView.swift */; };
 		1C7C3A2352869537FDE0172E /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58FE90BC752C5F14CBC892BE /* SnapshotHelper.swift */; };
 		213042356BA1A34FE72AFC0D /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 203CA19B9100ADCABC7E6EC4 /* RPNCore */; };
@@ -22,8 +23,10 @@
 		38CBA4D981F8D19A2BAE017F /* RegsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E8EF5BCC7D97E870A5D10C8 /* RegsMenuView.swift */; };
 		3A22F67D29CCC6143FCC2E7E /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E8AFADF70A2E45FF0D41407 /* VariablePromptView.swift */; };
 		3A2E071289E7861A1C377F8C /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867C279760D0F90BED087D9 /* MemMenuView.swift */; };
+		3C1E0446F1880196E2755600 /* SharedCalculatorThoroughTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC525F2F2E9EADE32E10D350 /* SharedCalculatorThoroughTestCases.swift */; };
 		3C313C98D6C288B5E3573374 /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AFE75A07A68E82C945B78D /* HP32KeyMap.swift */; };
 		3F3270604771C95BC03FE1F9 /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */; };
+		403FF877DBC981C675DA94D0 /* SharedCalculatorThoroughTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC525F2F2E9EADE32E10D350 /* SharedCalculatorThoroughTestCases.swift */; };
 		406E6AF58601F11C3B68601C /* LCDDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */; };
 		4308E7A8AA17370A1161571D /* WatchCalc32UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03BE4E9B0484A292A2FEA4F5 /* WatchCalc32UITests.swift */; };
 		447AF5DE61D6487FB7139D43 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3B2728A7BBFA718A645C82 /* ThemeManager.swift */; };
@@ -50,6 +53,7 @@
 		8BCEA9AD4BE3FDC82F67D010 /* ConstantsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA655BADB71D31C6C30BF1F /* ConstantsMenuView.swift */; };
 		8E133F9F14E8CAB073E46BE7 /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1867C279760D0F90BED087D9 /* MemMenuView.swift */; };
 		8F2CD154257150221461C64A /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D33BB3B4DA42ECDFA2BE965 /* iOSApp.swift */; };
+		90BD47636E3A686FEE7C6729 /* SharedCalculatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838F0CD4917FFE82C8DB735D /* SharedCalculatorTest.swift */; };
 		91A4231DBB3C747B0EFBCCF8 /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 03D17C91C142DFF0B3CD789A /* RPNCore */; };
 		930B9EBAF5C04B648B9A582A /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FFB9D54733526F37B234936 /* ClearMenuView.swift */; };
 		9B792CDE5DDE6C438A39E1FE /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00F8C3BBB74081AE7AFD10A0 /* BezelButtonStyle.swift */; };
@@ -149,6 +153,7 @@
 		7A4B42E509174B5BA172A473 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7CC57601B2A1F45AACECF2A1 /* ProgramEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramEditorView.swift; sourceTree = "<group>"; };
 		7F052485D497EB57FF5517A5 /* WatchCalc32Container.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WatchCalc32Container.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		838F0CD4917FFE82C8DB735D /* SharedCalculatorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCalculatorTest.swift; sourceTree = "<group>"; };
 		83DB61D67A7DBEC21EE4B046 /* WatchCalc32ContainerUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = WatchCalc32ContainerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8640FB6C5294E5B59E8A5EC2 /* LCDDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LCDDisplayView.swift; sourceTree = "<group>"; };
 		86513C8C092CF799D433B5AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -163,6 +168,7 @@
 		CDC4DD47C54DD18B29053681 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D4D76C5134CF3F1B68652A1B /* TestBasicEnter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestBasicEnter.swift; sourceTree = "<group>"; };
 		D9A74E288B6BF828B9D1B43F /* ShiftedLayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftedLayoutView.swift; sourceTree = "<group>"; };
+		DC525F2F2E9EADE32E10D350 /* SharedCalculatorThoroughTestCases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCalculatorThoroughTestCases.swift; sourceTree = "<group>"; };
 		E6EF4C53DB8402D815C29B65 /* TestTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTap.swift; sourceTree = "<group>"; };
 		EF5D0087FE66817734BD9B42 /* RPNCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = RPNCore; path = RPNCore; sourceTree = SOURCE_ROOT; };
 		F4CC1AD914F15BABCE14AD05 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -245,6 +251,7 @@
 			children = (
 				D8E9C3EE43E6C0A3D1C5BD2F /* fastlane */,
 				94B24ABAA25EA1248B801481 /* Packages */,
+				7725F9D770494AD2A00CA2F2 /* RPNCoreTests */,
 				13CD7713C093DFB84C3D253E /* Shared */,
 				B60258525ED18D309AC6E3EA /* WatchCalc32 */,
 				0EDF5084DCF35E43BBBD071F /* WatchCalc32-iOS */,
@@ -302,6 +309,16 @@
 				59371E82AFF11F8FFCEBB6CD /* WatchCalc32UXTests.swift */,
 			);
 			path = WatchCalc32UITests;
+			sourceTree = "<group>";
+		};
+		7725F9D770494AD2A00CA2F2 /* RPNCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				838F0CD4917FFE82C8DB735D /* SharedCalculatorTest.swift */,
+				DC525F2F2E9EADE32E10D350 /* SharedCalculatorThoroughTestCases.swift */,
+			);
+			name = RPNCoreTests;
+			path = RPNCore/Tests/RPNCoreTests;
 			sourceTree = "<group>";
 		};
 		86A7FBB9C29AE7418245F825 /* Equations */ = {
@@ -574,6 +591,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				185F7C7D03DE169582367311 /* SharedCalculatorTest.swift in Sources */,
+				403FF877DBC981C675DA94D0 /* SharedCalculatorThoroughTestCases.swift in Sources */,
 				1C7C3A2352869537FDE0172E /* SnapshotHelper.swift in Sources */,
 				4C14445080D80DDE19B4E16E /* TestBasicEnter.swift in Sources */,
 				EE3CDD51880ED63702FCF356 /* TestEquationEntry.swift in Sources */,
@@ -589,6 +608,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				90BD47636E3A686FEE7C6729 /* SharedCalculatorTest.swift in Sources */,
+				3C1E0446F1880196E2755600 /* SharedCalculatorThoroughTestCases.swift in Sources */,
 				039B528A371CBF3C7144A0CA /* SnapshotHelper.swift in Sources */,
 				D75CFB0CAFA34BF7CEFC4F9C /* iOSUITests.swift in Sources */,
 			);

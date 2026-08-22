@@ -4,7 +4,7 @@ import os
 # Define the keys needed for the calculator
 KEYS = [
     # Top Row
-    "1/x", "y^x", "SQRT", "LOG", "LN", "x<>y",
+    "1/𝑥", "𝑦ˣ", "SQRT", "LOG", "LN", "𝑥≷𝑦",
     # Second Row
     "E", "sin", "cos", "tan", "y", "P",
     # Third Row

@@ -55,9 +55,9 @@ if cur_row:
 
 labels = [
     ["", "", "", "", "", ""],
-    ["√x", "e^x", "LN", "y^x", "1/x", "Σ+"],
+    ["√𝑥", "𝑒ˣ", "LN", "𝑦ˣ", "1/𝑥", "Σ+"],
     ["STO", "RCL", "R↓", "SIN", "COS", "TAN"],
-    ["ENTER", "x<>y", "+/-", "E", "<-"],
+    ["ENTER", "𝑥≷𝑦", "+/-", "E", "<-"],
     ["XEQ", "7", "8", "9", "÷"],
     ["f", "4", "5", "6", "×"],
     ["g", "1", "2", "3", "-"],
@@ -85,10 +85,10 @@ TACTILE_H = 0.0   # Eliminated! Buttons have built-in travel, faceplate sits flu
 PCB_T     = 1.6   # PCB thickness
 BATT_H    = 7.0   # Clearance for wired CR2450 battery holder (Z)
 plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
+FRONT_LIP = 0.8   # Structural retaining bezel
 
 # Calculate required chassis depth to securely fit all components
-# Total Depth = Faceplate(4.0) + Switch Gap(1.5) + PCB(1.6) + Battery Clearance(3.2) + Back Wall(1.7) = 12.0mm
-CHASSIS_D = plate_t + TACTILE_H + PCB_T + BATT_H + WALL
+CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
 
 EINK_W = 65.0   # module width  (mm)
 EINK_H = 30.2   # module height (mm)
@@ -145,65 +145,56 @@ pt   = {pt};
 GAP  = {gap};        
 
 module key_button(w, h, label) {{
-    // CYLINDRICAL PEG (Print-in-place)
-    // Prints flat on the bed (Z=0) so it rests exactly on the tactile plunger.
-    
-    // 1. Bed adhesion & micro-support tabs (Z=0 to Z=0.2)
-    translate([0, 0, 0.1]) cylinder(d=5.0, h=0.2, center=true);
-    for(a=[0, 90, 180, 270]) {{
-        rotate([0, 0, a]) translate([2.5 + GAP/2, 0, 0.1]) cube([GAP+0.1, 0.6, 0.2], center=true);
+    // 1. Hollow Base (Z=0 to Z=2.0)
+    // Prints on the bed. Hollow core fits AROUND the tactile switch body!
+    difference() {{
+        union() {{
+            // Chamfered bottom for retention (snaps in or prints-in-place)
+            hull() {{
+                translate([0, 0, 0.1]) cylinder(d=8.4, h=0.2, center=true);
+                translate([0, 0, 0.4]) cylinder(d=8.8, h=0.2, center=true);
+            }}
+            translate([0, 0, 1.2]) cylinder(d=8.8, h=1.6, center=true);
+        }}
+        // Inner hollow core (d=7.6 to easily clear a 5.2x5.2mm switch)
+        translate([0, 0, 1.0]) cylinder(d=7.6, h=2.1, center=true);
     }}
-
-    // 2. Base Peg (Z=0.2 to Z=1.0)
-    translate([0, 0, 0.6]) cylinder(d=5.0, h=0.8, center=true);
     
-    // 3. Flange (Z=1.0 to Z=1.6)
-    // Prevents button from falling out the front.
-    translate([0, 0, 1.3]) cylinder(d=6.5, h=0.6, center=true);
+    // 2. Base Roof (Z=2.0 to Z=2.4) - This rests perfectly on the tactile switch plunger!
+    translate([0, 0, 2.2]) cylinder(d=8.8, h=0.4, center=true);
     
-    // 4. Upper Shaft (Z=1.6 to Z=2.2)
-    translate([0, 0, 1.9]) cylinder(d=5.0, h=0.6, center=true);
+    // 2b. Triangular Shaft (Z=2.4 to Z=3.5)
+    // Shaft ends just above the Faceplate surface (Z=3.0) to allow for button travel
+    translate([0, 0, 2.95]) cylinder(d=4.6, h=1.1, center=true, $fn=3);
     
-    // 5. Keycap (Z=2.2 to Z=3.5)
+    // 3. Tapered Keycap (Z=3.5 to Z=5.8) - Steep Loft to prevent FDM sagging!
+    // Lofts from the d=4.6 triangle smoothly up to a d=6.0 circle.
     hull() {{
-        translate([0, 0, 2.21]) cylinder(d=5.0, h=0.01, center=true);
-        translate([0, 0, 2.85]) hull() {{
-            for(x=[-w/2+1.0, w/2-1.0], y=[-h/2+1.0, h/2-1.0])
-                translate([x, y, 0]) cylinder(r=1.0, h=0.01);
-        }}
-        translate([0, 0, 3.5]) hull() {{
-            for(x=[-w/2+1.5, w/2-1.5], y=[-h/2+1.5, h/2-1.5])
-                translate([x, y, 0]) cylinder(r=1.0, h=0.01);
-        }}
+        translate([0, 0, 3.51]) cylinder(d=4.6, h=0.01, center=true, $fn=3);
+        translate([0, 0, 5.8]) cylinder(d=6.0, h=0.01, center=true);
     }}
 }}
 
 module button_pocket(x, y, w, h) {{
     translate([x, y, 0]) {{
-        // 1. Bottom Shaft Hole (Z=-0.1 to Z=1.0)
-        // Must clear the d=5.0 peg.
-        translate([0, 0, 0.45]) cylinder(d=5.0 + GAP*2, h=1.1, center=true);
-        
-        // 2. Flange Cavity (Z=1.0 to Z=1.6)
-        translate([0, 0, 1.3]) cylinder(d=6.5 + GAP*2, h=0.6, center=true);
-        
-        // 3. Roof Chamfer (Z=1.6 to Z=2.0)
-        // Transitions from 6.5 back to 5.0 without overhangs.
+        // 1a. Bottom Retaining Lip & Hard Stop (Z=-0.1 to Z=0.4)
         hull() {{
-            translate([0, 0, 1.6]) cylinder(d=6.5 + GAP*2, h=0.01, center=true);
-            translate([0, 0, 2.0]) cylinder(d=5.0 + GAP*2, h=0.01, center=true);
+            translate([0, 0, 0.0]) cylinder(d=8.8, h=0.2, center=true);
+            translate([0, 0, 0.4]) cylinder(d=9.2, h=0.2, center=true);
         }}
         
-        // 4. Upper Shaft Hole (Z=2.0 to Z=2.5)
-        translate([0, 0, 2.25]) cylinder(d=5.0 + GAP*2, h=0.5, center=true);
+        // 1b. Main Hollow Cavity (Z=0.4 to Z=2.0)
+        translate([0, 0, 1.2]) cylinder(d=9.2, h=1.6, center=true);
         
-        // 5. Top Indentation (Z=2.5 to Z=3.1)
-        // Clears the keycap.
+        // 2. Roof Chamfer (Z=2.0 to Z=2.5)
+        // Transitions to a triangular hole to prevent button rotation
         hull() {{
-            translate([0, 0, 2.5]) cylinder(d=5.0 + GAP*2, h=0.01, center=true);
-            translate([0, 0, 2.6]) cube([w + GAP*2, h + GAP*2, 0.01], center=true);
-            translate([0, 0, 3.1]) cube([w + GAP*2, h + GAP*2, 0.01], center=true);
+            translate([0, 0, 2.0]) cylinder(d=9.2, h=0.01, center=true);
+            translate([0, 0, 2.5]) cylinder(d=5.0, h=0.01, center=true, $fn=3);
         }}
+        
+        // 3. Upper Shaft Hole (Z=2.5 to Z=3.1)
+        translate([0, 0, 2.8]) cylinder(d=5.0, h=0.6, center=true, $fn=3);
     }}
 }}
 
@@ -349,6 +340,12 @@ module chassis() {{
             screw_bosses();
         }}
         
+        // ── BEZEL WINDOW (Exposes keypad and screen) ────────────────────
+        // Cuts a window in the FRONT_LIP to expose the faceplate.
+        // Leaves a 4.0mm wide frame on left, right, and bottom.
+        translate([wall + 4.0, -0.1, wall + 4.0])
+            cube([cw - 2*wall - 8.0, {FRONT_LIP} + 0.2, ch - wall - 4.0 + 0.1]);
+            
         // ── CHASSIS SCREW CLEARANCE HOLES ────────────────────────────────
 """
     for sx, sy in chassis_screws:
@@ -385,82 +382,61 @@ chassis();
     bezel_lip = plate_t   # front lip extends 4mm forward to match bezel
 
     top_cap = f"""
-// WatchCalc 32 End Cap — v7 (sits BELOW chassis at Z=0)
-// Cap extends from Z=-cap_t to Z=0. Top face flush with chassis bottom.
-// Front lip extends forward to complete DM32-style bezel.
-// Secured by lateral M3 screws through chassis side walls.
+// WatchCalc 32 End Cap — v8 (FLUSH PLUG inside chassis)
+// Cap extends from Z=ch-cap_t to Z=ch. 
+// Secured by lateral M3 screws at Z=138.550.
 $fn = 24;
 cw    = {cw:.3f};
-D     = {CHASSIS_D:.3f};
+D     = {CHASSIS_D:.3f}; // 14.9
 wall  = {WALL:.3f};
 cap_t = {cap_t_val};
-lip_h = {bezel_lip};   // front bezel lip height (matches rim_d)
+ch    = {fp_h + WALL:.3f}; // 145.350
 
 module top_cap() {{
     union() {{
-        difference() {{
-            // ── MAIN PLATE (below chassis, Z=-cap_t to Z=0) ─────────
-            // Sharp front corners, rounded back corners (r=3)
-            hull() {{
-                translate([0, 0, -cap_t]) cube([3, 3, cap_t]);
-                translate([cw-3, 0, -cap_t]) cube([3, 3, cap_t]);
-                translate([3, D-3, -cap_t]) cylinder(r=3, h=cap_t);
-                translate([cw-3, D-3, -cap_t]) cylinder(r=3, h=cap_t);
-            }}
-            
-            // ── RAILWAY GROOVES ─────────────────────────────────────────────
-            // Cut grooves out of the top cap so the cover can slide fully
-            translate([-0.1, {GY:.1f}, -cap_t - 0.1])   cube([{GCD:.1f} + 0.1, {GCW:.1f}, cap_t + 0.2]);
-            translate([cw-{GCD:.1f}, {GY:.1f}, -cap_t - 0.1]) cube([{GCD:.1f} + 0.1, {GCW:.1f}, cap_t + 0.2]);
-        }}
-        // ── SCREW BOSSES (for shared rear fastening) ─────────────────
-        // The bottom two chassis screws (at Z=5.0) pass through the rear wall, 
+        // ── MAIN PLATE (Flush Plug, Z=ch-cap_t to Z=ch) ─────────
+        // Fits perfectly inside Tier 1/2/3 cavity
+        translate([wall, {FRONT_LIP}, ch - cap_t])
+            cube([cw - 2*wall, D - wall - {FRONT_LIP}, cap_t]);
+
+        // ── FRONT LIP (Drops down into bezel window to secure Faceplate) ──────
+        // Completes the chassis O-frame since the chassis cannot have a bridged top lip.
+        // Drops down to Z=139 to trap the Faceplate (which ends at Z=140).
+        translate([wall + 2.0, 0, 139.0])
+            cube([cw - 2*wall - 4.0, {FRONT_LIP}, ch - 139.0]);
+
+        // ── SCREW BOSSES (Drop down into chassis Tier 3 to Z=135) ─────────────────
+        // The top two chassis screws (at Z=138.550) pass through the rear wall, 
         // through these blocks, then into the PCB and Faceplate.
-        // We create blocks that fill the Tier 3 cavity (Y = pt + PCB_T to Y = D - wall).
+        // NOTE: The horizontal pegs have been removed so the cap can drop in straight from above!
         
         // Left Standoff
         difference() {{
-            union() {{
-                // Thick Base: From back wall to PCB (Y = pt + PCB_T)
-                // Width 6.0, Height 6.0. The PCB rests on this ledge!
-                // We add +0.1 to Y and length to make it embed 0.1mm into the back wall!
-                translate([wall + 7.0 - 3.0, {pt} + {PCB_T}, -0.1]) 
-                    cube([6.0, D - wall - {pt} - {PCB_T} + 0.1, 8.1]);
-                // Thin Shaft: Passes through PCB to reach the Faceplate (Y = pt)
-                // Shaft is d=3.0 to pass cleanly through the 3.2mm PCB hole.
-                // Starts at Y=pt, goes to Y=pt+PCB_T+0.1 to embed into Thick Base.
-                translate([wall + 7.0, {pt}, 5.0]) rotate([-90, 0, 0]) 
-                    cylinder(d=3.0, h={PCB_T} + 0.1);
-            }}
-            // Clearance hole for M2 screw (d=2.2) passes through BOTH
-            translate([wall + 7.0, D + 0.1, 5.0]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
+            // Thick Base: From back wall to PCB (Y = pt + PCB_T)
+            translate([wall + 7.0 - 3.0, {pt} + {PCB_T}, 135.0]) 
+                cube([6.0, D - wall - {pt} - {PCB_T} + 0.1, ch - cap_t - 135.0 + 0.1]);
+            // Clearance hole for M2 screw (d=2.2)
+            translate([wall + 7.0, D + 0.1, 138.550]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
         
         // Right Standoff
         difference() {{
-            union() {{
-                translate([cw - wall - 7.0 - 3.0, {pt} + {PCB_T}, -0.1]) 
-                    cube([6.0, D - wall - {pt} - {PCB_T} + 0.1, 8.1]);
-                translate([cw - wall - 7.0, {pt}, 5.0]) rotate([-90, 0, 0]) 
-                    cylinder(d=3.0, h={PCB_T} + 0.1);
-            }}
-            translate([cw - wall - 7.0, D + 0.1, 5.0]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
+            translate([cw - wall - 7.0 - 3.0, {pt} + {PCB_T}, 135.0]) 
+                cube([6.0, D - wall - {pt} - {PCB_T} + 0.1, ch - cap_t - 135.0 + 0.1]);
+            translate([cw - wall - 7.0, D + 0.1, 138.550]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
         
-        // ── BATTERY BUCKET (projects upward into Tier 4 cavity) ─────
+        // ── BATTERY BUCKET (hangs down into Tier 3 cavity) ─────
         // Designed to hold a wired CR2450 battery (approx 26x26x6mm)
-        // Positioned in the Y dimension within the Tier 4 cavity (approx Y=6.2 to Y=D-wall)
-        // We'll create a U-shaped retaining wall.
-        // Y start: 6.2, Y end: D-wall-0.2
-        // X width: 28mm (centered)
-        // Z height: 26mm
-        translate([(cw - 28)/2, 6.2, 0]) {{
+        // Positioned in the Y dimension within the Tier 3 cavity (Y={pt}+{PCB_T} to Y=D-wall)
+        // Z hangs down from ch.
+        translate([(cw - 28)/2, {pt} + {PCB_T}, ch - 26]) {{
             difference() {{
                 // Outer block
-                cube([28, D - wall - 6.2 - 0.2, 26]);
-                // Inner hollow (1.2mm walls on sides and front, open on back)
-                translate([1.2, 1.2, -0.1])
-                    cube([28 - 2.4, D - wall - 6.2, 26.2]);
+                cube([28, D - wall - ({pt} + {PCB_T}) - 0.2, 26]);
+                // Inner hollow (1.2mm walls on sides and bottom, open on front and top)
+                translate([1.2, -0.1, 1.2])
+                    cube([28 - 2.4, D - wall - ({pt} + {PCB_T}), 26]);
             }}
         }}
     }}
@@ -684,8 +660,8 @@ module dummy_pcb() {{
     }}
     
     color("White") {{
-        // JST-PH 2-Pin SMD Right-Angle Connector (6x7.8x4.8mm)
-        translate([{35.0 + pad_x:.3f}, {8.0 + pad_y:.3f}, 0]) 
+        // JST-PH 2-Pin SMD Right-Angle Connector (6x7.8x4.8mm) - MOVED TO TOP
+        translate([{35.0 + pad_x:.3f}, {140.0 + pad_y:.3f}, 0]) 
             translate([-6.0/2, -7.8/2, -4.8])
             cube([6.0, 7.8, 4.8]);
     }}

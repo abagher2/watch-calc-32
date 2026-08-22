@@ -17,14 +17,14 @@ public class Renderer {
     
     public func fitSoftkeyLabel(_ rawLabel: String) -> String {
         switch rawLabel {
-        case "e^x": return "𝑒ˣ"
-        case "√x": return "√𝑥"
-        case "x^2": return "𝑥²"
-        case "y^x": return "𝑦ˣ"
-        case "10^x": return "10ˣ"
-        case "1/x": return "1/𝑥"
-        case "x!": return "𝑥!"
-        case "x<>y": return "𝑥<>𝑦"
+        case "𝑒ˣ": return "𝑒ˣ"
+        case "√𝑥": return "√𝑥"
+        case "𝑥²": return "𝑥²"
+        case "𝑦ˣ": return "𝑦ˣ"
+        case "10ˣ": return "10ˣ"
+        case "1/𝑥": return "1/𝑥"
+        case "𝑥!": return "𝑥!"
+        case "𝑥≷𝑦": return "𝑥<>𝑦"
         case "4-LVL": return "4LV"
         case "PRGM": return "PRG"
         case "REGS": return "REG"
@@ -227,7 +227,7 @@ public class Renderer {
     
     // Perfectly symmetrically balanced segments mapping the 128 pixel display 
     // to exactly 6 hardware columns (which average 21.333 pixels wide)
-    private let menuSegments: [(x: Int, w: Int)] = [
+    public let menuSegments: [(x: Int, w: Int)] = [
         (0, 21),
         (22, 20),
         (43, 21),
@@ -272,9 +272,9 @@ public class Renderer {
         if isMore {
             let segment = menuSegments[5]
             fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
-            let textW = getStringWidth("MORE▶", size: .tiny)
+            let textW = getStringWidth("▶", size: .tiny)
             let textX = segment.x + (segment.w - textW) / 2
-            drawString("MORE▶", x: textX, y: 55, size: .tiny, color: false)
+            drawString("▶", x: textX, y: 55, size: .tiny, color: false)
         }
     }
     

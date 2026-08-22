@@ -223,15 +223,15 @@ struct ButtonView: View {
     private func uiLabel(for op: String) -> String {
         if op.isEmpty { return "" }
         switch op {
-        case "y^x": return "𝑦ˣ"
+        case "𝑦ˣ": return "𝑦ˣ"
         case "xVy": return "ˣ√𝑦"
         case "x,y": return "𝑥,𝑦"
-        case "1/x": return "¹/𝑥"
-        case "x!": return "𝑥!"
-        case "√x": return "√𝑥"
-        case "x^2": return "𝑥²"
-        case "e^x": return "𝑒ˣ"
-        case "10^x": return "10ˣ"
+        case "1/𝑥": return "¹/𝑥"
+        case "𝑥!": return "𝑥!"
+        case "√𝑥": return "√𝑥"
+        case "𝑥²": return "𝑥²"
+        case "𝑒ˣ": return "𝑒ˣ"
+        case "10ˣ": return "10ˣ"
         default: return op
         }
     }

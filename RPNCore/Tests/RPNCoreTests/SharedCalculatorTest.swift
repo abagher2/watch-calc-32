@@ -86,7 +86,7 @@ public struct SharedMathTestCases {
                 SharedCalculatorStep("3"),
                 SharedCalculatorStep("SHIFT_BLUE"),
                 SharedCalculatorStep("E", expectedX: "3"), // INT÷ is blue E
-                SharedCalculatorStep("x<>y", expectedX: "1") // swap to see Y (remainder)
+                SharedCalculatorStep("𝑥≷𝑦", expectedX: "1") // swap to see Y (remainder)
             ]
         ),
         
@@ -108,7 +108,7 @@ public struct SharedMathTestCases {
                 // 1. Error correction: INVALID DATA
                 SharedCalculatorStep("1"),
                 SharedCalculatorStep("+/-"),
-                SharedCalculatorStep("√x", expectedX: "INVALID DATA"),
+                SharedCalculatorStep("√𝑥", expectedX: "INVALID DATA"),
 
                 SharedCalculatorStep("<-"),
                 
@@ -125,13 +125,13 @@ public struct SharedMathTestCases {
                 SharedCalculatorStep("5"),
                 SharedCalculatorStep("ENTER"),
                 SharedCalculatorStep("SHIFT_YELLOW"),
-                SharedCalculatorStep("1/x", expectedX: "INVALID DATA"), // yellow 1/x is x!
+                SharedCalculatorStep("1/𝑥", expectedX: "INVALID DATA"), // yellow 1/x is x!
                 SharedCalculatorStep("<-"),
                 
                 // 4. Valid Factorial
                 SharedCalculatorStep("5"),
                 SharedCalculatorStep("SHIFT_YELLOW"),
-                SharedCalculatorStep("1/x", expectedX: "120"),
+                SharedCalculatorStep("1/𝑥", expectedX: "120"),
                 SharedCalculatorStep("<-"),
                 
                 // 5. Domain error on ASIN
@@ -155,7 +155,7 @@ public struct SharedMathTestCases {
                 SharedCalculatorStep("."),
                 SharedCalculatorStep("3"),
                 SharedCalculatorStep("SHIFT_BLUE"),
-                SharedCalculatorStep("√x"), // blue √x is PARTS menu
+                SharedCalculatorStep("√𝑥"), // blue √x is PARTS menu
                 SharedCalculatorStep("LFU_0", expectedX: "10"),
                 SharedCalculatorStep("<-"),
                 
@@ -165,7 +165,7 @@ public struct SharedMathTestCases {
                 SharedCalculatorStep("."),
                 SharedCalculatorStep("3"),
                 SharedCalculatorStep("SHIFT_BLUE"),
-                SharedCalculatorStep("√x"), // blue √x is PARTS menu
+                SharedCalculatorStep("√𝑥"), // blue √x is PARTS menu
                 SharedCalculatorStep("LFU_1", expectedX: "0.3")
             ]
         )

@@ -82,38 +82,38 @@ final class CalculatorEngineTests_Math: XCTestCase {
     
     func testMathEX() {
         type("1")
-        engine.executeMath("e^x")
+        engine.executeMath("𝑒ˣ")
         XCTAssertEqual(engine.stack[0].real, 2.71828, accuracy: 0.0001)
     }
     
     func testMath10X() {
         type("2")
-        engine.executeMath("10^x")
+        engine.executeMath("10ˣ")
         XCTAssertEqual(engine.stack[0].real, 100.0, accuracy: 0.0001)
     }
     
     func testMathSQRT() {
         type("9")
-        engine.executeMath("√x")
+        engine.executeMath("√𝑥")
         XCTAssertEqual(engine.stack[0].real, 3.0, accuracy: 0.0001)
     }
     
     func testMathSQR() {
         type("3")
-        engine.executeMath("x^2")
+        engine.executeMath("𝑥²")
         XCTAssertEqual(engine.stack[0].real, 9.0, accuracy: 0.0001)
     }
     
     func testMathINV() {
         type("2")
-        engine.executeMath("1/x")
+        engine.executeMath("1/𝑥")
         XCTAssertEqual(engine.stack[0].real, 0.5, accuracy: 0.0001)
     }
     
     func testMathYX() {
         typeAndEnter("2")
         type("3")
-        engine.executeMath("y^x")
+        engine.executeMath("𝑦ˣ")
         XCTAssertEqual(engine.stack[0].real, 8.0, accuracy: 0.0001)
     }
     

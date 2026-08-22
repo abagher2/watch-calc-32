@@ -10,10 +10,10 @@ final class TestDoublePow: XCTestCase {
         engine.enter()
         engine.digit(2)
         
-        engine.executeMath("y^x")
+        engine.executeMath("𝑦ˣ")
         print("After first y^x, stack[0] = \(engine.stack[0].real)")
         
-        engine.executeMath("y^x")
+        engine.executeMath("𝑦ˣ")
         print("After second y^x, stack[0] = \(engine.stack[0].real)")
     }
 }

@@ -4,7 +4,7 @@ enum ThemeType: String, CaseIterable, Identifiable {
     case beta = "Beta"
     case pioneerBrown = "Pioneer Brown"
     case pioneerPurpleGreen = "Pioneer Purple/Green"
-    case dm32 = "DM32"
+    case modern = "Modern"
     case retro = "Retro (Pixel LCD)"
     
     var id: String { self.rawValue }
@@ -144,7 +144,7 @@ class ThemeManager: ObservableObject {
         case .beta: return BetaTheme()
         case .pioneerBrown: return PioneerBrownTheme()
         case .pioneerPurpleGreen: return PioneerPurpleGreenTheme()
-        case .dm32: return DM32Theme()
+        case .modern: return DM32Theme()
         case .retro: return RetroTheme()
         }
     }

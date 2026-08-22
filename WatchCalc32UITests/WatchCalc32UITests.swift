@@ -73,9 +73,9 @@ import RPNCore
           
           if ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "ENTER", "SHIFT_YELLOW", "SHIFT_BLUE"].contains(op) {
               navigateToNumericPad(app: app)
-          } else if ["+", "-", "×", "÷", "<-", "+/-", "E", "x<>y"].contains(op) {
+          } else if ["+", "-", "×", "÷", "<-", "+/-", "E", "𝑥≷𝑦"].contains(op) {
               navigateToArithmeticPad(app: app)
-          } else if ["STO", "RCL", "√x", "LN", "SIN", "COS", "TAN", "e^x", "1/x", "LFU_0", "LFU_1"].contains(op) {
+          } else if ["STO", "RCL", "√𝑥", "LN", "SIN", "COS", "TAN", "𝑒ˣ", "1/𝑥", "LFU_0", "LFU_1"].contains(op) {
               navigateToUpperMatrixPad(app: app)
           }
           
@@ -95,13 +95,13 @@ import RPNCore
                   textField.tap()
                   textField.typeText("A\n")
               }
-          } else if op == "x<>y" {
-              app.buttons["func_𝑥><𝑦"].tap()
-          } else if op == "√x" {
+          } else if op == "𝑥≷𝑦" {
+              app.buttons["func_𝑥≷𝑦"].tap()
+          } else if op == "√𝑥" {
               app.buttons["func_√𝑥"].tap()
-          } else if op == "e^x" {
+          } else if op == "𝑒ˣ" {
               app.buttons["func_𝑒ˣ"].tap()
-          } else if op == "1/x" {
+          } else if op == "1/𝑥" {
               app.buttons["func_¹/𝑥"].tap()
           } else if op == "LFU_0" {
               app.buttons["IP (Integer Part)"].tap()

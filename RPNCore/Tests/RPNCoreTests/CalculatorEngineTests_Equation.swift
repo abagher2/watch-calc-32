@@ -46,7 +46,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         engine.executeMath("ENTER")
         engine.executeMath("π")
         engine.executeMath("×")
-        engine.executeMath("√x")
+        engine.executeMath("√𝑥")
         engine.executeMath("÷")
         
         // e^ ( ... )
@@ -55,28 +55,28 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         engine.startRcl()
         engine.submitAlpha("M")
         engine.executeMath("-")
-        engine.executeMath("x^2")
+        engine.executeMath("𝑥²")
         engine.executeMath("+/-")
         
         engine.digit(2)
         engine.executeMath("ENTER")
         engine.startRcl()
         engine.submitAlpha("S")
-        engine.executeMath("x^2")
+        engine.executeMath("𝑥²")
         engine.executeMath("×")
         engine.executeMath("÷")
         
-        engine.executeMath("e^x")
+        engine.executeMath("𝑒ˣ")
         
         // Final multiply
         engine.executeMath("×")
         
         let expectedSteps = [
             "1", "RCL S", "÷",
-            "2", "π", "×", "√x", "÷",
-            "RCL X", "RCL M", "-", "x^2", "+/-",
-            "2", "RCL S", "x^2", "×", "÷",
-            "e^x", "×"
+            "2", "π", "×", "√𝑥", "÷",
+            "RCL X", "RCL M", "-", "𝑥²", "+/-",
+            "2", "RCL S", "𝑥²", "×", "÷",
+            "𝑒ˣ", "×"
         ]
         
         XCTAssertEqual(engine.currentProgramSteps, expectedSteps)

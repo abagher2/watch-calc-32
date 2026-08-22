@@ -145,7 +145,7 @@ struct NumericPadView: View {
                 CalcButton("9", yellow: "▸km", blue: "▸mi", isDigit: true, action: onAction)
             }
             GridRow {
-                CalcButton("4", yellow: "▸θ,r", blue: "▸𝑦,𝑥", isDigit: true, action: onAction)
+                CalcButton("4", yellow: "▸θ,𝑟", blue: "▸𝑦,𝑥", isDigit: true, action: onAction)
                 CalcButton("5", yellow: "▸HR", blue: "▸HMS", isDigit: true, action: onAction)
                 CalcButton("6", yellow: "▸DEG", blue: "▸RAD", isDigit: true, action: onAction)
             }
@@ -170,13 +170,13 @@ struct ArithmeticPadView: View {
     var body: some View {
         Grid(horizontalSpacing: 2, verticalSpacing: 2) {
             GridRow {
-                CalcButton("÷", yellow: "x?y", blue: "x?0", isDigit: false) { onAction($0) }
+                CalcButton("÷", yellow: "𝑥?𝑦", blue: "𝑥?0", isDigit: false) { onAction($0) }
                 CalcButton("+/-", yellow: "MODES", blue: "MOD", isDigit: false) { onAction($0) }
                 CalcButton("E", yellow: "DISP", blue: "INT÷", isDigit: false) { onAction($0) }
             }
             GridRow {
                 CalcButton("×", yellow: "BASE", blue: "FLAGS", isDigit: false) { onAction($0) }
-                CalcButton("𝑥><𝑦", yellow: "MEM", blue: "𝑥><?", isDigit: false) { onAction($0) }
+                CalcButton("𝑥≷𝑦", yellow: "MEM", blue: "𝑥≷?", isDigit: false) { onAction($0) }
                 CalcButton("<-", yellow: "CLEAR", blue: "", isDigit: false) { onAction($0) }
             }
             GridRow {
@@ -206,15 +206,15 @@ struct AlphaLFUPadView: View {
     private func uiLabel(for op: String) -> String {
         if op.isEmpty { return "" }
         switch op {
-        case "y^x": return "𝑦ˣ"
+        case "𝑦ˣ": return "𝑦ˣ"
         case "xVy": return "ˣ√𝑦"
         case "x,y": return "𝑥,𝑦"
-        case "1/x": return "¹/𝑥"
-        case "x!": return "𝑥!"
-        case "√x": return "√𝑥"
-        case "x^2": return "𝑥²"
-        case "e^x": return "𝑒ˣ"
-        case "10^x": return "10ˣ"
+        case "1/𝑥": return "¹/𝑥"
+        case "𝑥!": return "𝑥!"
+        case "√𝑥": return "√𝑥"
+        case "𝑥²": return "𝑥²"
+        case "𝑒ˣ": return "𝑒ˣ"
+        case "10ˣ": return "10ˣ"
         default: return op
         }
     }
@@ -260,7 +260,7 @@ struct UpperMatrixPadView: View {
     var body: some View {
         Grid(horizontalSpacing: 2, verticalSpacing: 2) {
             GridRow {
-                CalcButton("𝑦ˣ", yellow: "ˣ√𝑦", blue: "x̄,ȳ", isDigit: false) { onAction($0) }
+                CalcButton("𝑦ˣ", yellow: "ˣ√𝑦", blue: "𝑥̄,𝑦̄", isDigit: false) { onAction($0) }
                 CalcButton("¹/𝑥", yellow: "𝑥!", blue: "s,σ", isDigit: false) { onAction($0) }
                 CalcButton("Σ+", yellow: "SUMS", blue: "Σ-", isDigit: false) { onAction($0) }
             }

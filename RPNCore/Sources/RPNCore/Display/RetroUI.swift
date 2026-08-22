@@ -10,10 +10,11 @@ public class RetroUI {
     public var isShowingRegisters: Bool = false
     public var regsOffset: Int = 0
     
-    // C47 Mode emulation vars
+    // Advanced Mode emulation vars
     public enum C47Mode { case none, solve, integrate, plot, xeq }
     public var c47Mode: C47Mode = .none
     public var c47Program: CalculatorEngine.Program? = nil
+    public var c47SelectedVar: String = "X"
     
     // Formatter hook injected by platform
     public var doubleFormatter: ((Double, CalculatorEngine.DisplayMode) -> String)?
@@ -38,8 +39,8 @@ public class RetroUI {
         
         // --- 1. Top Annunciators (Indicators) ---
         var indicators: [FirmwareView] = []
-        if engine.shiftState == 1 { indicators.append(FirmwareText("f", font: .small)) }
-        if engine.shiftState == 2 { indicators.append(FirmwareText("g", font: .small)) }
+        if engine.shiftState == 1 { indicators.append(FirmwareText("↰", font: .small)) }
+        if engine.shiftState == 2 { indicators.append(FirmwareText("↱", font: .small)) }
         if engine.angleMode == .rad { indicators.append(FirmwareText("RAD", font: .small)) }
         else if engine.angleMode == .grd { indicators.append(FirmwareText("GRD", font: .small)) }
         
@@ -60,8 +61,26 @@ public class RetroUI {
         else if engine.baseMode == .oct { indicators.append(FirmwareText("OCT", font: .small)) }
         else if engine.baseMode == .bin { indicators.append(FirmwareText("BIN", font: .small)) }
         
-        let indicatorRow = FirmwareHStack(alignment: .center, spacing: 4, children: indicators)
-        indicatorRow.draw(in: renderer, x: 2, y: 2)
+        // Split indicators into two groups to prevent overflowing the 128px screen limit
+        var leftIndicators: [FirmwareView] = []
+        var rightIndicators: [FirmwareView] = []
+        
+        for (index, indicator) in indicators.enumerated() {
+            if index < indicators.count / 2 {
+                leftIndicators.append(indicator)
+            } else {
+                rightIndicators.append(indicator)
+            }
+        }
+        
+        // Distribute spacing tightly to prevent truncation (especially of EQN)
+        let leftRow = FirmwareHStack(alignment: .center, spacing: 2, children: leftIndicators)
+        leftRow.draw(in: renderer, x: 2, y: 2)
+        
+        let rightRow = FirmwareHStack(alignment: .center, spacing: 2, children: rightIndicators)
+        // Measure right side to right-align it
+        let rightWidth = 126 - 2 // Arbitrary right bound
+        rightRow.draw(in: renderer, x: max(64, rightWidth - 50), y: 2) // We can just draw at x: 64 to split it
 
         
         // --- 2. Bottom Softkeys (Menus / LFU) ---
@@ -72,7 +91,7 @@ public class RetroUI {
                 if let menu = activeMenu {
                     renderer.renderMenu(menu: menu, query: menuAlphaQuery, offset: menuOffset)
                 } else if c47Mode != .none {
-                    // Emulate C47 Menu (Simplified for Layout)
+                    // Emulate Advanced Menu (Simplified for Layout)
                     var items: [MenuItem] = []
                     if c47Program == nil {
                         for prog in engine.programs {
@@ -95,13 +114,12 @@ public class RetroUI {
                         }
                     }
                     
-                    let segmentWidth = 128 / 6
                     for i in 0..<min(6, items.count) {
                         let item = items[i]
-                        let xOffset = i * segmentWidth
-                        renderer.fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: true)
+                        let segment = renderer.menuSegments[i]
+                        renderer.fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
                         let textW = renderer.getStringWidth(item.label, size: .tiny)
-                        let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
+                        let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
                         renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: false)
                     }
                 } else if let pending = waitingForMenuDigit {
@@ -110,14 +128,13 @@ public class RetroUI {
     
             } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
                 if engine.requestPlot {
-                    let segmentWidth = 128 / 6
                     for i in 0..<6 {
-                        let xOffset = i * segmentWidth
+                        let segment = renderer.menuSegments[i]
                         let isSelected = engine.selectedPlotMarkerIndex == i
-                        renderer.fillRect(x: xOffset, y: 54, w: segmentWidth - 1, h: 10, color: !isSelected)
+                        renderer.fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: !isSelected)
                         let label = "R\(i + 1)"
                         let textW = renderer.getStringWidth(label, size: .tiny)
-                        let textX = max(xOffset, xOffset + (segmentWidth - 1 - textW) / 2)
+                        let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
                         renderer.drawString(label, x: textX, y: 55, size: .tiny, color: isSelected)
                     }
                 } else {
@@ -163,14 +180,20 @@ public class RetroUI {
                 return "?:"
             }
             
-            var stackLines: [FirmwareView] = []
-            for i in 0..<4 {
-                let regIdx = regsOffset + (3 - i)
-                let name = getRegName(regIdx)
-                let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
-                stackLines.append(FirmwareText("\(name) \(valStr)", font: .small))
+            // Display a single register at a time, left-justified
+            let regIdx = regsOffset
+            let name = getRegName(regIdx)
+            let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
+            
+            let displayStr = "\(name)\(valStr)"
+            let textW = renderer.getStringWidth(displayStr, size: .display)
+            if textW > 124 {
+                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
+                let overflowOffset = 124 - textW
+                FirmwareText(displayStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
+            } else {
+                FirmwareText(displayStr, font: .display).draw(in: renderer, x: 2, y: 24)
             }
-            FirmwareVStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
         } else if let error = engine.errorMessage {
             FirmwareText(error, font: .display).draw(in: renderer, x: 2, y: 24)
         } else if let status = engine.statusMessage {
