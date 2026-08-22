@@ -145,54 +145,62 @@ pt   = {pt};
 GAP  = {gap};        
 
 module key_button(w, h, label) {{
-    // Base Plunger (Z=0 to Z=0.4). Straight vertical walls for bed adhesion.
-    translate([0, 0, 0.2]) cube([{pw}, {ph}, 0.4], center=true);
+    // CYLINDRICAL PEG (Print-in-place)
+    // Prints flat on the bed (Z=0) so it rests exactly on the tactile plunger.
     
-    // Bottom Chamfer (Z=0.4 to Z=1.4). Transitions from base to shaft.
-    hull() {{
-        translate([0, 0, 0.41]) cube([{pw}, {ph}, 0.01], center=true);
-        translate([0, 0, 1.39]) cube([{pw} - 2.0, {ph} - 2.0, 0.01], center=true);
+    // 1. Bed adhesion & micro-support tabs (Z=0 to Z=0.2)
+    translate([0, 0, 0.1]) cylinder(d=5.0, h=0.2, center=true);
+    for(a=[0, 90, 180, 270]) {{
+        rotate([0, 0, a]) translate([2.5 + GAP/2, 0, 0.1]) cube([GAP+0.1, 0.6, 0.2], center=true);
     }}
+
+    // 2. Base Peg (Z=0.2 to Z=1.0)
+    translate([0, 0, 0.6]) cylinder(d=5.0, h=0.8, center=true);
     
-    // Shaft (Z=1.4 to Z=2.2).
-    translate([0, 0, 1.8]) cube([{pw} - 2.0, {ph} - 2.0, 0.8], center=true);
+    // 3. Flange (Z=1.0 to Z=1.6)
+    // Prevents button from falling out the front.
+    translate([0, 0, 1.3]) cylinder(d=6.5, h=0.6, center=true);
     
-    // Top Keycap with 45-degree chamfered underside (Z=2.2 to Z=3.5). Height = 1.3mm
+    // 4. Upper Shaft (Z=1.6 to Z=2.2)
+    translate([0, 0, 1.9]) cylinder(d=5.0, h=0.6, center=true);
+    
+    // 5. Keycap (Z=2.2 to Z=3.5)
     hull() {{
-        // Bottom of keycap (matches shaft size to prevent overhangs!)
-        translate([0, 0, 2.21]) cube([{pw} - 2.0, {ph} - 2.0, 0.01], center=true);
-        // Middle of keycap (full size, 0.6mm up = ~45 degree chamfer!)
+        translate([0, 0, 2.21]) cylinder(d=5.0, h=0.01, center=true);
         translate([0, 0, 2.85]) hull() {{
             for(x=[-w/2+1.0, w/2-1.0], y=[-h/2+1.0, h/2-1.0])
                 translate([x, y, 0]) cylinder(r=1.0, h=0.01);
         }}
-        // Top of keycap
         translate([0, 0, 3.5]) hull() {{
-            for(x=[-w/2+1.0, w/2-1.0], y=[-h/2+1.0, h/2-1.0])
-                translate([x, y, 0]) cylinder(r=0.8, h=0.01);
+            for(x=[-w/2+1.5, w/2-1.5], y=[-h/2+1.5, h/2-1.5])
+                translate([x, y, 0]) cylinder(r=1.0, h=0.01);
         }}
     }}
 }}
 
 module button_pocket(x, y, w, h) {{
     translate([x, y, 0]) {{
-        // Bottom Cavity (Z=-0.1 to Z=0.5). Straight walls for base.
-        translate([0, 0, 0.2])
-            cube([{pw} + GAP*2, {ph} + GAP*2, 0.6], center=true);
-
-        // Bottom Chamfer Roof (Z=0.5 to Z=1.5). Eliminates horizontal overhang!
+        // 1. Bottom Shaft Hole (Z=-0.1 to Z=1.0)
+        // Must clear the d=5.0 peg.
+        translate([0, 0, 0.45]) cylinder(d=5.0 + GAP*2, h=1.1, center=true);
+        
+        // 2. Flange Cavity (Z=1.0 to Z=1.6)
+        translate([0, 0, 1.3]) cylinder(d=6.5 + GAP*2, h=0.6, center=true);
+        
+        // 3. Roof Chamfer (Z=1.6 to Z=2.0)
+        // Transitions from 6.5 back to 5.0 without overhangs.
         hull() {{
-            translate([0, 0, 0.5]) cube([{pw} + GAP*2, {ph} + GAP*2, 0.01], center=true);
-            translate([0, 0, 1.5]) cube([{pw} - 2.0 + GAP*2, {ph} - 2.0 + GAP*2, 0.01], center=true);
+            translate([0, 0, 1.6]) cylinder(d=6.5 + GAP*2, h=0.01, center=true);
+            translate([0, 0, 2.0]) cylinder(d=5.0 + GAP*2, h=0.01, center=true);
         }}
-
-        // Shelf Hole (Z=1.5 to Z=2.0). 
-        translate([0, 0, 1.75])
-            cube([{pw} - 2.0 + GAP*2, {ph} - 2.0 + GAP*2, 0.5], center=true);
-
-        // Top Indentation with 45-degree chamfered bottom!
+        
+        // 4. Upper Shaft Hole (Z=2.0 to Z=2.5)
+        translate([0, 0, 2.25]) cylinder(d=5.0 + GAP*2, h=0.5, center=true);
+        
+        // 5. Top Indentation (Z=2.5 to Z=3.1)
+        // Clears the keycap.
         hull() {{
-            translate([0, 0, 2.0]) cube([{pw} - 2.0 + GAP*2, {ph} - 2.0 + GAP*2, 0.01], center=true);
+            translate([0, 0, 2.5]) cylinder(d=5.0 + GAP*2, h=0.01, center=true);
             translate([0, 0, 2.6]) cube([w + GAP*2, h + GAP*2, 0.01], center=true);
             translate([0, 0, 3.1]) cube([w + GAP*2, h + GAP*2, 0.01], center=true);
         }}
@@ -704,8 +712,10 @@ if __name__ == "__main__":
         ("faceplate_mjf",  "designs/faceplate_mjf.scad",  "../scratch/stl/faceplate_mjf.stl"),
         ("faceplate_fdm",  "designs/faceplate_fdm.scad",  "../scratch/stl/faceplate_fdm.stl"),
         ("chassis",        "designs/chassis.scad",        "../scratch/stl/chassis.stl"),
+        ("chassis_tapered","designs/chassis_tapered.scad","../scratch/stl/chassis_tapered.stl"),
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
         ("sliding_cover",  "designs/sliding_cover.scad",  "../scratch/stl/sliding_cover.stl"),
+        ("tpu_stretch_cover","designs/tpu_stretch_cover.scad","../scratch/stl/tpu_stretch_cover.stl"),
         ("buttons",        "designs/buttons.scad",        "../scratch/stl/buttons.stl"),
         ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),
     ]

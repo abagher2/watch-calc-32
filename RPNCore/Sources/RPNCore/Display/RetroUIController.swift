@@ -65,12 +65,12 @@ public class RetroUIController {
         }
 
         if retroUI.isShowingRegisters {
-            if engine.shiftState == 1 && finalOp == .digit8 { // Up arrow
+            if finalOp == .integrate { // Up arrow
                 retroUI.regsOffset = max(0, retroUI.regsOffset - 1)
                 engine.shiftState = 0
                 return
             }
-            if engine.shiftState == 1 && finalOp == .digit7 { // Down arrow
+            if finalOp == .solve { // Down arrow
                 retroUI.regsOffset += 1
                 engine.shiftState = 0
                 return
@@ -83,12 +83,12 @@ public class RetroUIController {
         }
         
         if engine.isProgrammingMode || engine.isEquationMode {
-            if engine.shiftState == 1 && finalOp == .digit8 { // Up arrow
+            if finalOp == .integrate { // Up arrow
                 retroUI.programScrollOffset += 1
                 engine.shiftState = 0
                 return
             }
-            if engine.shiftState == 1 && finalOp == .digit7 { // Down arrow
+            if finalOp == .solve { // Down arrow
                 retroUI.programScrollOffset = max(0, retroUI.programScrollOffset - 1)
                 engine.shiftState = 0
                 return

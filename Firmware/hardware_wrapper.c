@@ -25,7 +25,9 @@ volatile struct EmuDisplay emu_display = {
 };
 void hw_init(void) {
     stdio_init_all();
+#ifndef EMULATOR
     watchdog_enable(2000, 1);
+#endif
     printf("C Booted! Magic check: %lx\n", emu_display.magic[0]);
     void* ptr = malloc(32);
     printf("Malloc: %p\n", ptr);
@@ -113,6 +115,7 @@ void sleep_ms_c(uint32_t ms) {
 }
 
 int get_uart_char_c(void) {
+    watchdog_update();
     return getchar_timeout_us(0);
 }
 

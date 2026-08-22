@@ -129,6 +129,26 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
 static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, lfuManager: LFUManager) {
     var finalOp = op
     
+    if finalOp == .shiftYellow {
+        engine.setShift(1)
+        return
+    }
+    if finalOp == .shiftBlue {
+        engine.setShift(2)
+        return
+    }
+    
+    if engine.shiftState > 0 {
+        for key in HP32KeyMap.standardGrid {
+            if key.primaryAction == op {
+                if engine.shiftState == 1, let yellow = key.yellowAction { finalOp = yellow }
+                else if engine.shiftState == 2, let blue = key.blueAction { finalOp = blue }
+                break
+            }
+        }
+        engine.setShift(0)
+    }
+    
     if finalOp == .show {
         isShowingFullPrecision = true
         needsDisplay = true
@@ -144,15 +164,13 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     }
 
     if isShowingRegisters {
-        if engine.shiftState == 1 && finalOp == .digit8 { // Up arrow
+        if finalOp == .integrate { // Up arrow
             regsOffset = max(0, regsOffset - 1)
-            engine.shiftState = 0
             needsDisplay = true
             return
         }
-        if engine.shiftState == 1 && finalOp == .digit7 { // Down arrow
+        if finalOp == .solve { // Down arrow
             regsOffset += 1
-            engine.shiftState = 0
             needsDisplay = true
             return
         }
@@ -165,15 +183,13 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     }
     
     if engine.isProgrammingMode || engine.isEquationMode {
-        if engine.shiftState == 1 && finalOp == .digit8 { // Up arrow
+        if finalOp == .integrate { // Up arrow
             programScrollOffset += 1
-            engine.shiftState = 0
             needsDisplay = true
             return
         }
-        if engine.shiftState == 1 && finalOp == .digit7 { // Down arrow
+        if finalOp == .solve { // Down arrow
             programScrollOffset = max(0, programScrollOffset - 1)
-            engine.shiftState = 0
             needsDisplay = true
             return
         }
@@ -259,26 +275,6 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             needsDisplay = true
             return
         }
-    }
-    
-    if finalOp == .shiftYellow {
-        engine.setShift(1)
-        return
-    }
-    if finalOp == .shiftBlue {
-        engine.setShift(2)
-        return
-    }
-    
-    if engine.shiftState > 0 {
-        for key in HP32KeyMap.standardGrid {
-            if key.primaryAction == op {
-                if engine.shiftState == 1, let yellow = key.yellowAction { finalOp = yellow }
-                else if engine.shiftState == 2, let blue = key.blueAction { finalOp = blue }
-                break
-            }
-        }
-        engine.setShift(0)
     }
     
     if finalOp == .off {

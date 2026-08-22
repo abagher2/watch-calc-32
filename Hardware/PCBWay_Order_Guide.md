@@ -1,47 +1,47 @@
-# WatchCalc 32 PCBWay Ordering Guide
+# WatchCalc 32 Prototype Ordering Guide
 
-The manufacturing files have been successfully bundled into `output/WatchCalc32_PCBWay_Manufacturing.zip`. This zip contains three folders: `PCBA_Files` (for the circuit board assembly), `3D_Printing_Files` (for the ruggedized shell), and `Firmware_Files` (for factory IC programming).
+For this prototyping phase, we are splitting the manufacturing between **PCBWay** (for the complex printed circuit board and the faceplate) and **Local 3D Printing** (for the chassis, buttons, top cap, and cover).
 
-To achieve your target of **$10 per unit** while ensuring the device is waterproof and drop-resistant, please select the following options on the PCBWay UI.
+## 1. PCBWay Order Bundle (`WatchCalc32_PCBWay_Manufacturing_Bundle.zip`)
 
-## 1. Ordering the PCBA (Circuit Board Assembly)
-Upload the `PCBA_Files` folder to the **PCB Assembly (PCBA)** quoting engine.
+This bundle contains everything you need to send to PCBWay. It is split into internal folders:
 
-### PCB Options
+### A. `PCBA_Files` (The Circuit Board)
+Upload this folder to the **PCB Assembly (PCBA)** quoting engine.
 - **Material**: FR-4
 - **Layers**: 4
-- **Dimensions**: ~71mm x 144mm (refer to gerber bounding box)
 - **Thickness**: 1.6mm
-- **Min Track/Spacing**: 6/6 mil (0.15mm) - Standard tier
-- **Min Hole Size**: 0.2mm
-- **Solder Mask**: Matte Black (For premium calculator look)
-- **PCB Silkscreen**: White (Note: PCBWay's CAM engineers will automatically trim the PCB silkscreen where it overlaps the 40 tactile switch pads. This is expected and acceptable.)
-- **Surface Finish**: ENIG (Electroless Nickel Immersion Gold) - Highly recommended for tactile switch pads and E-Ink FPC connector.
-- **Via Process**: Tenting Vias
+- **Solder Mask**: Matte Black
+- **Surface Finish**: ENIG (Electroless Nickel Immersion Gold)
+- **Turnkey Assembly:** Yes (PCBWay sources ALPS switches, Pico 2 RP2350, E-Ink, and JST battery connector).
+- **Conformal Coating:** **YES**. Specify "Acrylic (AR)" coating.
+- **CRITICAL MASKING INSTRUCTION:** You MUST instruct PCBWay to apply Kapton tape masks over all 40 tactile switches *before* conformal coating.
 
-* **Quantity:** 100 (This amortizes the ~$30 setup fee down to $0.30 per board).
-* **Turnkey Assembly:** Yes (PCBWay will source the ALPS switches, the Pico 2 (RP2350) module, the E-Ink display, and the JST battery connector).
-* **Factory IC Programming (Firmware):** Upload the `.uf2` file from the `Firmware_Files` folder (e.g. `WatchCalcFirmware_RP2350.uf2` for Pico 2) and request PCBWay to pre-flash the microcontrollers before final assembly.
-* **Conformal Coating:** **YES**. *This is the critical step for waterproofing!* Specify "Acrylic (AR)" coating. **CRITICAL INSTRUCTION FOR PCBWAY:** You must instruct them to apply Kapton tape masks over all 40 tactile switches and all headers/through-holes *before* applying the conformal coating. If the liquid coating gets inside the mechanical domes of the switches, it will permanently ruin the buttons.
+### B. `Faceplate_Files` (The MJF Nylon Cover)
+Go to the **CNC/3D Printing** quoting engine and upload the `.stl` file from this folder.
+* **faceplate_mjf.stl** (Standard flat design)
+* **faceplate_tapered.stl** (Classic HP-32SII style with raised, sloped bezel around screen)
+- **Technology:** MJF (Multi Jet Fusion)
+- **Material:** HP Nylon PA12
+- **Clearance Note for Factory:** This part contains print-in-place moving buttons with exactly **0.60mm** clearance on a 45-degree chamfer. Ensure unsintered powder is blown out of the internal button gaps.
 
-## 2. Ordering the 3D Printed Shell (Ruggedized)
-Go to the **CNC/3D Printing** quoting engine and upload the `.stl` files from `3D_Printing_Files`. Since you are ordering 100 units, 3D printing starts to scale well, but you must choose the right materials.
+---
 
-### Chassis.stl (The Bottom Tub)
-* **Technology:** MJF (Multi Jet Fusion)
-* **Material:** HP Nylon PA12
-* **Color:** Black (Dyed)
-* **Why?** Nylon PA12 is extremely tough, highly impact-resistant, and slightly flexible. It will easily survive drops off a school desk without shattering. 
+## 2. Local 3D Printing Bundle 
 
-### faceplate_mjf.stl (The Top Cover)
-* **Technology:** MJF (Multi Jet Fusion)
-* **Material:** HP Nylon PA12
-* **Important Note for Factory:** This part contains print-in-place moving buttons with a 0.5mm clearance. Please ensure all unsintered powder is thoroughly blown out of the internal button gaps with compressed air during post-processing.
-* **Why?** Same as the chassis. Nylon provides a fantastic matte texture that feels premium and resists scratches.
-* **Custom UV Screen Print:** Included in your `3D_Printing_Files` folder is `uv_silkscreen.svg`. Request a "Custom UV Print" for the faceplate and upload this vector file. PCBWay will precisely align this graphic onto the physical faceplate so the calculator keys and titles are perfectly labeled in full color!
+This bundle contains the parts you can print locally on your own FDM or Resin printer for the prototype.
+
+- **chassis.stl** (Standard) OR **chassis_tapered.stl** (Classic wedge-shaped back) OR **chassis_tpu.stl** (For use with flexible materials)
+- **top_cap.stl**: The top cover that seals the display/battery end.
+- **sliding_cover.stl**: Optional hard sliding cover (PLA/PETG).
+- **tpu_stretch_cover.stl**: Solid TPU flexible bumper cover (Tupperware lid style, no cutouts).
+- **faceplate_fdm.stl**: Standard faceplate with 0.4mm micro-supports for local FDM testing.
+
+---
 
 ## 3. Final Assembly Steps
-1. Place the PCB into the Nylon Chassis.
-2. Screw the Nylon Faceplate (with its integrated print-in-place buttons) down over the chassis using four M3 self-tapping screws.
-3. Stick the 3D-printed angled feet (or standard rubber bumpers) to the back.
-4. (Optional) Apply a clear polycarbonate adhesive square over the OLED screen cutout to seal the front display.
+
+1. Place the assembled PCB into your locally printed Chassis. It sits on the embedded standoffs.
+2. Slide the Top Cap into place over the display end.
+3. Place the Faceplate over the PCB.
+4. **Fastening:** Use **four M2 machine screws**. The clearance holes in the chassis are precisely `d=2.2mm` (Do NOT use M3 screws!). The faceplate has blind holes designed to receive the M2 thread.

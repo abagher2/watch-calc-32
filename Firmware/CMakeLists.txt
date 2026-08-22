@@ -37,6 +37,7 @@ add_executable(WatchCalcFirmware
 )
 
 target_compile_definitions(WatchCalcFirmware PRIVATE EMULATOR=1)
+target_compile_options(WatchCalcFirmware PRIVATE $<$<COMPILE_LANGUAGE:Swift>:-DEMULATOR>)
 
 set_target_properties(WatchCalcFirmware PROPERTIES LINKER_LANGUAGE CXX)
 
