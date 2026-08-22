@@ -6,13 +6,73 @@ func parseUInt(_ str: String) -> Int? {
             result = result * 10 + Int(c - 48)
             hasDigits = true
         } else if c == 45 {
-            // ignore minus for now or handle appropriately if needed
             return nil
         } else {
             return nil
         }
     }
     return hasDigits ? result : nil
+}
+
+func parseUIntBytes(_ buf: UnsafePointer<UInt8>, _ start: Int, _ end: Int) -> Int? {
+    if start == end { return nil }
+    var result = 0
+    var hasDigits = false
+    for i in start..<end {
+        let c = buf[i]
+        if c == 32 || c == 10 || c == 13 { continue }
+        if c >= 48 && c <= 57 {
+            result = result * 10 + Int(c - 48)
+            hasDigits = true
+        } else if c == 45 {
+            return nil
+        } else {
+            return nil
+        }
+    }
+    return hasDigits ? result : nil
+}
+
+func matchOpBytes(_ buf: UnsafePointer<UInt8>, _ len: Int) -> CalculatorOperation? {
+    var start = 0
+    var end = len
+    while start < end && buf[start] <= 32 { start += 1 }
+    while end > start && buf[end - 1] <= 32 { end -= 1 }
+    let trimmedLen = end - start
+    if trimmedLen == 0 { return nil }
+    
+    for op in CalculatorOperation.allCases {
+        let utf8 = op.stringValue.utf8
+        if utf8.count == trimmedLen {
+            var match = true
+            var i = 0
+            for byte in utf8 {
+                if byte != buf[start + i] {
+                    match = false
+                    break
+                }
+                i += 1
+            }
+            if match { return op }
+        }
+    }
+    return nil
+}
+
+func isCommand(_ buf: UnsafePointer<UInt8>, _ len: Int, _ cmd: StaticString) -> Bool {
+    var start = 0
+    var end = len
+    while start < end && buf[start] <= 32 { start += 1 }
+    while end > start && buf[end - 1] <= 32 { end -= 1 }
+    let trimmedLen = end - start
+    
+    return cmd.withUTF8Buffer { utf8 in
+        if utf8.count != trimmedLen { return false }
+        for i in 0..<trimmedLen {
+            if utf8[i] != buf[start + i] { return false }
+        }
+        return true
+    }
 }
 
 @main
@@ -27,9 +87,7 @@ struct WatchCalcFirmware {
 
 @inline(never)
 static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: CalculatorEngine, _ lfu: LFUManager) {
-    let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-    
-    if str == "50" { // "C"
+    if isCommand(buf, len, "50") { // "C"
         WatchCalcFirmware.isSleeping = false
     }
     
@@ -38,28 +96,31 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     }
     
     if engine.isWaitingForLabel {
-        if str == "<-" || str == "BACKSPACE" {
+        if isCommand(buf, len, "<-") || isCommand(buf, len, "BACKSPACE") {
             engine.submitAlpha("<-")
-        } else if str == "ENTER" {
+        } else if isCommand(buf, len, "ENTER") {
             engine.submitAlpha("ENTER")
         } else {
+            // Very rare case for waitingForLabel, convert to String as fallback
+            let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
             engine.submitAlpha(str)
         }
         needsDisplay = true
         return
     }
     
-    if let op = CalculatorOperation.allCases.first(where: { $0.stringValue == str }) {
+    if let op = matchOpBytes(buf, len) {
         processAction(op, engine: engine, lfuManager: lfu)
-    } else if let id = parseUInt(str), let op = CalculatorOperation(rawValue: id) {
+    } else if let id = parseUIntBytes(buf, 0, len), let op = CalculatorOperation(rawValue: id) {
         processAction(op, engine: engine, lfuManager: lfu)
-    } else if str == "CLEAR_ALL" {
+    } else if isCommand(buf, len, "CLEAR_ALL") {
         engine.clearAll()
         isShowingRegisters = false
         isShowingFullPrecision = false
         regsOffset = 0
         needsDisplay = true
     } else {
+        let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
         engine.executeMath(str)
     }
 }
@@ -372,7 +433,6 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         }
     }
     
-    static var uartLen = 0
     static var needsDisplay = true
     static var lastActivityTime: UInt64 = 0
     static var isSleeping = false
@@ -389,6 +449,13 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     static var c47Program: CalculatorEngine.Program? = nil
     static var c47SelectedVar: String = "X"
 
+    static let rxRingBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 256)
+    static var rxHead = 0
+    static var rxTail = 0
+    
+    static let lineBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
+    static var lineLen = 0
+
     @inline(never)
     static func loopIteration() {
         let now = hw_time_us()
@@ -401,22 +468,31 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
         let ch = get_uart_char_c()
         if ch >= 0 {
             lastActivityTime = now
-            if ch == 13 || ch == 10 {
-                if uartLen > 0 {
-                    let str = String(decoding: UnsafeBufferPointer(start: uartBuf, count: uartLen), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
-                    
+            let next = (rxHead + 1) % 256
+            if next != rxTail {
+                rxRingBuf[rxHead] = UInt8(ch)
+                rxHead = next
+            }
+        }
+        
+        while rxTail != rxHead {
+            let b = rxRingBuf[rxTail]
+            rxTail = (rxTail + 1) % 256
+            
+            if b == 13 || b == 10 {
+                if lineLen > 0 {
                     if isSleeping {
-                        if str == "C" || str == "50" || str == "CLEAR" {
+                        if isCommand(lineBuf, lineLen, "C") || isCommand(lineBuf, lineLen, "50") || isCommand(lineBuf, lineLen, "CLEAR") {
                             isSleeping = false
                             needsDisplay = true
                         }
                     }
                     
                     if !isSleeping {
-                        dispatchUART(uartBuf, uartLen, engine, lfuManager)
+                        dispatchUART(lineBuf, lineLen, engine, lfuManager)
                         needsDisplay = true
                     }
-                    uartLen = 0
+                    lineLen = 0
                 }
                 
                 // Dump Screen Data to UART
@@ -438,15 +514,15 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 
                 for _ in 0..<32 { pushTx(61) } // "================================"
                 pushTx(10) // \n
-            } else if ch == 8 || ch == 127 {
-                if uartLen > 0 {
-                    uartLen -= 1
+            } else if b == 8 || b == 127 {
+                if lineLen > 0 {
+                    lineLen -= 1
                     needsDisplay = true
                 }
             } else {
-                if uartLen < 31 {
-                    uartBuf[uartLen] = UInt8(ch)
-                    uartLen += 1
+                if lineLen < 31 {
+                    lineBuf[lineLen] = b
+                    lineLen += 1
                 }
             }
         }

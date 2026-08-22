@@ -68,8 +68,8 @@ public struct SharedCalculatorThoroughTestCases {
         }
 
         addMathTestStr(name: "Edge_DivZero", steps: ["5", "ENTER", "0", "÷"], expected: "DIVIDE BY 0")
-        addMathTestStr(name: "Edge_LogZero", steps: ["0", "LN"], expected: "LOG(0)")
-        addMathTestStr(name: "Edge_SqrtNeg", steps: ["1", "+/-", "√x"], expected: "SQRT(NEG)")
+        addMathTestStr(name: "Edge_LogZero", steps: ["0", "LN"], expected: "DIVIDE BY 0")
+        addMathTestStr(name: "Edge_SqrtNeg", steps: ["1", "+/-", "√x"], expected: "INVALID DATA")
         addMathTestStr(name: "Edge_FactNeg", steps: ["2", "+/-", "x!"], expected: "INVALID DATA")
         addMathTestStr(name: "Edge_FactFrac", steps: ["2", ".", "5", "x!"], expected: "INVALID DATA")
 

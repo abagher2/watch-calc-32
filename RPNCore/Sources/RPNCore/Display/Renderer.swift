@@ -24,7 +24,7 @@ public class Renderer {
         case "10^x": return "10ˣ"
         case "1/x": return "1/𝑥"
         case "x!": return "𝑥!"
-        case "x<>y": return "𝑥↔𝑦"
+        case "x<>y": return "𝑥<>𝑦"
         case "4-LVL": return "4LV"
         case "PRGM": return "PRG"
         case "REGS": return "REG"

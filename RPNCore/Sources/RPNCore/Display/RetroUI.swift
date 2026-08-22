@@ -239,24 +239,36 @@ public class RetroUI {
             
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
             let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
-            var displayStr = ""
+            var textW = 0
             engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                 let len = min(engine.displayXLength, 64)
-                let buf = UnsafeBufferPointer(start: ptr.baseAddress, count: len)
-                displayStr = String(decoding: buf, as: UTF8.self)
+                for i in 0..<len {
+                    if let glyph = FontData.Display.glyph(forScalar: UInt32(ptr[i])) {
+                        textW += glyph.width + 1
+                    }
+                }
             }
-            
             if hasCursor {
-                displayStr += "_"
+                if let glyph = FontData.Display.glyph(forScalar: 95) { // '_'
+                    textW += glyph.width + 1
+                }
             }
             
-            let textW = renderer.getStringWidth(displayStr, size: .display)
+            var startX = 2
             if textW > 124 {
                 FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
-                let overflowOffset = 124 - textW
-                FirmwareText(displayStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
-            } else {
-                FirmwareText(displayStr, font: .display).draw(in: renderer, x: 2, y: 24)
+                startX = 124 - textW
+            }
+            
+            engine.displayXBuffer.withUnsafeBufferPointer { ptr in
+                let len = min(engine.displayXLength, 64)
+                for i in 0..<len {
+                    let w = renderer.drawChar(UInt32(ptr[i]), x: startX, y: 24, size: .display, color: true)
+                    startX += w + 1
+                }
+            }
+            if hasCursor {
+                _ = renderer.drawChar(95, x: startX, y: 24, size: .display, color: true)
             }
         } else {
             // HP-32SII Single Number Display (X register) - Left-Justified starting at X: 2

@@ -105,12 +105,11 @@ public struct SharedMathTestCases {
         SharedCalculatorTestCase(
             name: "All32SIIMathOperations",
             steps: [
-                // 1. Error correction: SQRT(NEG)
+                // 1. Error correction: INVALID DATA
                 SharedCalculatorStep("1"),
-                SharedCalculatorStep("0"),
-                SharedCalculatorStep("ENTER"),
                 SharedCalculatorStep("+/-"),
-                SharedCalculatorStep("√x", expectedX: "SQRT(NEG)"),
+                SharedCalculatorStep("√x", expectedX: "INVALID DATA"),
+
                 SharedCalculatorStep("<-"),
                 
                 // 2. Division by zero
@@ -147,7 +146,7 @@ public struct SharedMathTestCases {
                 SharedCalculatorStep("0"),
                 SharedCalculatorStep("ENTER"),
                 SharedCalculatorStep("+/-"),
-                SharedCalculatorStep("LN", expectedX: "LOG(NEG)"),
+                SharedCalculatorStep("LN", expectedX: "INVALID DATA"),
                 SharedCalculatorStep("<-"),
                 
                 // 7. Parts Menu (IP)

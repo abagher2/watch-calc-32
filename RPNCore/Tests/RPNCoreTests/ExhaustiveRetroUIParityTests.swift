@@ -266,6 +266,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
                 else if label == "GRAD" { label = "GRD" }
                 else if label == "MODES" { label = "MOD" }
                 else if label == "MODINT" { label = "MOD" }
+                else if label == "L.R." { label = "LR" }
                 
                 let textW = controller.renderer.getStringWidth(label, size: .tiny)
                 XCTAssertLessThanOrEqual(textW, 20, "Softkey '\(item.label)' fitted width \(textW)px must not exceed 20px softkey slot bounds")

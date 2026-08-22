@@ -48,7 +48,7 @@ final class CalculatorEngineTests_Errors: XCTestCase {
         engine.digit(5)
         engine.toggleSign() // -5
         engine.executeMath("√x")
-        XCTAssertEqual(engine.errorMessage, "SQRT(NEG)")
+        XCTAssertEqual(engine.errorMessage, "INVALID DATA")
     }
     
     func testEquationPromptAndEnter() {

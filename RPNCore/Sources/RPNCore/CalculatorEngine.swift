@@ -515,11 +515,11 @@ public class CalculatorEngine {
     public enum BaseMode { case dec, hex, oct, bin }
     
     public enum AlphaAction {
-        case none, sto, stoAdd, stoSub, stoMul, stoDiv, rcl, evalEquation, promptVar, view
+        case none, sto, stoAdd, stoSub, stoMul, stoDiv, rcl, evalEquation, promptVar, view, swapVar
     }
     
     public var usesContextualAlphaPad: Bool {
-        return alphaAction == .sto || alphaAction == .stoAdd || alphaAction == .stoSub || alphaAction == .stoMul || alphaAction == .stoDiv || alphaAction == .rcl || alphaAction == .promptVar || alphaAction == .view
+        return alphaAction == .sto || alphaAction == .stoAdd || alphaAction == .stoSub || alphaAction == .stoMul || alphaAction == .stoDiv || alphaAction == .rcl || alphaAction == .promptVar || alphaAction == .view || alphaAction == .swapVar
     }
     
 
@@ -1093,7 +1093,7 @@ public class CalculatorEngine {
             stack[0] = stack[1]
             stack[1] = temp
         }
-        stackLiftEnabled = true
+        stackLiftEnabled = false
         updateDisplay()
     }
     // MARK: - Math Operations
@@ -1152,6 +1152,21 @@ public class CalculatorEngine {
         
         let hadError = errorMessage != nil
         errorMessage = nil
+        
+        if isEquationMode {
+            let eqnBlacklist: Set<String> = [
+                "STO", "XEQ", "GTO", "LBL", "RTN", "HEX", "DEC", "OCT", "BIN", "BASE",
+                "FLAGS", "VIEW", "SHOW", "DISP", "MODES", "SETUP",
+                "CMPLX", ">HMS", ">HR", ">POL", ">REC", "MEM", "VARS", "PRGM", "REGS", "CLALL", "CLREGS", "CLPRGM", "CLΣ"
+            ]
+            if eqnBlacklist.contains(operation) || 
+               operation.hasPrefix("SF ") || operation.hasPrefix("CF ") || 
+               operation.hasPrefix("FS? ") || operation.hasPrefix("FC? ") {
+                errorMessage = "INVALID DATA"
+                updateDisplay()
+                return
+            }
+        }
         if hadError {
             stackLiftEnabled = false
             if (operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" || operation == "CLX" || operation == "<-") {
@@ -1305,6 +1320,11 @@ public class CalculatorEngine {
         }
         if operation == "RCL" {
             startRcl()
+            return
+        }
+        
+        if operation == "x↔?" {
+            startSwapVar()
             return
         }
         
@@ -1533,7 +1553,7 @@ public class CalculatorEngine {
             if stack.count > 0 && stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
             unaryOp { CalculatorValue(real: 1.0 / $0.real) }
         case "√x": 
-            if stack.count > 0 && stack[0].real < 0 { errorMessage = "SQRT(NEG)"; return }
+            if stack.count > 0 && stack[0].real < 0 { errorMessage = "INVALID DATA"; return }
             unaryOp { CalculatorValue(real: _sqrt($0.real)) }
         case "x^2": unaryOp { CalculatorValue(real: $0.real * $0.real) }
         case "y^x": binaryOp { CalculatorValue(real: _pow($1.real, $0.real)) }
@@ -1541,28 +1561,28 @@ public class CalculatorEngine {
         case "%CHG": percentOp { CalculatorValue(real: $1.real == 0 ? 0 : (($0.real - $1.real) / $1.real) * 100.0) }
         case "LN": 
             if stack.count > 0 {
-                if stack[0].real == 0 { errorMessage = "LOG(0)"; return }
-                if stack[0].real < 0 { errorMessage = "LOG(NEG)"; return }
+                if stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
+                if stack[0].real < 0 { errorMessage = "INVALID DATA"; return }
             }
             unaryOp { CalculatorValue(real: _log($0.real)) }
         case "e^x": unaryOp { CalculatorValue(real: _exp($0.real)) }
         case "LOG": 
             if stack.count > 0 {
-                if stack[0].real == 0 { errorMessage = "LOG(0)"; return }
-                if stack[0].real < 0 { errorMessage = "LOG(NEG)"; return }
+                if stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
+                if stack[0].real < 0 { errorMessage = "INVALID DATA"; return }
             }
             unaryOp { CalculatorValue(real: _log10($0.real)) }
         case "10^x": unaryOp { CalculatorValue(real: _pow(10.0, $0.real)) }
-        case "x=y": performTest(stack[0].real == stack[1].real); return
-        case "x!=y": performTest(stack[0].real != stack[1].real); return
-        case "x>y": performTest(stack[0].real > stack[1].real); return
-        case "x<y": performTest(stack[0].real < stack[1].real); return
-        case "x<=y": performTest(stack[0].real <= stack[1].real); return
-        case "x=0": performTest(stack[0].real == 0); return
-        case "x!=0": performTest(stack[0].real != 0); return
-        case "x>0": performTest(stack[0].real > 0); return
-        case "x<0": performTest(stack[0].real < 0); return
-        case "x<=0": performTest(stack[0].real <= 0); return
+        case "x=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real == $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real == stack[1].real) }; return
+        case "x!=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real != $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real != stack[1].real) }; return
+        case "x>y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real > $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real > stack[1].real) }; return
+        case "x<y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real < $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real < stack[1].real) }; return
+        case "x<=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real <= $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real <= stack[1].real) }; return
+        case "x=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real == 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real == 0) }; return
+        case "x!=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real != 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real != 0) }; return
+        case "x>0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real > 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real > 0) }; return
+        case "x<0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real < 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real < 0) }; return
+        case "x<=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real <= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real <= 0) }; return
         case "𝑥!", "x!", "n!": 
             if stack.count > 0 {
                 if stack[0].real < 0 || stack[0].real != floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
@@ -2003,6 +2023,7 @@ public class CalculatorEngine {
         self.isEquationMode = false
         self.isBuildingNumber = false
         self.stackLiftEnabled = true
+        self.currentEvaluatingProgram = program
         
         // Clear stack for the program
         self.stack = Array(repeating: CalculatorValue(), count: self.stackSizeLimit)
@@ -2072,6 +2093,7 @@ public class CalculatorEngine {
         self.isBuildingNumber = savedIsBuildingNum
         self.shiftState = savedShift
         self.stackLiftEnabled = savedLiftEnabled
+        self.currentEvaluatingProgram = nil
         
         self.updateDisplay()
         return result
@@ -2130,7 +2152,6 @@ public class CalculatorEngine {
     private func addStat() {
         let x = stack.count > 0 ? stack[0].real : 0.0
         let y = stack.count > 1 ? stack[1].real : 0.0
-        lastX = stack.count > 0 ? stack[0] : CalculatorValue()
         statN += 1
         statSumX += x
         statSumX2 += x * x
@@ -2145,7 +2166,6 @@ public class CalculatorEngine {
     private func removeStat() {
         let x = stack.count > 0 ? stack[0].real : 0.0
         let y = stack.count > 1 ? stack[1].real : 0.0
-        lastX = stack.count > 0 ? stack[0] : CalculatorValue()
         if statN > 0 {
             statN -= 1
             statSumX -= x
@@ -2274,49 +2294,35 @@ public class CalculatorEngine {
     
     // MARK: - Variables
     
-    public func startSto() {
+    private func startAlphaPrompt(action: AlphaAction, promptBase: String) {
         commitInput()
         isWaitingForAlpha = true
-        alphaAction = .sto
+        alphaAction = action
         
         if isProgrammingMode {
             let stepNum = currentProgramSteps.count + 1
             let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
-            promptString = "\(paddedStep) STO"
+            promptString = "\(paddedStep) \(promptBase)"
         } else {
-            promptString = "STO"
+            promptString = promptBase
         }
         updateDisplay()
+    }
+    
+    public func startSto() {
+        startAlphaPrompt(action: .sto, promptBase: "STO")
+    }
+    
+    public func startSwapVar() {
+        startAlphaPrompt(action: .swapVar, promptBase: "x↔")
     }
     
     public func startView() {
-        commitInput()
-        isWaitingForAlpha = true
-        alphaAction = .view
-        
-        if isProgrammingMode {
-            let stepNum = currentProgramSteps.count + 1
-            let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
-            promptString = "\(paddedStep) VIEW"
-        } else {
-            promptString = "VIEW"
-        }
-        updateDisplay()
+        startAlphaPrompt(action: .view, promptBase: "VIEW")
     }
     
     public func startRcl() {
-        commitInput()
-        isWaitingForAlpha = true
-        alphaAction = .rcl
-        
-        if isProgrammingMode {
-            let stepNum = currentProgramSteps.count + 1
-            let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
-            promptString = "\(paddedStep) RCL"
-        } else {
-            promptString = "RCL"
-        }
-        updateDisplay()
+        startAlphaPrompt(action: .rcl, promptBase: "RCL")
     }
     
     public func submitAlpha(_ str: String) {
@@ -2438,7 +2444,17 @@ public class CalculatorEngine {
             variables[initialChar] = existing * (stack.count > 0 ? stack[0] : CalculatorValue())
         } else if alphaAction == .stoDiv {
             let existing = variables[initialChar] ?? CalculatorValue()
-            variables[initialChar] = existing / (stack.count > 0 ? stack[0] : CalculatorValue())
+            if let top = stack.first, top.real != 0 {
+                variables[initialChar] = existing / top
+            } else {
+                errorMessage = "DIVIDE BY 0"
+            }
+        } else if alphaAction == .swapVar {
+            let varValue = variables[initialChar] ?? CalculatorValue()
+            let xValue = stack.first ?? CalculatorValue()
+            variables[initialChar] = xValue
+            stack[0] = varValue
+            stackLiftEnabled = true
         } else if alphaAction == .rcl {
             let val = variables[initialChar] ?? CalculatorValue()
             pushToStack(val)
