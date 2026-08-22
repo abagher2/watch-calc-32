@@ -180,20 +180,14 @@ public class RetroUI {
                 return "?:"
             }
             
-            // Display a single register at a time, left-justified
-            let regIdx = regsOffset
-            let name = getRegName(regIdx)
-            let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
-            
-            let displayStr = "\(name)\(valStr)"
-            let textW = renderer.getStringWidth(displayStr, size: .display)
-            if textW > 124 {
-                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
-                let overflowOffset = 124 - textW
-                FirmwareText(displayStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
-            } else {
-                FirmwareText(displayStr, font: .display).draw(in: renderer, x: 2, y: 24)
+            var stackLines: [FirmwareView] = []
+            for i in 0..<4 {
+                let regIdx = regsOffset + (3 - i)
+                let name = getRegName(regIdx)
+                let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
+                stackLines.append(FirmwareText("\(name) \(valStr)", font: .small))
             }
+            FirmwareVStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
         } else if let error = engine.errorMessage {
             FirmwareText(error, font: .display).draw(in: renderer, x: 2, y: 24)
         } else if let status = engine.statusMessage {

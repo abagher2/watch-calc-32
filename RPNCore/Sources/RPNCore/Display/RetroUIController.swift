@@ -62,12 +62,12 @@ public class RetroUIController {
 
         if retroUI.isShowingRegisters {
             if finalOp == .integrate { // Up arrow
-                retroUI.regsOffset = max(0, retroUI.regsOffset - 1)
+                retroUI.regsOffset = max(0, retroUI.regsOffset - 2)
                 engine.shiftState = 0
                 return
             }
             if finalOp == .solve { // Down arrow
-                retroUI.regsOffset += 1
+                retroUI.regsOffset += 2
                 engine.shiftState = 0
                 return
             }

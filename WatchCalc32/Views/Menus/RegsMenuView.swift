@@ -11,20 +11,21 @@ struct RegsMenuView: View {
                 List {
                     let logicalStack = engine.getLogicalStack()
                     
-                    // T at top, X at bottom — natural RPN stack convention
-                    Section(header: Text("Stack Registers")) {
-                        // Show from T down to X (reversed so X is at the bottom)
-                        ForEach((0..<logicalStack.count).reversed(), id: \.self) { index in
-                            HStack {
-                                Text(labelForIndex(index, total: logicalStack.count))
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(index == 0 ? .primary : .secondary)
-                                    .frame(width: 44, alignment: .leading)
-                                Spacer()
-                                Text(formatValue(logicalStack[index]))
-                                    .font(.system(.body, design: .monospaced))
+                    let storedVars = engine.variables.filter { !$0.key.isEmpty }
+                        .sorted { $0.key < $1.key }
+                    
+                    if !storedVars.isEmpty {
+                        Section(header: Text("Variables")) {
+                            ForEach(storedVars, id: \.key) { key, value in
+                                HStack {
+                                    Text(key)
+                                        .fontWeight(.semibold)
+                                        .frame(width: 44, alignment: .leading)
+                                    Spacer()
+                                    Text(formatValue(value))
+                                        .font(.system(.body, design: .monospaced))
+                                }
                             }
-                            .id(index == 0 ? "xReg" : "reg_\(index)")
                         }
                     }
                     
@@ -39,20 +40,20 @@ struct RegsMenuView: View {
                         }
                     }
                     
-                    let storedVars = engine.variables.filter { !$0.key.isEmpty }
-                        .sorted { $0.key < $1.key }
-                    if !storedVars.isEmpty {
-                        Section(header: Text("Variables")) {
-                            ForEach(storedVars, id: \.key) { key, value in
-                                HStack {
-                                    Text(key)
-                                        .fontWeight(.semibold)
-                                        .frame(width: 44, alignment: .leading)
-                                    Spacer()
-                                    Text(formatValue(value))
-                                        .font(.system(.body, design: .monospaced))
-                                }
+                    // T at top, X at bottom — natural RPN stack convention
+                    Section(header: Text("Stack Registers")) {
+                        // Show from T down to X (reversed so X is at the bottom)
+                        ForEach((0..<logicalStack.count).reversed(), id: \.self) { index in
+                            HStack {
+                                Text(labelForIndex(index, total: logicalStack.count))
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(index == 0 ? .primary : .secondary)
+                                    .frame(width: 44, alignment: .leading)
+                                Spacer()
+                                Text(formatValue(logicalStack[index]))
+                                    .font(.system(.body, design: .monospaced))
                             }
+                            .id(index == 0 ? "xReg" : "reg_\(index)")
                         }
                     }
                 }

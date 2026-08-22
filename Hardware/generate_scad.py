@@ -145,56 +145,39 @@ pt   = {pt};
 GAP  = {gap};        
 
 module key_button(w, h, label) {{
-    // 1. Hollow Base (Z=0 to Z=2.0)
+    // 1. Hollow Square Base (Anti-rotation, Z=0 to Z=2.0)
     // Prints on the bed. Hollow core fits AROUND the tactile switch body!
     difference() {{
-        union() {{
-            // Chamfered bottom for retention (snaps in or prints-in-place)
-            hull() {{
-                translate([0, 0, 0.1]) cylinder(d=8.4, h=0.2, center=true);
-                translate([0, 0, 0.4]) cylinder(d=8.8, h=0.2, center=true);
-            }}
-            translate([0, 0, 1.2]) cylinder(d=8.8, h=1.6, center=true);
-        }}
-        // Inner hollow core (d=7.6 to easily clear a 5.2x5.2mm switch)
-        translate([0, 0, 1.0]) cylinder(d=7.6, h=2.1, center=true);
+        // Outer square base 7.6 x 7.6
+        translate([0, 0, 1.0]) cube([7.6, 7.6, 2.0], center=true);
+        // Inner hollow square core 6.0 x 6.0 to clear tactile switch
+        translate([0, 0, 0.9]) cube([6.0, 6.0, 2.2], center=true);
     }}
     
-    // 2. Base Roof (Z=2.0 to Z=2.4) - This rests perfectly on the tactile switch plunger!
-    translate([0, 0, 2.2]) cylinder(d=8.8, h=0.4, center=true);
+    // 2. Base Roof (Z=2.0 to Z=2.4)
+    translate([0, 0, 2.2]) cube([7.6, 7.6, 0.4], center=true);
     
-    // 2b. Triangular Shaft (Z=2.4 to Z=3.5)
-    // Shaft ends just above the Faceplate surface (Z=3.0) to allow for button travel
-    translate([0, 0, 2.95]) cylinder(d=4.6, h=1.1, center=true, $fn=3);
+    // 3. Straight Circular Keycap (Z=2.4 to Z=5.0)
+    // No overhangs! Prints perfectly straight up!
+    translate([0, 0, 3.7]) cylinder(d=6.0, h=2.6, center=true);
     
-    // 3. Tapered Keycap (Z=3.5 to Z=5.8) - Steep Loft to prevent FDM sagging!
-    // Lofts from the d=4.6 triangle smoothly up to a d=6.0 circle.
+    // 4. Soft rounded top (Z=5.0 to Z=5.4)
     hull() {{
-        translate([0, 0, 3.51]) cylinder(d=4.6, h=0.01, center=true, $fn=3);
-        translate([0, 0, 5.8]) cylinder(d=6.0, h=0.01, center=true);
+        translate([0, 0, 5.0]) cylinder(d=6.0, h=0.01, center=true);
+        translate([0, 0, 5.4]) cylinder(d=5.0, h=0.01, center=true);
     }}
 }}
 
 module button_pocket(x, y, w, h) {{
     translate([x, y, 0]) {{
-        // 1a. Bottom Retaining Lip & Hard Stop (Z=-0.1 to Z=0.4)
-        hull() {{
-            translate([0, 0, 0.0]) cylinder(d=8.8, h=0.2, center=true);
-            translate([0, 0, 0.4]) cylinder(d=9.2, h=0.2, center=true);
-        }}
+        // 1. Square Pocket (Z=-0.1 to Z=2.7)
+        // Fits the 7.6x7.6 base + 0.6mm clearance = 8.2x8.2
+        // Goes up to 2.7 to provide 0.3mm vertical clearance over the Z=2.4 roof
+        translate([0, 0, 1.3]) cube([8.2, 8.2, 2.8], center=true);
         
-        // 1b. Main Hollow Cavity (Z=0.4 to Z=2.0)
-        translate([0, 0, 1.2]) cylinder(d=9.2, h=1.6, center=true);
-        
-        // 2. Roof Chamfer (Z=2.0 to Z=2.5)
-        // Transitions to a triangular hole to prevent button rotation
-        hull() {{
-            translate([0, 0, 2.0]) cylinder(d=9.2, h=0.01, center=true);
-            translate([0, 0, 2.5]) cylinder(d=5.0, h=0.01, center=true, $fn=3);
-        }}
-        
-        // 3. Upper Shaft Hole (Z=2.5 to Z=3.1)
-        translate([0, 0, 2.8]) cylinder(d=5.0, h=0.6, center=true, $fn=3);
+        // 2. Circular Shaft Hole (Z=2.7 to Z=3.1)
+        // Fits the d=6.0 keycap + 0.6mm clearance = d=6.6
+        translate([0, 0, 2.9]) cylinder(d=6.6, h=0.4, center=true);
     }}
 }}
 
@@ -256,12 +239,9 @@ color("Silver") {
     pad_y = (fp_h - pcb_height) / 2
     for row in rows:
         for b in row:
-            ox = b['x'] + pad_x
-            oy = b['y'] + pad_y
             btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
             
             faceplate_mjf += btn_str
-            
             faceplate_fdm += btn_str
 
     faceplate_mjf += "}\n"
@@ -349,7 +329,8 @@ module chassis() {{
         // ── CHASSIS SCREW CLEARANCE HOLES ────────────────────────────────
 """
     for sx, sy in chassis_screws:
-        chassis += f"        translate([wall + {sx:.3f}, D + 0.1, {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);\n"
+        # Screws come from the back and stop at the faceplate. They don't punch through the front!
+        chassis += f"        translate([wall + {sx:.3f}, D + 0.1, {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D - pt + 0.2);\n"
         chassis += f"        translate([wall + {sx:.3f}, D + 0.1, {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=4.0, h=0.8); // Head recess\n"
         
     chassis += f"""

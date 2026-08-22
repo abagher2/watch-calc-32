@@ -159,6 +159,9 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     static let lineBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
     static var lineLen = 0
 
+    static var lastMatrixState: UInt64 = 0
+    static var debounceCounter: Int = 0
+
     @inline(never)
     static func loopIteration() {
         let now = hw_time_us()
@@ -168,6 +171,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             needsDisplay = true
         }
         
+#if EMULATOR
         let ch = get_uart_char_c()
         if ch >= 0 {
             lastActivityTime = now
@@ -229,6 +233,40 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 }
             }
         }
+#endif
+        
+        let matrixState = matrix_scan()
+        if matrixState != lastMatrixState {
+            debounceCounter += 1
+            if debounceCounter > 2 { // Stable for roughly 20-30ms
+                let pressed = matrixState & ~lastMatrixState
+                if pressed != 0 {
+                    if isSleeping {
+                        isSleeping = false
+                        needsDisplay = true
+                    }
+                    lastActivityTime = now
+                    
+                    for r in 0..<8 {
+                        for c in 0..<6 {
+                            let bit = UInt64(1) << ((r * 6) + c)
+                            if (pressed & bit) != 0 {
+                                if let key = HP32KeyMap.standardGrid.first(where: { $0.row == r && $0.col == c }) {
+                                    if let op = key.primaryAction {
+                                        uiController.processAction(op)
+                                        needsDisplay = true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                lastMatrixState = matrixState
+                debounceCounter = 0
+            }
+        } else {
+            debounceCounter = 0
+        }
         
         if txHead != txTail {
             putchar_c(Int32(txBuf[txTail]))
@@ -274,6 +312,12 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 }
             }
             needsDisplay = false
+        }
+        
+        if isSleeping {
+            sleep_ms_c(100)
+        } else {
+            sleep_ms_c(10)
         }
     }
 
