@@ -32,3 +32,33 @@ void* _swift_stdlib_getComposition() { return NULL; }
 void* _swift_stdlib_getDecompositionEntry() { return NULL; }
 void* _swift_stdlib_getNumericType() { return NULL; }
 const uint32_t _swift_stdlib_nfd_decompositions[1] = {0};
+
+// Atomic stubs for ARM Cortex M0+ (no hardware atomics)
+// Safe for single-core operation
+__attribute__((weak)) uint32_t __atomic_load_4(volatile void *mem, int model) {
+    return *(volatile uint32_t *)mem;
+}
+__attribute__((weak)) void __atomic_store_4(volatile void *mem, uint32_t val, int model) {
+    *(volatile uint32_t *)mem = val;
+}
+__attribute__((weak)) uint32_t __atomic_fetch_add_4(volatile void *mem, uint32_t val, int model) {
+    uint32_t old = *(volatile uint32_t *)mem;
+    *(volatile uint32_t *)mem = old + val;
+    return old;
+}
+__attribute__((weak)) uint32_t __atomic_fetch_sub_4(volatile void *mem, uint32_t val, int model) {
+    uint32_t old = *(volatile uint32_t *)mem;
+    *(volatile uint32_t *)mem = old - val;
+    return old;
+}
+__attribute__((weak)) int __atomic_compare_exchange_4(volatile void *mem, void *expected, uint32_t desired, int weak, int success, int failure) {
+    uint32_t old = *(volatile uint32_t *)mem;
+    uint32_t exp = *(uint32_t *)expected;
+    if (old == exp) {
+        *(volatile uint32_t *)mem = desired;
+        return 1;
+    } else {
+        *(uint32_t *)expected = old;
+        return 0;
+    }
+}
