@@ -4,7 +4,7 @@ import Observation
 
 @main
 
-struct WatchCalc32App: App {
+struct StackCalc32App: App {
     @State private var engine = CalculatorEngine()
     @StateObject private var themeManager = ThemeManager()
     

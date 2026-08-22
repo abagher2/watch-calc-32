@@ -1,55 +1,55 @@
-name: WatchCalc32
+name: StackCalc32
 options:
   bundleIdPrefix: rpn.calculator
 targets:
-  WatchCalc32Container:
+  StackCalc32Container:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - WatchCalc32Container
-      - WatchCalc32-iOS
+      - StackCalc32Container
+      - StackCalc32-iOS
       - Shared
-      - WatchCalc32/Views/Plotting
-      - WatchCalc32/Views/Menus
-      - WatchCalc32/Views/Equations
-      - WatchCalc32/Views/IntegratePromptView.swift
-      - WatchCalc32/Views/SolvePromptView.swift
-      - WatchCalc32/Views/Styles
+      - StackCalc32/Views/Plotting
+      - StackCalc32/Views/Menus
+      - StackCalc32/Views/Equations
+      - StackCalc32/Views/IntegratePromptView.swift
+      - StackCalc32/Views/SolvePromptView.swift
+      - StackCalc32/Views/Styles
     settings:
       SKIP_INSTALL: NO
       PRODUCT_BUNDLE_IDENTIFIER: "rpn.calculator.WatchCalc32"
       DEVELOPMENT_TEAM: "UNXVA46694"
       CODE_SIGN_STYLE: Automatic
-      INFOPLIST_FILE: WatchCalc32Container/Info.plist
+      INFOPLIST_FILE: StackCalc32Container/Info.plist
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - package: RPNCore
-      - target: WatchCalc32
+      - target: StackCalc32
         embed: true
 
-  WatchCalc32:
+  StackCalc32:
     type: application
     platform: watchOS
     deploymentTarget: "10.0"
-    sources: [WatchCalc32, Shared]
+    sources: [StackCalc32, Shared]
     settings:
       SKIP_INSTALL: YES
       DEVELOPMENT_TEAM: UNXVA46694
       CODE_SIGN_STYLE: Automatic
       PRODUCT_BUNDLE_IDENTIFIER: rpn.calculator.WatchCalc32.watchkitapp
-      INFOPLIST_FILE: WatchCalc32/Info.plist
+      INFOPLIST_FILE: StackCalc32/Info.plist
       SWIFT_VERSION: "5.9"
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
       - package: RPNCore
 
-  WatchCalc32UITests:
+  StackCalc32UITests:
     type: bundle.ui-testing
     platform: watchOS
     deploymentTarget: "10.0"
     sources:
-      - WatchCalc32UITests
+      - StackCalc32UITests
       - fastlane/SnapshotHelper.swift
       - RPNCore/Tests/RPNCoreTests/SharedCalculatorTest.swift
       - RPNCore/Tests/RPNCoreTests/SharedCalculatorThoroughTestCases.swift
@@ -58,15 +58,15 @@ targets:
       SWIFT_VERSION: "5.9"
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
-      - target: WatchCalc32
+      - target: StackCalc32
       - package: RPNCore
 
-  WatchCalc32ContainerUITests:
+  StackCalc32ContainerUITests:
     type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - WatchCalc32ContainerUITests
+      - StackCalc32ContainerUITests
       - fastlane/SnapshotHelper.swift
       - RPNCore/Tests/RPNCoreTests/SharedCalculatorTest.swift
       - RPNCore/Tests/RPNCoreTests/SharedCalculatorThoroughTestCases.swift
@@ -75,25 +75,25 @@ targets:
       SWIFT_VERSION: "5.9"
       GENERATE_INFOPLIST_FILE: YES
     dependencies:
-      - target: WatchCalc32Container
+      - target: StackCalc32Container
       - package: RPNCore
 
 schemes:
-  WatchCalc32Container:
+  StackCalc32Container:
     build:
       targets:
-        WatchCalc32Container: all
+        StackCalc32Container: all
     test:
       targets:
-        - WatchCalc32ContainerUITests
+        - StackCalc32ContainerUITests
 
-  WatchCalc32:
+  StackCalc32:
     build:
       targets:
-        WatchCalc32: all
+        StackCalc32: all
     test:
       targets:
-        - WatchCalc32UITests
+        - StackCalc32UITests
 
 packages:
   RPNCore:

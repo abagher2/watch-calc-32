@@ -4,7 +4,7 @@ import Observation
 
 @main
 
-struct WatchCalc32_iOSApp: App {
+struct StackCalc32_iOSApp: App {
     @State private var engine = CalculatorEngine()
     @StateObject private var themeManager: ThemeManager = {
         let tm = ThemeManager()

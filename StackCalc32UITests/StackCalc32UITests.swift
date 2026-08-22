@@ -1,7 +1,7 @@
 import XCTest
 import RPNCore
 
-@MainActor final class WatchCalc32UITests: XCTestCase {
+@MainActor final class StackCalc32UITests: XCTestCase {
 
   override func setUpWithError() throws {
     continueAfterFailure = false

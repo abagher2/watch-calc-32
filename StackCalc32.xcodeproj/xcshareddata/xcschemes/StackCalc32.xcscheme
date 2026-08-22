@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "34F80AA4FF3FE28033600166"
-               BuildableName = "WatchCalc32Container.app"
-               BlueprintName = "WatchCalc32Container"
-               ReferencedContainer = "container:WatchCalc32.xcodeproj">
+               BlueprintIdentifier = "5808D53E111A716DB899205F"
+               BuildableName = "StackCalc32.app"
+               BlueprintName = "StackCalc32"
+               ReferencedContainer = "container:StackCalc32.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "34F80AA4FF3FE28033600166"
-            BuildableName = "WatchCalc32Container.app"
-            BlueprintName = "WatchCalc32Container"
-            ReferencedContainer = "container:WatchCalc32.xcodeproj">
+            BlueprintIdentifier = "5808D53E111A716DB899205F"
+            BuildableName = "StackCalc32.app"
+            BlueprintName = "StackCalc32"
+            ReferencedContainer = "container:StackCalc32.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -44,10 +44,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "FA11EB90F50FCED4FFD99FA1"
-               BuildableName = "WatchCalc32ContainerUITests.xctest"
-               BlueprintName = "WatchCalc32ContainerUITests"
-               ReferencedContainer = "container:WatchCalc32.xcodeproj">
+               BlueprintIdentifier = "F29695FFF7C1FA2E6FCC9FDB"
+               BuildableName = "StackCalc32UITests.xctest"
+               BlueprintName = "StackCalc32UITests"
+               ReferencedContainer = "container:StackCalc32.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -68,10 +68,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "34F80AA4FF3FE28033600166"
-            BuildableName = "WatchCalc32Container.app"
-            BlueprintName = "WatchCalc32Container"
-            ReferencedContainer = "container:WatchCalc32.xcodeproj">
+            BlueprintIdentifier = "5808D53E111A716DB899205F"
+            BuildableName = "StackCalc32.app"
+            BlueprintName = "StackCalc32"
+            ReferencedContainer = "container:StackCalc32.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -85,10 +85,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "34F80AA4FF3FE28033600166"
-            BuildableName = "WatchCalc32Container.app"
-            BlueprintName = "WatchCalc32Container"
-            ReferencedContainer = "container:WatchCalc32.xcodeproj">
+            BlueprintIdentifier = "5808D53E111A716DB899205F"
+            BuildableName = "StackCalc32.app"
+            BlueprintName = "StackCalc32"
+            ReferencedContainer = "container:StackCalc32.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

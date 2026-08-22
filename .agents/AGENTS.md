@@ -1,6 +1,6 @@
-# WatchCalc32 Protocol: Workspace Organization
+# StackCalc32 Protocol: Workspace Organization
 
-This repository is a monorepo for the WatchCalc32 project, encompassing the iOS app, watchOS app, physical hardware (PCBs/3D Models), and microcontroller firmware.
+This repository is a monorepo for the StackCalc32 project, encompassing the iOS app, watchOS app, physical hardware (PCBs/3D Models), and microcontroller firmware.
 
 To maintain a clean and structured repository that is ready for public open source distribution, **never place scratch files, scripts, or project files directly in the repository root.** 
 
@@ -20,8 +20,8 @@ Always strictly adhere to the following directory structure:
 - **Contents:** All Swift Embedded firmware or Pico SDK code for the physical calculator's microcontroller.
 
 ## 4. Software App Targets
-- **Watch App:** `WatchCalc32/`
-- **iOS App:** `WatchCalc32-iOS/`
+- **Watch App:** `StackCalc32/`
+- **iOS App:** `StackCalc32-iOS/`
 - **Shared Logic & Views:** `Shared/`
 - **Core Calculator Engine:** `RPNCore/`
 

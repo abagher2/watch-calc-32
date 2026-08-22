@@ -145,46 +145,48 @@ pt   = {pt};
 GAP  = {gap};        
 
 module key_button(w, h, label) {{
-    // 1. Hollow Square Base (Anti-rotation, Z=0 to Z=2.0)
-    // Prints on the bed. Hollow core fits AROUND the tactile switch body!
-    difference() {{
-        // Outer square base 7.6 x 7.6
-        translate([0, 0, 1.0]) cube([7.6, 7.6, 2.0], center=true);
-        // Inner hollow square core 6.0 x 6.0 to clear tactile switch
-        translate([0, 0, 0.9]) cube([6.0, 6.0, 2.2], center=true);
-    }}
-    
-    // 2. Base Roof (Z=2.0 to Z=2.4)
-    translate([0, 0, 2.2]) cube([7.6, 7.6, 0.4], center=true);
-    
-    // 3. Straight Circular Keycap (Z=2.4 to Z=5.0)
-    // No overhangs! Prints perfectly straight up!
-    translate([0, 0, 3.7]) cylinder(d=6.0, h=2.6, center=true);
-    
-    // 4. Soft rounded top (Z=5.0 to Z=5.4)
+    // 1. Massive Piston Base (Z=0.0 to Z=1.3)
+    // Double-chamfered to create a 0.3mm mechanical hard stop and retain the button 
+    // from falling out the back during assembly!
     hull() {{
-        translate([0, 0, 5.0]) cylinder(d=6.0, h=0.01, center=true);
-        translate([0, 0, 5.4]) cylinder(d=5.0, h=0.01, center=true);
+        translate([0, 0, 0.20]) cylinder(d=6.2, h=0.4, center=true);
+        translate([0, 0, 0.60]) cylinder(d=7.0, h=0.4, center=true);
+    }}
+    translate([0, 0, 1.05]) cylinder(d=7.0, h=0.5, center=true);
+
+    // 2. Triangular Shaft (Z=1.3 to Z=3.7) to prevent rotation!
+    translate([0, 0, 2.5]) cylinder(d=6.0, h=2.4, center=true, $fn=3);
+    
+    // 3. Top Keycap (Z=3.7 to Z=5.0)
+    hull() {{
+        translate([0, 0, 3.7]) cylinder(d=6.0, h=0.01, center=true, $fn=3);
+        translate([0, 0, 4.3]) cylinder(d=5.0, h=0.01, center=true);
+        translate([0, 0, 5.0]) cylinder(d=4.0, h=0.01, center=true);
     }}
 }}
 
 module button_pocket(x, y, w, h) {{
     translate([x, y, 0]) {{
-        // 1. Square Pocket (Z=-0.1 to Z=2.7)
-        // Fits the 7.6x7.6 base + 0.6mm clearance = 8.2x8.2
-        // Goes up to 2.7 to provide 0.3mm vertical clearance over the Z=2.4 roof
-        translate([0, 0, 1.3]) cube([8.2, 8.2, 2.8], center=true);
+        // 1a. Bottom Retaining Lip & Hard Stop (Z=-0.1 to Z=0.5)
+        // Matches the button chamfer perfectly when pressed by exactly 0.3mm!
+        hull() {{
+            translate([0, 0, 0.0]) cylinder(d=6.6, h=0.2, center=true);
+            translate([0, 0, 0.3]) cylinder(d=7.4, h=0.2, center=true);
+        }}
         
-        // 2. Circular Shaft Hole (Z=2.7 to Z=3.1)
-        // Fits the d=6.0 keycap + 0.6mm clearance = d=6.6
-        translate([0, 0, 2.9]) cylinder(d=6.6, h=0.4, center=true);
+        // 1b. Main Piston Cavity (Z=0.5 to Z=1.6)
+        translate([0, 0, 1.0]) cylinder(d=7.4, h=1.0, center=true);
+
+        // 2. Triangular Shaft Hole (Z=1.6 to Z=2.8)
+        hull() {{
+            translate([0, 0, 1.6]) cylinder(d=7.4, h=0.01, center=true);
+            translate([0, 0, 2.2]) cylinder(d=6.6, h=0.01, center=true, $fn=3);
+        }}
+        translate([0, 0, 2.5]) cylinder(d=6.6, h=0.6, center=true, $fn=3);
     }}
 }}
 
 module faceplate_body() {{
-    // Base plate — rim walls are on chassis now (DM32 style protection)
-    // 0.3mm clearance on all edges allows smooth slide-in from display end
-    // Sharp rectangular corners to sit flush inside the chassis cavity
     cube([fp_w, fp_h, pt]);
 }}
 
@@ -193,18 +195,17 @@ module faceplate() {{
     difference() {{
         faceplate_body();
 
-        // Display window (steep chamfer bezel to eliminate bridging and supports)
-        // Since faceplate thickness is pt (3.0mm), making the bottom hole only 3mm larger 
-        // than the top hole (1.5mm per side) creates a steep 26.5-degree overhang from vertical.
+        // 65x30 E-Ink Module Base Pocket (Z=-0.1 to Z=1.0)
+        translate([{disp_x:.3f} - 65.4/2, {disp_y:.3f} - 30.6/2, -0.1])
+            cube([65.4, 30.6, 1.1]);
+
         ACTIVE_W = 49.0;
         ACTIVE_H = 24.0;
         POCKET_W = ACTIVE_W + pt;
         POCKET_H = ACTIVE_H + pt;
         hull() {{
-            // Back of faceplate (Z=-0.1) forms a perfect flush seal against the active E-Ink area
-            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, -0.1])
+            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, 1.0])
                 cube([ACTIVE_W, ACTIVE_H, 0.01]);
-            // Front of faceplate (Z=pt+0.1) flares outward to form a visible bevel (100% support-free)
             translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, pt + 0.1])
                 cube([POCKET_W, POCKET_H, 0.01]);
         }}
@@ -247,11 +248,49 @@ color("Silver") {
     faceplate_mjf += "}\n"
     faceplate_fdm += "}\n"
 
+
+    # --- FACEPLATE TAPERED ---
+    # Replace faceplate_body with bezel
+    fp_tapered = faceplate
+    
+    fp_body_orig = "cube([fp_w, fp_h, pt]);"
+    fp_body_new = """cube([fp_w, fp_h, pt]);
+        bz_w_base = 64.0;
+        bz_h_base = 39.0;
+        bz_w_top  = 56.0;
+        bz_h_top  = 31.0;
+        bz_z      = 1.5;
+        hull() {
+            translate([fp_w/2 - bz_w_base/2, 123.0 - bz_h_base/2, pt])
+                cube([bz_w_base, bz_h_base, 0.01]);
+            translate([fp_w/2 - bz_w_top/2, 123.0 - bz_h_top/2, pt + bz_z])
+                cube([bz_w_top, bz_h_top, 0.01]);
+        }"""
+    fp_tapered = fp_tapered.replace(fp_body_orig, fp_body_new)
+    
+    # Extend display window to clear bezel
+    disp_cut_orig = "translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, pt + 3.0])"
+    disp_cut_new = "translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, pt + 5.0])"
+    # Wait, the original in the file is pt + 0.1 ! Let's replace that.
+    disp_cut_orig2 = "translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, pt + 0.1])"
+    fp_tapered = fp_tapered.replace(disp_cut_orig2, disp_cut_new)
+    
+    faceplate_tapered = fp_tapered
+    for row in rows:
+        for b in row:
+            ox = b['x'] + pad_x
+            oy = b['y'] + pad_y
+            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
+            faceplate_tapered += btn_str
+    faceplate_tapered += "}\n"
     with open("designs/faceplate_mjf.scad", "w") as f:
         f.write(faceplate_mjf)
         
     with open("designs/faceplate_fdm.scad", "w") as f:
         f.write(faceplate_fdm)
+        
+    with open("designs/faceplate_tapered.scad", "w") as f:
+        f.write(faceplate_tapered)
 
     import math
     D        = CHASSIS_D
@@ -268,6 +307,10 @@ cw   = {cw:.3f};
 ch   = {fp_h + WALL:.3f};
 D    = {D:.3f};
 wall = {WALL:.3f};
+fp_w = {fp_w:.3f};
+fp_h = {fp_h:.3f};
+offset_x = (cw - fp_w) / 2;
+offset_z = (ch - fp_h) / 2;
 batt_w = {batt_w}; batt_h = {batt_h}; batt_z = {batt_z:.2f};
 GCW = {GCW:.1f}; GCD = {GCD:.1f}; GR = {GR:.1f}; GY = {GY:.1f};
 junc = {junc_z:.2f};
@@ -300,9 +343,9 @@ module chassis_shell() {{
 module screw_bosses() {{
     for (sx = [7.0, cw - 2*wall - 7.0]) {{
         for (sy = [ch - wall - 5.0]) {{
-            translate([wall + sx - 3.0, pt + {PCB_T}, sy - 3.0])
+            translate([offset_x + sx - 3.0, pt + {PCB_T}, offset_z + sy - 3.0])
                 cube([6.0, D - wall - pt - {PCB_T} + 0.1, 6.0]);
-            translate([wall + sx, pt, sy]) rotate([-90, 0, 0])
+            translate([offset_x + sx, pt, offset_z + sy]) rotate([-90, 0, 0])
                 cylinder(d=3.0, h={PCB_T} + 0.1);
         }}
     }}
@@ -330,8 +373,8 @@ module chassis() {{
 """
     for sx, sy in chassis_screws:
         # Screws come from the back and stop at the faceplate. They don't punch through the front!
-        chassis += f"        translate([wall + {sx:.3f}, D + 0.1, {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D - pt + 0.2);\n"
-        chassis += f"        translate([wall + {sx:.3f}, D + 0.1, {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=4.0, h=0.8); // Head recess\n"
+        chassis += f"        translate([offset_x + {sx:.3f}, D + 0.1, offset_z + {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D - pt + 0.2);\n"
+        chassis += f"        translate([offset_x + {sx:.3f}, D + 0.1, offset_z + {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=4.0, h=0.8); // Head recess\n"
         
     chassis += f"""
         
@@ -346,7 +389,55 @@ module chassis() {{
 chassis();
 """
 
+
+    # --- CHASSIS TPU ---
+    chassis_tpu = chassis
+    # Remove railway grooves
+    chassis_tpu = chassis_tpu.replace("railway_grooves();", "// railway_grooves();")
+    # Add bumps
+    chassis_tpu = chassis_tpu.replace("chassis();", """
+        translate([15, {D:.3f}, 10]) sphere(r=2.5);
+        translate([{cw:.3f}-15, {D:.3f}, 10]) sphere(r=2.5);
+        translate([15, {D:.3f}, {fp_h + WALL:.3f}-10]) sphere(r=2.5);
+        translate([{cw:.3f}-15, {D:.3f}, {fp_h + WALL:.3f}-10]) sphere(r=2.5);
+    }}
+}}
+chassis();
+""")
+
+    # --- CHASSIS TAPERED ---
+    chassis_tapered = chassis
+    # Pure Y Taper for hull
+    hull_orig = """hull() {
+            translate([0, 0, 0]) cube([3, 3, ch]);
+            translate([cw-3, 0, 0]) cube([3, 3, ch]);
+            translate([3, D-3, 0]) cylinder(r=3, h=ch);
+            translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
+        }"""
+    hull_new = """hull() {
+            translate([0, 0, 0]) cube([3, 3, ch]);
+            translate([cw-3, 0, 0]) cube([3, 3, ch]);
+            // Tapered Y to 5.0 (center 2.0 with r 3.0)
+            translate([3, 2.0, 0]) cylinder(r=3, h=0.1);
+            translate([cw-3, 2.0, 0]) cylinder(r=3, h=0.1);
+            // Full depth at Z=90
+            translate([3, D-3, 90.0]) cylinder(r=3, h=0.1);
+            translate([cw-3, D-3, 90.0]) cylinder(r=3, h=0.1);
+            // Full depth at Z=ch
+            translate([3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
+            translate([cw-3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
+        }"""
+    chassis_tapered = chassis_tapered.replace(hull_orig, hull_new)
+    
+    # Tier 3 depth restriction
+    t3_orig = """translate([wall + 5.5, pt + {PCB_T} - 0.1, -0.1])
+            cube([cw - 2*wall - 11.0, D - wall - pt - {PCB_T} + 0.1, ch - wall + 0.2]);"""
+    t3_new = """translate([wall + 5.5, pt + {PCB_T} - 0.1, 90.0])
+            cube([cw - 2*wall - 11.0, D - wall - pt - {PCB_T} + 0.1, ch - 90.0]);"""
+    chassis_tapered = chassis_tapered.replace(t3_orig, t3_new)
+
     with open("designs/chassis.scad", "w") as f:
+
         f.write(chassis)
 
 
@@ -542,8 +633,39 @@ module c_cover() {{
 }}
 c_cover();
 """
+
+    # --- TPU STRETCH COVER ---
+    tpu_stretch_cover = f"""
+// WatchCalc 32 TPU Stretch Cover (Bumper style)
+$fn = 32;
+cw   = {cw:.3f};
+D    = {CHASSIS_D:.3f};
+ch   = {fp_h + WALL:.3f};
+wall = {WALL:.3f};
+cover_t = 2.0;
+
+module tpu_stretch_cover() {{
+    difference() {{
+        translate([-cover_t, -cover_t, -cover_t])
+            cube([cw + 2*cover_t, D/2 + cover_t, ch + 2*cover_t]);
+        translate([0.1, 0, 0.1])
+            cube([cw - 0.2, D + 1.0, ch - 0.2]);
+            
+        ACTIVE_W = 49.0; ACTIVE_H = 24.0;
+        translate([{disp_x:.3f} - ACTIVE_W/2, -cover_t-0.1, ch - 30 - ACTIVE_H/2])
+            cube([ACTIVE_W, cover_t+0.2, ACTIVE_H]);
+            
+        translate([cover_t, -cover_t-0.1, cover_t])
+            cube([cw - 2*cover_t, cover_t+0.2, ch - 50.0]);
+    }}
+}}
+tpu_stretch_cover();
+"""
     with open("designs/sliding_cover.scad", "w") as f:
         f.write(cover)
+        
+    with open("designs/tpu_stretch_cover.scad", "w") as f:
+        f.write(tpu_stretch_cover)
 
 
 
@@ -668,10 +790,8 @@ if __name__ == "__main__":
     tasks = [
         ("faceplate_mjf",  "designs/faceplate_mjf.scad",  "../scratch/stl/faceplate_mjf.stl"),
         ("faceplate_fdm",  "designs/faceplate_fdm.scad",  "../scratch/stl/faceplate_fdm.stl"),
-        ("chassis",        "designs/chassis.scad",        "../scratch/stl/chassis.stl"),
         ("chassis_tapered","designs/chassis_tapered.scad","../scratch/stl/chassis_tapered.stl"),
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
-        ("sliding_cover",  "designs/sliding_cover.scad",  "../scratch/stl/sliding_cover.stl"),
         ("tpu_stretch_cover","designs/tpu_stretch_cover.scad","../scratch/stl/tpu_stretch_cover.stl"),
         ("buttons",        "designs/buttons.scad",        "../scratch/stl/buttons.stl"),
         ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),

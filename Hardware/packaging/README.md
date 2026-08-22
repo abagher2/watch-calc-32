@@ -1,6 +1,6 @@
-# WatchCalc32 Packaging & Dielines
+# StackCalc32 Packaging & Dielines
 
-This directory contains the physical packaging designs, dielines, and concepts for WatchCalc32. Our packaging strategy employs a dual-box system tailored for both Direct-to-Consumer (D2C) e-commerce and traditional retail channels.
+This directory contains the physical packaging designs, dielines, and concepts for StackCalc32. Our packaging strategy employs a dual-box system tailored for both Direct-to-Consumer (D2C) e-commerce and traditional retail channels.
 
 ## 1. D2C Mailer Box
 For our Amazon and D2C online sales, we use a minimalist, eco-friendly corrugated mailer.

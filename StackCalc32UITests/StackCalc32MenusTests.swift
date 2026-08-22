@@ -1,6 +1,6 @@
 import XCTest
 
-class WatchCalc32MenusTests: XCTestCase {
+class StackCalc32MenusTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false

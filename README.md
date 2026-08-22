@@ -1,6 +1,6 @@
-# WatchCalc32 ⌚️🖩
+# StackCalc32 ⌚️🖩
 
-WatchCalc32 is a rebellion against slow, clunky school calculators. It completely ditches the equals sign in favor of "Stack Math" (Reverse Polish Notation)—the fastest, most efficient mental hack for solving complex math. Designed to be a world-class, rigorous tool for students, it is available as a suite of Apple ecosystem apps and as a fully open-source physical hardware device.
+StackCalc32 is a rebellion against slow, clunky school calculators. It completely ditches the equals sign in favor of "Stack Math" (Reverse Polish Notation)—the fastest, most efficient mental hack for solving complex math. Designed to be a world-class, rigorous tool for students, it is available as a suite of Apple ecosystem apps and as a fully open-source physical hardware device.
 
 This monorepo contains the entire project, spanning iOS, watchOS, embedded firmware, and physical hardware designs.
 
@@ -8,14 +8,14 @@ This monorepo contains the entire project, spanning iOS, watchOS, embedded firmw
 
 - **True Stack Math Engine**: A robust Reverse Polish Notation core (`RPNCore`) designed for precision, speed, and mathematical rigor without the mess of parentheses.
 - **Cross-Platform Software**:
-  - **Apple Watch App (`WatchCalc32`)**: A full-featured calculator on your wrist, complete with equation plotting, statistical analysis, and complex math functions.
-  - **iOS/iPadOS App (`WatchCalc32-iOS`)**: A companion app featuring an immersive, haptic-enabled numpad (`HapticNumpadView`) that feels incredibly tactile—like a premium gaming device.
-- **Physical Hardware**: Fully open-source 3D models and PCB designs for building your own physical WatchCalc32 device. Designed to be ultra-affordable ($10-$15 retail target).
+  - **Apple Watch App (`StackCalc32`)**: A full-featured calculator on your wrist, complete with equation plotting, statistical analysis, and complex math functions.
+  - **iOS/iPadOS App (`StackCalc32-iOS`)**: A companion app featuring an immersive, haptic-enabled numpad (`HapticNumpadView`) that feels incredibly tactile—like a premium gaming device.
+- **Physical Hardware**: Fully open-source 3D models and PCB designs for building your own physical StackCalc32 device. Designed to be ultra-affordable ($10-$15 retail target).
 - **Embedded Firmware**: Microcontroller code powering the physical calculator.
 
 ## 🚀 The Unfair Advantage
 
-WatchCalc32 introduces several modern capabilities designed to give you a massive edge in today's high-speed engineering and math workflows:
+StackCalc32 introduces several modern capabilities designed to give you a massive edge in today's high-speed engineering and math workflows:
 
 - **RPN Equation Editor**: An intuitive editor that feels like programming, but is optimized for quick equation entry and evaluation without the overhead of full program management.
 - **Equation Plotting**: Visually plot your equations directly on the screen to analyze functions, roots, and behaviors.
@@ -24,12 +24,12 @@ WatchCalc32 introduces several modern capabilities designed to give you a massiv
 - **Advanced Division Operations**: Native support for division with remainders and modulus operations.
 - **LFU (Least Frequently Used) Keys**: Dynamic keys that adapt to your usage, keeping the interface uncluttered while ensuring you always have access to the functions you need.
 
-## ⌨️ Unique WatchCalc32 Capabilities & Keystrokes
+## ⌨️ Unique StackCalc32 Capabilities & Keystrokes
 
-While the basic math and variable storage functions mirror the classic HP-32SII, WatchCalc32 introduces powerful new capabilities. Here is how to use the features unique to our calculator:
+While the basic math and variable storage functions mirror the classic HP-32SII, StackCalc32 introduces powerful new capabilities. Here is how to use the features unique to our calculator:
 
 ### 1. RPN Equation Editor (Like Programming)
-*Unlike the algebraic equation entry on the HP-32SII, WatchCalc32 equations are entered as raw RPN sequences—providing the power of programming without the overhead of full program memory management.*
+*Unlike the algebraic equation entry on the HP-32SII, StackCalc32 equations are entered as raw RPN sequences—providing the power of programming without the overhead of full program memory management.*
 *Note on display formatting: The display shows the step number followed by the instruction (e.g., `3 RCL X` means step 3 is RCL X).*
 
 *Example: Enter the equation `Y = 56 × X + 3`*
@@ -71,14 +71,14 @@ While the basic math and variable storage functions mirror the classic HP-32SII,
 | `[Yellow Shift]` `[MOD]` | `2.0000` | Returns the remainder (`17 % 5`). |
 
 ### 5. Dynamic LFU Keys
-WatchCalc32 features **Least Frequently Used (LFU)** adaptive keypads. As you use specific functions or variables, the interface gracefully adapts to surface your most-used keys, preventing you from having to dig through shift menus for your favorite operations.
+StackCalc32 features **Least Frequently Used (LFU)** adaptive keypads. As you use specific functions or variables, the interface gracefully adapts to surface your most-used keys, preventing you from having to dig through shift menus for your favorite operations.
 
 ## 📂 Repository Structure
 
 To maintain a clean and organized monorepo ready for public open-source distribution, this repository strictly adheres to the following structure:
 
-- `WatchCalc32/` - The watchOS application target.
-- `WatchCalc32-iOS/` - The iOS/iPadOS application target (Container App).
+- `StackCalc32/` - The watchOS application target.
+- `StackCalc32-iOS/` - The iOS/iPadOS application target (Container App).
 - `RPNCore/` - The shared, core RPN mathematical engine.
 - `Shared/` - Shared SwiftUI views, themes, and logic used across both Apple platforms.
 - `Hardware/` - Physical calculator design files, including KiCAD schematics (`.kicad_sch`), PCB layouts (`.kicad_pcb`), OpenSCAD 3D models, and gerber files.
@@ -100,7 +100,7 @@ This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to manage th
    ```bash
    xcodegen generate
    ```
-3. Open `WatchCalc32.xcodeproj` in Xcode and select the target (`WatchCalc32Container` for iOS/iPad or `WatchCalc32` for Apple Watch) to build and run.
+3. Open `StackCalc32.xcodeproj` in Xcode and select the target (`StackCalc32Container` for iOS/iPad or `StackCalc32` for Apple Watch) to build and run.
 
 ### Hardware & Firmware
 
@@ -110,7 +110,7 @@ This project uses [XcodeGen](https://github.com/yonaskolb/XcodeGen) to manage th
 ## 📄 License & Privacy
 
 - **License**: Please refer to the [LICENSE](LICENSE) file for open-source licensing details.
-- **Privacy Policy**: See the [Privacy Policy](PRIVACY_POLICY.md) for information regarding data collection (WatchCalc32 does not collect or store user data).
+- **Privacy Policy**: See the [Privacy Policy](PRIVACY_POLICY.md) for information regarding data collection (StackCalc32 does not collect or store user data).
 
 ---
 *Built for the next generation of engineers who appreciate the elegance of RPN.*

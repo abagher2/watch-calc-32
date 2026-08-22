@@ -320,7 +320,7 @@ struct iOSContentView: View {
             }
             if !compact {
                 Spacer()
-                Text("RPN SCIENTIFIC CALCULATOR")
+                Text("STACK CALCULATOR")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(themeManager.theme.functionTextColor.opacity(0.6))
                     .padding(.top, 6)

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
    LastUpgradeVersion = "1430"
-   version = "1.3">
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "YES"
+      runPostActionsOnFailure = "NO">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -14,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E6A8F1D2238006B1F79BF478"
-               BuildableName = "WatchCalc32.app"
-               BlueprintName = "WatchCalc32"
-               ReferencedContainer = "container:WatchCalc32.xcodeproj">
+               BlueprintIdentifier = "965B051C2C83C9CB06C79A82"
+               BuildableName = "StackCalc32Container.app"
+               BlueprintName = "StackCalc32Container"
+               ReferencedContainer = "container:StackCalc32.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -26,28 +27,32 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "NO">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E6A8F1D2238006B1F79BF478"
-            BuildableName = "WatchCalc32.app"
-            BlueprintName = "WatchCalc32"
-            ReferencedContainer = "container:WatchCalc32.xcodeproj">
+            BlueprintIdentifier = "965B051C2C83C9CB06C79A82"
+            BuildableName = "StackCalc32Container.app"
+            BlueprintName = "StackCalc32Container"
+            ReferencedContainer = "container:StackCalc32.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
          <TestableReference
-            skipped = "NO">
+            skipped = "NO"
+            parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1895A0E717E1BB937A0D581F"
-               BuildableName = "WatchCalc32UITests.xctest"
-               BlueprintName = "WatchCalc32UITests"
-               ReferencedContainer = "container:WatchCalc32.xcodeproj">
+               BlueprintIdentifier = "A61DF8A0098AD1F5B7D1D169"
+               BuildableName = "StackCalc32ContainerUITests.xctest"
+               BlueprintName = "StackCalc32ContainerUITests"
+               ReferencedContainer = "container:StackCalc32.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -63,10 +68,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E6A8F1D2238006B1F79BF478"
-            BuildableName = "WatchCalc32.app"
-            BlueprintName = "WatchCalc32"
-            ReferencedContainer = "container:WatchCalc32.xcodeproj">
+            BlueprintIdentifier = "965B051C2C83C9CB06C79A82"
+            BuildableName = "StackCalc32Container.app"
+            BlueprintName = "StackCalc32Container"
+            ReferencedContainer = "container:StackCalc32.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -80,10 +85,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "E6A8F1D2238006B1F79BF478"
-            BuildableName = "WatchCalc32.app"
-            BlueprintName = "WatchCalc32"
-            ReferencedContainer = "container:WatchCalc32.xcodeproj">
+            BlueprintIdentifier = "965B051C2C83C9CB06C79A82"
+            BuildableName = "StackCalc32Container.app"
+            BlueprintName = "StackCalc32Container"
+            ReferencedContainer = "container:StackCalc32.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

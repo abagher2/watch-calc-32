@@ -2,7 +2,7 @@
 
 For this prototyping phase, we are splitting the manufacturing between **PCBWay** (for the complex printed circuit board and the faceplate) and **Local 3D Printing** (for the chassis, buttons, top cap, and cover).
 
-## 1. PCBWay Order Bundle (`WatchCalc32_PCBWay_Manufacturing_Bundle.zip`)
+## 1. PCBWay Order Bundle (`StackCalc32_PCBWay_Manufacturing_Bundle.zip`)
 
 This bundle contains everything you need to send to PCBWay. It is split into internal folders:
 
