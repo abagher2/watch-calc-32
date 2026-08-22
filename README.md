@@ -1,21 +1,21 @@
 # WatchCalc32 ⌚️🖩
 
-WatchCalc32 is a comprehensive RPN (Reverse Polish Notation) calculator ecosystem inspired by classic HP calculators (like the HP-32S). Designed to be a world-class, rigorous tool for engineering and math students, it is available as a suite of Apple ecosystem apps and as a fully open-source physical hardware device.
+WatchCalc32 is a rebellion against slow, clunky school calculators. It completely ditches the equals sign in favor of "Stack Math" (Reverse Polish Notation)—the fastest, most efficient mental hack for solving complex math. Designed to be a world-class, rigorous tool for students, it is available as a suite of Apple ecosystem apps and as a fully open-source physical hardware device.
 
 This monorepo contains the entire project, spanning iOS, watchOS, embedded firmware, and physical hardware designs.
 
 ## 🌟 Features
 
-- **True RPN Engine**: A robust Reverse Polish Notation core (`RPNCore`) designed for precision, speed, and mathematical rigor.
+- **True Stack Math Engine**: A robust Reverse Polish Notation core (`RPNCore`) designed for precision, speed, and mathematical rigor without the mess of parentheses.
 - **Cross-Platform Software**:
-  - **Apple Watch App (`WatchCalc32`)**: A full-featured RPN calculator on your wrist, complete with equation plotting, statistical analysis, menus, and complex math functions.
-  - **iOS/iPadOS App (`WatchCalc32-iOS`)**: A companion app featuring an immersive, haptic-enabled numpad (`HapticNumpadView`) that feels incredibly tactile—just like a classic physical calculator.
-- **Physical Hardware**: Fully open-source 3D models (chassis, faceplates, buttons) and KiCAD PCB designs for building your own physical WatchCalc32 device.
-- **Embedded Firmware**: Microcontroller code (utilizing Swift Embedded / Pico SDK) powering the physical calculator.
+  - **Apple Watch App (`WatchCalc32`)**: A full-featured calculator on your wrist, complete with equation plotting, statistical analysis, and complex math functions.
+  - **iOS/iPadOS App (`WatchCalc32-iOS`)**: A companion app featuring an immersive, haptic-enabled numpad (`HapticNumpadView`) that feels incredibly tactile—like a premium gaming device.
+- **Physical Hardware**: Fully open-source 3D models and PCB designs for building your own physical WatchCalc32 device. Designed to be ultra-affordable ($10-$15 retail target).
+- **Embedded Firmware**: Microcontroller code powering the physical calculator.
 
-## 🚀 Modern Enhancements (vs. Classic HP-32SII)
+## 🚀 The Unfair Advantage
 
-While WatchCalc32 is heavily inspired by the classic HP-32SII and other vintage HP calculators, it introduces several modern capabilities designed for today's engineering workflows:
+WatchCalc32 introduces several modern capabilities designed to give you a massive edge in today's high-speed engineering and math workflows:
 
 - **RPN Equation Editor**: An intuitive editor that feels like programming, but is optimized for quick equation entry and evaluation without the overhead of full program management.
 - **Equation Plotting**: Visually plot your equations directly on the screen to analyze functions, roots, and behaviors.

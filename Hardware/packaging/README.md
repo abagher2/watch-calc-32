@@ -20,7 +20,20 @@ For physical store shelves (e.g., Walmart, office supply stores), we use a high-
 - **Slogan:** "Ditch the Equals Sign."
 - **Concept Image:** ![Retail Box Concept](retail_box_concept.jpg)
 
+## 3. Production Specs & Cost of Goods Sold (COGS)
+To achieve our target retail price of **$10–$15**, the total manufacturing cost (COGS) must remain strictly under **$4.00 per unit** to allow for 3PL, freight, and retail margins.
+
+### BOM Target Breakdown ($3.50 total):
+- **MCU:** CH32V or RP2040 (~$0.15 - $0.70)
+- **Display:** 1.8" Monochrome Graphic LCD SPI (~$0.85)
+- **Keypad:** Silicone dome membrane keypad with printed plastic caps (~$0.40)
+- **Chassis:** Injection-molded ABS plastic (~$0.50)
+- **Packaging:** 300gsm tuck-end box with molded pulp tray (more sustainable and cheaper than EVA foam) (~$0.30)
+- **PCBA & Assembly Labor:** (~$0.60)
+
+*Note: We cannot use premium mechanical keyboard switches or full-color OLED screens without breaking this strict budget constraint.*
+
 ## Next Steps for Production
-1. **Dieline Generation:** Once the final chassis dimensions are locked in `Hardware/designs/chassis.scad`, we will generate 2D `.dxf` / `.ai` dielines for the box fold patterns.
-2. **Foam Insert Routing:** Generate step files for the internal foam block so the manufacturer can route the exact cutout for the calculator and charging cable.
+1. **Dieline Generation:** Once the final chassis dimensions are locked in `Hardware/designs/chassis.scad`, we will generate 2D `.dxf` / `.ai` dielines for the box fold patterns based on the 300gsm tuck-end spec.
+2. **Pulp Tray Routing:** Generate step files for the internal molded pulp tray so the manufacturer can press the exact cutout for the calculator and charging cable.
 3. **Artwork Layout:** Apply the high-res marketing renders to the flattened dielines for printing.

@@ -1,14 +1,14 @@
-Not your Daddy's calculator. WatchCalc 32 is an opinionated, modern take on the legendary RPN scientific calculators, purpose-built for today’s students, schools, and exam environments. 
+Ditch the equals sign. WatchCalc 32 is a rebellion against slow, boring, clunky school calculators. 
 
-We’ve captured the authentic feel of vintage engineering calculators while intentionally stripping out programmable features. The result? A distraction-free, exam-safe tool that gives you pure mathematical power across your iPhone, iPad, and Apple Watch.
+Tired of getting lost in a mess of parentheses on your math homework? WatchCalc 32 uses "Stack Math" (Reverse Polish Notation)—the fastest, most efficient mental hack for solving complex math. It's like a cheat code for your exams. Built as a companion app to the physical WatchCalc 32 hardware, this app gives you pure mathematical power across your iPhone, iPad, and Apple Watch.
 
 ### Key Features
 
-• Authentic RPN Logic: Experience the speed and efficiency of traditional stack-based RPN entry without the clutter of modern bloated apps.
-• Purpose-Built for Schools: Intentionally non-programmable. WatchCalc 32 is designed to be the ultimate exam-safe tool, keeping the focus strictly on solving problems.
-• Extensive Mathematical Engine: Tackle advanced operations including exact fractions, complex numbers, statistics, trigonometry, and base conversions (HEX, OCT, BIN, DEC).
-• Advanced Equation Solver & Plotting: Evaluate complex equations and instantly visualize them with dynamic, full-screen interactive graphing tools.
-• True Cross-Platform Design: Fully optimized for all your devices. Enjoy a hyper-efficient layout on Apple Watch, one-handed portrait mode on iPhone, and an expansive Voyager-style landscape mode on iPad.
-• Premium Vintage Feel: Tactile haptic feedback and incredibly detailed UI elements that make you feel like you're holding a premium piece of hardware.
+• Stack Math (RPN) Logic: Experience raw speed. Type your numbers, stack them up, and execute. No equals sign required.
+• Purpose-Built for Exams: Intentionally non-programmable so you can actually use it in class without getting flagged by your teacher.
+• Powerful Engine: Tackle advanced operations including exact fractions, complex numbers, statistics, trigonometry, and base conversions.
+• Equation Plotting: Evaluate and visualize complex equations instantly with dynamic, full-screen interactive graphs. 
+• True Cross-Platform: Fully optimized. Hyper-efficient layout on Apple Watch, one-handed portrait mode on iPhone, and an expansive landscape mode on iPad.
+• Edgy Aesthetics: Dark mode, neon accents, and tactile haptic feedback that makes it feel like you're holding a premium gaming device, not a 1990s school supply.
 
-Ditch the standard iOS calculator and upgrade to the ultimate, school-ready mathematical tool.
+Download the ultimate mathematical cheat code and never press equals again.
