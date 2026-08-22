@@ -1,1 +1,1 @@
-WatchCalc 32 - RPN Calculator
+WatchCalc: Stack Calculator
