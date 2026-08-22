@@ -358,6 +358,20 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     static let renderer = Renderer()
     static let retroUI = RetroUI(lfuManager: lfuManager)
     static let uartBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
+    static let formatBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
+    static let txBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+    static var txHead = 0
+    static var txTail = 0
+    
+    @inline(__always)
+    static func pushTx(_ val: UInt8) {
+        let next = (txHead + 1) % 1024
+        if next != txTail {
+            txBuf[txHead] = val
+            txHead = next
+        }
+    }
+    
     static var uartLen = 0
     static var needsDisplay = true
     static var lastActivityTime: UInt64 = 0
@@ -405,23 +419,25 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                     uartLen = 0
                 }
                 
-                putchar_c(88); putchar_c(58); putchar_c(32) // "X: "
+                // Dump Screen Data to UART
+                pushTx(88); pushTx(58); pushTx(32) // "X: "
                 engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                     for i in 0..<engine.displayXLength {
-                        putchar_c(Int32(ptr[i]))
+                        pushTx(ptr[i])
                     }
                 }
-                putchar_c(10) // \n
+                pushTx(10) // \n
                 let yValue = engine.stack.count > 1 ? engine.stack[1].real : 0.0
                 
-                print("Y: ", terminator: "")
-                for ch in engine.formatNumber(yValue).utf8 {
-                    putchar_c(Int32(ch))
-                }
-                putchar_c(10) // \n
+                pushTx(89); pushTx(58); pushTx(32) // "Y: "
+                format_double_c(yValue, WatchCalcFirmware.formatBuf, 64, 0, 0)
+                var fmtLen = 0
+                while fmtLen < 64 && WatchCalcFirmware.formatBuf[fmtLen] != 0 { fmtLen += 1 }
+                for i in 0..<fmtLen { pushTx(WatchCalcFirmware.formatBuf[i]) }
+                pushTx(10) // \n
                 
-                for _ in 0..<32 { putchar_c(61) } // "================================"
-                putchar_c(10) // \n
+                for _ in 0..<32 { pushTx(61) } // "================================"
+                pushTx(10) // \n
             } else if ch == 8 || ch == 127 {
                 if uartLen > 0 {
                     uartLen -= 1
@@ -431,9 +447,13 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
                 if uartLen < 31 {
                     uartBuf[uartLen] = UInt8(ch)
                     uartLen += 1
-                    needsDisplay = true
                 }
             }
+        }
+        
+        if txHead != txTail {
+            putchar_c(Int32(txBuf[txTail]))
+            txTail = (txTail + 1) % 1024
         }
         if needsDisplay {
             renderer.clear()
@@ -473,23 +493,7 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
             }
             retroUI.c47Program = c47Program
 
-            // Inject formatter
-            retroUI.doubleFormatter = { (val, mode) in
-                let yBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-                defer { yBuffer.deallocate() }
-                var cMode: Int32 = 0
-                var cPlaces: Int32 = 0
-                switch mode {
-                case .fix(let p): cMode = 1; cPlaces = Int32(p)
-                case .sci(let p): cMode = 2; cPlaces = Int32(p)
-                case .eng(let p): cMode = 3; cPlaces = Int32(p)
-                case .all: cMode = 0; cPlaces = 0
-                }
-                format_double_c(val, yBuffer, 64, cMode, cPlaces)
-                var len = 0
-                while len < 64 && yBuffer[len] != 0 { len += 1 }
-                return String(decoding: UnsafeBufferPointer(start: yBuffer, count: len), as: UTF8.self)
-            }
+            // Formatter injected in main()
             
             retroUI.isShowingFullPrecision = isShowingFullPrecision
             retroUI.isShowingRegisters = isShowingRegisters
@@ -519,6 +523,23 @@ static func processAction(_ op: CalculatorOperation, engine: CalculatorEngine, l
     static func main() {
         print("Booted!")
         hw_init()
+        
+        retroUI.doubleFormatter = { (val, mode) in
+            let yBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
+            defer { yBuffer.deallocate() }
+            var cMode: Int32 = 0
+            var cPlaces: Int32 = 0
+            switch mode {
+            case .fix(let p): cMode = 1; cPlaces = Int32(p)
+            case .sci(let p): cMode = 2; cPlaces = Int32(p)
+            case .eng(let p): cMode = 3; cPlaces = Int32(p)
+            case .all: cMode = 0; cPlaces = 0
+            }
+            format_double_c(val, yBuffer, 64, cMode, cPlaces)
+            var len = 0
+            while len < 64 && yBuffer[len] != 0 { len += 1 }
+            return String(decoding: UnsafeBufferPointer(start: yBuffer, count: len), as: UTF8.self)
+        }
         
         while true {
             WatchCalcFirmware.loopIteration()

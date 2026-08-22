@@ -81,7 +81,7 @@ corner = 6.0
 # Internal Component Heights (mm)
 TACTILE_H = 1.5   # Tactile switch height above PCB (Switch Gap)
 PCB_T     = 1.6   # PCB thickness
-BATT_H    = 4.8   # SMD Right-Angle JST battery connector clearance (Z)
+BATT_H    = 7.0   # Clearance for wired CR2450 battery holder (Z)
 plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
 
 # Calculate required chassis depth to securely fit all components
@@ -291,19 +291,21 @@ module faceplate() {{
     difference() {{
         faceplate_body();
 
-        // Display window (Angled bezel to eliminate bridging)
-        // The EINK module sits perfectly flush on the flat back (Z=0).
+        // Display window (steep chamfer bezel to eliminate bridging and supports)
+        // Since faceplate thickness is pt (3.0mm), making the bottom hole only 3mm larger 
+        // than the top hole (1.5mm per side) creates a steep 26.5-degree overhang from vertical.
+        // This is well below the MK4's 40-degree threshold, guaranteeing no supports.
         ACTIVE_W = 49.0;
         ACTIVE_H = 24.0;
-        POCKET_W = {EINK_W:.3f} + 1.1;
-        POCKET_H = {EINK_H:.3f} + 1.1;
+        POCKET_W = ACTIVE_W + pt;
+        POCKET_H = ACTIVE_H + pt;
         hull() {{
-            // Back of faceplate (Z=-0.1) fits the full display module
-            translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, -0.1])
-                cube([POCKET_W, POCKET_H, 0.01]);
-            // Front of faceplate (Z=pt+0.1) is just the active area
-            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, pt + 0.1])
+            // Back of faceplate (Z=-0.1) forms a perfect flush seal against the active E-Ink area
+            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, -0.1])
                 cube([ACTIVE_W, ACTIVE_H, 0.01]);
+            // Front of faceplate (Z=pt+0.1) flares outward to form a visible bevel (100% support-free)
+            translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, pt + 0.1])
+                cube([POCKET_W, POCKET_H, 0.01]);
         }}
 
         // Button pockets
@@ -329,19 +331,31 @@ faceplate();
 // Render buttons and micro-supports
 color("Silver") {
 """
+    faceplate_mjf = faceplate
+    faceplate_fdm = faceplate
+
     pad_x = (fp_w - pcb_width) / 2
     pad_y = (fp_h - pcb_height) / 2
     for row in rows:
         for b in row:
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
-            faceplate += f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
-            faceplate += f"    micro_supports({ox:.3f}, {oy:.3f}, {b['w']}, {b['h']});\n"
+            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
+            sup_str = f"    micro_supports({ox:.3f}, {oy:.3f}, {b['w']}, {b['h']});\n"
+            
+            faceplate_mjf += btn_str
+            
+            faceplate_fdm += btn_str
+            faceplate_fdm += sup_str
 
-    faceplate += "}\n"
+    faceplate_mjf += "}\n"
+    faceplate_fdm += "}\n"
 
-    with open("designs/faceplate.scad", "w") as f:
-        f.write(faceplate)
+    with open("designs/faceplate_mjf.scad", "w") as f:
+        f.write(faceplate_mjf)
+        
+    with open("designs/faceplate_fdm.scad", "w") as f:
+        f.write(faceplate_fdm)
 
 
     # ═══════════════════════════════════════════════════════
@@ -414,10 +428,18 @@ module rim_walls() {{
     rim_d = {plate_t};
     lip   = 2.0;  // small retention chamfer lip at faceplate level
 
-    // Outer rim walls (left, right, top crossbar)
-    translate([0, -rim_d, 0])        cube([wall, rim_d, ch]);
-    translate([cw-wall, -rim_d, 0])  cube([wall, rim_d, ch]);
-    translate([0, -rim_d, ch-wall])  cube([cw, rim_d, wall]);
+    // Outer rim walls (left, right, top crossbar) with rounded front corners (r=3.0)
+    r = 3.0;
+    difference() {{
+        hull() {{
+            translate([r, -rim_d+r, 0]) cylinder(r=r, h=ch, $fn=24);
+            translate([cw-r, -rim_d+r, 0]) cylinder(r=r, h=ch, $fn=24);
+            translate([0, -0.01, 0]) cube([cw, 0.01, ch]);
+        }}
+        // Hollow out the center (between the walls) for the faceplate
+        translate([wall, -rim_d - 0.1, -0.1])
+            cube([cw - 2*wall, rim_d + 0.2, ch - wall + 0.1]);
+    }}
 
     // ── INNER CHAMFER LIPS (correct orientation) ──────────────────
     // Wide (lip=2mm) at Y=0 (faceplate face) — overlaps faceplate edge,
@@ -551,10 +573,25 @@ module top_cap() {{
         // Right boss — inset 2mm from inner wall (X=cw-wall-6 to X=cw-wall-2)
         difference() {{
             translate([cw-wall-6, 0, 0]) cube([4, 4, 8]);
-            translate([cw-wall-6-0.1, 2.0, 3.5]) rotate([0, 90, 0]) cylinder(d=2.5, h=4.2);
+            translate([cw-wall-6+4.1, 2.0, 3.5]) rotate([0, -90, 0]) cylinder(d=2.5, h=4.2);
         }}
-        // ── FRONT BEZEL LIP ──
-        // (Removed to avoid requiring supports during 3D printing)
+        
+        // ── BATTERY BUCKET (projects upward into Tier 4 cavity) ─────
+        // Designed to hold a wired CR2450 battery (approx 26x26x6mm)
+        // Positioned in the Y dimension within the Tier 4 cavity (approx Y=6.2 to Y=D-wall)
+        // We'll create a U-shaped retaining wall.
+        // Y start: 6.2, Y end: D-wall-0.2
+        // X width: 28mm (centered)
+        // Z height: 26mm
+        translate([(cw - 28)/2, 6.2, 0]) {{
+            difference() {{
+                // Outer block
+                cube([28, D - wall - 6.2 - 0.2, 26]);
+                // Inner hollow (1.2mm walls on sides and front, open on back)
+                translate([1.2, 1.2, -0.1])
+                    cube([28 - 2.4, D - wall - 6.2, 26.2]);
+            }}
+        }}
     }}
 }}
 top_cap();
@@ -616,32 +653,56 @@ wedge_rise = {wedge_rise:.3f};
 module c_cover() {{
     difference() {{
         union() {{
-            // ── BACK PANEL ─────────────────────────────────────────────────────
-            // Sits flush against chassis back face (Y=D)
-            translate([-(cov_wall + cov_clear), D + cov_clear, cov_z_start])
-                cube([cov_ow, cov_wall, cov_h]);
-
-            // ── LEFT FLANGE ────────────────────────────────────────────────────
-            // Wraps around left side of chassis (X<0)
-            translate([-(cov_wall + cov_clear), cov_y_start, cov_z_start])
-                cube([cov_wall, cov_y_len, cov_h]);
-
-            // ── RIGHT FLANGE ───────────────────────────────────────────────────
-            // Wraps around right side of chassis (X=cw)
-            translate([cw + cov_clear, cov_y_start, cov_z_start])
-                cube([cov_wall, cov_y_len, cov_h]);
-
-            // ── BOTTOM END CAP (keypad end, Z=cov_z_start) ─────────────────────────────
-            // Solid end cap — becomes the desk stand foot.
-            translate([-(cov_wall + cov_clear), cov_y_start, cov_z_start])
-                cube([cov_ow, cov_y_len, cov_wall]);
+            // ── C-SHELL (Rounded outer body) ───────────────────────────────────
+            // A fully rounded hull replaces the sharp individual flange/panel cubes.
+            r = 3.0;
+            difference() {{
+                hull() {{
+                    // Front-left
+                    translate([-(cov_wall + cov_clear) + r, cov_y_start + r, cov_z_start])
+                        cylinder(r=r, h=cov_h, $fn=24);
+                    // Front-right
+                    translate([cw + cov_clear + cov_wall - r, cov_y_start + r, cov_z_start])
+                        cylinder(r=r, h=cov_h, $fn=24);
+                    // Back-left
+                    translate([-(cov_wall + cov_clear) + r, cov_y_start + cov_y_len - r, cov_z_start])
+                        cylinder(r=r, h=cov_h, $fn=24);
+                    // Back-right
+                    translate([cw + cov_clear + cov_wall - r, cov_y_start + cov_y_len - r, cov_z_start])
+                        cylinder(r=r, h=cov_h, $fn=24);
+                }}
+                
+                // Hollow inner space for chassis
+                translate([-cov_clear, cov_y_start - 0.1, cov_z_start + cov_wall])
+                    cube([cw + 2*cov_clear, cov_y_len - cov_wall + 0.2, cov_h + 0.1]);
+            }}
+                
+            // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
+            // Left flange rail tab
+            union() {{
+                translate([-cov_clear - 0.1, GROOVE_Z - cov_clear, cov_z_start + cov_wall])
+                    cube([rail_d + 0.1, rail_w, cov_h - cov_wall]);
+                // Lock bump at Z=5
+                translate([-cov_clear - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
+                    rotate([0, 90, 0]) 
+                    cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
+            }}
+            // Right flange rail tab (translated inwards by rail_d)
+            union() {{
+                translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, cov_z_start + cov_wall])
+                    cube([rail_d + 0.1, rail_w, cov_h - cov_wall]);
+                // Lock bump at Z=5
+                translate([cw + cov_clear + 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
+                    rotate([0, -90, 0]) 
+                    cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
+            }}
         }}
 
         // ── WEDGE FOOT BEVEL ────────────────────────────────────────────────
         // 10° bevel cut from BACK face of end cap only.
         translate([-(cov_wall + cov_clear + 1),
                    D + cov_clear - 0.1,
-                   cov_z_start + 1])
+                   cov_z_start - 0.1])
             rotate([-atan(wedge_rise / wedge_len), 0, 0])
                 cube([cov_ow + 2, wedge_rise + 2, wedge_len + 3]);
                 
@@ -650,36 +711,6 @@ module c_cover() {{
             top_fillet_cutter(cov_ow, cov_y_len, cov_h, 3.0);
     }}
 
-    // ── RAIL TABS (inside flanges, engage chassis side grooves) ──────────
-    // Left flange rail tab
-    union() {{
-        translate([-cov_clear - 0.1, GROOVE_Z - cov_clear, cov_z_start + cov_wall])
-            cube([rail_d + 0.1, rail_w, cov_h - cov_wall]);
-        // Lock bump at Z=5
-        translate([-cov_clear - 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
-            rotate([0, 90, 0]) 
-            cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
-    }}
-    // Right flange rail tab (translated inwards by rail_d)
-    union() {{
-        translate([cw + cov_clear - rail_d, GROOVE_Z - cov_clear, cov_z_start + cov_wall])
-            cube([rail_d + 0.1, rail_w, cov_h - cov_wall]);
-        // Lock bump at Z=5
-        translate([cw + cov_clear + 0.1, GROOVE_Z - cov_clear + rail_w/2, 5.0]) 
-            rotate([0, -90, 0]) 
-            cylinder(d=rail_w, h=rail_d + 0.35, $fn=16);
-    }}
-    
-    // ── WEDGE FOOT FRICTION RIBS ──────────────────────────────────────
-    // Ribs on the slanted wedge face to prevent slipping when used as a stand.
-    for(rz = [3 : 4 : wedge_len - 3]) {{
-        // Place the ribs exactly on the cut facet.
-        translate([-cov_clear,
-                   D + cov_clear - (rz * (wedge_rise / wedge_len)),
-                   cov_z_start + 1 + rz])
-            rotate([-atan(wedge_rise / wedge_len), 0, 0])
-                rotate([0, 90, 0]) cylinder(r=0.4, h=cw + 2*cov_clear, $fn=12);
-    }}
 }}
 c_cover();
 """
@@ -688,44 +719,7 @@ c_cover();
 
 
 
-    # ═══════════════════════════════════════════════════════
-    # BATTERY DOOR (Replaces back_cover)
-    # ═══════════════════════════════════════════════════════
-    back_cover = f"""
-// WatchCalc 32 Battery Door (Flat rear sliding track)
-$fn = 24;
 
-module battery_door() {{
-    // Print FACE-DOWN: outer visible face is Z=2 (on the bed), lip at Z=0-1 sticks up
-    // Lip slides into chassis rail groove on the back face of the chassis.
-    //
-    // Dimensions derived from chassis:
-    //   Chassis battery hole is 40x25mm
-    difference() {{
-        union() {{
-            // Main plate (39.6 x 24.6mm to fit with 0.2mm clearance in 40x25 hole)
-            // Thickness = 1.5mm so it sits perfectly flush in the 1.5mm deep recess.
-            translate([-39.6/2, 0, 0]) cube([39.6, 24.6, 1.5]);
-
-            // Bottom mounting tab (slides into chassis slot at Z=-1.0)
-            // Starts at Z=0 (bottom edge of door), goes down 1.0mm
-            translate([-(39.6 - 4)/2, -1.0, 0.5]) cube([39.6 - 4, 1.0, 1.0]);
-        }}
-
-        // Fingernail notch on the top edge (Z=24.6)
-        translate([0, 24.6, 1.5]) rotate([90,0,0]) cylinder(d=4.0, h=4.0, center=true);
-
-        // M2 Screw clearance hole 
-        translate([0, 21.08, -0.1]) cylinder(d=2.4, h=2.3);
-        // Countersink
-        translate([0, 21.08, 0.5]) cylinder(d1=2.4, d2=4.4, h=1.1);
-    }}
-}}
-battery_door();
-
-"""
-    with open("designs/battery_door.scad", "w") as f:
-        f.write(back_cover)
 
     # ═══════════════════════════════════════════════════════
     # STANDALONE KEYCAPS 
@@ -812,7 +806,7 @@ module dummy_pcb() {{
     
     color("White") {{
         // JST-PH 2-Pin SMD Right-Angle Connector (6x7.8x4.8mm)
-        translate([{58.075 + pad_x:.3f}, {130.075 + pad_y:.3f}, 0]) 
+        translate([{35.0 + pad_x:.3f}, {8.0 + pad_y:.3f}, 0]) 
             translate([-6.0/2, -7.8/2, -4.8])
             cube([6.0, 7.8, 4.8]);
     }}
@@ -823,10 +817,10 @@ dummy_pcb();
         f.write(dummy_scad)
 
     print(f"SCAD files generated:")
-    print(f"  Faceplate:      FACE-UP print. Keys face up, Z=0 on bed. DM32-style protective rim.")
+    print(f"  Faceplate (MJF): FACE-UP print. Keys face up, Z=0 on bed. NO micro-supports (powder supported).")
+    print(f"  Faceplate (FDM): FACE-UP print. Keys face up, Z=0 on bed. Has 0.4mm micro-supports.")
     print(f"  Chassis:        STANDING on keypad edge. Flat 10mm uniform depth. Side grooves for cover.")
-    print(f"  Top Cap:        FLAT print. Seals display end.")
-    print(f"  Battery Door:   FACE-DOWN print. T-slot on back of chassis.")
+    print(f"  Top Cap:        FLAT print. Seals display end. Incorporates battery holder.")
     print(f"  Sliding Cover:  FLAT on front wall face. Print in PLA (v1). TPU for v2.")
     print(f"  Buttons:        As-is.")
     print(f"  Dummy PCB:      For physical alignment testing.")
@@ -836,7 +830,8 @@ if __name__ == "__main__":
 
     print("\nCompiling STLs...")
     tasks = [
-        ("faceplate",      "designs/faceplate.scad",      "../scratch/stl/faceplate.stl"),
+        ("faceplate_mjf",  "designs/faceplate_mjf.scad",  "../scratch/stl/faceplate_mjf.stl"),
+        ("faceplate_fdm",  "designs/faceplate_fdm.scad",  "../scratch/stl/faceplate_fdm.stl"),
         ("chassis",        "designs/chassis.scad",        "../scratch/stl/chassis.stl"),
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
         ("sliding_cover",  "designs/sliding_cover.scad",  "../scratch/stl/sliding_cover.stl"),

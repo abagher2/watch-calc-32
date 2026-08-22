@@ -114,6 +114,16 @@ def sync_pcb():
         disp_fp.SetPosition(pcbnew.VECTOR2I(int(x_disp_kicad * 1e6), int(y_disp_kicad * 1e6)))
         print(f"Moved Display to Y:{y_disp_kicad:.2f}")
 
+    # Move JST battery connector to bottom of PCB
+    jst_fp = board.FindFootprintByReference("JST1")
+    if jst_fp:
+        # Move to X=35 (center), Y=-8 (bottom of board, below keypad)
+        # Note: in KiCad, Y is negative here. So Y=-8 is near the bottom edge.
+        x_jst_kicad = 35.0
+        y_jst_kicad = -8.0
+        jst_fp.SetPosition(pcbnew.VECTOR2I(int(x_jst_kicad * 1e6), int(y_jst_kicad * 1e6)))
+        print(f"Moved JST1 (Battery) to X:{x_jst_kicad:.2f} Y:{y_jst_kicad:.2f}")
+
     pcbnew.SaveBoard(BOARD_FILE, board)
     print("PCB successfully aligned to STLs!")
 

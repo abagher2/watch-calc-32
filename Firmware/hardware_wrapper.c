@@ -144,19 +144,52 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
             int needed = snprintf(NULL, 0, "%.*G", p, val);
             if (needed <= max_chars) {
                 snprintf((char*)buffer, max_len, "%.*G", p, val);
-                
-                // Workaround for pico_printf %G not stripping trailing zeros properly
-                int len = strlen((char*)buffer);
-                if (strchr((char*)buffer, '.') != NULL && strchr((char*)buffer, 'E') == NULL && strchr((char*)buffer, 'e') == NULL) {
-                    while (len > 0 && buffer[len - 1] == '0') {
-                        buffer[len - 1] = '\0';
-                        len--;
-                    }
-                    if (len > 0 && buffer[len - 1] == '.') {
-                        buffer[len - 1] = '\0';
-                    }
-                }
                 break;
+            }
+        }
+    }
+    
+    // Post-process to fix pico_printf bugs
+    // 1. Convert 'e' to 'E'
+    char* e_ptr = strchr((char*)buffer, 'e');
+    if (e_ptr) {
+        *e_ptr = 'E';
+    } else {
+        e_ptr = strchr((char*)buffer, 'E');
+    }
+
+    // 2. Remove trailing zeros in the fractional part for ALL mode (mode 0)
+    if (mode == 0) {
+        char* dot = strchr((char*)buffer, '.');
+        if (dot) {
+            char* end_of_frac = e_ptr ? e_ptr : ((char*)buffer + strlen((char*)buffer));
+            char* p = end_of_frac - 1;
+            while (p > dot && *p == '0') {
+                p--;
+            }
+            if (p == dot) { // Remove the dot too if no fractional digits remain
+                p--;
+            }
+            // Move the rest of the string (e.g. exponent) over
+            if (e_ptr) {
+                memmove(p + 1, e_ptr, strlen(e_ptr) + 1);
+            } else {
+                *(p + 1) = '\0';
+            }
+        }
+    }
+
+    // 3. For SCI mode (mode 2) and ALL mode (mode 0), strip + and leading zeros in exponent
+    if (mode == 2 || mode == 0) {
+        e_ptr = strchr((char*)buffer, 'E');
+        if (e_ptr) {
+            char sign = e_ptr[1];
+            char* digits = e_ptr + 2;
+            while (*digits == '0' && *(digits + 1) != '\0') digits++;
+            if (sign == '+') {
+                memmove(e_ptr + 1, digits, strlen(digits) + 1);
+            } else {
+                memmove(e_ptr + 2, digits, strlen(digits) + 1);
             }
         }
     }

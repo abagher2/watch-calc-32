@@ -5,12 +5,22 @@ set(CMAKE_Swift_COMPILATION_MODE wholemodule)
 set(CMAKE_Swift_COMPILER_WORKS YES)
 
 project(WatchCalcFirmware)
-set(PICO_BOARD pico)
+if(NOT DEFINED PICO_BOARD)
+    set(PICO_BOARD pico)
+endif()
 pico_sdk_init()
 enable_language(Swift)
 
-set(SWIFT_TARGET "armv6m-none-none-eabi") # rp2040
-list(APPEND CLANG_ARCH_ABI_FLAGS "-Xcc -mfloat-abi=soft")
+if(PICO_BOARD STREQUAL "pico2")
+    # The Swift 6.0 toolchain snapshot does not have the armv8m.main-none-none-eabihf stdlib precompiled.
+    # We compile the Swift code as armv6m (Cortex-M0+) and soft-float, which the Cortex-M33 (RP2350) 
+    # can run natively due to backwards compatibility.
+    set(SWIFT_TARGET "armv6m-none-none-eabi") 
+    list(APPEND CLANG_ARCH_ABI_FLAGS "-Xcc -mfloat-abi=soft")
+else()
+    set(SWIFT_TARGET "armv6m-none-none-eabi") # rp2040 (Cortex-M0+)
+    list(APPEND CLANG_ARCH_ABI_FLAGS "-Xcc -mfloat-abi=soft")
+endif()
 
 file(GLOB RPN_CORE_SOURCES "../RPNCore/Sources/RPNCore/*.swift" "../RPNCore/Sources/RPNCore/Display/*.swift")
 file(GLOB RATIONAL_SOURCES "../RPNCore/.build/checkouts/swift-rational/Sources/RationalModule/*.swift")

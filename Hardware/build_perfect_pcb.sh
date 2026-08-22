@@ -23,7 +23,12 @@ $KICAD_PYTHON auto_router.py "output/pcbs/calculator.kicad_pcb" "output/pcbs/boa
 $KICAD_PYTHON generate_scad.py
 
 mkdir -p output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files/
-cp designs/stl/*.stl output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files/ || true
-cp designs/stl/*.stl ./ || true
+for stl in ../scratch/stl/*.stl; do
+    fname=$(basename "$stl")
+    if [[ "$fname" != "dummy_pcb.stl" && "$fname" != "temp_test.stl" && "$fname" != "buttons.stl" && "$fname" != "faceplate_fdm.stl" ]]; then
+        cp "$stl" output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files/ || true
+    fi
+    cp "$stl" ./ || true
+done
 
 echo "PCB and STLs generated and successfully saved to Hardware/ directory!"

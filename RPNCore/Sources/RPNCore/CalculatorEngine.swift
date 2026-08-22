@@ -894,11 +894,6 @@ public class CalculatorEngine {
             if stack.isEmpty {
                 stack.append(CalculatorValue(real: val))
             } else {
-                if stackLiftEnabled && stack.count >= stackSizeLimit {
-                    for i in (1..<stackSizeLimit).reversed() {
-                        stack[i] = stack[i-1]
-                    }
-                }
                 stack[0] = CalculatorValue(real: val)
             }
             isBuildingNumber = false
@@ -1044,11 +1039,18 @@ public class CalculatorEngine {
                     currentInputBuffer[0] = 48
                     currentInputLength = 1
                     isBuildingNumber = false
+                    stackLiftEnabled = false
+                    stack[0] = CalculatorValue()
                 }
             }
-            updateCurrentInputDisplay()
+            if isBuildingNumber {
+                updateCurrentInputDisplay()
+            } else {
+                updateDisplay()
+            }
         } else {
             stack[0] = CalculatorValue()
+            stackLiftEnabled = false
             updateDisplay()
         }
     }
@@ -1113,7 +1115,6 @@ public class CalculatorEngine {
     }
 
     public func executeMath(_ operation: String) {
-        print("executeMath: \(operation)")
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
@@ -1468,11 +1469,13 @@ public class CalculatorEngine {
             promptString = nil
             if wasProgramming {
                 // Do not clear input or stack, just exit programming mode
-            } else if isBuildingNumber { 
-                currentInputBuffer[0] = 48; currentInputLength = 1
-                isBuildingNumber = false 
             } else {
+                if isBuildingNumber {
+                    currentInputBuffer[0] = 48; currentInputLength = 1
+                    isBuildingNumber = false 
+                }
                 if stack.count > 0 { stack[0] = CalculatorValue() }
+                stackLiftEnabled = false
             }
         case "CLEAR":
             if stack.count > 0 {
@@ -1480,6 +1483,7 @@ public class CalculatorEngine {
             }
             currentInputLength = 0
             isBuildingNumber = false
+            stackLiftEnabled = false
         case "CLALL":
             clearAll()
             return
@@ -2475,8 +2479,9 @@ public class CalculatorEngine {
 
     public func drop() {
         if !stack.isEmpty {
+            let topValue = stack[stackSizeLimit - 1]
             for i in 0..<(stackSizeLimit - 1) { stack[i] = stack[i+1] }
-            stack[stackSizeLimit - 1] = CalculatorValue()
+            stack[stackSizeLimit - 1] = topValue
         }
     }
 
