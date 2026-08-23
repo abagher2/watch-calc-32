@@ -797,17 +797,13 @@ if __name__ == "__main__":
         ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),
     ]
 
-    procs = []
     for label, src, dst in tasks:
-        p = subprocess.Popen(["openscad", "-o", dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        procs.append((label, p))
-        
-    for label, p in procs:
-        stdout, stderr = p.communicate()
-        if p.returncode == 0:
+        print(f"  Building {label} ...")
+        res = subprocess.run(["openscad", "-o", dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if res.returncode == 0:
             print(f"  ✓ {label}.stl")
         else:
-            print(f"  ✗ {label} ERRORS:\n{stderr[-800:]}")
+            print(f"  ✗ {label} ERRORS:\n{res.stderr[-800:]}")
 
     mfg_3d = "output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files"
     os.makedirs(mfg_3d, exist_ok=True)

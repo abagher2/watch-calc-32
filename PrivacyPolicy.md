@@ -1,14 +1,12 @@
 # Privacy Policy
 
-**Last Updated:** August 18, 2026
+**Effective Date:** 2024-05-15
 
-WatchCalc32 ("the App") is designed with your privacy in mind. This policy explains our data practices.
+StackCalc32 ("the App") is designed with your privacy in mind. This policy explains our data practices.
 
-### Data Collection & Usage
-WatchCalc32 operates entirely locally on your device (iPhone, iPad, or Apple Watch). 
-- **We do not collect** any personal information.
-- **We do not store** any data outside of your device.
-- **We do not transmit** any usage statistics, analytics, crash reports, or user data to our servers or any third parties.
+## 1. Data Collection
+StackCalc32 operates entirely locally on your device (iPhone, iPad, or Apple Watch). 
+We do not collect, transmit, store, or share any personal information, usage data, or calculations.
 
 All calculator states, memory registers, user programs, and settings are stored locally on your device using standard Apple frameworks (such as UserDefaults) and are never shared.
 

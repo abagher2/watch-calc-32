@@ -2,7 +2,7 @@
 
 **Effective Date:** August 19, 2026
 
-WatchCalc 32 ("the App") is an RPN scientific calculator application provided for iOS, iPadOS, and watchOS devices.
+StackCalc32 ("the App") is an RPN scientific calculator application provided for iOS, iPadOS, and watchOS devices.
 
 ## Data Collection and Use
 We do not collect, store, transmit, or share any personal information, usage data, or analytics from your device. All calculations and operations performed within the App occur locally on your device.

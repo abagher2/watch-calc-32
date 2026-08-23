@@ -1,4 +1,4 @@
-# Hardware Build: Rugged WatchCalc 32 (Kid-Friendly)
+# Hardware Build: Rugged StackCalc32 (Kid-Friendly)
 
 This document outlines the components needed to build a physical, rugged 3D-printed calculator for kids. Our target BOM (Bill of Materials) is **under $15** so it can be sold for ~$20. 
 

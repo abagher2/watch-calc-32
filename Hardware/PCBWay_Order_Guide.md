@@ -1,4 +1,4 @@
-# WatchCalc 32 Prototype Ordering Guide
+# StackCalc32 Prototype Ordering Guide
 
 For this prototyping phase, we are splitting the manufacturing between **PCBWay** (for the complex printed circuit board and the faceplate) and **Local 3D Printing** (for the chassis, buttons, top cap, and cover).
 

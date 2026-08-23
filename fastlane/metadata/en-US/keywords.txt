@@ -1,1 +1,1 @@
-school,student,scientific,engineering,fractions,graphing,math,exam,algebra,calculus,statistics,plot
+stack,math,cheat,graphing,calculator,homework,high school,college,exam,ti84,rpn,science,engineer,student,solve

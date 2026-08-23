@@ -309,7 +309,7 @@ struct iOSContentView: View {
     private func nameplateView(compact: Bool = false) -> some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: -4) {
-                Text("WatchCalc")
+                Text("StackCalc")
                     .font(.system(size: 16, weight: .black, design: .default))
                     .italic()
                     .foregroundColor(themeManager.theme.functionTextColor)

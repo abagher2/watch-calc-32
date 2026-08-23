@@ -26,8 +26,8 @@ platform :ios do
     )
 
     build_app(
-      project: "WatchCalc32.xcodeproj",
-      scheme: "WatchCalc32Container",
+      project: "StackCalc32.xcodeproj",
+      scheme: "StackCalc32Container",
       xcargs: "-allowProvisioningUpdates " \
               "-authenticationKeyPath '/Users/abagher/Downloads/AuthKey_5A7DYKGBA4.p8' " \
               "-authenticationKeyID '5A7DYKGBA4' " \
@@ -66,8 +66,8 @@ platform :ios do
   lane :release do
     # 1. Capture fresh screenshots via UI tests
     snapshot(
-      scheme: "WatchCalc32Container",
-      project: "WatchCalc32.xcodeproj",
+      scheme: "StackCalc32Container",
+      project: "StackCalc32.xcodeproj",
       devices: ["iPhone 17 Pro Max", "iPad Pro 13-inch (M5)"],
       languages: ["en-US"],
       output_directory: "./fastlane/screenshots",
