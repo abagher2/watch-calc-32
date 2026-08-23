@@ -145,28 +145,30 @@ pt   = {pt};
 GAP  = {gap};        
 
 module key_button(w, h, label) {{
-    // 1. Massive Piston Base (Z=0.0 to Z=1.3)
-    // Double-chamfered to create a 0.3mm mechanical hard stop and retain the button 
-    // from falling out the back during assembly!
-    hull() {{
-        translate([0, 0, 0.20]) cylinder(d=6.2, h=0.4, center=true);
-        translate([0, 0, 0.60]) cylinder(d=7.0, h=0.4, center=true);
-    }}
-    translate([0, 0, 1.05]) cylinder(d=7.0, h=0.5, center=true);
+    render() {{
+        // 1. Massive Piston Base (Z=0.0 to Z=1.3)
+        // Double-chamfered to create a 0.3mm mechanical hard stop and retain the button 
+        // from falling out the back during assembly!
+        hull() {{
+            translate([0, 0, 0.20]) cylinder(d=6.2, h=0.4, center=true);
+            translate([0, 0, 0.60]) cylinder(d=7.0, h=0.4, center=true);
+        }}
+        translate([0, 0, 1.05]) cylinder(d=7.0, h=0.5, center=true);
 
-    // 2. Triangular Shaft (Z=1.3 to Z=3.7) to prevent rotation!
-    translate([0, 0, 2.5]) cylinder(d=6.0, h=2.4, center=true, $fn=3);
-    
-    // 3. Top Keycap (Z=3.7 to Z=5.0)
-    hull() {{
-        translate([0, 0, 3.7]) cylinder(d=6.0, h=0.01, center=true, $fn=3);
-        translate([0, 0, 4.3]) cylinder(d=5.0, h=0.01, center=true);
-        translate([0, 0, 5.0]) cylinder(d=4.0, h=0.01, center=true);
+        // 2. Triangular Shaft (Z=1.3 to Z=3.7) to prevent rotation!
+        translate([0, 0, 2.5]) cylinder(d=6.0, h=2.4, center=true, $fn=3);
+        
+        // 3. Top Keycap (Z=3.7 to Z=5.0)
+        hull() {{
+            translate([0, 0, 3.7]) cylinder(d=6.0, h=0.01, center=true, $fn=3);
+            translate([0, 0, 4.3]) cylinder(d=5.0, h=0.01, center=true);
+            translate([0, 0, 5.0]) cylinder(d=4.0, h=0.01, center=true);
+        }}
     }}
 }}
 
 module button_pocket(x, y, w, h) {{
-    translate([x, y, 0]) {{
+    translate([x, y, 0]) render() {{
         // 1a. Bottom Retaining Lip & Hard Stop (Z=-0.1 to Z=0.5)
         // Matches the button chamfer perfectly when pressed by exactly 0.3mm!
         hull() {{
@@ -309,6 +311,8 @@ D    = {D:.3f};
 wall = {WALL:.3f};
 fp_w = {fp_w:.3f};
 fp_h = {fp_h:.3f};
+pcb_w = {pcb_width:.3f};
+pcb_h = {pcb_height:.3f};
 offset_x = (cw - fp_w) / 2;
 offset_z = (ch - fp_h) / 2;
 batt_w = {batt_w}; batt_h = {batt_h}; batt_z = {batt_z:.2f};
@@ -326,17 +330,19 @@ module chassis_shell() {{
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        translate([wall, -0.1, -0.1])
-            cube([cw - 2*wall, pt + 0.1, ch - wall + 0.1]);
+        // Tier 1: Faceplate Cavity (Slides in from Z=0)
+        translate([offset_x, -0.1, -0.1])
+            cube([fp_w, pt + 0.1, ch - wall + 0.1]);
             
-        translate([wall + 2.5, pt - 0.1, -0.1])
-            cube([cw - 2*wall - 5.0, {PCB_T} + 0.2, ch - wall + 0.1]);
+        // Tier 2: PCB Cavity (Slides in from Z=0)
+        translate([(cw - pcb_w)/2, pt - 0.1, -0.1])
+            cube([pcb_w, {PCB_T} + 0.2, ch - wall + 0.1]);
             
         // Tier 3: Back Components Clearance (Deepest)
         // Starts at Y = pt + PCB_T - 0.1 (overlap with Tier 2).
         // Ends exactly at Y = D - wall. Depth = (D - wall) - (pt + PCB_T - 0.1).
-        translate([wall + 5.5, pt + {PCB_T} - 0.1, -0.1])
-            cube([cw - 2*wall - 11.0, D - wall - pt - {PCB_T} + 0.1, ch - wall + 0.2]);
+        translate([(cw - pcb_w)/2 + 2.0, pt + {PCB_T} - 0.1, -0.1])
+            cube([pcb_w - 4.0, D - wall - pt - {PCB_T} + 0.1, ch - wall + 0.2]);
     }}
 }}
 
@@ -365,9 +371,9 @@ module chassis() {{
         
         // ── BEZEL WINDOW (Exposes keypad and screen) ────────────────────
         // Cuts a window in the FRONT_LIP to expose the faceplate.
-        // Leaves a 4.0mm wide frame on left, right, and bottom.
+        // Leaves a 4.0mm wide frame on left, right, bottom, AND TOP!
         translate([wall + 4.0, -0.1, wall + 4.0])
-            cube([cw - 2*wall - 8.0, {FRONT_LIP} + 0.2, ch - wall - 4.0 + 0.1]);
+            cube([cw - 2*wall - 8.0, {FRONT_LIP} + 0.2, ch - wall - 8.0]);
             
         // ── CHASSIS SCREW CLEARANCE HOLES ────────────────────────────────
 """
