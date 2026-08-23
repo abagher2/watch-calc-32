@@ -77,7 +77,7 @@ public struct SharedCalculatorThoroughTestCases {
             name: "Edge_TinyNumber",
             steps: [
                 SharedCalculatorStep("1"), SharedCalculatorStep("E"), SharedCalculatorStep("9"), SharedCalculatorStep("9"), SharedCalculatorStep("+/-"),
-                SharedCalculatorStep("ENTER") // Should be 1e-99
+                SharedCalculatorStep("ENTER", expectedX: "1e-99")
             ]
         ))
         
@@ -85,7 +85,7 @@ public struct SharedCalculatorThoroughTestCases {
             name: "Edge_LargeNumber",
             steps: [
                 SharedCalculatorStep("1"), SharedCalculatorStep("E"), SharedCalculatorStep("9"), SharedCalculatorStep("9"),
-                SharedCalculatorStep("ENTER") // Should be 1e99
+                SharedCalculatorStep("ENTER", expectedX: "1e+99")
             ]
         ))
 

@@ -117,10 +117,10 @@ public class RetroUI {
                     for i in 0..<min(6, items.count) {
                         let item = items[i]
                         let segment = renderer.menuSegments[i]
-                        renderer.fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
+                        renderer.fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
                         let textW = renderer.getStringWidth(item.label, size: .tiny)
                         let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-                        renderer.drawString(item.label, x: textX, y: 55, size: .tiny, color: false)
+                        renderer.drawString(item.label, x: textX, y: 54, size: .tiny, color: false)
                     }
                 } else if let pending = waitingForMenuDigit {
                     FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 53)
@@ -131,11 +131,11 @@ public class RetroUI {
                     for i in 0..<6 {
                         let segment = renderer.menuSegments[i]
                         let isSelected = engine.selectedPlotMarkerIndex == i
-                        renderer.fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: !isSelected)
+                        renderer.fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: !isSelected)
                         let label = "R\(i + 1)"
                         let textW = renderer.getStringWidth(label, size: .tiny)
                         let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-                        renderer.drawString(label, x: textX, y: 55, size: .tiny, color: isSelected)
+                        renderer.drawString(label, x: textX, y: 54, size: .tiny, color: isSelected)
                     }
                 } else {
                     renderer.renderLFU(manager: lfuManager)
@@ -147,7 +147,7 @@ public class RetroUI {
         if isShowingFullPrecision {
             let valStr = "\(engine.stack.first?.real ?? 0.0)"
             var i = 0
-            let maxChars = 14
+            let maxChars = 12
             var textNodes: [FirmwareView] = []
             while i < valStr.count {
                 let start = valStr.index(valStr.startIndex, offsetBy: i)
@@ -164,32 +164,30 @@ public class RetroUI {
             engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                 let len = min(engine.displayXLength, 64)
                 for i in 0..<len {
-                    if let glyph = FontData.Display.glyph(forScalar: UInt32(ptr[i])) {
+                    if let glyph = FontData.Small.glyph(forScalar: UInt32(ptr[i])) {
                         textW += glyph.width + 1
                     }
                 }
             }
             if hasCursor {
-                if let glyph = FontData.Display.glyph(forScalar: 95) { // '_'
-                    textW += glyph.width + 1
-                }
+                textW += 9
             }
             
             var startX = 2
             if textW > 124 {
-                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
+                FirmwareText("<", font: .small).draw(in: renderer, x: 0, y: 28)
                 startX = 124 - textW
             }
             
             engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                 let len = min(engine.displayXLength, 64)
                 for i in 0..<len {
-                    let w = renderer.drawChar(UInt32(ptr[i]), x: startX, y: 24, size: .display, color: true)
+                    let w = renderer.drawChar(UInt32(ptr[i]), x: startX, y: 28, size: .small, color: true)
                     startX += w + 1
                 }
             }
             if hasCursor {
-                _ = renderer.drawChar(95, x: startX, y: 24, size: .display, color: true)
+                renderer.fillRect(x: startX, y: 46, w: 7, h: 2, color: true)
             }
         } else if isShowingRegisters {
             let getRegVal: (Int) -> Double = { idx in
@@ -235,13 +233,13 @@ public class RetroUI {
             valStr = doubleFormatter?(xVal, engine.displayMode) ?? "\(xVal)"
             #endif
             
-            let textW = renderer.getStringWidth(valStr, size: .display)
+            let textW = renderer.getStringWidth(valStr, size: .small)
             if textW > 124 {
-                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 24)
+                FirmwareText("<", font: .small).draw(in: renderer, x: 0, y: 28)
                 let overflowOffset = 124 - textW
-                FirmwareText(valStr, font: .display).draw(in: renderer, x: overflowOffset, y: 24)
+                FirmwareText(valStr, font: .small).draw(in: renderer, x: overflowOffset, y: 28)
             } else {
-                FirmwareText(valStr, font: .display).draw(in: renderer, x: 2, y: 24)
+                FirmwareText(valStr, font: .small).draw(in: renderer, x: 2, y: 28)
             }
         }
     }

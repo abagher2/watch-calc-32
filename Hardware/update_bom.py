@@ -11,9 +11,9 @@ def update_bom_values(kicad_pcb_path):
         if ref == "MCU1":
             fp.SetValue("RASPBERRY PI PICO")
             print(f"Set {ref} value to RASPBERRY PI PICO")
-        elif ref == "OLED1":
-            fp.SetValue("0.96 inch OLED I2C")
-            print(f"Set {ref} value to 0.96 inch OLED I2C")
+        elif ref == "Disp1":
+            fp.SetValue("Waveshare 2.13 E-Ink")
+            print(f"Set {ref} value to Waveshare 2.13 E-Ink")
         elif "JST" in ref:
             fp.SetValue("JST-PH 2.0 2-Pin")
             print(f"Set {ref} value to JST-PH 2.0 2-Pin")

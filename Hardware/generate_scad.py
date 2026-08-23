@@ -169,15 +169,13 @@ module key_button(w, h, label) {{
 
 module button_pocket(x, y, w, h) {{
     // 1a. Bottom Retaining Lip & Hard Stop (Z=-0.1 to Z=0.5)
-    // Matches the button chamfer perfectly when pressed by exactly 0.3mm!
     translate([x, y, 0.15]) cylinder(d1=6.6, d2=7.4, h=0.5, center=true, $fn=24);
     
-    // 1b. Main Piston Cavity (Z=0.5 to Z=1.6)
-    translate([x, y, 1.0]) cylinder(d=7.4, h=1.0, center=true);
+    // 1b. Main Piston Cavity (Z=0.5 to Z=1.3)
+    translate([x, y, 0.9]) cylinder(d=7.4, h=1.0, center=true);
 
-    // 2. Triangular Shaft Hole (Z=1.6 to Z=2.8)
-    translate([x, y, 1.9]) cylinder(d1=7.4, d2=6.6, h=0.6, center=true, $fn=3);
-    translate([x, y, 2.5]) cylinder(d=6.6, h=0.6, center=true, $fn=3);
+    // 2. Straight Triangular Shaft Hole (Z=1.3 to Z=3.5) - MUST cut through pt (3.0mm)
+    translate([x, y, 2.4]) cylinder(d=6.6, h=2.2, center=true, $fn=3);
 }}
 
 module faceplate_body() {{
@@ -328,6 +326,10 @@ module chassis_shell() {{
         translate([offset_x, -0.1, -0.1])
             cube([fp_w, pt + 0.1, ch - wall + 0.1]);
             
+        // Middle Cavity: Hollows out the center between Faceplate and PCB, leaving 2.0mm rails for the PCB
+        translate([(cw - (pcb_w - 4.0))/2, pt - 0.1, -0.1])
+            cube([pcb_w - 4.0, 1.5 + 0.2, ch - wall + 0.1]);
+            
         // Tier 2: PCB Cavity (Slides in from Z=0)
         // Shifted by 1.5mm to create a physical rail for the faceplate and clear the tactile switches
         translate([(cw - pcb_w)/2, pt + 1.5 - 0.1, -0.1])
@@ -354,8 +356,6 @@ module screw_bosses() {{
 module railway_grooves() {{
     translate([-0.1, GY, -0.1])        cube([GCD+0.1, GCW, ch+0.2]);
     translate([cw-GCD, GY, -0.1])      cube([GCD+0.1, GCW, ch+0.2]);
-    translate([-0.1, GY + GCW/2, 5.0]) rotate([0, 90, 0]) cylinder(d=GCW, h=GCD+0.5, $fn=16);
-    translate([cw-GCD-0.4, GY + GCW/2, 5.0]) rotate([0, 90, 0]) cylinder(d=GCW, h=GCD+0.5, $fn=16);
 }}
 module chassis() {{
     difference() {{
@@ -409,22 +409,24 @@ chassis();
     # --- CHASSIS TAPERED ---
     chassis_tapered = chassis
     # Pure Y Taper for hull
-    hull_orig = """hull() {
+    hull_orig = """        hull() {
             translate([0, 0, 0]) cube([3, 3, ch]);
             translate([cw-3, 0, 0]) cube([3, 3, ch]);
             translate([3, D-3, 0]) cylinder(r=3, h=ch);
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }"""
-    hull_new = """hull() {
+    hull_new = """        hull() {
+            // Front edge (flat where the screen is)
             translate([0, 0, 0]) cube([3, 3, ch]);
             translate([cw-3, 0, 0]) cube([3, 3, ch]);
-            // Tapered Y to 5.0 (center 2.0 with r 3.0)
-            translate([3, 2.0, 0]) cylinder(r=3, h=0.1);
-            translate([cw-3, 2.0, 0]) cylinder(r=3, h=0.1);
-            // Full depth at Z=90
-            translate([3, D-3, 90.0]) cylinder(r=3, h=0.1);
-            translate([cw-3, D-3, 90.0]) cylinder(r=3, h=0.1);
-            // Full depth at Z=ch
+            
+            // Back edge (tapered)
+            // At Z=0 (keypad), minimum depth is 7.9mm to clear the back cutouts.
+            // (Center of r=3 cylinder is at Y=7.9 - 3.0 = 4.9)
+            translate([3, 4.9, 0]) cylinder(r=3, h=0.1);
+            translate([cw-3, 4.9, 0]) cylinder(r=3, h=0.1);
+            
+            // At Z=ch (display), depth is D (14.2). (Center is at Y=D - 3.0)
             translate([3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
             translate([cw-3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
         }"""

@@ -91,168 +91,6 @@
 	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
 		(layer "F.Cu")
 		(uuid "00000000-0000-0000-0000-00005bf2cc94")
-		(at 17.525 -32.924999)
-		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
-		(tags "SPST Tactile Switch")
-		(property "Reference" "B20"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "a651df78-c08a-4960-8e98-982f4b882123")
-			(effects
-				(font
-					(size 1.27 1.27)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Value" ""
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "53c7725e-c650-4f95-8e34-12720ae7796c")
-			(effects
-				(font
-					(size 1.27 1.27)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "abfd8325-5d8d-4add-bcf6-44167e31d773")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "0225b533-f5d8-4b2b-bbf0-b511135b152a")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr through_hole)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_line
-			(start -2.75 -1.25)
-			(end -2.75 1.25)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "90eb3cf8-e21d-4f93-b89b-6df456758c73")
-		)
-		(fp_line
-			(start -2.75 -1.25)
-			(end -1.25 -2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "42c714fb-b280-4a0a-ae0f-7aa0b3ed2d48")
-		)
-		(fp_line
-			(start -2.75 1.25)
-			(end -1.25 2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "8c743b88-052d-41ed-a032-d0dd0c218d0a")
-		)
-		(fp_line
-			(start -1.25 -2.75)
-			(end 1.25 -2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "6c382c9e-d164-43a8-a559-18b6c7432d4b")
-		)
-		(fp_line
-			(start -1.25 2.75)
-			(end 1.25 2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "8128e324-7ce1-4abd-8ce4-ab3ed398dcf8")
-		)
-		(fp_line
-			(start 2.75 -1.25)
-			(end 1.25 -2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "10b4daa7-5562-4748-bbc8-f6f840a43754")
-		)
-		(fp_line
-			(start 2.75 -1.25)
-			(end 2.75 1.25)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "9c2e37b3-878b-4ff8-94a4-d0991bbda14b")
-		)
-		(fp_line
-			(start 2.75 1.25)
-			(end 1.25 2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "197d60dc-d933-4ead-8eaf-49a8677c9d4d")
-		)
-		(pad "1" smd rect
-			(at -3.1 -1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "P10")
-			(uuid "2047d73b-a2f0-47c2-9b6b-b70da27501be")
-		)
-		(pad "2" smd rect
-			(at -3.1 1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "P7")
-			(uuid "2277df1b-e6b9-4c51-a3e2-0e577bf4a9fc")
-		)
-		(pad "NC" smd rect
-			(at 3.1 -1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(uuid "1ce787c1-a653-4c89-8f0a-d115123d45e9")
-		)
-		(pad "NC" smd rect
-			(at 3.1 1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(uuid "0c635015-38b1-44dd-80ae-c751e1362286")
-		)
-		(embedded_fonts no)
-	)
-	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
-		(layer "F.Cu")
-		(uuid "00000000-0000-0000-0000-00005bf2cc94")
 		(at 39.525 -32.924999)
 		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
 		(tags "SPST Tactile Switch")
@@ -268,7 +106,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -415,6 +253,168 @@
 	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
 		(layer "F.Cu")
 		(uuid "00000000-0000-0000-0000-00005bf2cc94")
+		(at 17.525 -32.924999)
+		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
+		(tags "SPST Tactile Switch")
+		(property "Reference" "B20"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "a651df78-c08a-4960-8e98-982f4b882123")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "Tactile Switch 6x6mm"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "53c7725e-c650-4f95-8e34-12720ae7796c")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "abfd8325-5d8d-4add-bcf6-44167e31d773")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "0225b533-f5d8-4b2b-bbf0-b511135b152a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr through_hole)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_line
+			(start -2.75 -1.25)
+			(end -2.75 1.25)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "90eb3cf8-e21d-4f93-b89b-6df456758c73")
+		)
+		(fp_line
+			(start -2.75 -1.25)
+			(end -1.25 -2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "42c714fb-b280-4a0a-ae0f-7aa0b3ed2d48")
+		)
+		(fp_line
+			(start -2.75 1.25)
+			(end -1.25 2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "8c743b88-052d-41ed-a032-d0dd0c218d0a")
+		)
+		(fp_line
+			(start -1.25 -2.75)
+			(end 1.25 -2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "6c382c9e-d164-43a8-a559-18b6c7432d4b")
+		)
+		(fp_line
+			(start -1.25 2.75)
+			(end 1.25 2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "8128e324-7ce1-4abd-8ce4-ab3ed398dcf8")
+		)
+		(fp_line
+			(start 2.75 -1.25)
+			(end 1.25 -2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "10b4daa7-5562-4748-bbc8-f6f840a43754")
+		)
+		(fp_line
+			(start 2.75 -1.25)
+			(end 2.75 1.25)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "9c2e37b3-878b-4ff8-94a4-d0991bbda14b")
+		)
+		(fp_line
+			(start 2.75 1.25)
+			(end 1.25 2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "197d60dc-d933-4ead-8eaf-49a8677c9d4d")
+		)
+		(pad "1" smd rect
+			(at -3.1 -1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "P10")
+			(uuid "2047d73b-a2f0-47c2-9b6b-b70da27501be")
+		)
+		(pad "2" smd rect
+			(at -3.1 1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "P7")
+			(uuid "2277df1b-e6b9-4c51-a3e2-0e577bf4a9fc")
+		)
+		(pad "NC" smd rect
+			(at 3.1 -1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(uuid "1ce787c1-a653-4c89-8f0a-d115123d45e9")
+		)
+		(pad "NC" smd rect
+			(at 3.1 1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(uuid "0c635015-38b1-44dd-80ae-c751e1362286")
+		)
+		(embedded_fonts no)
+	)
+	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
+		(layer "F.Cu")
+		(uuid "00000000-0000-0000-0000-00005bf2cc94")
 		(at 39.525 -72.925)
 		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
 		(tags "SPST Tactile Switch")
@@ -430,7 +430,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -592,7 +592,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -754,7 +754,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -916,7 +916,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -1078,7 +1078,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -1240,7 +1240,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -1402,7 +1402,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -1564,7 +1564,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -1726,7 +1726,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -1888,7 +1888,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -2035,168 +2035,6 @@
 	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
 		(layer "F.Cu")
 		(uuid "00000000-0000-0000-0000-00005bf2cc94")
-		(at 17.525 -56.925)
-		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
-		(tags "SPST Tactile Switch")
-		(property "Reference" "B18"
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "d94ab49d-a9a3-48b7-8c7e-73fb8c5f28db")
-			(effects
-				(font
-					(size 1.27 1.27)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Value" ""
-			(at 0 0 0)
-			(layer "F.SilkS")
-			(hide yes)
-			(uuid "f7af37bb-c831-43c9-95f5-0189e52a9708")
-			(effects
-				(font
-					(size 1.27 1.27)
-					(thickness 0.15)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "86ea9199-9124-476f-ac4f-1d395f0e6e5e")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" ""
-			(at 0 0 0)
-			(layer "F.Fab")
-			(hide yes)
-			(uuid "5a174394-5b4b-47dc-80c9-1e18155dc975")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(attr through_hole)
-		(duplicate_pad_numbers_are_jumpers no)
-		(fp_line
-			(start -2.75 -1.25)
-			(end -2.75 1.25)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "05640836-3a99-456a-90cd-acfee2924f35")
-		)
-		(fp_line
-			(start -2.75 -1.25)
-			(end -1.25 -2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "555829f4-5932-4d22-80df-2f3f6ed2d514")
-		)
-		(fp_line
-			(start -2.75 1.25)
-			(end -1.25 2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "ce0dd49a-7315-43fa-9597-884e7bb024f0")
-		)
-		(fp_line
-			(start -1.25 -2.75)
-			(end 1.25 -2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "e935cdae-ead1-40a1-9659-c19d95ebb9a3")
-		)
-		(fp_line
-			(start -1.25 2.75)
-			(end 1.25 2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "2979e340-9a2c-4708-989b-82353a078adc")
-		)
-		(fp_line
-			(start 2.75 -1.25)
-			(end 1.25 -2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "9a1e25a7-4bca-41aa-8bf1-7b438fdf740e")
-		)
-		(fp_line
-			(start 2.75 -1.25)
-			(end 2.75 1.25)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "66337607-312d-4115-9ccf-2b59180211e0")
-		)
-		(fp_line
-			(start 2.75 1.25)
-			(end 1.25 2.75)
-			(stroke
-				(width 0.15)
-				(type solid)
-			)
-			(layer "F.SilkS")
-			(uuid "6e84a57a-f7eb-41f8-aa2f-8e85fccf6b0c")
-		)
-		(pad "1" smd rect
-			(at -3.1 -1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "P5")
-			(uuid "acce430b-3023-483e-a4af-b4ca9a2e88f6")
-		)
-		(pad "2" smd rect
-			(at -3.1 1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(net "P7")
-			(uuid "d2da4cb0-42ae-486b-8c1a-1ad96ae36db7")
-		)
-		(pad "NC" smd rect
-			(at 3.1 -1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(uuid "e9dfba6f-b631-4f0d-b18d-b30e86854a0b")
-		)
-		(pad "NC" smd rect
-			(at 3.1 1.85)
-			(size 1.8 1.1)
-			(layers "F.Cu" "F.Mask" "F.Paste")
-			(uuid "6066ea7e-3407-40c0-ae62-39a06cb20e7a")
-		)
-		(embedded_fonts no)
-	)
-	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
-		(layer "F.Cu")
-		(uuid "00000000-0000-0000-0000-00005bf2cc94")
 		(at 17.525 -44.925)
 		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
 		(tags "SPST Tactile Switch")
@@ -2212,7 +2050,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -2374,7 +2212,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -2536,7 +2374,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -2683,6 +2521,168 @@
 	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
 		(layer "F.Cu")
 		(uuid "00000000-0000-0000-0000-00005bf2cc94")
+		(at 17.525 -56.925)
+		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
+		(tags "SPST Tactile Switch")
+		(property "Reference" "B18"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "d94ab49d-a9a3-48b7-8c7e-73fb8c5f28db")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Value" "Tactile Switch 6x6mm"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "f7af37bb-c831-43c9-95f5-0189e52a9708")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "86ea9199-9124-476f-ac4f-1d395f0e6e5e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "5a174394-5b4b-47dc-80c9-1e18155dc975")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(attr through_hole)
+		(duplicate_pad_numbers_are_jumpers no)
+		(fp_line
+			(start -2.75 -1.25)
+			(end -2.75 1.25)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "05640836-3a99-456a-90cd-acfee2924f35")
+		)
+		(fp_line
+			(start -2.75 -1.25)
+			(end -1.25 -2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "555829f4-5932-4d22-80df-2f3f6ed2d514")
+		)
+		(fp_line
+			(start -2.75 1.25)
+			(end -1.25 2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "ce0dd49a-7315-43fa-9597-884e7bb024f0")
+		)
+		(fp_line
+			(start -1.25 -2.75)
+			(end 1.25 -2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "e935cdae-ead1-40a1-9659-c19d95ebb9a3")
+		)
+		(fp_line
+			(start -1.25 2.75)
+			(end 1.25 2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "2979e340-9a2c-4708-989b-82353a078adc")
+		)
+		(fp_line
+			(start 2.75 -1.25)
+			(end 1.25 -2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "9a1e25a7-4bca-41aa-8bf1-7b438fdf740e")
+		)
+		(fp_line
+			(start 2.75 -1.25)
+			(end 2.75 1.25)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "66337607-312d-4115-9ccf-2b59180211e0")
+		)
+		(fp_line
+			(start 2.75 1.25)
+			(end 1.25 2.75)
+			(stroke
+				(width 0.15)
+				(type solid)
+			)
+			(layer "F.SilkS")
+			(uuid "6e84a57a-f7eb-41f8-aa2f-8e85fccf6b0c")
+		)
+		(pad "1" smd rect
+			(at -3.1 -1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "P5")
+			(uuid "acce430b-3023-483e-a4af-b4ca9a2e88f6")
+		)
+		(pad "2" smd rect
+			(at -3.1 1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(net "P7")
+			(uuid "d2da4cb0-42ae-486b-8c1a-1ad96ae36db7")
+		)
+		(pad "NC" smd rect
+			(at 3.1 -1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(uuid "e9dfba6f-b631-4f0d-b18d-b30e86854a0b")
+		)
+		(pad "NC" smd rect
+			(at 3.1 1.85)
+			(size 1.8 1.1)
+			(layers "F.Cu" "F.Mask" "F.Paste")
+			(uuid "6066ea7e-3407-40c0-ae62-39a06cb20e7a")
+		)
+		(embedded_fonts no)
+	)
+	(footprint "E73:SW_TACT_ALPS_SKQGABE010"
+		(layer "F.Cu")
+		(uuid "00000000-0000-0000-0000-00005bf2cc94")
 		(at 39.525 -44.925)
 		(descr "Low-profile SMD Tactile Switch, https://www.e-switch.com/product-catalog/tact/product-lines/tl3342-series-low-profile-smt-tact-switch")
 		(tags "SPST Tactile Switch")
@@ -2698,7 +2698,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -2860,7 +2860,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3022,7 +3022,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3184,7 +3184,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3346,7 +3346,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3508,7 +3508,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3670,7 +3670,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3832,7 +3832,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -3994,7 +3994,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -4156,7 +4156,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -4318,7 +4318,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -4480,7 +4480,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -4642,7 +4642,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -4804,7 +4804,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -4966,7 +4966,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -5128,7 +5128,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -5290,7 +5290,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -5452,7 +5452,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -5614,7 +5614,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -5776,7 +5776,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -5938,7 +5938,7 @@
 				)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "Tactile Switch 6x6mm"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -7194,7 +7194,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "JST-PH 2.0 2-Pin"
 			(at 0 0 0)
 			(layer "B.SilkS")
 			(hide yes)
@@ -7366,7 +7366,7 @@
 				(justify mirror)
 			)
 		)
-		(property "Value" ""
+		(property "Value" "RASPBERRY PI PICO"
 			(at 0 0 0)
 			(layer "B.SilkS")
 			(hide yes)

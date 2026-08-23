@@ -261,20 +261,20 @@ public class Renderer {
             }
             
             let segment = menuSegments[colIndex]
-            fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
+            fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
             
             let label = fitSoftkeyLabel(item.label)
             let textW = getStringWidth(label, size: .tiny)
             let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-            drawString(label, x: textX, y: 55, size: .tiny, color: false)
+            drawString(label, x: textX, y: 54, size: .tiny, color: false)
         }
         
         if isMore {
             let segment = menuSegments[5]
-            fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
+            fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
             let textW = getStringWidth("▶", size: .tiny)
             let textX = segment.x + (segment.w - textW) / 2
-            drawString("▶", x: textX, y: 55, size: .tiny, color: false)
+            drawString("▶", x: textX, y: 54, size: .tiny, color: false)
         }
     }
     
@@ -284,11 +284,11 @@ public class Renderer {
             guard let rawName = manager.slots[i] else { continue }
             
             let funcName = fitSoftkeyLabel(rawName)
-            fillRect(x: segment.x, y: 54, w: segment.w, h: 10, color: true)
+            fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
             
             let textW = getStringWidth(funcName, size: .tiny)
             let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-            drawString(funcName, x: textX, y: 55, size: .tiny, color: false)
+            drawString(funcName, x: textX, y: 54, size: .tiny, color: false)
         }
     }
 }

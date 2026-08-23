@@ -27,6 +27,7 @@ struct BottomNumpadView: View {
     @Binding var showMeanMenu: Bool
     @Binding var showStdDevMenu: Bool
     @Binding var showMemMenu: Bool
+    @Binding var showRegsMenu: Bool
     @Binding var showXEQ: Bool
     @Binding var showConstMenu: Bool
     
@@ -102,7 +103,7 @@ struct BottomNumpadView: View {
         case .plot: showPlotPrompt = true; handledMenu = true
         case .show: showShow = true; handledMenu = true
         case .const: showConstMenu = true; handledMenu = true
-        case .regs: handledMenu = true // TODO: implement regs view if needed
+        case .regs: showRegsMenu = true; handledMenu = true
         default: break
         }
         

@@ -1557,6 +1557,9 @@ public class CalculatorEngine {
             unaryOp { CalculatorValue(real: _sqrt($0.real)) }
         case "𝑥²": unaryOp { CalculatorValue(real: $0.real * $0.real) }
         case "𝑦ˣ": binaryOp { CalculatorValue(real: _pow($1.real, $0.real)) }
+        case "xVy":
+            if stack.count > 0 && stack[0].real == 0 { errorMessage = "DIVIDE BY 0"; return }
+            binaryOp { CalculatorValue(real: _pow($1.real, 1.0 / $0.real)) }
         case "%": percentOp { CalculatorValue(real: $1.real * ($0.real / 100.0)) }
         case "%CHG": percentOp { CalculatorValue(real: $1.real == 0 ? 0 : (($0.real - $1.real) / $1.real) * 100.0) }
         case "LN": 
@@ -1670,22 +1673,22 @@ public class CalculatorEngine {
         case "sy": calculateStdDev(sample: true, y: true)
         case "σ": calculateStdDev(sample: false)
         case "σy": calculateStdDev(sample: false, y: true)
-        case "n": commitInput(); push(CalculatorValue(real: statN))
+        case "n": commitInput(); push(CalculatorValue(real: Double(statN)))
         case "Σx": commitInput(); push(CalculatorValue(real: statSumX))
         case "Σy": commitInput(); push(CalculatorValue(real: statSumY))
         case "Σx²": commitInput(); push(CalculatorValue(real: statSumX2))
         case "Σy²": commitInput(); push(CalculatorValue(real: statSumY2))
         case "Σxy": commitInput(); push(CalculatorValue(real: statSumXY))
-        case "->kg": unaryOp { CalculatorValue(real: $0.real * 0.45359237) }
-        case "->lb": unaryOp { CalculatorValue(real: $0.real / 0.45359237) }
-        case "->°C": unaryOp { CalculatorValue(real: ($0.real - 32) * 5/9) }
-        case "->°F": unaryOp { CalculatorValue(real: $0.real * 9/5 + 32) }
-        case "->cm": unaryOp { CalculatorValue(real: $0.real * 2.54) }
-        case "->in": unaryOp { CalculatorValue(real: $0.real / 2.54) }
-        case "->l": unaryOp { CalculatorValue(real: $0.real * 3.785411784) }
-        case "->gal": unaryOp { CalculatorValue(real: $0.real / 3.785411784) }
-        case "->km": unaryOp { CalculatorValue(real: $0.real * 1.609344) }
-        case "->mi": unaryOp { CalculatorValue(real: $0.real / 1.609344) }
+        case "->kg", "→kg": unaryOp { CalculatorValue(real: $0.real * 0.45359237) }
+        case "->lb", "→lb": unaryOp { CalculatorValue(real: $0.real / 0.45359237) }
+        case "->°C", "→°C": unaryOp { CalculatorValue(real: ($0.real - 32) * 5/9) }
+        case "->°F", "→°F": unaryOp { CalculatorValue(real: $0.real * 9/5 + 32) }
+        case "->cm", "→cm": unaryOp { CalculatorValue(real: $0.real * 2.54) }
+        case "->in", "→in": unaryOp { CalculatorValue(real: $0.real / 2.54) }
+        case "->l", "→l": unaryOp { CalculatorValue(real: $0.real * 3.785411784) }
+        case "->gal", "→gal": unaryOp { CalculatorValue(real: $0.real / 3.785411784) }
+        case "->km", "→km": unaryOp { CalculatorValue(real: $0.real * 1.609344) }
+        case "->mi", "→mi": unaryOp { CalculatorValue(real: $0.real / 1.609344) }
         
         // Advanced Math (HP-32SII Parity)
         case "Pn,r", "nPr": 
@@ -1841,6 +1844,9 @@ public class CalculatorEngine {
         case "√𝑥": complexUnaryOp { CalculatorValue.sqrt($0) }
         case "𝑥²": complexUnaryOp { $0 * $0 }
         case "𝑦ˣ": complexBinaryOp { CalculatorValue.pow($1, $0) }
+        case "xVy":
+            if stack.count > 0 && stack[0].real == 0 && stack[0].imag == 0 { errorMessage = "DIVIDE BY 0"; return }
+            complexBinaryOp { CalculatorValue.pow($1, CalculatorValue(real: 1.0) / $0) }
         case "LN": complexUnaryOp { CalculatorValue.ln($0) }
         case "𝑒ˣ": complexUnaryOp { CalculatorValue.exp($0) }
         case "LOG": complexUnaryOp { CalculatorValue.ln($0) / CalculatorValue(real: _log(10)) }

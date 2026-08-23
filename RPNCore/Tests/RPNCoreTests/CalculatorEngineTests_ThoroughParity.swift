@@ -16,6 +16,14 @@ final class CalculatorEngineTests_ThoroughParity: XCTestCase {
                     engine.digit(d)
                 } else if key == "." {
                     engine.decimal()
+                } else if key == "+/-" {
+                    engine.toggleSign()
+                } else if key == "ENTER" {
+                    engine.enter()
+                } else if key == "<-" {
+                    engine.backspace()
+                } else if key == "E" {
+                    engine.startExponent()
                 } else if engine.isWaitingForAlpha || engine.isWaitingForLabel {
                     engine.submitAlpha(key)
                 } else {

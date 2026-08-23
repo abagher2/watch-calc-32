@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var showPlotPrompt = false
     @State private var showShow = false
     @State private var showMemMenu = false
+    @State private var showRegsMenu = false
     @State private var showProgramEditor = false
     @State private var crownValue: Double = 0.0
     @FocusState private var isFocused: Bool
@@ -108,7 +109,7 @@ struct ContentView: View {
                             .opacity(0.01)
                         }
                         
-                    BottomNumpadView(showDisp: $showDisp, showModes: $showModes, showTestXY: $showTestXY, showTestX0: $showTestX0, showBaseMenu: $showBaseMenu, showFlagsMenu: $showFlagsMenu, showingPlot: $showingPlot, showPlotPrompt: $showPlotPrompt, showEquations: $showEquations, showShow: $showShow, showFN: $showFN, showSolve: $showSolve, showIntegrate: $showIntegrate, showClearMenu: $showClearMenu, showProbMenu: $showProbMenu, showPartsMenu: $showPartsMenu, showLRMenu: $showLRMenu, showSumsMenu: $showSumsMenu, showMeanMenu: $showMeanMenu, showStdDevMenu: $showStdDevMenu, showMemMenu: $showMemMenu, showXEQ: $showXEQ, showConstMenu: $showConstMenu, horizontalPage: $horizontalPage, verticalPage: $verticalPage)
+                    BottomNumpadView(showDisp: $showDisp, showModes: $showModes, showTestXY: $showTestXY, showTestX0: $showTestX0, showBaseMenu: $showBaseMenu, showFlagsMenu: $showFlagsMenu, showingPlot: $showingPlot, showPlotPrompt: $showPlotPrompt, showEquations: $showEquations, showShow: $showShow, showFN: $showFN, showSolve: $showSolve, showIntegrate: $showIntegrate, showClearMenu: $showClearMenu, showProbMenu: $showProbMenu, showPartsMenu: $showPartsMenu, showLRMenu: $showLRMenu, showSumsMenu: $showSumsMenu, showMeanMenu: $showMeanMenu, showStdDevMenu: $showStdDevMenu, showMemMenu: $showMemMenu, showRegsMenu: $showRegsMenu, showXEQ: $showXEQ, showConstMenu: $showConstMenu, horizontalPage: $horizontalPage, verticalPage: $verticalPage)
                         .frame(height: totalHeight - (totalHeight * 0.2864) - 8 - toolbarHeight)
                         .clipped()
                 }
@@ -257,6 +258,10 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showProgramEditor) {
             ProgramEditorView()
+        }
+        .sheet(isPresented: $showRegsMenu) {
+            RegsMenuView()
+                .environment(engine)
         }
         .onChange(of: bindableEngine.isProgrammingMode) { oldValue, newValue in
             if !newValue {

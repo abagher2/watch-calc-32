@@ -100,7 +100,7 @@ public func dispatchKey(
             engine.toggleSign()
         } else if command == .decimal {
             engine.decimal()
-        } else if command == .exp {
+        } else if command == .e {
             engine.startExponent()
         } else if menuCommands.contains(command) {
             onMenuAction?(command)
