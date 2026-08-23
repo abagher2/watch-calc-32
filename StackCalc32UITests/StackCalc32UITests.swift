@@ -753,8 +753,8 @@ import RPNCore
     app.buttons["btn_2"].tap()
     app.buttons["btn_5"].tap()
     
-    // Tap FDISP (Blue Shift + .)
-    app.buttons["btn_blue_shift"].tap()
+    // Tap FDISP (Yellow Shift + .)
+    app.buttons["btn_yellow_shift"].tap()
     app.buttons["btn_."].tap()
     Thread.sleep(forTimeInterval: 1.0)
     

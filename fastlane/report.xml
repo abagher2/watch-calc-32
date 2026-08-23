@@ -5,12 +5,12 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.001819">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000906">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: ruby &apos;/Users/abagher/Documents/GitHub/watch-calc-32/fastlane/upload_metadata.rb&apos;" time="20.174767">
+      <testcase classname="fastlane.lanes" name="1: snapshot" time="226.955593">
         
       </testcase>
     

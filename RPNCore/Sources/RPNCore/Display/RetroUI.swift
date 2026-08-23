@@ -158,102 +158,6 @@ public class RetroUI {
             // Use spacing -4 to mimic the previous lineY += 12 behavior (16 - 4 = 12)
             let overlay = FirmwarePadding(top: 14, leading: 2, child: FirmwareVStack(alignment: .leading, spacing: -4, children: textNodes))
             overlay.draw(in: renderer, x: 0, y: 0)
-        } else if isShowingRegisters {
-            let getRegVal: (Int) -> Double = { idx in
-                if idx < 4 { return engine.stack.count > idx ? engine.stack[idx].real : 0.0 }
-                else {
-                    let vIdx = idx - 4
-                    if vIdx < 26 {
-                        let c = String(Character(UnicodeScalar(65 + vIdx)!))
-                        return engine.variables[c]?.real ?? 0.0
-                    }
-                    return 0.0
-                }
-            }
-            let getRegName: (Int) -> String = { idx in
-                if idx == 0 { return "X:" }
-                if idx == 1 { return "Y:" }
-                if idx == 2 { return "Z:" }
-                if idx == 3 { return "T:" }
-                let vIdx = idx - 4
-                if vIdx < 26 { return "\(String(Character(UnicodeScalar(65 + vIdx)!))):" }
-                return "?:"
-            }
-            
-            var stackLines: [FirmwareView] = []
-            for i in 0..<4 {
-                let regIdx = regsOffset + (3 - i)
-                let name = getRegName(regIdx)
-                let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
-                stackLines.append(FirmwareText("\(name) \(valStr)", font: .small))
-            }
-            FirmwareVStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
-        } else if let error = engine.errorMessage {
-            FirmwareText(error, font: .display).draw(in: renderer, x: 2, y: 24)
-        } else if let status = engine.statusMessage {
-            FirmwareText(status, font: .display).draw(in: renderer, x: 2, y: 24)
-        } else if let transient = engine.transientMessage {
-            FirmwareText(transient, font: .display).draw(in: renderer, x: 2, y: 24)
-        } else if let prompt = engine.promptString {
-            FirmwareText("\(prompt) _", font: .display).draw(in: renderer, x: 2, y: 24)
-        } else if engine.isGeneratingPlot || engine.isPlotLoading {
-            FirmwareText("LOADING PLOT...", font: .small).draw(in: renderer, x: 2, y: 24)
-        } else if engine.requestPlot && !engine.plotData.isEmpty {
-            // Render Plot graph curve and point cursor searching via LFU keys
-            let minX = engine.plotData.map { $0.0 }.min() ?? -10.0
-            let maxX = engine.plotData.map { $0.0 }.max() ?? 10.0
-            let minY = engine.plotData.map { $0.1 }.min() ?? -10.0
-            let maxY = engine.plotData.map { $0.1 }.max() ?? 10.0
-            
-            let rangeX = max(1e-6, maxX - minX)
-            let rangeY = max(1e-6, maxY - minY)
-            
-            for pt in engine.plotData {
-                let px = Int(((pt.0 - minX) / rangeX) * 127.0)
-                let py = 52 - Int(((pt.1 - minY) / rangeY) * 38.0)
-                renderer.setPixel(x: px, y: py, color: true)
-            }
-            
-            if let idx = engine.selectedPlotMarkerIndex {
-                var selectedPoint: (Double, Double)? = nil
-                if idx < engine.plotMarkers.count {
-                    selectedPoint = engine.plotMarkers[idx]
-                } else if !engine.plotData.isEmpty {
-                    let step = engine.plotData.count / 6
-                    let sampleIdx = min(engine.plotData.count - 1, idx * step)
-                    selectedPoint = engine.plotData[sampleIdx]
-                }
-                
-                if let (ptX, ptY) = selectedPoint {
-                    let px = Int(((ptX - minX) / rangeX) * 127.0)
-                    let py = 52 - Int(((ptY - minY) / rangeY) * 38.0)
-                    
-                    renderer.setPixel(x: px - 1, y: py, color: true)
-                    renderer.setPixel(x: px + 1, y: py, color: true)
-                    renderer.setPixel(x: px, y: py - 1, color: true)
-                    renderer.setPixel(x: px, y: py + 1, color: true)
-                    
-                    let xStr = doubleFormatter?(ptX, engine.displayMode) ?? "\(ptX)"
-                    let yStr = doubleFormatter?(ptY, engine.displayMode) ?? "\(ptY)"
-                    renderer.drawString("X:\(xStr) Y:\(yStr)", x: 2, y: 12, size: .small, color: true)
-                }
-            }
-        } else if engine.isProgrammingMode || engine.isEquationMode {
-            // Draw 4 lines of equations, correctly spaced
-            let steps = engine.currentProgramSteps
-            let maxScroll = max(0, steps.count - 4)
-            programScrollOffset = min(programScrollOffset, maxScroll)
-            let startIndex = max(0, steps.count - 4 - programScrollOffset)
-            
-            var eqLines: [FirmwareView] = []
-            for i in startIndex..<min(steps.count, startIndex + 4) {
-                let stepNum = i + 1
-                let stepNumStr = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
-                eqLines.append(FirmwareText("\(stepNumStr): \(steps[i])", font: .small))
-            }
-            let eqStack = FirmwareVStack(alignment: .leading, spacing: 2, children: eqLines)
-            eqStack.draw(in: renderer, x: 2, y: 14)
-            
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
             let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
             var textW = 0
@@ -287,6 +191,36 @@ public class RetroUI {
             if hasCursor {
                 _ = renderer.drawChar(95, x: startX, y: 24, size: .display, color: true)
             }
+        } else if isShowingRegisters {
+            let getRegVal: (Int) -> Double = { idx in
+                if idx < 4 { return engine.stack.count > idx ? engine.stack[idx].real : 0.0 }
+                else {
+                    let vIdx = idx - 4
+                    if vIdx < 26 {
+                        let c = String(Character(UnicodeScalar(65 + vIdx)!))
+                        return engine.variables[c]?.real ?? 0.0
+                    }
+                    return 0.0
+                }
+            }
+            let getRegName: (Int) -> String = { idx in
+                if idx == 0 { return "X:" }
+                if idx == 1 { return "Y:" }
+                if idx == 2 { return "Z:" }
+                if idx == 3 { return "T:" }
+                let vIdx = idx - 4
+                if vIdx < 26 { return "\(String(Character(UnicodeScalar(65 + vIdx)!))):" }
+                return "?:"
+            }
+            
+            var stackLines: [FirmwareView] = []
+            for i in 0..<4 {
+                let regIdx = regsOffset + (3 - i)
+                let name = getRegName(regIdx)
+                let valStr = doubleFormatter?(getRegVal(regIdx), engine.displayMode) ?? "\(getRegVal(regIdx))"
+                stackLines.append(FirmwareText("\(name) \(valStr)", font: .small))
+            }
+            FirmwareVStack(alignment: .leading, spacing: 2, children: stackLines).draw(in: renderer, x: 2, y: 12)
         } else {
             // HP-32SII Single Number Display (X register) - Left-Justified starting at X: 2
             var valStr = ""
