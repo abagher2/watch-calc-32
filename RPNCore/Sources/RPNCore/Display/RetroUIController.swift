@@ -209,7 +209,7 @@ public class RetroUIController {
         }
         
         if let pendingItem = retroUI.waitingForMenuDigit {
-            if let digit = Int(finalOp.stringValue) {
+            if let digit = parseInteger(finalOp.stringValue) {
                 engine.executeMath("\(pendingItem.action) \(digit)")
             }
             retroUI.waitingForMenuDigit = nil
@@ -221,7 +221,8 @@ public class RetroUIController {
             let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
             
             if finalOp.stringValue.hasPrefix("LFU_") {
-                let index = Int(String(finalOp.stringValue.dropFirst(4))) ?? 0
+                let suffix = String(finalOp.stringValue.dropFirst(4))
+                let index = parseInteger(suffix) ?? 0
                 
                 // Check for MORE button
                 if index == 5 && items.count - retroUI.menuOffset > 6 {
@@ -290,14 +291,15 @@ public class RetroUIController {
             menuItemsDisplayCache = newMenu.items
         }
         else if finalOp.stringValue.hasPrefix("LFU_") {
-            let index = Int(String(finalOp.stringValue.dropFirst(4))) ?? 0
+            let suffix = String(finalOp.stringValue.dropFirst(4))
+            let index = parseInteger(suffix) ?? 0
             if let funcName = lfuManager.slots[index] {
                 engine.executeMath(funcName)
                 lfuManager.recordUsage(of: funcName)
             }
         }
         else {
-            if finalOp.stringValue.count == 1, let digit = Int(finalOp.stringValue) {
+            if finalOp.stringValue.count == 1, let digit = parseInteger(finalOp.stringValue) {
                 engine.digit(digit)
             } else if finalOp == .e {
                 engine.startExponent()
@@ -322,8 +324,9 @@ public class RetroUIController {
     }
     
     public func render() {
-        retroUI.doubleFormatter = { [weak engine] val, mode in
-            return engine?.formatNumber(val) ?? "\(val)"
+        let captureEngine = self.engine
+        retroUI.doubleFormatter = { val, mode in
+            return captureEngine.formatNumber(val)
         }
         renderer.clear()
         retroUI.render(engine: engine, renderer: renderer)

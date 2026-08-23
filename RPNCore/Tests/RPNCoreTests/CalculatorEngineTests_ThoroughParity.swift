@@ -8,6 +8,7 @@ final class CalculatorEngineTests_ThoroughParity: XCTestCase {
         var failed = 0
         
         for tc in SharedCalculatorThoroughTestCases.cases {
+            print("Running test case: \(tc.name)")
             let engine = CalculatorEngine()
             
             for step in tc.steps {

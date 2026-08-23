@@ -92,9 +92,9 @@ import RPNCore
                 app.buttons["func_√x"].tap()
                 #endif
             } else if op == "LFU_0" {
-                app.buttons["Integer Part"].tap()
+                app.buttons["IP (Integer Part)"].tap()
             } else if op == "LFU_1" {
-                app.buttons["Fractional Part"].tap()
+                app.buttons["FP (Fractional Part)"].tap()
             } else {
                 let buttonId = "func_\(op)"
                 if app.buttons[buttonId].exists {
@@ -747,7 +747,7 @@ import XCTest
 
   func testEquationEditing() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 

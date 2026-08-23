@@ -98,8 +98,12 @@ disp_x = fp_w / 2
 disp_y = (disp['y'] + pad_y + 4) if disp else (fp_h - EINK_H / 2 - 5)
 PCB_SCREW_INSET = 7.0
 chassis_screws = [
-    (pad_x + 7.0, pad_y + 5.0), (pad_x + pcb_width - 7.0, pad_y + 5.0),
-    (pad_x + 7.0, pad_y + pcb_height - 5.0), (pad_x + pcb_width - 7.0, pad_y + pcb_height - 5.0),
+    # Bottom screws (keypad end)
+    (pad_x + 7.0, pad_y + pcb_height - 5.0), 
+    (pad_x + pcb_width - 7.0, pad_y + pcb_height - 5.0),
+    # Top screws (display end, used by Top Cap)
+    (pad_x + 7.0, pad_y + 5.0),
+    (pad_x + pcb_width - 7.0, pad_y + 5.0),
 ]
 
 def top_fillet_cutter_scad():
@@ -116,19 +120,39 @@ module top_fillet_cutter(w, d, h, r) {
         translate([-r-1, -r-1, -1]) cube([w+2*r+2, d+2*r+2, h-r+1]);
     }
 }
+
+module bottom_fillet_cutter(w, d, h, r) {
+    difference() {
+        translate([-r-1, -r-1, -1]) cube([w+2*r+2, d+2*r+2, r+1]);
+        hull() {
+            translate([r, r, r]) sphere(r=r, $fn=24);
+            translate([w-r, r, r]) sphere(r=r, $fn=24);
+            translate([r, d-r, r]) sphere(r=r, $fn=24);
+            translate([w-r, d-r, r]) sphere(r=r, $fn=24);
+        }
+        translate([-r-1, -r-1, r]) cube([w+2*r+2, d+2*r+2, h]);
+    }
+}
 """
 
 def generate_scad():
     os.makedirs("../scratch/stl", exist_ok=True)
 
+    # Calculate dimensions needed in python
+    py_fp_w = 74.650
+    py_fp_h = 147.150
+    py_WALL = 1.800
+    py_ch = py_fp_h + py_WALL
+    py_cw = py_fp_w + 2*py_WALL
+    py_offset_x = (py_cw - py_fp_w) / 2
+    py_offset_z = (py_ch - py_fp_h) / 2
+
     # ═══════════════════════════════════════════════════════
-    # FACEPLATE — printed FACE-UP
-    # Z=0 is the BACK of the faceplate (flat on build plate).
-    # Keys face UP. 
-    # Plungers are at Z=0 (printing directly on bed).
-    # Micro-supports bridge plunger and faceplate wall at Z=0.
+    # FACEPLATE — printed FACE-DOWN
+    # Z=3.0 is the FRONT of the faceplate (flat on build plate).
+    # Keys face DOWN. 
     # ═══════════════════════════════════════════════════════
-    gap         = 0.60   # print-in-place clearance (0.60mm for 0.4mm nozzle to guarantee no bridging)
+    gap         = 0.60   # print-in-place clearance
     pt          = 3.0    # Faceplate overall thickness
     
     # Plunger dimensions (Base of the button)
@@ -136,9 +160,8 @@ def generate_scad():
     ph = 4.0
 
     faceplate = f"""
-// WatchCalc 32 Faceplate — Print FACE-UP
-// Back of faceplate is on Z=0 (build plate). Keys face up.
-// Hourglass/I-Beam print-in-place buttons perfectly constrained by faceplate shelves.
+// WatchCalc 32 Faceplate — Print FACE-DOWN
+// Front of faceplate is on Z=3.0 (build plate). Keys face down.
 $fn = 24;
 fp_w = {fp_w:.3f};
 fp_h = {fp_h:.3f};
@@ -146,36 +169,29 @@ cr   = {corner};
 pt   = {pt};    
 GAP  = {gap};        
 
-module key_button(w, h, label) {{
-    union() {{
-        // 1. Massive Piston Base (Z=0.0 to Z=1.3)
-        // Double-chamfered to create a 0.3mm mechanical hard stop and retain the button 
-        // from falling out the back during assembly!
-        hull() {{
-            translate([0, 0, 0.20]) cylinder(d=6.2, h=0.4, center=true);
-            translate([0, 0, 0.60]) cylinder(d=7.0, h=0.4, center=true);
-        }}
-        translate([0, 0, 1.05]) cylinder(d=7.0, h=0.5, center=true);
-
-        // 2. Triangular Shaft (Z=1.3 to Z=3.7) to prevent rotation!
-        translate([0, 0, 2.5]) cylinder(d=6.0, h=2.4, center=true, $fn=3);
-        
-        // 3. Top Keycap (Z=3.7 to Z=5.0)
-        // Replaced hull with primitive overlapping cylinders to prevent OpenSCAD CGAL freezing!
-        translate([0, 0, 4.0]) cylinder(d1=6.0, d2=5.0, h=0.6, center=true, $fn=24);
-        translate([0, 0, 4.65]) cylinder(d1=5.0, d2=4.0, h=0.7, center=true, $fn=24);
-    }}
+module key_button() {{
+    // 1. Front Face (Z=0 to Z=0.8)
+    // Smaller diameter to fit through the front lip
+    cylinder(d=6.2, h=0.8, $fn=24);
+    
+    // 2. Piston Base (Z=0.8 to Z=1.8)
+    // Widens out to prevent falling through the front
+    translate([0, 0, 0.8]) cylinder(d=7.0, h=1.0, $fn=24);
+    
+    // 3. Shaft (Z=1.8 to Z=2.9)
+    // Narrows to press the tactile switch without hitting the PCB
+    translate([0, 0, 1.8]) cylinder(d=4.0, h=1.1, $fn=24);
 }}
 
 module button_pocket(x, y, w, h) {{
-    // 1a. Bottom Retaining Lip & Hard Stop (Z=-0.1 to Z=0.5)
-    translate([x, y, 0.15]) cylinder(d1=6.6, d2=7.4, h=0.5, center=true, $fn=24);
+    // 1. Front Lip (Z=-0.1 to Z=0.8)
+    // Traps the button from falling out the front
+    translate([x, y, -0.1]) cylinder(d=6.6, h=0.9, $fn=24);
     
-    // 1b. Main Piston Cavity (Z=0.5 to Z=1.3)
-    translate([x, y, 0.9]) cylinder(d=7.4, h=1.0, center=true);
-
-    // 2. Straight Triangular Shaft Hole (Z=1.3 to Z=3.5) - MUST cut through pt (3.0mm)
-    translate([x, y, 2.4]) cylinder(d=6.6, h=2.2, center=true, $fn=3);
+    // 2. Main Piston Cavity (Z=0.8 to Z=3.1)
+    // Extra wide to give 0.8mm radial clearance around the 7.0mm piston
+    // Overhang at Z=0.8 bridges perfectly due to small circle (d=8.6)
+    translate([x, y, 0.8]) cylinder(d=8.6, h={pt} - 0.8 + 0.1, $fn=24);
 }}
 
 module faceplate_body() {{
@@ -193,13 +209,13 @@ module faceplate() {{
 
         ACTIVE_W = 49.0;
         ACTIVE_H = 24.0;
-        POCKET_W = ACTIVE_W + pt;
-        POCKET_H = ACTIVE_H + pt;
+        // Interior Chamfer: Start from the EXACT glass pocket bounds (65.4x30.6) at Z=1.0
+        // and taper to the bezel window (49.0x24.0) at Z=3.1 to completely eliminate flat overhangs!
         hull() {{
-            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, 1.0])
+            translate([{disp_x:.3f} - 65.4/2, {disp_y:.3f} - 30.6/2, 1.0])
+                cube([65.4, 30.6, 0.01]);
+            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, pt + 0.1])
                 cube([ACTIVE_W, ACTIVE_H, 0.01]);
-            translate([{disp_x:.3f} - POCKET_W/2, {disp_y:.3f} - POCKET_H/2, pt + 0.1])
-                cube([POCKET_W, POCKET_H, 0.01]);
         }}
 
         // Button pockets
@@ -234,8 +250,7 @@ color("Silver") {
         for b in row:
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
-            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
-            
+            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button();\n"
             faceplate_mjf += btn_str
             faceplate_fdm += btn_str
 
@@ -274,7 +289,7 @@ color("Silver") {
         for b in row:
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
-            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
+            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button();\n"
             faceplate_tapered += btn_str
     faceplate_tapered += "}\n"
     with open("designs/faceplate_mjf.scad", "w") as f:
@@ -322,69 +337,69 @@ module chassis_shell() {{
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        // Tier 1: Faceplate Cavity (Slides in from Z=0)
-        translate([offset_x, -0.1, -0.1])
-            cube([fp_w, pt + 0.1, ch - wall + 0.1]);
+        // Tier 1: Faceplate Cavity (Slides in from Z=ch, stopped by bottom lip at Z=wall)
+        translate([offset_x, {FRONT_LIP} - 0.1, wall])
+            cube([fp_w, pt + 0.1, ch + 0.1]);
             
         // Middle Cavity: Hollows out the center between Faceplate and PCB, leaving 2.0mm rails for the PCB
-        translate([(cw - (pcb_w - 4.0))/2, pt - 0.1, -0.1])
-            cube([pcb_w - 4.0, 1.5 + 0.2, ch - wall + 0.1]);
+        translate([(cw - (pcb_w - 4.0))/2, {FRONT_LIP} + pt - 0.1, wall])
+            cube([pcb_w - 4.0, 1.5 + 0.2, ch + 0.1]);
             
-        // Tier 2: PCB Cavity (Slides in from Z=0)
+        // Tier 2: PCB Cavity (Slides in from Z=ch)
         // Shifted by 1.5mm to create a physical rail for the faceplate and clear the tactile switches
-        translate([(cw - pcb_w)/2, pt + 1.5 - 0.1, -0.1])
-            cube([pcb_w, {PCB_T} + 0.2, ch - wall + 0.1]);
+        translate([(cw - pcb_w)/2, {FRONT_LIP} + pt + 1.5 - 0.1, wall])
+            cube([pcb_w, {PCB_T} + 0.2, ch + 0.1]);
+            
+        // Tier 2.5: PCB Trace Clearance
+        // Hollows out 0.5mm behind the PCB so traces/vias don't scratch against the solid wedge back when sliding in.
+        // We cannot hollow out more than 0.5mm here because the chassis is only 7.9mm thick at the bottom!
+        translate([(cw - pcb_w + 4.0)/2, {FRONT_LIP} + pt + 1.5 + {PCB_T} - 0.1, wall])
+            cube([pcb_w - 4.0, 0.5 + 0.1, ch + 0.1]);
             
         // Tier 3: Back Components Clearance (Deepest)
-        // Starts at Y = pt + 1.5 + PCB_T - 0.1 (overlap with Tier 2).
-        // Ends exactly at Y = D - wall. Depth = (D - wall) - (pt + 1.5 + PCB_T - 0.1).
-        translate([(cw - pcb_w)/2 + 2.0, pt + 1.5 + {PCB_T} - 0.1, -0.1])
-            cube([pcb_w - 4.0, D - wall - pt - 1.5 - {PCB_T} + 0.1, ch - wall + 0.2]);
-    }}
-}}
-
-module screw_bosses() {{
-    for (sx = [7.0, cw - 2*wall - 7.0]) {{
-        for (sy = [ch - wall - 5.0]) {{
-            translate([offset_x + sx - 3.0, pt + 1.5 + {PCB_T}, offset_z + sy - 3.0])
-                cube([6.0, D - wall - pt - 1.5 - {PCB_T} + 0.1, 6.0]);
-            translate([offset_x + sx, pt + 1.5, offset_z + sy]) rotate([-90, 0, 0])
-                cylinder(d=3.0, h={PCB_T} + 0.1);
+        // Starts at Z=90. Tapers to match the chassis back wall to avoid punching through!
+        // At Z=90, max Y is 9.8. At Z=ch, max Y is 12.2.
+        hull() {{
+            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + 1.5 + {PCB_T} - 0.1, 90.0])
+                cube([pcb_w - 4.0, 9.8 - ({FRONT_LIP} + pt + 1.5 + {PCB_T}), 0.1]);
+            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + 1.5 + {PCB_T} - 0.1, ch - 0.1])
+                cube([pcb_w - 4.0, 12.2 - ({FRONT_LIP} + pt + 1.5 + {PCB_T}), 0.1]);
         }}
     }}
 }}
-module railway_grooves() {{
-    translate([-0.1, GY, -0.1])        cube([GCD+0.1, GCW, ch+0.2]);
-    translate([cw-GCD, GY, -0.1])      cube([GCD+0.1, GCW, ch+0.2]);
-}}
+
 module chassis() {{
     difference() {{
         union() {{
             chassis_shell();
-            screw_bosses();
         }}
+
         
         // ── BEZEL WINDOW (Exposes keypad and screen) ────────────────────
-        // Cuts a window in the FRONT_LIP to expose the faceplate.
-        // Leaves a 4.0mm wide frame on left, right, bottom, AND TOP!
+        // Cuts a window in the front to expose the faceplate.
+        // Leaves a 4.0mm wide frame on left, right, and bottom.
+        // Leaves a 1.2mm (3-layer perimeter) upper lip at the top to secure the faceplate!
         translate([wall + 4.0, -0.1, wall + 4.0])
-            cube([cw - 2*wall - 8.0, {FRONT_LIP} + 0.2, ch - wall - 8.0]);
+            cube([cw - 2*wall - 8.0, {FRONT_LIP} + 0.2, ch - (wall + 4.0) - 1.2]);
             
         // ── CHASSIS SCREW CLEARANCE HOLES ────────────────────────────────
 """
     for sx, sy in chassis_screws:
-        # Screws come from the back and stop at the faceplate. They don't punch through the front!
-        chassis += f"        translate([offset_x + {sx:.3f}, D + 0.1, offset_z + {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D - pt + 0.2);\n"
-        chassis += f"        translate([offset_x + {sx:.3f}, D + 0.1, offset_z + {sy:.3f}]) rotate([90, 0, 0]) cylinder(d=4.0, h=0.8); // Head recess\n"
-        
+        # Faceplate Y (sy) is inverted relative to Chassis Z!
+        cz = py_ch - py_offset_z - sy
+        chassis += f"        translate([offset_x + {sx:.3f}, D + 0.1, {cz:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D - pt + 0.2);\n"
+        chassis += f"        translate([offset_x + {sx:.3f}, D + 0.1, {cz:.3f}]) rotate([90, 0, 0]) cylinder(d=4.0, h=0.8); // Head recess\n"
+
     chassis += f"""
-        
         // ── RAILWAY GROOVES ──────────────────────────────────────────────
-        // 2 straight grooves for the sliding cover
-        railway_grooves();
+        // Removed! TPU stretch cover is used instead.
+        // railway_grooves();
         
         // ── TOP CORNER FILLET ─────────────────────────────────────────────
         translate([0, 0, 0]) top_fillet_cutter(cw, D, ch, 3.0);
+        
+        // ── BOTTOM CORNER FILLET ──────────────────────────────────────────
+        translate([0, 0, 0]) bottom_fillet_cutter(cw, D, ch, 3.0);
     }}
 }}
 chassis();
@@ -432,12 +447,7 @@ chassis();
         }"""
     chassis_tapered = chassis_tapered.replace(hull_orig, hull_new)
     
-    # Tier 3 depth restriction
-    t3_orig = f"""        translate([(cw - pcb_w)/2 + 2.0, pt + 1.5 + {{PCB_T}} - 0.1, -0.1])
-            cube([pcb_w - 4.0, D - wall - pt - 1.5 - {{PCB_T}} + 0.1, ch - wall + 0.2]);"""
-    t3_new = f"""        translate([(cw - pcb_w)/2 + 2.0, pt + 1.5 + {{PCB_T}} - 0.1, 90.0])
-            cube([pcb_w - 4.0, D - wall - pt - 1.5 - {{PCB_T}} + 0.1, ch - 90.0]);"""
-    chassis_tapered = chassis_tapered.replace(t3_orig, t3_new)
+
 
     with open("designs/chassis.scad", "w") as f:
         f.write(chassis)
@@ -478,42 +488,55 @@ module top_cap() {{
 
         // ── FRONT LIP (Drops down into bezel window to secure Faceplate) ──────
         // Completes the chassis O-frame since the chassis cannot have a bridged top lip.
-        // Drops down to Z=139 to trap the Faceplate (which ends at Z=140).
-        translate([wall + 2.0, 0, 139.0])
-            cube([cw - 2*wall - 4.0, {FRONT_LIP}, ch - 139.0]);
+        // Drops down to Z=139 to trap the Faceplate.
+        translate([wall + 4.0, 0, 139.0])
+            cube([cw - 2*wall - 8.0, {FRONT_LIP}, ch - 139.0]);
 
-        // ── SCREW BOSSES (Drop down into chassis Tier 3 to Z=135) ─────────────────
-        // The top two chassis screws (at Z=138.550) pass through the rear wall, 
-        // through these blocks, then into the PCB and Faceplate.
-        // NOTE: The horizontal pegs have been removed so the cap can drop in straight from above!
-        
-        // Left Standoff
+        // ── SCREW BOSSES (Drop down into chassis Tier 3) ─────────────────
+        // Left Standoff (Tapered to not punch through back wall!)
+"""
+    cz_top_screw = py_ch - py_offset_z - (pad_y + 5.0)
+    cz_boss_bottom = cz_top_screw - 3.55
+    top_cap += f"""
         difference() {{
-            // Thick Base: From back wall to PCB (Y = pt + 1.5 + PCB_T)
-            translate([wall + 7.0 - 3.0, {pt} + 1.5 + {PCB_T}, 135.0]) 
-                cube([6.0, D - wall - {pt} - 1.5 - {PCB_T} + 0.1, ch - cap_t - 135.0 + 0.1]);
+            hull() {{
+                translate([wall + 7.0 - 3.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
+                    cube([6.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                translate([wall + 7.0 - 3.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
+                    cube([6.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+            }}
             // Clearance hole for M2 screw (d=2.2)
-            translate([wall + 7.0, D + 0.1, 138.550]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
+            translate([wall + 7.0, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
         
-        // Right Standoff
+        // Right Standoff (Tapered)
         difference() {{
-            translate([cw - wall - 7.0 - 3.0, {pt} + 1.5 + {PCB_T}, 135.0]) 
-                cube([6.0, D - wall - {pt} - 1.5 - {PCB_T} + 0.1, ch - cap_t - 135.0 + 0.1]);
-            translate([cw - wall - 7.0, D + 0.1, 138.550]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
+            hull() {{
+                translate([cw - wall - 7.0 - 3.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
+                    cube([6.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                translate([cw - wall - 7.0 - 3.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
+                    cube([6.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+            }}
+            translate([cw - wall - 7.0, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
         
         // ── BATTERY BUCKET (hangs down into Tier 3 cavity) ─────
-        // Designed to hold a wired CR2450 battery (approx 26x26x6mm)
-        // Positioned in the Y dimension within the Tier 3 cavity (Y={pt}+1.5+{PCB_T} to Y=D-wall)
-        // Z hangs down from ch.
+        // Restored to CR2450 coin cell (24.5mm diameter x 5.0mm thick) + wire clearance.
+        // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
+        // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
         translate([(cw - 28)/2, {pt} + 1.5 + {PCB_T}, ch - 26]) {{
             difference() {{
-                // Outer block
-                cube([28, D - wall - ({pt} + 1.5 + {PCB_T}) - 0.2, 26]);
+                // Outer block (Tapered)
+                hull() {{
+                    cube([28, 11.0 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                    translate([0, 0, 26 - cap_t]) cube([28, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                }}
                 // Inner hollow (1.2mm walls on sides and bottom, open on front and top)
                 translate([1.2, -0.1, 1.2])
-                    cube([28 - 2.4, D - wall - ({pt} + 1.5 + {PCB_T}), 26]);
+                    hull() {{
+                        cube([28 - 2.4, 11.0 - ({pt} + 1.5 + {PCB_T}) - 1.2, 0.1]);
+                        translate([0, 0, 26 - cap_t]) cube([28 - 2.4, 12.2 - ({pt} + 1.5 + {PCB_T}) - 1.2, 0.1]);
+                    }}
             }}
         }}
     }}
@@ -776,10 +799,10 @@ dummy_pcb();
     with open("designs/dummy_pcb.scad", "w") as f:
         f.write(dummy_scad)
 
-    print(f"SCAD files generated:")
-    print(f"  Faceplate (MJF): FACE-UP print. Keys face up, Z=0 on bed. NO micro-supports (powder supported).")
-    print(f"  Faceplate (FDM): FACE-UP print. Keys face up, Z=0 on bed. Has 0.4mm micro-supports.")
-    print(f"  Chassis:        STANDING on keypad edge. Flat 10mm uniform depth. Side grooves for cover.")
+    print("SCAD files generated:")
+    print("  Faceplate (MJF): FACE-DOWN print (Z=3.0 on bed). ZERO overhangs.")
+    print("  Faceplate (FDM): FACE-DOWN print (Z=3.0 on bed). ZERO overhangs (no supports needed!).")
+    print("  Chassis:        STANDING on keypad edge. Flat 10mm uniform depth. Side grooves for cover.")
     print(f"  Top Cap:        FLAT print. Seals display end. Incorporates battery holder.")
     print(f"  Sliding Cover:  FLAT on front wall face. Print in PLA (v1). TPU for v2.")
     print(f"  Buttons:        As-is.")

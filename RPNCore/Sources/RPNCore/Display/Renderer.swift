@@ -16,31 +16,11 @@ public class Renderer {
     }
     
     public func fitSoftkeyLabel(_ rawLabel: String) -> String {
-        switch rawLabel {
-        case "𝑒ˣ": return "𝑒ˣ"
-        case "√𝑥": return "√𝑥"
-        case "𝑥²": return "𝑥²"
-        case "𝑦ˣ": return "𝑦ˣ"
-        case "10ˣ": return "10ˣ"
-        case "1/𝑥": return "1/𝑥"
-        case "𝑥!": return "𝑥!"
-        case "𝑥≷𝑦": return "𝑥<>𝑦"
-        case "4-LVL": return "4LV"
-        case "PRGM": return "PRG"
-        case "REGS": return "REG"
-        case "FRAC": return "FRC"
-        case "RAND": return "RND"
-        case "VARS": return "VAR"
-        case "GRAD": return "GRD"
-        case "MODES": return "MOD"
-        case "MODINT": return "MOD"
-        default:
-            var l = rawLabel
-            while getStringWidth(l, size: .tiny) > 20 && !l.isEmpty {
-                l.removeLast()
-            }
-            return l
+        var l = rawLabel
+        while getStringWidth(l, size: .tiny) > 20 && !l.isEmpty {
+            l.removeLast()
         }
+        return l
     }
     
     public func clear() {
@@ -140,11 +120,49 @@ public class Renderer {
             }
         }
     }
-    
+    private func applyGlyphReplacements(to str: String) -> String {
+        var processed = str
+        let replacements: [(String, String)] = [
+            ("1/𝑥", "\u{E000}"), ("10ˣ", "\u{E001}"), ("𝑒ˣ", "\u{E002}"),
+            ("𝑦ˣ", "\u{E003}"), ("𝑥²", "\u{E004}"), ("√𝑥", "\u{E005}"),
+            ("ˣ√𝑦", "\u{E006}"), ("𝑥!", "\u{E007}"), ("s,σ", "\u{E008}"),
+            ("𝑥̄,𝑦̄", "\u{E009}"), ("Σ+", "\u{E00A}"), ("Σ-", "\u{E00B}"),
+            ("x̂", "\u{E00C}"), ("ŷ,r", "\u{E00D}"), ("x̄", "\u{E00E}"),
+            ("ȳ", "\u{E00F}"), ("L.R.", "\u{E012}"), ("INT÷", "\u{E013}"),
+            ("4-LVL", "\u{E016}")
+        ]
+        
+        for (old, new) in replacements {
+            let sArr = Array(processed)
+            let oArr = Array(old)
+            var res: [Character] = []
+            var i = 0
+            while i < sArr.count {
+                var match = true
+                for j in 0..<oArr.count {
+                    if i + j >= sArr.count || sArr[i+j] != oArr[j] {
+                        match = false
+                        break
+                    }
+                }
+                if match {
+                    res.append(contentsOf: Array(new))
+                    i += oArr.count
+                } else {
+                    res.append(sArr[i])
+                    i += 1
+                }
+            }
+            processed = String(res)
+        }
+        return processed
+    }
+
     public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
+        let processed = applyGlyphReplacements(to: str)
         var total = 0
         let shouldBold = boldFonts && size != .tiny
-        for scalar in str.unicodeScalars {
+        for scalar in processed.unicodeScalars {
             var charWidth = 0
             switch size {
             case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar.value) { charWidth = result.width }
@@ -188,8 +206,10 @@ public class Renderer {
     }
 
     public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
+        let processed = applyGlyphReplacements(to: str)
         var cursorX = x
-        for scalar in str.unicodeScalars {
+        for scalar in processed.unicodeScalars {
+
             let width = drawChar(scalar.value, x: cursorX, y: y, size: size, color: color)
             cursorX += width
         }

@@ -1116,8 +1116,18 @@ public class CalculatorEngine {
         }
     }
 
-    public func executeOp(_ operation: CalculatorOperation) {
-        executeMath(operation.stringValue)
+    public func executeOp(_ operation: CalculatorOperation, param: String? = nil) {
+        if operation == .shiftYellow {
+            shiftState = (shiftState == 1) ? 0 : 1
+            return
+        }
+        if operation == .shiftBlue {
+            shiftState = (shiftState == 2) ? 0 : 2
+            return
+        }
+        
+        let opString = param != nil ? "\(operation.stringValue) \(param!)" : operation.stringValue
+        executeMath(opString)
     }
 
     public func executeMath(_ operation: String) {
@@ -1538,7 +1548,7 @@ public class CalculatorEngine {
         case "SCRL":
             // Scroll logic handled by UI, no-op for engine
             return
-        case "𝑥≷𝑦", "𝑥≷𝑦":
+        case "𝑥≷𝑦", "x↔y":
             swapXY()
             return
         case "ASGN": isAssigning = true; return
@@ -1586,7 +1596,7 @@ public class CalculatorEngine {
         case "x>0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real > 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real > 0) }; return
         case "x<0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real < 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real < 0) }; return
         case "x<=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real <= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real <= 0) }; return
-        case "𝑥!", "𝑥!", "n!": 
+        case "𝑥!", "n!": 
             if stack.count > 0 {
                 if stack[0].real < 0 || stack[0].real != floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
             }
@@ -1845,7 +1855,7 @@ public class CalculatorEngine {
         case "𝑥²": complexUnaryOp { $0 * $0 }
         case "𝑦ˣ": complexBinaryOp { CalculatorValue.pow($1, $0) }
         case "xVy":
-            if stack.count > 0 && stack[0].real == 0 && stack[0].imag == 0 { errorMessage = "DIVIDE BY 0"; return }
+            if stack.count > 0 && stack[0].real == 0 && stack[0].imag == 0 { errorMessage = "DIVIDE BY 0"; return true }
             complexBinaryOp { CalculatorValue.pow($1, CalculatorValue(real: 1.0) / $0) }
         case "LN": complexUnaryOp { CalculatorValue.ln($0) }
         case "𝑒ˣ": complexUnaryOp { CalculatorValue.exp($0) }

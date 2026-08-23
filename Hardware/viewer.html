@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assembly Viewer</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #222; color: white; font-family: sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        #ui { position: absolute; top: 10px; left: 10px; z-index: 100; pointer-events: none; }
+        h1 { margin: 0 0 10px 0; font-size: 24px; }
+        .log { margin: 2px 0; font-size: 14px; }
+        .collision { color: #ff5555; font-weight: bold; }
+        .ok { color: #55ff55; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h1>WatchCalc 32 Assembly</h1>
+        <div id="logs">Loading models...</div>
+    </div>
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, -100, 200);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.target.set(35, 70, -20);
+        controls.update();
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(50, -50, 100);
+        scene.add(dirLight);
+        
+        const loader = new THREE.STLLoader();
+        const parts = [];
+        let loaded = 0;
+        
+        const configs = [
+            { file: 'faceplate_fdm.stl', color: 0xcccccc, name: 'Faceplate', yOffset: 0, zOffset: 0 },
+            { file: 'dummy_pcb.stl', color: 0x228822, name: 'PCB', yOffset: 0, zOffset: -1.6 },
+            { file: 'chassis_tapered.stl', color: 0x555555, name: 'Chassis', rotateX: Math.PI/2, tX: -2.0, tY: -2.0, tZ: 3.0, opacity: 0.8 },
+            { file: 'top_cap.stl', color: 0x111111, name: 'Top Cap', rotateX: Math.PI/2, tX: -2.0, tY: -2.0, tZ: 3.0 },
+            { file: 'buttons.stl', color: 0xaaaaaa, name: 'Buttons', yOffset: 0, zOffset: 0 }
+        ];
+
+        configs.forEach((conf) => {
+            loader.load('../scratch/stl/' + conf.file, (geometry) => {
+                const material = new THREE.MeshStandardMaterial({ 
+                    color: conf.color, 
+                    transparent: conf.opacity !== undefined,
+                    opacity: conf.opacity || 1.0,
+                    roughness: 0.5
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                if (conf.rotateX) mesh.rotation.x = conf.rotateX;
+                if (conf.tX !== undefined) mesh.position.x = conf.tX;
+                if (conf.tY !== undefined) mesh.position.y = conf.tY;
+                if (conf.tZ !== undefined) mesh.position.z = conf.tZ;
+                if (conf.zOffset !== undefined) mesh.position.z += conf.zOffset;
+                
+                geometry.computeBoundingBox();
+                const box = new THREE.Box3().setFromObject(mesh);
+                const boxHelper = new THREE.Box3Helper(box, 0x00ffff);
+                scene.add(boxHelper);
+                
+                scene.add(mesh);
+                parts.push({ name: conf.name, mesh: mesh, box: box, originalPos: mesh.position.clone() });
+                loaded++;
+                
+                if (loaded === configs.length) {
+                    document.getElementById('logs').innerHTML = '<div class="ok">All models loaded! Checking bounds...</div>';
+                    // Animation Loop
+                    let time = 0;
+                    const animate = function () {
+                        requestAnimationFrame(animate);
+                        time += 0.02;
+                        
+                        // Exploded view animation
+                        const explodeDist = (Math.sin(time) * 0.5 + 0.5) * 50;
+                        
+                        parts.forEach(p => {
+                            if (p.name === 'Top Cap') p.mesh.position.y = p.originalPos.y + explodeDist;
+                            if (p.name === 'Faceplate' || p.name === 'Buttons') p.mesh.position.z = p.originalPos.z + explodeDist * 0.5;
+                            if (p.name === 'PCB') p.mesh.position.z = p.originalPos.z - explodeDist * 0.5;
+                            if (p.name === 'Chassis') p.mesh.position.z = p.originalPos.z - explodeDist;
+                        });
+                        
+                        camera.position.x = Math.sin(time * 0.5) * 200 + 35;
+                        camera.position.y = Math.cos(time * 0.5) * 200 + 70;
+                        camera.lookAt(35, 70, -20);
+                        
+                        renderer.render(scene, camera);
+                    };
+                    animate();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

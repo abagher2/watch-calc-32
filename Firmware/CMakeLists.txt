@@ -33,7 +33,6 @@ add_executable(WatchCalcFirmware
     ${FIRMWARE_SOURCES}
     ${RPN_CORE_SOURCES}
     ${RATIONAL_SOURCES}
-    "../Shared/HP32KeyMap.swift"
 )
 
 target_compile_definitions(WatchCalcFirmware PRIVATE EMULATOR=1)

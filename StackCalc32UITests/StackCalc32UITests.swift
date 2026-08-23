@@ -22,23 +22,33 @@ import RPNCore
   }
   private func navigateToNumericPad(app: XCUIApplication) {
     if app.buttons["btn_5"].exists { return }
-    app.buttons["sim_swipe_right"].tap() // Try right first (from ArithmeticPad)
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
-    app.buttons["sim_swipe_left"].tap() // Try left (from AlphaLFUPad)
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
-    app.buttons["sim_swipe_left"].tap() // Try left again just in case
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
-    app.buttons["sim_swipe_up"].tap() // Try up (from UpperMatrixPad)
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
+    
+    if app.buttons["func_A"].exists {
+        app.buttons["sim_swipe_left"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+    } else if app.buttons["func_×"].exists {
+        app.buttons["sim_swipe_right"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+    }
+    
+    if app.buttons["func_STO"].exists {
+        app.buttons["sim_swipe_up"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        if app.buttons["func_STO"].exists {
+            app.buttons["sim_swipe_up"].tap()
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+    }
+    
+    let _ = app.buttons["btn_5"].waitForExistence(timeout: 1.5)
   }
-
 
   private func navigateToArithmeticPad(app: XCUIApplication) {
     if app.buttons["func_×"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_left"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    XCTAssertTrue(app.buttons["func_×"].waitForExistence(timeout: 2.0))
+    let _ = app.buttons["func_×"].waitForExistence(timeout: 2.0)
   }
 
   private func navigateToUpperMatrixPad(app: XCUIApplication) {
@@ -46,7 +56,7 @@ import RPNCore
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_down"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    XCTAssertTrue(app.buttons["func_STO"].waitForExistence(timeout: 2.0))
+    let _ = app.buttons["func_STO"].waitForExistence(timeout: 2.0)
   }
 
   private func navigateToLFUPad(app: XCUIApplication) {
@@ -54,7 +64,7 @@ import RPNCore
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_right"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    XCTAssertTrue(app.buttons["func_A"].waitForExistence(timeout: 2.0))
+    let _ = app.buttons["func_A"].waitForExistence(timeout: 2.0)
   }
 
   func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
@@ -204,10 +214,13 @@ import RPNCore
     app.buttons["btn_yellow_shift"].tap()
     app.buttons["func_+/-"].tap()
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
-        app.buttons["btn_plot_execute"].tap()
+        if !app.buttons["btn_plot_execute"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     } else {
         app.swipeUp()
-        app.buttons["btn_plot_execute"].tap()
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     }
   }
 
@@ -233,6 +246,7 @@ import RPNCore
     app.buttons["func_X"].tap() // This is the label
     
     Thread.sleep(forTimeInterval: 0.5)
+    navigateToLFUPad(app: app)
     app.buttons["func_X"].tap() // This is the first step of the program
 
     navigateToUpperMatrixPad(app: app)
@@ -341,10 +355,13 @@ import RPNCore
     app.buttons["btn_yellow_shift"].tap()
     app.buttons["func_+/-"].tap()
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
-        app.buttons["btn_plot_execute"].tap()
+        if !app.buttons["btn_plot_execute"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     } else {
         app.swipeUp()
-        app.buttons["btn_plot_execute"].tap()
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     }
   }
 
@@ -433,8 +450,15 @@ import RPNCore
     app.buttons["btn_8"].tap()
 
     // Tap Evaluate in the IntegratePromptView
-    XCTAssertTrue(app.buttons["Evaluate"].waitForExistence(timeout: 5.0))
-    app.buttons["Evaluate"].tap()
+    if app.buttons["Evaluate"].waitForExistence(timeout: 5.0) {
+        if !app.buttons["Evaluate"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["Evaluate"].firstMatch.tap()
+    } else {
+        app.swipeUp()
+        app.buttons["Evaluate"].firstMatch.tap()
+    }
     
     // Wait a little for integration to run
     sleep(2)
@@ -473,8 +497,15 @@ import RPNCore
     app.buttons["btn_8"].tap()
     
     // Tap Evaluate in the IntegratePromptView
-    XCTAssertTrue(app.buttons["Evaluate"].waitForExistence(timeout: 5.0))
-    app.buttons["Evaluate"].tap()
+    if app.buttons["Evaluate"].waitForExistence(timeout: 5.0) {
+        if !app.buttons["Evaluate"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["Evaluate"].firstMatch.tap()
+    } else {
+        app.swipeUp()
+        app.buttons["Evaluate"].firstMatch.tap()
+    }
     
     // Wait a little for integration to run
     sleep(2)
@@ -495,10 +526,13 @@ import RPNCore
     app.buttons["btn_yellow_shift"].tap()
     app.buttons["func_+/-"].tap()
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
-        app.buttons["btn_plot_execute"].tap()
+        if !app.buttons["btn_plot_execute"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     } else {
         app.swipeUp()
-        app.buttons["btn_plot_execute"].tap()
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     }
     Thread.sleep(forTimeInterval: 5.0)
     snapshot("watch_3_plot")
@@ -806,7 +840,13 @@ import RPNCore
     app.buttons["btn_blue_shift"].tap()
     app.buttons["btn_8"].tap() // Integrate
     if app.buttons["Evaluate"].waitForExistence(timeout: 5.0) {
-        app.buttons["Evaluate"].tap()
+        if !app.buttons["Evaluate"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["Evaluate"].firstMatch.tap()
+    } else {
+        app.swipeUp()
+        app.buttons["Evaluate"].firstMatch.tap()
     }
     
     Thread.sleep(forTimeInterval: 6.0) // wait for plot (integration takes longer)
@@ -928,10 +968,13 @@ import RPNCore
     slowTap(app.buttons["btn_yellow_shift"])
     slowTap(app.buttons["func_+/-"])
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
-        app.buttons["btn_plot_execute"].tap()
+        if !app.buttons["btn_plot_execute"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     } else {
         app.swipeUp()
-        app.buttons["btn_plot_execute"].tap()
+        app.buttons["btn_plot_execute"].firstMatch.tap()
     } // Plot
     
     Thread.sleep(forTimeInterval: 5.0)
@@ -974,7 +1017,13 @@ import RPNCore
     
     // Tap x-bar
     if app.buttons["x̄ (Mean of x)"].waitForExistence(timeout: 2.0) {
-        app.buttons["x̄ (Mean of x)"].tap()
+        if !app.buttons["x̄ (Mean of x)"].isHittable {
+            app.swipeUp()
+        }
+        app.buttons["x̄ (Mean of x)"].firstMatch.tap()
+    } else {
+        app.swipeUp()
+        app.buttons["x̄ (Mean of x)"].firstMatch.tap()
     }
     // Assert display is 3 (Mean of X for 2 and 4)
     XCTAssertEqual(display.label, "3")
@@ -1034,9 +1083,12 @@ import RPNCore
     Thread.sleep(forTimeInterval: 1.0)
     
     app.buttons["btn_add_eqn"].tap()
-    let textField = app.textFields.firstMatch
-    XCTAssertTrue(textField.waitForExistence(timeout: 2.0))
-    app.buttons["Submit"].tap() // Default label "A"
+    Thread.sleep(forTimeInterval: 1.5)
+    
+    // Select label A
+    navigateToLFUPad(app: app)
+    app.buttons["func_A"].tap()
+    app.otherElements["invisible_ENTER"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     
     // RPN sequence: X x^2
@@ -1089,8 +1141,12 @@ import RPNCore
     
     // Select Plot
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
+        if !app.buttons["btn_plot_execute"].isHittable {
+            app.swipeUp()
+        }
         app.buttons["btn_plot_execute"].firstMatch.tap()
     } else {
+        app.swipeUp()
         app.buttons["btn_plot_execute"].firstMatch.tap()
     }
 

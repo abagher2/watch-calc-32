@@ -39,8 +39,8 @@ struct BetaTheme: AppTheme {
     var yellowShiftColor: Color = Color.orange
     var blueShiftColor: Color = Color.cyan
     
-    var shift1Label: String = "f"
-    var shift2Label: String = "g"
+    var shift1Label: String = "\u{E010}"
+    var shift2Label: String = "\u{E011}"
     
     var lcdBackgroundColor: Color = Color.primary.opacity(0.05)
     var lcdTextColor: Color = .primary
@@ -58,8 +58,8 @@ struct PioneerBrownTheme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.95, green: 0.55, blue: 0.1) // HP Orange
     var blueShiftColor: Color = Color(red: 0.2, green: 0.6, blue: 0.8) // HP Light Blue
     
-    var shift1Label: String = "↖"
-    var shift2Label: String = "↗"
+    var shift1Label: String = "\u{E014}"
+    var shift2Label: String = "\u{E015}"
     
     var lcdBackgroundColor: Color = Color(red: 0.6, green: 0.65, blue: 0.55) // Greenish LCD
 #if os(watchOS)
@@ -81,8 +81,8 @@ struct PioneerPurpleGreenTheme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.7, green: 0.2, blue: 0.6) // True Violet/Purple
     var blueShiftColor: Color = Color(red: 0.2, green: 0.8, blue: 0.4) // Mint Green
     
-    var shift1Label: String = "↖"
-    var shift2Label: String = "↗"
+    var shift1Label: String = "\u{E014}"
+    var shift2Label: String = "\u{E015}"
     
     var lcdBackgroundColor: Color = Color(red: 0.6, green: 0.65, blue: 0.55)
 #if os(watchOS)
@@ -127,8 +127,8 @@ struct RetroTheme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.95, green: 0.55, blue: 0.1)
     var blueShiftColor: Color = Color(red: 0.2, green: 0.6, blue: 0.8)
     
-    var shift1Label: String = "f"
-    var shift2Label: String = "g"
+    var shift1Label: String = "\u{E010}"
+    var shift2Label: String = "\u{E011}"
     
     var lcdBackgroundColor: Color = Color(red: 0.61, green: 0.68, blue: 0.56)
     var lcdTextColor: Color = Color(red: 0.1, green: 0.12, blue: 0.1)

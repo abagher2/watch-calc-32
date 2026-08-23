@@ -1,6 +1,3 @@
-import SwiftUI
-import RPNCore
-
 // MARK: - Shared key label → engine command mapping
 
 public func mapOp(_ opToExecute: String) -> CalculatorOperation {
@@ -53,7 +50,7 @@ public func mapOp(_ opToExecute: String) -> CalculatorOperation {
         }
         // Fallbacks
         if opToExecute == "." { return .decimal }
-        if let _ = Int(opToExecute) {
+        if let _ = parseInteger(opToExecute) {
             // Find the digit
             return CalculatorOperation.allCases.first(where: { $0.stringValue == opToExecute }) ?? .decimal
         }
@@ -105,11 +102,28 @@ public func dispatchKey(
         } else if menuCommands.contains(command) {
             onMenuAction?(command)
         } else if command.stringValue.count == 1 && command.stringValue.first!.isNumber {
-            engine.digit(Int(command.stringValue)!)
+            engine.digit(parseInteger(command.stringValue)!)
         } else if command.stringValue.count == 1 && command.stringValue.first!.isASCII && command.stringValue.first!.isLetter && command.stringValue.uppercased() == command.stringValue && command != .c && command != .e {
             engine.submitAlpha(command.stringValue)
         } else {
             engine.executeMath(command.stringValue)
         }
     }
+}
+
+public func parseInteger(_ str: String) -> Int? {
+    var total = 0
+    var isNegative = false
+    var hasDigit = false
+    for scalar in str.unicodeScalars {
+        if scalar.value == 45 && !hasDigit { // '-'
+            isNegative = true
+        } else if scalar.value >= 48 && scalar.value <= 57 { // '0' - '9'
+            total = total * 10 + Int(scalar.value - 48)
+            hasDigit = true
+        } else {
+            return nil
+        }
+    }
+    return hasDigit ? (isNegative ? -total : total) : nil
 }
