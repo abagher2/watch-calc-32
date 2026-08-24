@@ -113,8 +113,8 @@ public struct LCDAnnunciatorsView: View {
     var foregroundColor: Color
     var yellowShiftColor: Color
     var blueShiftColor: Color
-    var shift1Label: String
-    var shift2Label: String
+    var shift1Label: LocalizedStringKey
+    var shift2Label: LocalizedStringKey
     var spacing: CGFloat?
     
     public init(
@@ -123,8 +123,8 @@ public struct LCDAnnunciatorsView: View {
         foregroundColor: Color,
         yellowShiftColor: Color,
         blueShiftColor: Color,
-        shift1Label: String,
-        shift2Label: String,
+        shift1Label: LocalizedStringKey,
+        shift2Label: LocalizedStringKey,
         spacing: CGFloat? = nil
     ) {
         self.engine = engine

@@ -190,6 +190,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 if lineLen > 0 {
                     if isSleeping {
                         if isCommand(lineBuf, lineLen, "C") || isCommand(lineBuf, lineLen, "50") || isCommand(lineBuf, lineLen, "CLEAR") {
+                            hw_display_wake_c()
                             isSleeping = false
                             needsDisplay = true
                         }
@@ -242,6 +243,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 let pressed = matrixState & ~lastMatrixState
                 if pressed != 0 {
                     if isSleeping {
+                        hw_display_wake_c()
                         isSleeping = false
                         needsDisplay = true
                     }
@@ -290,6 +292,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                         for i in 0..<1024 { renderer.previousBuffer![i] = ptr[i] }
                     }
                 }
+                hw_display_sleep_c()
                 needsDisplay = false
                 return
             }

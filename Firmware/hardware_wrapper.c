@@ -1,18 +1,22 @@
 #include "hardware_wrapper.h"
 #include "pico/stdlib.h"
-#include "hardware/i2c.h"
+#include "hardware/spi.h"
 #include "hardware/gpio.h"
 #include "hardware/watchdog.h"
 #include <string.h>
 #include <stdio.h>
 
-#define I2C_PORT i2c1
-#define I2C_SDA 2
-#define I2C_SCL 3
-#define DISPLAY_ADDR 0x3C
+#define SPI_PORT spi1
+#define PIN_SCK  10
+#define PIN_MOSI 11
+#define PIN_CS   18
+#define PIN_DC   19
+#define PIN_RST  20
+#define PIN_BUSY 21
 
-const uint8_t col_pins[] = {0, 1, 4, 21, 20, 19};
-const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 18};
+// Keypad pins remapped to avoid conflict with SPI E-Ink pins
+const uint8_t col_pins[] = {0, 1, 4, 2, 3, 9};
+const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 12};
 
 struct EmuDisplay {
     uint32_t magic[4];
@@ -23,6 +27,33 @@ volatile struct EmuDisplay emu_display = {
     .magic = {0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00},
     .buffer = {0}
 };
+
+static inline void eink_send_cmd(uint8_t cmd) {
+#ifndef EMULATOR
+    gpio_put(PIN_DC, 0);
+    gpio_put(PIN_CS, 0);
+    spi_write_blocking(SPI_PORT, &cmd, 1);
+    gpio_put(PIN_CS, 1);
+#endif
+}
+
+static inline void eink_send_data(uint8_t data) {
+#ifndef EMULATOR
+    gpio_put(PIN_DC, 1);
+    gpio_put(PIN_CS, 0);
+    spi_write_blocking(SPI_PORT, &data, 1);
+    gpio_put(PIN_CS, 1);
+#endif
+}
+
+static void eink_wait_busy(void) {
+#ifndef EMULATOR
+    while(gpio_get(PIN_BUSY) == 1) {
+        sleep_ms(10);
+    }
+#endif
+}
+
 void hw_init(void) {
     stdio_init_all();
 #ifndef EMULATOR
@@ -32,38 +63,60 @@ void hw_init(void) {
     void* ptr = malloc(32);
     printf("Malloc: %p\n", ptr);
     free(ptr);
-#ifndef EMULATOR
-    // I2C init
-    i2c_init(I2C_PORT, 400 * 1000);
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-#endif
 
-    // SSD1306 Init sequence
-    uint8_t cmds[] = {
-        0x00, // Command stream
-        0xAE, // Display OFF
-        0x20, 0x00, // Memory addressing mode = Horizontal
-        0x21, 0, 127, // Column address
-        0x22, 0, 7, // Page address
-        0x40, // Start line 0
-        0xA1, // Segment remap
-        0xA8, 63, // MUX ratio
-        0xC8, // COM scan direction
-        0xD3, 0x00, // Display offset
-        0xDA, 0x12, // COM pins config
-        0xD5, 0x80, // Display clock divide
-        0xD9, 0xF1, // Precharge
-        0xDB, 0x30, // VCOM deselect
-        0x81, 0xFF, // Contrast
-        0xA4, // Entire display ON (resume)
-        0xA6, // Normal display
-        0xAF  // Display ON
-    };
 #ifndef EMULATOR
-    i2c_write_blocking(I2C_PORT, DISPLAY_ADDR, cmds, sizeof(cmds), false);
+    // SPI Init
+    spi_init(SPI_PORT, 4000 * 1000); // 4 MHz
+    gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
+
+    gpio_init(PIN_CS);
+    gpio_set_dir(PIN_CS, GPIO_OUT);
+    gpio_put(PIN_CS, 1);
+
+    gpio_init(PIN_DC);
+    gpio_set_dir(PIN_DC, GPIO_OUT);
+    gpio_put(PIN_DC, 0);
+
+    gpio_init(PIN_RST);
+    gpio_set_dir(PIN_RST, GPIO_OUT);
+    gpio_put(PIN_RST, 1);
+
+    gpio_init(PIN_BUSY);
+    gpio_set_dir(PIN_BUSY, GPIO_IN);
+    
+    // SSD1680 Init Sequence
+    gpio_put(PIN_RST, 1);
+    sleep_ms(20);
+    gpio_put(PIN_RST, 0);
+    sleep_ms(2);
+    gpio_put(PIN_RST, 1);
+    sleep_ms(20);
+    eink_wait_busy();
+
+    eink_send_cmd(0x12); // SWRESET
+    eink_wait_busy();
+
+    eink_send_cmd(0x01); // Driver output control
+    eink_send_data(0xF9);
+    eink_send_data(0x00);
+    eink_send_data(0x00);
+
+    eink_send_cmd(0x11); // Data entry mode
+    eink_send_data(0x03);
+
+    eink_send_cmd(0x44); // set Ram-X address start/end position
+    eink_send_data(0x00);
+    eink_send_data(0x0F);
+
+    eink_send_cmd(0x45); // set Ram-Y address start/end position
+    eink_send_data(0x00);
+    eink_send_data(0x00);
+    eink_send_data(0xF9);
+    eink_send_data(0x00);
+
+    eink_send_cmd(0x3C); // BorderWavefrom
+    eink_send_data(0x05); 
 #endif
 
     // Matrix init
@@ -81,13 +134,49 @@ void hw_init(void) {
 
 void display_send_buffer(const uint8_t* buffer) {
     watchdog_update();
-    uint8_t payload[1025];
-    payload[0] = 0x40; // Data control byte
-    for (int i = 0; i < 1024; i++) {
-        payload[i + 1] = buffer[i];
-    }
 #ifndef EMULATOR
-    i2c_write_blocking(I2C_PORT, DISPLAY_ADDR, payload, 1025, false);
+    // Reset RAM addresses
+    eink_send_cmd(0x4E);
+    eink_send_data(0x00);
+    eink_send_cmd(0x4F);
+    eink_send_data(0x00);
+    eink_send_data(0x00);
+
+    eink_send_cmd(0x24); // Write RAM
+    for (int ey = 0; ey < 250; ey++) {
+        for (int ex_byte = 0; ex_byte < 16; ex_byte++) {
+            uint8_t out_byte = 0;
+            for (int bit = 0; bit < 8; bit++) {
+                int ex = ex_byte * 8 + bit;
+                if (ex >= 122) continue; // Out of bounds for 122px
+
+                // Map 250x122 (portrait) back to 128x64 (landscape) scaled 2x.
+                // ey is E-Ink Y (0..249). Maps to OLED x (0..124).
+                // ex is E-Ink X (0..121). Maps to OLED y (0..60).
+                int oled_x = ey / 2;
+                int oled_y = ex / 2;
+                
+                int page = oled_y / 8;
+                int oled_bit = oled_y % 8;
+                int index = page * 128 + oled_x;
+                
+                uint8_t pixel = (buffer[index] & (1 << oled_bit)) ? 1 : 0;
+                
+                // SSD1680: 1=white, 0=black. 
+                // The OLED logic sets pixel=1 for text. E-Ink wants text black.
+                if (pixel == 0) {
+                    out_byte |= (1 << (7 - bit)); // Set white bit for background
+                }
+            }
+            eink_send_data(out_byte);
+        }
+    }
+    
+    // Trigger display update
+    eink_send_cmd(0x22);
+    eink_send_data(0xC7); // Update config (Display update)
+    eink_send_cmd(0x20); // Activate update
+    eink_wait_busy();
 #else
     for (int i = 0; i < 1024; i++) {
         emu_display.buffer[i] = buffer[i];
@@ -196,4 +285,49 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
             }
         }
     }
+}
+
+void hw_display_sleep_c(void) {
+#ifndef EMULATOR
+    eink_send_cmd(0x10); // Deep Sleep mode
+    eink_send_data(0x01);
+#endif
+}
+
+void hw_display_wake_c(void) {
+#ifndef EMULATOR
+    // Wake from deep sleep requires hardware reset
+    gpio_put(PIN_RST, 1);
+    sleep_ms(20);
+    gpio_put(PIN_RST, 0);
+    sleep_ms(2);
+    gpio_put(PIN_RST, 1);
+    sleep_ms(20);
+    eink_wait_busy();
+
+    eink_send_cmd(0x12); // SWRESET
+    eink_wait_busy();
+    
+    // Re-initialize registers
+    eink_send_cmd(0x01); // Driver output control
+    eink_send_data(0xF9);
+    eink_send_data(0x00);
+    eink_send_data(0x00);
+
+    eink_send_cmd(0x11); // Data entry mode
+    eink_send_data(0x03);
+
+    eink_send_cmd(0x44); // set Ram-X address start/end position
+    eink_send_data(0x00);
+    eink_send_data(0x0F);
+
+    eink_send_cmd(0x45); // set Ram-Y address start/end position
+    eink_send_data(0x00);
+    eink_send_data(0x00);
+    eink_send_data(0xF9);
+    eink_send_data(0x00);
+
+    eink_send_cmd(0x3C); // BorderWavefrom
+    eink_send_data(0x05);
+#endif
 }

@@ -20,8 +20,10 @@ protocol AppTheme {
     var yellowShiftColor: Color { get }
     var blueShiftColor: Color { get }
     
-    var shift1Label: String { get }
-    var shift2Label: String { get }
+    var shift1Label: LocalizedStringKey { get }
+    var shift2Label: LocalizedStringKey { get }
+    
+    var backspaceLabel: LocalizedStringKey { get }
     
     var lcdBackgroundColor: Color { get }
     var lcdTextColor: Color { get }
@@ -39,8 +41,9 @@ struct BetaTheme: AppTheme {
     var yellowShiftColor: Color = Color.orange
     var blueShiftColor: Color = Color.cyan
     
-    var shift1Label: String = "\u{E010}"
-    var shift2Label: String = "\u{E011}"
+    var shift1Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.left"))"
+    var shift2Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.right"))"
+    var backspaceLabel: LocalizedStringKey = "\(Image(systemName: "delete.left.fill"))"
     
     var lcdBackgroundColor: Color = Color.primary.opacity(0.05)
     var lcdTextColor: Color = .primary
@@ -58,8 +61,9 @@ struct PioneerBrownTheme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.95, green: 0.55, blue: 0.1) // HP Orange
     var blueShiftColor: Color = Color(red: 0.2, green: 0.6, blue: 0.8) // HP Light Blue
     
-    var shift1Label: String = "\u{E014}"
-    var shift2Label: String = "\u{E015}"
+    var shift1Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.left"))"
+    var shift2Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.right"))"
+    var backspaceLabel: LocalizedStringKey = "\(Image(systemName: "arrow.left"))"
     
     var lcdBackgroundColor: Color = Color(red: 0.6, green: 0.65, blue: 0.55) // Greenish LCD
 #if os(watchOS)
@@ -81,8 +85,9 @@ struct PioneerPurpleGreenTheme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.7, green: 0.2, blue: 0.6) // True Violet/Purple
     var blueShiftColor: Color = Color(red: 0.2, green: 0.8, blue: 0.4) // Mint Green
     
-    var shift1Label: String = "\u{E014}"
-    var shift2Label: String = "\u{E015}"
+    var shift1Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.left"))"
+    var shift2Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.right"))"
+    var backspaceLabel: LocalizedStringKey = "\(Image(systemName: "arrow.left"))"
     
     var lcdBackgroundColor: Color = Color(red: 0.6, green: 0.65, blue: 0.55)
 #if os(watchOS)
@@ -104,8 +109,9 @@ struct DM32Theme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.98, green: 0.6, blue: 0.1) // Bold DM Orange
     var blueShiftColor: Color = Color(red: 0.3, green: 0.65, blue: 0.9) // Bright Blue
     
-    var shift1Label: String = ""
-    var shift2Label: String = ""
+    var shift1Label: LocalizedStringKey = ""
+    var shift2Label: LocalizedStringKey = ""
+    var backspaceLabel: LocalizedStringKey = "\(Image(systemName: "arrow.left"))"
     
     var lcdBackgroundColor: Color = Color(red: 0.7, green: 0.75, blue: 0.7) // LCD
 #if os(watchOS)
@@ -127,8 +133,9 @@ struct RetroTheme: AppTheme {
     var yellowShiftColor: Color = Color(red: 0.95, green: 0.55, blue: 0.1)
     var blueShiftColor: Color = Color(red: 0.2, green: 0.6, blue: 0.8)
     
-    var shift1Label: String = "\u{E010}"
-    var shift2Label: String = "\u{E011}"
+    var shift1Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.left"))"
+    var shift2Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.right"))"
+    var backspaceLabel: LocalizedStringKey = "\(Image(systemName: "delete.left.fill"))"
     
     var lcdBackgroundColor: Color = Color(red: 0.61, green: 0.68, blue: 0.56)
     var lcdTextColor: Color = Color(red: 0.1, green: 0.12, blue: 0.1)

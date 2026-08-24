@@ -41,7 +41,7 @@ target_compile_options(WatchCalcFirmware PRIVATE $<$<COMPILE_LANGUAGE:Swift>:-DE
 set_target_properties(WatchCalcFirmware PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(WatchCalcFirmware
-    pico_stdlib hardware_i2c hardware_gpio hardware_timer
+    pico_stdlib hardware_spi hardware_gpio hardware_timer
 )
 pico_enable_stdio_uart(WatchCalcFirmware 1)
 pico_enable_stdio_usb(WatchCalcFirmware 0)

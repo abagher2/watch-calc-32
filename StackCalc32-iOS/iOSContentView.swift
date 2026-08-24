@@ -146,7 +146,7 @@ struct iOSContentView: View {
                         Spacer()
                         LCDDisplayView(
                             engine: engine,
-                            font: .system(size: 38, weight: .medium, design: .monospaced),
+                            font: .system(size: 46, weight: .regular).monospacedDigit(),
                             foregroundColor: themeManager.theme.lcdTextColor
                         )
                     }
@@ -219,7 +219,7 @@ struct iOSContentView: View {
         let lcdPadTop: CGFloat = isPad ? 32 : 16
         let lcdMaxWidth: CGFloat = isPad ? 600 : .infinity
         let lcdMaxHeight: CGFloat = isPad ? 160 : 120
-        let lcdFontSize: CGFloat = isPad ? 48 : 42
+        let lcdFontSize: CGFloat = isPad ? 56 : 46
         
         let baseNumpadPadHoriz: CGFloat = isPad ? 24 : 8
         let numpadPadHoriz: CGFloat = (themeManager.activeThemeType == .retro) ? (geo.size.width * 0.08) : baseNumpadPadHoriz
@@ -250,7 +250,7 @@ struct iOSContentView: View {
                 Spacer()
                 LCDDisplayView(
                     engine: engine,
-                    font: .system(size: lcdFontSize, weight: .medium, design: .monospaced),
+                    font: .system(size: lcdFontSize, weight: .regular).monospacedDigit(),
                     foregroundColor: themeManager.theme.lcdTextColor
                 )
             }

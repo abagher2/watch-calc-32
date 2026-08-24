@@ -62,7 +62,7 @@ import RPNCore
 
     func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launchArguments = ["-UITesting"]
         setupSnapshot(app)
         app.launch()
         
@@ -130,7 +130,7 @@ import RPNCore
 
     func testSolve() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launchArguments = ["-UITesting"]
         setupSnapshot(app)
         app.launch()
 
@@ -147,7 +147,7 @@ import RPNCore
 
     func testAllRetroMenusVisual() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launchArguments = ["-UITesting"]
         app.launch()
         
         Thread.sleep(forTimeInterval: 1.0)
@@ -293,7 +293,7 @@ import XCTest
 
   func testBasicMathUI() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -319,7 +319,7 @@ import XCTest
 
   func testCalculationEfficiency() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -357,7 +357,7 @@ import XCTest
 
   func testSolve() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -375,7 +375,7 @@ import XCTest
 
   func testPlotting() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -427,7 +427,7 @@ import XCTest
 
   func testNormalPDFPlotting() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -508,7 +508,7 @@ import XCTest
 
   func testSigmoidPlotting() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -567,7 +567,7 @@ import XCTest
 
   func testViewMenu() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -583,7 +583,7 @@ import XCTest
 
   func testLayoutNoOverlap() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -623,7 +623,7 @@ import XCTest
   }
   func testIntegrationShading() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -667,7 +667,7 @@ import XCTest
 
   func testNumericIntegration() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -703,7 +703,7 @@ import XCTest
 
   func testPlottingWithRange() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -729,7 +729,7 @@ import XCTest
 
   func testFNMode() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -763,7 +763,7 @@ import XCTest
 
   func testEquationEvaluation() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -788,7 +788,7 @@ import XCTest
 
   func testClearMenuFlow() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -827,7 +827,7 @@ import XCTest
 
   func testStackIndicator() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -905,7 +905,7 @@ import XCTest
   
     @MainActor func testAppStoreScreenshots() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
     
@@ -1071,7 +1071,7 @@ import XCTest
 
   func testVideoNormalPDF() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
     
@@ -1228,7 +1228,7 @@ import XCTest
 
   func testStatPlotAndValues() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -1304,7 +1304,7 @@ import XCTest
 
     func testIntegrationPlotArea() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -1356,7 +1356,7 @@ import XCTest
   
   func testPlotTapToCapture() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -1397,7 +1397,7 @@ import XCTest
 
   func testLongNumericEntryScrolling() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -1434,7 +1434,7 @@ import XCTest
 
   func testAllConstantsLoad() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-UITesting", "-useRetroUI"]
+    app.launchArguments = ["-UITesting"]
     setupSnapshot(app)
     app.launch()
 
@@ -1529,7 +1529,7 @@ import XCTest
 
     func testAllMenusAndOverlays() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launchArguments = ["-UITesting"]
         setupSnapshot(app)
         app.launch()
 
@@ -1648,7 +1648,7 @@ import XCTest
 
     func testAlphaEntryOverlayForSTOAndRCL() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launchArguments = ["-UITesting"]
         setupSnapshot(app)
         app.launch()
         
@@ -1714,7 +1714,7 @@ import XCTest
     
     func testRetroThemeUIAndMenuParityInSimulator() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launchArguments = ["-UITesting"]
         setupSnapshot(app)
         app.launch()
         

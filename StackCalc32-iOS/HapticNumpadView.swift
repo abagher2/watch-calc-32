@@ -334,9 +334,9 @@ struct ButtonView: View {
                             .shadow(color: .black.opacity(0.5), radius: isHovered ? 0 : 1.5, x: 0, y: isHovered ? 1 : 4)
                     }
                     
-                    let labelText = isYellowShift ? themeManager.theme.shift1Label :
+                    let labelText: LocalizedStringKey = isYellowShift ? themeManager.theme.shift1Label :
                                     isBlueShift ? themeManager.theme.shift2Label :
-                                    resolvedLabel
+                                    (resolvedLabel == "<-" ? themeManager.theme.backspaceLabel : LocalizedStringKey(resolvedLabel))
                     let textColor = isYellowShift || isBlueShift || isClear ? Color.white :
                                     (isDigit ? themeManager.theme.digitTextColor : themeManager.theme.functionTextColor)
                     Text(labelText)

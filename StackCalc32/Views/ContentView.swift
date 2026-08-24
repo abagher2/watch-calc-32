@@ -498,7 +498,7 @@ struct ContentView: View {
 
     func lcdDisplay(totalHeight: CGFloat) -> some View {
         let displayHeight = totalHeight * 0.2864
-        let fontSize = displayHeight * 0.35
+        let fontSize = displayHeight * 0.45
         
         return VStack(spacing: 2) {
             // Indicators Row
@@ -516,7 +516,7 @@ struct ContentView: View {
             // Number DisplayRow
             LCDDisplayView(
                 engine: engine,
-                font: .system(size: fontSize, weight: .medium, design: .monospaced),
+                font: .system(size: fontSize, weight: .regular).monospacedDigit(),
                 foregroundColor: themeManager.theme.lcdTextColor
             )
             .padding(.bottom, 2) // small padding so descenders don't touch the absolute bottom edge
@@ -587,7 +587,7 @@ struct FlagsMenuView: View {
                         .tint(.yellow)
                         
                     Picker("Theme", selection: $themeManager.activeThemeType) {
-                        ForEach(ThemeType.allCases) { theme in
+                        ForEach(ThemeType.allCases.filter { $0 != .retro }) { theme in
                             Text(theme.rawValue).tag(theme)
                         }
                     }
