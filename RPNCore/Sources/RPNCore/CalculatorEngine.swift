@@ -1073,9 +1073,12 @@ public class CalculatorEngine {
     
     public func rollUp() {
         commitInput()
-        if stack.count > 1 {
-            let last = stack.removeLast()
-            pushToStack(last)
+        if stack.count == stackSizeLimit {
+            let last = stack[stackSizeLimit - 1]
+            for i in (1..<stackSizeLimit).reversed() {
+                stack[i] = stack[i-1]
+            }
+            stack[0] = last
         }
         stackLiftEnabled = true
         updateDisplay()
@@ -1102,7 +1105,6 @@ public class CalculatorEngine {
         if isEquationMode || isProgrammingMode {
             commitInput()
             pushToStack(CalculatorValue(real: result ? 1.0 : 0.0))
-            stack.removeLast()
             updateDisplay()
         } else {
             transientMessage = result ? "YES" : "NO"
@@ -1296,6 +1298,12 @@ public class CalculatorEngine {
                 }
                 updateProgramDisplay()
                 return
+            } else if operation == "↑" {
+                scrollUp()
+                return
+            } else if operation == "↓" {
+                scrollDown()
+                return
             } else if operation == "STO" {
                 startAlpha()
                 alphaPrompt = "STO _"
@@ -1345,10 +1353,14 @@ public class CalculatorEngine {
                 updateDisplay()
             } else if operation == "RCL" {
                 startRcl()
-            } else if operation == "R↑" {
+            } else if operation == "↑" {
                 scrollUp()
-            } else if operation == "R↓" {
+            } else if operation == "↓" {
                 scrollDown()
+            } else if operation == "R↑" {
+                rollUp()
+            } else if operation == "R↓" {
+                rollDown()
             } else if operation == "PLOT" {
                 generatePlot()
             } else if operation == "ENTER" || operation == "SOLVE" || operation == "∫" {
@@ -1400,7 +1412,6 @@ public class CalculatorEngine {
         }
         
         if operation == "FN=" {
-            isWaitingForLabel = true
             startAlpha()
             alphaAction = .fnEq
             alphaPrompt = "FN= _"

@@ -51,7 +51,7 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
             writer.writerow([comp['ref'], comp['val'], comp['fpid'], comp['sku'], comp['desc'], 1])
             
         # We need to manually add the Sharp LCD Screen to the BOM as a sourced part (not PCBA soldered)
-        writer.writerow(['LCD1', 'Sharp 2.7" Memory LCD', 'Assembly', 'LS027B7DH01', 'Graphical Memory LCD 400x240 (To be connected to J1 during final assembly)', 1])
+        writer.writerow(['LCD1', 'Sharp 2.7" Memory LCD', 'Assembly', 'LS027B7DH01', 'Graphical Memory LCD 400x240 (To be connected to J1 during final assembly). **CRITICAL ASSEMBY NOTE:** Screen must be shimmed 0.07mm to EXACTLY 1.50mm height off PCB to perfectly match ALPS SKQGABE010 switch coplanarity for flush sliding clearance into chassis.', 1])
             
     print(f"Rich BOM exported to {output_csv}")
 

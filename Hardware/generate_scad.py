@@ -3,16 +3,21 @@ import sys
 import wx
 app = wx.App(False)
 import pcbnew
+import math
 import subprocess
 
 # ─────────────────────────────────────────────────────────
 # KiCad Board – read PCB dimensions and component positions
 # ─────────────────────────────────────────────────────────
-board_path = "output/pcbs/calculator.kicad_pcb"
+board_path = "calculator.kicad_pcb"
 board = pcbnew.LoadBoard(board_path)
 
 bbox   = board.GetBoardEdgesBoundingBox()
 x_min  = bbox.GetX()       / 1e6
+jst_x = 56.15 # fallback
+jst_fp = board.FindFootprintByReference('JST1')
+if jst_fp:
+    jst_x = (jst_fp.GetPosition().x / 1e6) - x_min
 y_min  = bbox.GetY()       / 1e6
 x_max  = bbox.GetRight()   / 1e6
 y_max  = bbox.GetBottom()  / 1e6
@@ -81,7 +86,7 @@ cw     = fp_w + 2*WALL + 0.4         # chassis outer width
 corner = 6.0
 
 # Internal Component Heights (mm)
-TACTILE_H = 0.0   # Eliminated! Buttons have built-in travel, faceplate sits flush on PCB
+TACTILE_H = 1.6   # 1.5mm switches + 0.1mm gap for sliding clearance
 PCB_T     = 1.6   # PCB thickness
 BATT_H    = 7.0   # Clearance for wired CR2450 battery holder (Z)
 plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
@@ -90,9 +95,9 @@ FRONT_LIP = 0.8   # Structural retaining bezel
 # Calculate required chassis depth to securely fit all components
 CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
 
-DISP_W = 62.8   # module width  (mm)
-DISP_H = 42.82  # module height (mm)
-DISP_T = 1.43   # module thickness (mm)
+DISP_W = 62.8
+DISP_H = 42.82
+DISP_T = 1.50 # Shimmed to exactly match tactile switches for coplanarity and sliding clearance
 ACTIVE_W = 58.80
 ACTIVE_H = 35.28
 
@@ -339,27 +344,27 @@ module chassis_shell() {{
         // We make this cavity 66.4mm wide, which leaves ~2.1mm solid rails on the left and right
         // to securely hold the Faceplate in place!
         translate([(cw - 66.4)/2, {FRONT_LIP} + pt - 0.1, wall])
-            cube([66.4, 1.5 + 0.2, ch + 0.1]);
+            cube([66.4, {TACTILE_H} + 0.2, ch + 0.1]);
             
         // Tier 2: PCB Cavity (Slides in from Z=ch)
         // Shifted by 1.5mm to create a physical rail for the faceplate and clear the tactile switches
-        translate([(cw - pcb_w)/2, {FRONT_LIP} + pt + 1.5 - 0.1, wall])
+        translate([(cw - pcb_w)/2, {FRONT_LIP} + pt + {TACTILE_H} - 0.1, wall])
             cube([pcb_w, {PCB_T} + 0.2, ch + 0.1]);
             
         // Tier 2.5: PCB Trace Clearance
         // Hollows out 0.5mm behind the PCB so traces/vias don't scratch against the solid wedge back when sliding in.
         // We cannot hollow out more than 0.5mm here because the chassis is only 7.9mm thick at the bottom!
-        translate([(cw - pcb_w + 4.0)/2, {FRONT_LIP} + pt + 1.5 + {PCB_T} - 0.1, wall])
+        translate([(cw - pcb_w + 4.0)/2, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, wall])
             cube([pcb_w - 4.0, 0.5 + 0.1, ch + 0.1]);
             
         // Tier 3: Back Components Clearance (Deepest)
         // Starts at Z=90. Tapers to match the chassis back wall to avoid punching through!
         // At Z=90, max Y is 9.8. At Z=ch, max Y is 12.2.
         hull() {{
-            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + 1.5 + {PCB_T} - 0.1, 90.0])
-                cube([pcb_w - 4.0, 9.8 - ({FRONT_LIP} + pt + 1.5 + {PCB_T}), 0.1]);
-            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + 1.5 + {PCB_T} - 0.1, ch - 0.1])
-                cube([pcb_w - 4.0, 12.2 - ({FRONT_LIP} + pt + 1.5 + {PCB_T}), 0.1]);
+            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, 90.0])
+                cube([pcb_w - 4.0, 9.8 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
+            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, ch - 0.1])
+                cube([pcb_w - 4.0, 12.2 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
         }}
     }}
 }}
@@ -505,10 +510,10 @@ module top_cap() {{
     top_cap += f"""
         difference() {{
             hull() {{
-                translate([{lx:.3f} - 7.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
-                    cube([10.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
-                translate([{lx:.3f} - 7.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
-                    cube([10.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                translate([{lx:.3f} - 7.0, {pt} + {TACTILE_H} + {PCB_T}, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                translate([{lx:.3f} - 7.0, {pt} + {TACTILE_H} + {PCB_T}, ch - cap_t]) 
+                    cube([10.0, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
             }}
             // Clearance hole for M2 screw (d=2.2)
             translate([{lx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
@@ -517,10 +522,10 @@ module top_cap() {{
         // Right Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
         difference() {{
             hull() {{
-                translate([{rx:.3f} - 3.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
-                    cube([10.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
-                translate([{rx:.3f} - 3.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
-                    cube([10.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                translate([{rx:.3f} - 3.0, {pt} + {TACTILE_H} + {PCB_T}, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                translate([{rx:.3f} - 3.0, {pt} + {TACTILE_H} + {PCB_T}, ch - cap_t]) 
+                    cube([10.0, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
             }}
             translate([{rx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
@@ -529,18 +534,19 @@ module top_cap() {{
         // Restored to CR2450 coin cell (24.5mm diameter x 5.0mm thick) + wire clearance.
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
-        translate([(cw - 28)/2, {pt} + 1.5 + {PCB_T}, ch - 26]) {{
+        // Moved to align with JST1 connector at X=68.0 (KiCad) -> X=56.15 (PCB relative)
+        translate([{py_offset_x} + {jst_x} - 14.0, {pt} + {TACTILE_H} + {PCB_T}, ch - 26]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{
-                    cube([28, 11.0 - ({pt} + 1.5 + {PCB_T}), 0.1]);
-                    translate([0, 0, 26 - cap_t]) cube([28, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                    cube([28, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                    translate([0, 0, 26 - cap_t]) cube([28, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
                 }}
                 // Inner hollow (1.2mm walls on sides and bottom, open on front and top)
                 translate([1.2, -0.1, 1.2])
                     hull() {{
-                        cube([28 - 2.4, 11.0 - ({pt} + 1.5 + {PCB_T}) - 1.2, 0.1]);
-                        translate([0, 0, 26 - cap_t]) cube([28 - 2.4, 12.2 - ({pt} + 1.5 + {PCB_T}) - 1.2, 0.1]);
+                        cube([28 - 2.4, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
+                        translate([0, 0, 26 - cap_t]) cube([28 - 2.4, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
                     }}
             }}
         }}
@@ -829,7 +835,7 @@ if __name__ == "__main__":
 
     for label, src, dst in tasks:
         print(f"  Building {label} ...")
-        res = subprocess.run(["openscad", "-o", dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run(["/usr/local/bin/openscad", "-o", dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if res.returncode == 0:
             print(f"  ✓ {label}.stl")
         else:
@@ -839,6 +845,6 @@ if __name__ == "__main__":
     os.makedirs(mfg_3d, exist_ok=True)
     for name, scad_file, stl_file in tasks:
         # print(f"  Building {name} ...")
-        # subprocess.run(["openscad", "-o", stl_file, scad_file], check=True)
+        # subprocess.run(["/usr/local/bin/openscad", "-o", stl_file, scad_file], check=True)
         pass
     print("Done generating SCAD files!")

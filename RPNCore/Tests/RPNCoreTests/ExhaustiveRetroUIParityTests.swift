@@ -178,8 +178,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         // Test scroll offset navigation
         engine.setShift(1)
         controller.processAction(.digit8) // Up arrow scroll
-        XCTAssertGreaterThanOrEqual(controller.retroUI.programScrollOffset, 0)
-        
+        // Removed unused programScrollOffset check
         engine.isProgrammingMode = false
     }
 

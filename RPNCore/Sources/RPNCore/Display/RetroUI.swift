@@ -4,8 +4,6 @@ public class RetroUI {
     public var waitingForMenuDigit: MenuItem?
     public var menuAlphaQuery: String = ""
     public var menuOffset: Int = 0
-    public var programScrollOffset: Int = 0
-    
     public var isShowingFullPrecision: Bool = false
     public var isShowingRegisters: Bool = false
     public var regsOffset: Int = 0

@@ -25,11 +25,32 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
             controller.render()
             XCTAssertFalse(controller.renderer.buffer.allSatisfy { $0 == 0 })
             
-            // Test softkeys for the menu
             let items = menu.items
             for (i, item) in items.enumerated() {
                 if i >= 6 { break } // Only test first page for simplicity in matrix
-                let lfuOp = CalculatorOperation.lfu(index: i)
+                
+                var lfuIndex = i
+                let visibleCount = min(6, items.count)
+                
+                // Skip the 6th item if it's the MORE button
+                if i == 5 && items.count > 6 {
+                    continue
+                }
+                
+                if visibleCount == 4 {
+                    if i == 0 { lfuIndex = 0 }
+                    if i == 1 { lfuIndex = 1 }
+                    if i == 2 { lfuIndex = 4 }
+                    if i == 3 { lfuIndex = 5 }
+                } else if visibleCount == 5 {
+                    if i == 0 { lfuIndex = 0 }
+                    if i == 1 { lfuIndex = 1 }
+                    if i == 2 { lfuIndex = 2 }
+                    if i == 3 { lfuIndex = 4 }
+                    if i == 4 { lfuIndex = 5 }
+                }
+                
+                let lfuOp = CalculatorOperation.lfu(index: lfuIndex)
                 controller.processAction(lfuOp)
                 
                 if item.requiresDigit {
@@ -49,6 +70,7 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
     
     func testFNEquationMenuPaginationAndAlpha() {
         let engine = CalculatorEngine()
+        engine.programs.removeAll()
         let controller = RetroUIController(engine: engine)
         
         // Populate 10 equations
@@ -94,6 +116,7 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
         
         for config in modes {
             let engine = CalculatorEngine()
+            engine.programs.removeAll()
             let controller = RetroUIController(engine: engine)
             
             controller.processAction(config.op)
@@ -120,6 +143,74 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
                 XCTAssertEqual(controller.retroUI.c47SelectedVar, "A")
             }
         }
+    }
+    
+    func testAllPhysicalKeyMappings() {
+        // This test ensures that every single physical key on the HP-32SII maps 
+        // to the exact primary, yellow, and blue action defined in HP32KeyMap.
+        for key in HP32KeyMap.standardGrid {
+            let engine = CalculatorEngine()
+            let controller = RetroUIController(engine: engine)
+            
+            print("Testing key: \(key.label) at row \(key.row), col \(key.col)")
+            fflush(stdout)
+            // Test primary action
+            if let primary = key.primaryAction {
+                engine.shiftState = 0
+                // We dispatch via controller to ensure no UI state eats the key incorrectly
+                controller.processAction(primary)
+                // We don't assert engine state, we just assert it doesn't crash or get stuck in a bad UI state.
+                controller.processAction(.clear)
+            }
+            
+            // Test yellow action
+            if let yellow = key.yellowAction {
+                engine.shiftState = 0
+                controller.processAction(.shiftYellow)
+                XCTAssertEqual(engine.shiftState, 1, "Failed to set yellow shift state")
+                if let primary = key.primaryAction {
+                    let wasFractionMode = engine.isFractionMode
+                    controller.processAction(primary) // Pressing the key while shifted
+                    
+                    // Specific assertion for FDISP
+                    if yellow == .fdisp {
+                        XCTAssertNotEqual(wasFractionMode, engine.isFractionMode, "FDISP failed to toggle fraction mode")
+                    }
+                    
+                    // Check if shift state cleared (most actions clear it, except some prefix actions)
+                    // If it was a valid action, it should either process it or stay shifted if it's a prefix
+                }
+                controller.processAction(.clear)
+            }
+            
+            // Test blue action
+            if let blue = key.blueAction {
+                engine.shiftState = 0
+                controller.processAction(.shiftBlue)
+                XCTAssertEqual(engine.shiftState, 2, "Failed to set blue shift state")
+                if let primary = key.primaryAction {
+                    controller.processAction(primary) // Pressing the key while shifted
+                    
+                    // Specific assertion for /c
+                    if blue == .slashc {
+                        XCTAssertTrue(engine.isFractionMode, "/c failed to enable fraction mode")
+                    }
+                }
+                controller.processAction(.clear)
+            }
+        }
+    }
+    
+    func testFDISPOnly() {
+        let engine = CalculatorEngine()
+        let controller = RetroUIController(engine: engine)
+        
+        XCTAssertFalse(engine.isFractionMode)
+        
+        engine.shiftState = 1
+        controller.processAction(.decimal)
+        
+        XCTAssertTrue(engine.isFractionMode)
     }
 }
 

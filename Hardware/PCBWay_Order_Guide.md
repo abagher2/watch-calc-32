@@ -13,9 +13,10 @@ Upload this folder to the **PCB Assembly (PCBA)** quoting engine.
 - **Thickness**: 1.6mm
 - **Solder Mask**: Matte Black
 - **Surface Finish**: ENIG (Electroless Nickel Immersion Gold)
-- **Turnkey Assembly:** Yes (PCBWay sources ALPS switches, Pico 2 RP2350, E-Ink, and JST battery connector).
+- **Turnkey Assembly:** Yes (PCBWay sources ALPS switches, Pico 2 RP2350, Sharp Memory LCD LS027B7DH01, JST battery connector, etc.).
+- **CRITICAL ASSEMBLY NOTE (COPLANARITY):** You MUST instruct PCBWay to shim the Sharp LCD with tape by exactly **0.07mm** so its Z-height off the PCB is exactly **1.50mm**. This perfectly matches the height of the ALPS switches, allowing the assembled PCBA to slide flush into the chassis rails.
 - **Conformal Coating:** **YES**. Specify "Acrylic (AR)" coating.
-- **CRITICAL MASKING INSTRUCTION:** You MUST instruct PCBWay to apply Kapton tape masks over all 40 tactile switches *before* conformal coating.
+- **CRITICAL MASKING INSTRUCTION:** You MUST instruct PCBWay to apply Kapton tape masks over all 40 tactile switches AND the Sharp LCD connector *before* conformal coating.
 
 ### B. `Faceplate_Files` (The MJF Nylon Cover)
 Go to the **CNC/3D Printing** quoting engine and upload the `.stl` file from this folder.

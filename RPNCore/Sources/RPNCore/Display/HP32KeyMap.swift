@@ -80,8 +80,8 @@ public struct HP32KeyMap {
         // Bottom Section (Numpad)
         // Row 4 (5 cols)
         HP32Key(row: 4, col: 0, rowSpan: 1, label: "XEQ", yellowLabel: "FN=", blueLabel: "", alphaLabel: "", yellowAction: .fnEq, blueAction: nil, primaryAction: .xeq),
-        HP32Key(row: 4, col: 1, rowSpan: 1, label: "7", yellowLabel: "↓", blueLabel: "SOLVE", alphaLabel: "Q", yellowAction: nil, blueAction: .solve, primaryAction: .digit7),
-        HP32Key(row: 4, col: 2, rowSpan: 1, label: "8", yellowLabel: "↑", blueLabel: "∫", alphaLabel: "R", yellowAction: nil, blueAction: .integrate, primaryAction: .digit8),
+        HP32Key(row: 4, col: 1, rowSpan: 1, label: "7", yellowLabel: "↓", blueLabel: "SOLVE", alphaLabel: "Q", yellowAction: .scrollDown, blueAction: .solve, primaryAction: .digit7),
+        HP32Key(row: 4, col: 2, rowSpan: 1, label: "8", yellowLabel: "↑", blueLabel: "∫", alphaLabel: "R", yellowAction: .scrollUp, blueAction: .integrate, primaryAction: .digit8),
         HP32Key(row: 4, col: 3, rowSpan: 1, label: "9", yellowLabel: "▸km", blueLabel: "▸mi", alphaLabel: "S", yellowAction: .toKm, blueAction: .toMi, primaryAction: .digit9),
         HP32Key(row: 4, col: 4, rowSpan: 1, label: "÷", yellowLabel: "𝑥?𝑦", blueLabel: "𝑥?0", alphaLabel: "", yellowAction: .testXY, blueAction: .testX0, primaryAction: .divide),
         
@@ -102,7 +102,7 @@ public struct HP32KeyMap {
         // Row 7 (5 cols)
         HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: .c),
         HP32Key(row: 7, col: 1, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
-        HP32Key(row: 7, col: 2, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .decimal),
+        HP32Key(row: 7, col: 2, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
         HP32Key(row: 7, col: 3, rowSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "", yellowAction: .const, blueAction: nil, primaryAction: .plot),
         HP32Key(row: 7, col: 4, rowSpan: 1, label: "+", yellowLabel: "LBL", blueLabel: "RTN", alphaLabel: "", yellowAction: .lbl, blueAction: .rtn, primaryAction: .add)
     ]
@@ -159,7 +159,7 @@ public struct HP32KeyMap {
         HP32Key(row: 3, col: 4, rowSpan: 1, label: "+/-", yellowLabel: "MODES", blueLabel: "MOD", alphaLabel: "O", yellowAction: .modes, blueAction: .modulo, primaryAction: .toggleSign),
         HP32Key(row: 3, col: 5, rowSpan: 1, label: "E", yellowLabel: "DISP", blueLabel: "INT÷", alphaLabel: "P", yellowAction: .disp, blueAction: .intDiv, primaryAction: .e),
         HP32Key(row: 3, col: 7, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
-        HP32Key(row: 3, col: 8, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .decimal),
+        HP32Key(row: 3, col: 8, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
         HP32Key(row: 3, col: 9, rowSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "", yellowAction: .const, blueAction: nil, primaryAction: .plot),
         HP32Key(row: 3, col: 10, rowSpan: 1, label: "+", yellowLabel: "LBL", blueLabel: "RTN", alphaLabel: "", yellowAction: .lbl, blueAction: .rtn, primaryAction: .add)
     ]

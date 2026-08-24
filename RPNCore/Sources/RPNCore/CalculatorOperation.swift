@@ -145,6 +145,11 @@ public enum CalculatorOperation: Int, CaseIterable, Equatable, Hashable {
     case percentChange = 127
     case pi = 128
     
+    case scrollUp = 138
+    case scrollDown = 139
+    case fdisp = 140
+    case slashc = 141
+    
     // Shift modifier keys sent directly
     case shiftYellow = 129
     case shiftBlue = 130
@@ -287,6 +292,10 @@ public enum CalculatorOperation: Int, CaseIterable, Equatable, Hashable {
         case .pi: return "π"
         case .shiftYellow: return "SHIFT_YELLOW"
         case .shiftBlue: return "SHIFT_BLUE"
+        case .fdisp: return "FDISP"
+        case .slashc: return "/c"
+        case .scrollUp: return "↑"
+        case .scrollDown: return "↓"
         }
     }
     public var alphaLabel: String? {

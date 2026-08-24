@@ -78,19 +78,7 @@ public class RetroUIController {
             retroUI.isShowingRegisters = false
         }
         
-        if engine.isProgrammingMode || engine.isEquationMode {
-            if finalOp == .integrate { // Up arrow
-                retroUI.programScrollOffset += 1
-                engine.shiftState = 0
-                return
-            }
-            if finalOp == .solve { // Down arrow
-                retroUI.programScrollOffset = max(0, retroUI.programScrollOffset - 1)
-                engine.shiftState = 0
-                return
-            }
-        }
-        
+        // Removed unused programScrollOffset interception
         if finalOp == .regs {
             retroUI.isShowingRegisters = true
             retroUI.regsOffset = 0
@@ -116,14 +104,46 @@ public class RetroUIController {
                 return
             }
             
-            if finalOp.stringValue.hasPrefix("C47_PRG_") {
-                let progLabel = String(finalOp.stringValue.dropFirst(8))
+            var c47ActionStr = finalOp.stringValue
+            if finalOp.stringValue.hasPrefix("LFU_") {
+                let suffix = String(finalOp.stringValue.dropFirst(4))
+                let index = parseInteger(suffix) ?? 0
+                
+                var items: [MenuItem] = []
+                if retroUI.c47Program == nil {
+                    for prog in engine.programs {
+                        items.append(MenuItem(label: prog.label, action: "C47_PRG_\(prog.label)"))
+                    }
+                } else {
+                    var vars = Set<String>()
+                    for step in retroUI.c47Program!.steps {
+                        if step.count == 1 && step.first!.isLetter { vars.insert(step) }
+                        else if step.hasPrefix("STO ") { vars.insert(String(step.dropFirst(4))) }
+                        else if step.hasPrefix("RCL ") { vars.insert(String(step.dropFirst(4))) }
+                    }
+                    for v in vars.sorted() {
+                        let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
+                        let label = hasVal ? "@\(v)" : " \(v)"
+                        items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
+                    }
+                    if retroUI.c47Mode == .plot || retroUI.c47Mode == .xeq {
+                        items.append(MenuItem(label: "EXEC", action: "C47_EXEC"))
+                    }
+                }
+                
+                if index < items.count {
+                    c47ActionStr = items[index].action
+                }
+            }
+            
+            if c47ActionStr.hasPrefix("C47_PRG_") {
+                let progLabel = String(c47ActionStr.dropFirst(8))
                 retroUI.c47Program = engine.programs.first(where: { $0.label == progLabel })
                 return
             }
             
-            if finalOp.stringValue.hasPrefix("C47_VAR_") {
-                let varName = String(finalOp.stringValue.dropFirst(8))
+            if c47ActionStr.hasPrefix("C47_VAR_") {
+                let varName = String(c47ActionStr.dropFirst(8))
                 if engine.isBuildingNumber {
                     engine.commitInput()
                     engine.variables[varName] = engine.stack.first ?? CalculatorValue()
@@ -150,7 +170,7 @@ public class RetroUIController {
                 return
             }
             
-            if finalOp.stringValue == "C47_EXEC" {
+            if c47ActionStr == "C47_EXEC" {
                 if retroUI.c47Mode == .plot {
                     engine.generatePlot(variable: retroUI.c47SelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
