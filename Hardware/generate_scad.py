@@ -208,8 +208,8 @@ module faceplate() {{
         // Expands smoothly to the full screen bounds (DISP_W x DISP_H) at the BACK (Z=pt+0.1).
         // Because it EXPANDS as it goes up (when printed Face Up at Z=0), it requires ZERO SUPPORTS!
         hull() {{
-            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, -0.1])
-                cube([ACTIVE_W, ACTIVE_H, 0.01]);
+            translate([{disp_x:.3f} - {ACTIVE_W:.3f}/2, {disp_y:.3f} - {ACTIVE_H:.3f}/2, -0.1])
+                cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.01]);
             translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, pt + 0.1])
                 cube([{DISP_W:.3f}, {DISP_H:.3f}, 0.01]);
         }}
@@ -224,7 +224,8 @@ module faceplate() {{
             oy = b['y'] + pad_y
             faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_pocket({b['w']}, {b['h']});\n"
 
-    for sx, sy in chassis_screws:
+    # Only generate faceplate holes for bottom screws to avoid hitting the LCD
+    for sx, sy in []: # No screws in faceplate or dummy PCB!
         faceplate += f"        translate([{sx:.3f}, {sy:.3f}, -0.1]) cylinder(d=1.6, h=1.6, $fn=16);\n"
 
     faceplate += """
@@ -493,10 +494,19 @@ module top_cap() {{
         translate([0, 0, ch])
             top_cap_profile(cap_t);
 
-        // ── MAIN PLATE (Flush Plug, Z=ch-cap_t to Z=ch) ─────────
-        // Fits perfectly inside Tier 1/2/3 cavity
-        translate([wall, {FRONT_LIP}, ch - cap_t])
-            cube([cw - 2*wall, D - wall - {FRONT_LIP}, cap_t]);
+        // ── MAIN PLATE (Tiered Plugs, Z=ch-cap_t to Z=ch) ─────────
+        // Perfect fit into the chassis cavities!
+        // Middle Cavity Plug
+        translate([{(cw - 66.4)/2:.3f}, 0.8 + {pt:.3f}, ch - cap_t])
+            cube([66.4, 1.6, cap_t]);
+            
+        // PCB Cavity Plug
+        translate([{(cw - pcb_width)/2:.3f}, 0.8 + {pt:.3f} + 1.6, ch - cap_t])
+            cube([{pcb_width:.3f}, 1.6, cap_t]);
+            
+        // Trace Clearance & Back Components Cavity Plug
+        translate([{(cw - pcb_width + 4.0)/2:.3f}, 0.8 + {pt:.3f} + 3.2, ch - cap_t])
+            cube([{pcb_width - 4.0:.3f}, D - wall - (0.8 + {pt:.3f} + 3.2), cap_t]);
 
         // ── FRONT LIP ROOF (Bridges across Faceplate to create the upper lip) ──────
         // Drops down to Z=ch-0.8 at the front to cover the faceplate
@@ -514,44 +524,48 @@ module top_cap() {{
     top_cap += f"""
         difference() {{
             hull() {{
-                translate([{lx:.3f} - 7.0, {pt} + {TACTILE_H} + {PCB_T}, {cz_boss_bottom:.3f}]) 
-                    cube([10.0, 11.7 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
-                translate([{lx:.3f} - 7.0, {pt} + {TACTILE_H} + {PCB_T}, ch - cap_t]) 
-                    cube([10.0, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                translate([{lx:.3f} - 7.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5), 0.1]);
+                translate([{lx:.3f} - 7.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5, ch - cap_t]) 
+                    cube([10.0, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]);
             }}
-            // Clearance hole for M2 screw (d=2.2)
-            translate([{lx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
+            // Receiver hole for M2 self-tapping screw (d=1.8)
+            translate([{lx:.3f}, D + 0.1, 138.050]) rotate([90, 0, 0]) cylinder(d=1.8, h=D + 2.0);
         }}
         
         // Right Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
         difference() {{
             hull() {{
-                translate([{rx:.3f} - 3.0, {pt} + {TACTILE_H} + {PCB_T}, {cz_boss_bottom:.3f}]) 
-                    cube([10.0, 11.7 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
-                translate([{rx:.3f} - 3.0, {pt} + {TACTILE_H} + {PCB_T}, ch - cap_t]) 
-                    cube([10.0, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                translate([{rx:.3f} - 3.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5), 0.1]);
+                translate([{rx:.3f} - 3.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5, ch - cap_t]) 
+                    cube([10.0, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]);
             }}
-            translate([{rx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
+            translate([{rx:.3f}, D + 0.1, 138.050]) rotate([90, 0, 0]) cylinder(d=1.8, h=D + 2.0);
         }}
         
         // ── BATTERY BUCKET (hangs down into Tier 3 cavity) ─────
         // Restored to CR2450 coin cell (24.5mm diameter x 5.0mm thick) + wire clearance.
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
-        // Moved to align with JST1 connector at X=68.0 (KiCad) -> X=56.15 (PCB relative)
-        translate([(cw - pcb_width)/2 + {jst_x} - 14.0, {pt} + {TACTILE_H} + {PCB_T}, ch - 26]) {{
+        // Aligned with JST1 connector at X=68.0 (KiCad) -> X=56.15 (PCB relative)
+        translate([{(cw - pcb_width)/2 + jst_x - 14.0:.3f}, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 26]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{
                     cube([28, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
-                    translate([0, 0, 26 - cap_t]) cube([28, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                    translate([0, 0, 26 + 0.1]) cube([28, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]); // Goes ALL THE WAY UP through the cap to let wires out!
                 }}
-                // Inner hollow (1.2mm walls on sides and bottom, open on front and top)
+                // Inner hollow (1.2mm walls on sides, back, and bottom. OPEN on front to PCB and OPEN on top for wires!)
                 translate([1.2, -0.1, 1.2])
                     hull() {{
                         cube([28 - 2.4, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
-                        translate([0, 0, 26 - cap_t]) cube([28 - 2.4, 12.2 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
+                        translate([0, 0, 26 + 0.2]) cube([28 - 2.4, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5) - 1.2, 0.1]);
                     }}
+                    
+                // Wire exit channel cutting through the front lip to reach the JST connector!
+                translate([28 - 2.4 - 5.0, -10.0, 26 - cap_t])
+                    cube([5.0, 10.0, cap_t + 1.0]);
             }}
         }}
     }}
@@ -685,18 +699,41 @@ cw   = {cw:.3f};
 D    = {CHASSIS_D:.3f};
 ch   = {fp_h + WALL:.3f};
 cover_t = 2.0;
+btn_clearance = 3.2; // Buttons stick out ~3.0mm, give 0.2mm extra
 
 module tpu_stretch_cover() {{
     difference() {{
-        // Outer Box (Left, Right, Bottom, Front)
-        // Top is open (Z=ch). Back is open (Y=D).
-        translate([-cover_t, -cover_t, -cover_t])
-            cube([cw + 2*cover_t, D + cover_t, ch + cover_t]);
-            
-        // Inner Chassis Cavity
-        // X=0 to cw. Y=0 to D+0.1 (open back). Z=0 to ch+0.1 (open top).
-        translate([0, 0, 0])
-            cube([cw, D + 0.1, ch + 0.1]);
+        // Outer Box with rounded corners (r = 3 + cover_t)
+        hull() {{
+            translate([-cover_t + (3 + cover_t), -btn_clearance - cover_t + (3 + cover_t), -cover_t])
+                cylinder(r=3+cover_t, h=ch + cover_t);
+            translate([cw + cover_t - (3 + cover_t), -btn_clearance - cover_t + (3 + cover_t), -cover_t])
+                cylinder(r=3+cover_t, h=ch + cover_t);
+                
+            // Back edges (not fully rounded because the chassis is flat on the back, but let's round them a bit)
+            translate([-cover_t + (3 + cover_t), D - (3 + cover_t), -cover_t])
+                cylinder(r=3+cover_t, h=ch + cover_t);
+            translate([cw + cover_t - (3 + cover_t), D - (3 + cover_t), -cover_t])
+                cylinder(r=3+cover_t, h=ch + cover_t);
+        }}
+        
+        // Inner Chassis Cavity (Also rounded to match chassis perfectly)
+        hull() {{
+            translate([3, -btn_clearance + 3, 0])
+                cylinder(r=3, h=ch + 0.1);
+            translate([cw - 3, -btn_clearance + 3, 0])
+                cylinder(r=3, h=ch + 0.1);
+                
+            translate([3, D - 3, 0])
+                cylinder(r=3, h=ch + 0.1);
+            translate([cw - 3, D - 3, 0])
+                cylinder(r=3, h=ch + 0.1);
+        }}
+        
+        // Cut off the back face so it's a U-shape (Open at Y = D)
+        // We cut from Y = D to Y = D + 10 to ensure it's completely open
+        translate([-cover_t - 5, D, -cover_t - 5])
+            cube([cw + 2*cover_t + 10, 10, ch + cover_t + 10]);
     }}
 }}
 tpu_stretch_cover();
@@ -757,7 +794,7 @@ module dummy_pcb() {{
         difference() {{
             translate([{pad_x:.3f}, {pad_y:.3f}, 0]) cube([{pcb_width:.3f}, {pcb_height:.3f}, 1.6]);
 """
-    for sx, sy in chassis_screws:
+    for sx, sy in []: # No screws in faceplate or dummy PCB!
         dummy_scad += f"            translate([{sx:.3f}, {sy:.3f}, -0.1]) cylinder(d=3.2, h=2.0, $fn=16);\n"
         
     dummy_scad += f"""
@@ -775,8 +812,8 @@ module dummy_pcb() {{
     // Sharp LCD Active Glass Area (Black)
     color("Black") {{
         translate([{disp_x:.3f}, {disp_y:.3f}, 1.6 + {DISP_T - 0.4:.3f}]) 
-            translate([-ACTIVE_W/2, -ACTIVE_H/2, 0])
-            cube([ACTIVE_W, ACTIVE_H, 0.4]);
+            translate([-{ACTIVE_W:.3f}/2, -{ACTIVE_H:.3f}/2, 0])
+            cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.4]);
     }}
 
     // Tactile Switches (6.0 x 3.5 x 1.0mm body + 3.0x0.5mm plunger -> 1.5mm total Z-height)

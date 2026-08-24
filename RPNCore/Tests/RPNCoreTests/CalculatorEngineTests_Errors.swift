@@ -55,7 +55,7 @@ final class CalculatorEngineTests_Errors: XCTestCase {
         let engine = CalculatorEngine()
         
         // Create an equation program "A" that computes X * 2
-        let p = CalculatorEngine.Program(label: "A", steps: ["X", "2", "×"])
+        let p = CalculatorEngine.Program(label: "A", steps: ["X", "2", "×"].compactMap { Instruction(fromString: $0) })
         engine.programs.append(p)
         
         // Start equation evaluation

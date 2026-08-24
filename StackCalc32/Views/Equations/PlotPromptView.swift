@@ -61,7 +61,7 @@ struct PlotPromptView: View {
                                                 .foregroundColor(.white)
                                         }
                                         Spacer()
-                                        Text(program.steps.joined(separator: " "))
+                                        Text(program.steps.map { $0.stringValue }.joined(separator: " "))
                                             .lineLimit(1)
                                             .truncationMode(.tail)
                                             .foregroundColor(.secondary)

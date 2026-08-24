@@ -27,6 +27,9 @@ let package = Package(
             dependencies: ["RPNCore"]),
         .executableTarget(
             name: "ParityExporter",
+            dependencies: ["RPNCore"]),
+        .executableTarget(
+            name: "FontExporter",
             dependencies: ["RPNCore"])
     ]
 )

@@ -106,7 +106,7 @@ public func dispatchKey(
         } else if command.stringValue.count == 1 && command.stringValue.first!.isASCII && command.stringValue.first!.isLetter && command.stringValue.uppercased() == command.stringValue && command != .c && command != .e {
             engine.submitAlpha(command.stringValue)
         } else {
-            engine.executeMath(command.stringValue)
+            engine.execute(.operation(command))
         }
     }
 }

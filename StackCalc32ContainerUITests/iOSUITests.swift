@@ -89,7 +89,11 @@ import RPNCore
                     textField.typeText("A\n")
                 }
                 #else
-                app.buttons["func_√x"].tap()
+                if app.buttons["func_√𝑥"].exists {
+                    app.buttons["func_√𝑥"].tap()
+                } else {
+                    app.buttons["func_√𝑥"].tap()
+                }
                 #endif
             } else if op == "LFU_0" {
                 app.buttons["IP (Integer Part)"].tap()
@@ -403,7 +407,7 @@ import XCTest
     app.buttons["btn_2"].tap()
 
     navigateToLFUPad(app: app)
-    app.buttons["func_y^x"].tap()
+    app.buttons["func_𝑦ˣ"].tap()
 
     // ENTER to save equation
     app.staticTexts["lcd_display"].tap()
@@ -450,7 +454,7 @@ import XCTest
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     clearAll(app: app)
-    app.buttons["func_√x"].tap()
+    app.buttons["func_√𝑥"].tap()
 
     navigateToNumericPad(app: app)
     app.buttons["btn_0"].tap()
@@ -463,7 +467,7 @@ import XCTest
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_e^x"].tap()
+    app.buttons["func_𝑒ˣ"].tap()
 
     navigateToNumericPad(app: app)
     app.buttons["btn_2"].tap()
@@ -481,7 +485,7 @@ import XCTest
     // √𝑥 is in Matrix3View
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_√x"].tap()
+    app.buttons["func_√𝑥"].tap()
 
     navigateToArithmeticPad(app: app)
     app.buttons["func_÷"].tap()
@@ -532,7 +536,7 @@ import XCTest
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_e^x"].tap()
+    app.buttons["func_𝑒ˣ"].tap()
 
     navigateToNumericPad(app: app)
     app.buttons["btn_1"].tap()
@@ -543,7 +547,7 @@ import XCTest
     // 1/x is in Matrix3View
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_1/x"].tap()
+    app.buttons["func_1/𝑥"].tap()
 
     // Save
     app.staticTexts["lcd_display"].tap()
@@ -966,7 +970,7 @@ import XCTest
     
     // x² (Yellow Shift + √x)
     slowTap(app.buttons["btn_yellow_shift"], name: "Yellow Shift")
-    slowTap(app.buttons["func_√x"], name: "x²")
+    slowTap(app.buttons["func_√𝑥"], name: "x²")
     
     // 0.5
     slowTap(app.buttons["btn_0"], name: "0")
@@ -980,7 +984,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // eˣ
-    slowTap(app.buttons["func_e^x"], name: "𝑒ˣ")
+    slowTap(app.buttons["func_𝑒ˣ"], name: "𝑒ˣ")
     
     // S
     slowTap(app.buttons["func_RCL"], name: "RCL")
@@ -1000,7 +1004,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // √x
-    slowTap(app.buttons["func_√x"], name: "√𝑥")
+    slowTap(app.buttons["func_√𝑥"], name: "√𝑥")
     
     // ÷
     slowTap(app.buttons["func_÷"], name: "÷")
@@ -1135,7 +1139,7 @@ import XCTest
     
     // x² (Yellow Shift + √x)
     slowTap(app.buttons["btn_yellow_shift"], name: "Yellow Shift")
-    slowTap(app.buttons["func_√x"], name: "x²")
+    slowTap(app.buttons["func_√𝑥"], name: "x²")
     
     // 0.5
     slowTap(app.buttons["btn_0"], name: "0")
@@ -1149,7 +1153,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // eˣ
-    slowTap(app.buttons["func_e^x"], name: "𝑒ˣ")
+    slowTap(app.buttons["func_𝑒ˣ"], name: "𝑒ˣ")
     
     // S
     slowTap(app.buttons["func_RCL"], name: "RCL")
@@ -1169,7 +1173,7 @@ import XCTest
     slowTap(app.buttons["func_×"], name: "×")
     
     // √x
-    slowTap(app.buttons["func_√x"], name: "√𝑥")
+    slowTap(app.buttons["func_√𝑥"], name: "√𝑥")
     
     // ÷
     slowTap(app.buttons["func_÷"], name: "÷")
@@ -1259,7 +1263,7 @@ import XCTest
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_y^x"].tap() // x-bar, y-bar menu
+    app.buttons["func_𝑦ˣ"].tap() // x-bar, y-bar menu
     
     // Tap x-bar
         #if os(watchOS)
@@ -1323,7 +1327,7 @@ import XCTest
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_√x"].tap() // x^2
+    app.buttons["func_√𝑥"].tap() // x^2
 
     // Save & Exit Programming Mode (Blue shift + +/RTN)
     app.buttons["btn_blue_shift"].tap()
@@ -1613,11 +1617,11 @@ import XCTest
         Thread.sleep(forTimeInterval: 1.0)
 
         let matrix3Triggers: [(shift: XCUIElement?, btn: String, title: String?)] = [
-            (blue, "func_e^x", "PROB"),
+            (blue, "func_𝑒ˣ", "PROB"),
             (yellow, "func_Σ+", "SUMS"),
             (blue, "func_LN", "L.R."),
-            (blue, "func_y^x", "MEAN"),
-            (blue, "func_1/x", "STD DEV")
+            (blue, "func_𝑦ˣ", "MEAN"),
+            (blue, "func_1/𝑥", "STD DEV")
         ]
         
         for t in matrix3Triggers {
@@ -1674,8 +1678,8 @@ import XCTest
         textField.tap()
         textField.typeText("A\n")
         #else
-        XCTAssertTrue(app.buttons["func_√x"].waitForExistence(timeout: 2.0), "Alpha overlay should appear for STO")
-        app.buttons["func_√x"].tap()
+        XCTAssertTrue(app.buttons["func_√𝑥"].waitForExistence(timeout: 2.0), "Alpha overlay should appear for STO")
+        app.buttons["func_√𝑥"].tap()
         #endif
 
         Thread.sleep(forTimeInterval: 0.5)
@@ -1701,8 +1705,8 @@ import XCTest
         textField.tap()
         textField.typeText("A\n")
         #else
-        XCTAssertTrue(app.buttons["func_√x"].waitForExistence(timeout: 2.0), "Alpha overlay should appear for RCL")
-        app.buttons["func_√x"].tap()
+        XCTAssertTrue(app.buttons["func_√𝑥"].waitForExistence(timeout: 2.0), "Alpha overlay should appear for RCL")
+        app.buttons["func_√𝑥"].tap()
         #endif
 
         Thread.sleep(forTimeInterval: 1.0)
@@ -1779,7 +1783,7 @@ import XCTest
         app.buttons["func_SIN"].tap()
         app.buttons["btn_1"].tap() // Let's just do SIN 1 since there is no "(" key!
         app.buttons["func_+"].tap()
-        app.buttons["func_e^x"].tap()
+        app.buttons["func_𝑒ˣ"].tap()
         app.buttons["invisible_ENTER"].tap()
         Thread.sleep(forTimeInterval: 1.0)
         saveParityScreenshot(app: app, name: "parity_complex_eqn")
@@ -1789,9 +1793,9 @@ import XCTest
         let app = setupApp()
         app.buttons["btn_blue_shift"].tap()
         app.buttons["func_STO"].tap() // EQN
-        app.buttons["func_√x"].tap() // A
+        app.buttons["func_√𝑥"].tap() // A
         app.buttons["func_+"].tap()
-        app.buttons["func_e^x"].tap() // B
+        app.buttons["func_𝑒ˣ"].tap() // B
         app.buttons["func_+"].tap()
         app.buttons["btn_1"].tap() // C
         app.buttons["func_+"].tap()

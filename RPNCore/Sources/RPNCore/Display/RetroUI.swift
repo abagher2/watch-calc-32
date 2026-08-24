@@ -9,10 +9,10 @@ public class RetroUI {
     public var regsOffset: Int = 0
     
     // Advanced Mode emulation vars
-    public enum C47Mode { case none, solve, integrate, plot, xeq }
-    public var c47Mode: C47Mode = .none
-    public var c47Program: CalculatorEngine.Program? = nil
-    public var c47SelectedVar: String = "X"
+    public enum SoftkeyMode { case none, solve, integrate, plot, xeq }
+    public var softkeyMode: SoftkeyMode = .none
+    public var softkeyProgram: CalculatorEngine.Program? = nil
+    public var softkeySelectedVar: String = "X"
     
     // Formatter hook injected by platform
     public var doubleFormatter: ((Double, CalculatorEngine.DisplayMode) -> String)?
@@ -188,7 +188,7 @@ public class RetroUI {
         let hideSoftkeys = isShowingRegisters || isShowingFullPrecision
         
         if !hideSoftkeys {
-            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none || engine.alphaAction == .fnEq
+            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq
             if menuActive {
                 if let menu = activeMenu {
                     // Temporarily using renderer.renderMenu as it might still contain manual logic
@@ -208,26 +208,21 @@ public class RetroUI {
                         softkeyNodes.append(btnBackground)
                     }
                     footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
-                } else if c47Mode != .none {
+                } else if softkeyMode != .none {
                     var items: [MenuItem] = []
-                    if c47Program == nil {
+                    if softkeyProgram == nil {
                         for prog in engine.programs {
-                            items.append(MenuItem(label: prog.label, action: "C47_PRG_\(prog.label)"))
+                            items.append(MenuItem(label: prog.label, action: "SOFTKEY_PRG_\(prog.label)"))
                         }
                     } else {
-                        var vars = Set<String>()
-                        for step in c47Program!.steps {
-                            if step.count == 1 && step.first!.isLetter { vars.insert(step) }
-                            else if step.hasPrefix("STO ") { vars.insert(String(step.dropFirst(4))) }
-                            else if step.hasPrefix("RCL ") { vars.insert(String(step.dropFirst(4))) }
-                        }
+                        let vars = softkeyProgram!.extractVariables()
                         for v in vars.sorted() {
                             let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
                             let label = hasVal ? "@\(v)" : " \(v)"
-                            items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
+                            items.append(MenuItem(label: label, action: "SOFTKEY_VAR_\(v)"))
                         }
-                        if c47Mode == .plot || c47Mode == .xeq {
-                            items.append(MenuItem(label: "EXEC", action: "C47_EXEC"))
+                        if softkeyMode == .plot || softkeyMode == .xeq {
+                            items.append(MenuItem(label: "EXEC", action: "SOFTKEY_EXEC"))
                         }
                     }
                     
@@ -257,8 +252,6 @@ public class RetroUI {
                         softkeyNodes.append(btnBackground)
                     }
                     footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
-                } else if let pending = waitingForMenuDigit {
-                    footer = FirmwarePadding(leading: 6, child: FirmwareText("\(pending.action) _", font: .small))
                 }
             } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
                 if engine.requestPlot {
@@ -288,7 +281,7 @@ public class RetroUI {
         screen.draw(in: renderer, x: 0, y: 0)
         
         // Handle custom rendering bypasses
-        if !hideSoftkeys && !(activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none || engine.alphaAction == .fnEq) && !engine.isGeneratingPlot && !engine.isPlotLoading && !engine.requestPlot {
+        if !hideSoftkeys && !(activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq) && !engine.isGeneratingPlot && !engine.isPlotLoading && !engine.requestPlot {
              renderer.renderLFU(manager: lfuManager)
         }
         if engine.isEquationMode && !(engine.isProgrammingMode || engine.isBuildingNumber || engine.isWaitingForAlpha) {

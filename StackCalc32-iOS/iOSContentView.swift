@@ -26,14 +26,14 @@ struct iOSContentView: View {
             let standardLcdHeight: CGFloat = landscape ? (isPad ? 130 : 90) : (isPad ? 160 : 120)
             let isRetro = themeManager.activeThemeType == .retro
             
-            // In Retro mode, the LCD is strictly 128x64 (2:1 aspect ratio). To align the 6 menu columns 
+            // In Retro mode, the LCD is strictly 400x240 (5:3 aspect ratio). To align the 6 menu columns 
             // with the 6 LFU buttons perfectly, the LCD must span the exact same width as the keypad.
             // On the physical device (STL), the keypad is ~84% of the chassis width. So we use 8% bezel on each side.
             let baseNumpadPadHoriz: CGFloat = isPad ? 24 : 8
             let retroNumpadPadHoriz: CGFloat = geo.size.width * 0.08
             let numpadPadHoriz: CGFloat = isRetro ? retroNumpadPadHoriz : baseNumpadPadHoriz
             
-            let retroLcdHeight: CGFloat = (geo.size.width - (numpadPadHoriz * 2)) / 2.0
+            let retroLcdHeight: CGFloat = (geo.size.width - (numpadPadHoriz * 2)) * (240.0 / 400.0)
             
             let lcdHeight: CGFloat = isRetro ? retroLcdHeight : standardLcdHeight
             
@@ -62,7 +62,6 @@ struct iOSContentView: View {
                     engine.requestPlot = false
                 }
             }
-        }
         }
     }
     
@@ -334,13 +333,15 @@ struct AlphaPromptModifier: ViewModifier {
     @Bindable var engine: CalculatorEngine
     @State private var alphaInput: String = ""
     
+    @EnvironmentObject var themeManager: ThemeManager
+
     func body(content: Content) -> some View {
         if CommandLine.arguments.contains("-UITesting") {
             return AnyView(content)
         }
         return AnyView(content
             .sheet(isPresented: Binding(
-                get: { engine.isWaitingForAlpha && !engine.usesContextualAlphaPad && !engine.isProgrammingMode },
+                get: { engine.isWaitingForAlpha && !engine.usesContextualAlphaPad && !engine.isProgrammingMode && themeManager.activeThemeType != .retro },
                 set: { if !$0 { engine.cancelAlpha() } }
             )) {
                 NavigationStack {

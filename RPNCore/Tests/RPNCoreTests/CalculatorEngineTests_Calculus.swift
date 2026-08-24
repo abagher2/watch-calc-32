@@ -5,7 +5,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
     
     func testNormalDistributionCDF() {
         let engine = CalculatorEngine()
-        let steps = ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"]
+        let steps = ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "NORM", steps: steps)
         engine.programs = [program]
         
@@ -15,7 +15,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
 
     func testExponentialDistributionCDF() {
         let engine = CalculatorEngine()
-        let steps = ["X", "+/-", "𝑒ˣ"]
+        let steps = ["X", "+/-", "𝑒ˣ"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "EXP", steps: steps)
         engine.programs = [program]
         
@@ -25,7 +25,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
     
     func testUniformDistributionCDF() {
         let engine = CalculatorEngine()
-        let steps = ["0", ".", "1"]
+        let steps = ["0", ".", "1"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "UNIFORM", steps: steps)
         engine.programs = [program]
         
@@ -39,7 +39,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
         // We will increase the tolerance or reduce the interval to verify the math is working.
         let engine = CalculatorEngine()
         // Cauchy PDF = 1 / (pi * (1 + x^2))
-        let steps = ["X", "𝑥²", "1", "+", "π", "×", "1/𝑥"]
+        let steps = ["X", "𝑥²", "1", "+", "π", "×", "1/𝑥"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "CAUCHY", steps: steps)
         engine.programs = [program]
         
@@ -49,7 +49,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
     
     func testLogisticDistributionCDF() {
         let engine = CalculatorEngine()
-        let steps = ["X", "+/-", "𝑒ˣ", "ENTER", "ENTER", "1", "+", "𝑥²", "÷"]
+        let steps = ["X", "+/-", "𝑒ˣ", "ENTER", "ENTER", "1", "+", "𝑥²", "÷"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "LOGISTIC", steps: steps)
         engine.programs = [program]
         
@@ -59,7 +59,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
     
     func testDerivative() {
         let engine = CalculatorEngine()
-        let steps = ["X", "𝑥²"]
+        let steps = ["X", "𝑥²"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "X2", steps: steps)
         
         let result = engine.derive(variable: "X", at: 3.0, program: program)
@@ -68,7 +68,7 @@ final class CalculatorEngineTests_Calculus: XCTestCase {
     
     func testSolver() {
         let engine = CalculatorEngine()
-        let steps = ["X", "𝑥²", "4", "-"]
+        let steps = ["X", "𝑥²", "4", "-"].compactMap { Instruction(fromString: $0) }
         let program = CalculatorEngine.Program(label: "ROOT", steps: steps)
         engine.programs = [program]
         

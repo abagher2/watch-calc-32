@@ -126,7 +126,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         engine.executeMath("×")
         
         engine.executeMath("ENTER") // Commit equation? 
-        let program = CalculatorEngine.Program(label: "A", steps: ["5", "RCL X", "x>0", "×"])
+        let program = CalculatorEngine.Program(label: "A", steps: ["5", "RCL X", "x>0", "×"].compactMap { Instruction(fromString: $0) })
         engine.programs.append(program)
         
         // Case 1: X = 10 -> (10 > 0) is 1.0 -> 5 * 1.0 = 5.0

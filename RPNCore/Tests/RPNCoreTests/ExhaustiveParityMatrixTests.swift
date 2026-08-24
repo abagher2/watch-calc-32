@@ -77,7 +77,8 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
         for i in 0..<10 {
             engine.isProgrammingMode = true
             engine.currentProgramLabel = "A\(i)"
-            engine.programs.append(CalculatorEngine.Program(label: "A\(i)", steps: ["1", "+", "2"]))
+            let steps = ["1", "+", "2"].compactMap { Instruction(fromString: $0) }
+            engine.programs.append(CalculatorEngine.Program(label: "A\(i)", steps: steps))
         }
         engine.isProgrammingMode = false
         
@@ -106,8 +107,8 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
         XCTAssertEqual(engine.alphaAction, .none)
     }
     
-    func testAdvancedC47Modes() {
-        let modes: [(op: CalculatorOperation, mode: RetroUI.C47Mode)] = [
+    func testAdvancedSoftkeyModes() {
+        let modes: [(op: CalculatorOperation, mode: RetroUI.SoftkeyMode)] = [
             (.solve, .solve),
             (.integrate, .integrate),
             (.plot, .plot),
@@ -120,27 +121,28 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
             let controller = RetroUIController(engine: engine)
             
             controller.processAction(config.op)
-            XCTAssertEqual(controller.retroUI.c47Mode, config.mode)
+            XCTAssertEqual(controller.retroUI.softkeyMode, config.mode)
             
             // Create a dummy program
             engine.isProgrammingMode = true
-            engine.programs.append(CalculatorEngine.Program(label: "X", steps: ["STO A", "RCL B"]))
+            let steps = ["STO A", "RCL B"].compactMap { Instruction(fromString: $0) }
+            engine.programs.append(CalculatorEngine.Program(label: "X", steps: steps))
             engine.isProgrammingMode = false
             
             // Simulate LFU press for Program X (which is the first one, index 0)
             let lfu0 = CalculatorOperation.lfu0
-            controller.processAction(lfu0) // Selects C47_PRG_X
+            controller.processAction(lfu0) // Selects SOFTKEY_PRG_X
             
-            XCTAssertEqual(controller.retroUI.c47Program?.label, "X")
+            XCTAssertEqual(controller.retroUI.softkeyProgram?.label, "X")
             
             // Now the menu should show variables A and B
             // LFU 0 should be @A or  A, LFU 1 should be @B or  B
             controller.processAction(lfu0) // Selects A
             
             if config.mode == .solve || config.mode == .integrate {
-                XCTAssertEqual(controller.retroUI.c47Mode, .none, "Mode should exit after calculating")
+                XCTAssertEqual(controller.retroUI.softkeyMode, .none, "Mode should exit after calculating")
             } else {
-                XCTAssertEqual(controller.retroUI.c47SelectedVar, "A")
+                XCTAssertEqual(controller.retroUI.softkeySelectedVar, "A")
             }
         }
     }

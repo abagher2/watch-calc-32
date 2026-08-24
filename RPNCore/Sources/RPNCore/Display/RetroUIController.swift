@@ -88,98 +88,93 @@ public class RetroUIController {
         
         // Advanced Modes
         if finalOp == .solve || finalOp == .integrate || finalOp == .plot || finalOp == .xeq {
-            if finalOp == .solve { retroUI.c47Mode = .solve }
-            if finalOp == .integrate { retroUI.c47Mode = .integrate }
-            if finalOp == .plot { retroUI.c47Mode = .plot }
-            if finalOp == .xeq { retroUI.c47Mode = .xeq }
-            retroUI.c47Program = nil
+            if finalOp == .solve { retroUI.softkeyMode = .solve }
+            if finalOp == .integrate { retroUI.softkeyMode = .integrate }
+            if finalOp == .plot { retroUI.softkeyMode = .plot }
+            if finalOp == .xeq { retroUI.softkeyMode = .xeq }
+            retroUI.softkeyProgram = nil
             retroUI.activeMenu = nil
             return
         }
         
-        if retroUI.c47Mode != .none {
+        if retroUI.softkeyMode != .none {
             if finalOp == .c || finalOp == .clear || finalOp == .backspace {
-                retroUI.c47Mode = .none
-                retroUI.c47Program = nil
+                retroUI.softkeyMode = .none
+                retroUI.softkeyProgram = nil
                 return
             }
             
-            var c47ActionStr = finalOp.stringValue
+            var softkeyActionStr = finalOp.stringValue
             if finalOp.stringValue.hasPrefix("LFU_") {
                 let suffix = String(finalOp.stringValue.dropFirst(4))
                 let index = parseInteger(suffix) ?? 0
                 
                 var items: [MenuItem] = []
-                if retroUI.c47Program == nil {
+                if retroUI.softkeyProgram == nil {
                     for prog in engine.programs {
-                        items.append(MenuItem(label: prog.label, action: "C47_PRG_\(prog.label)"))
+                        items.append(MenuItem(label: prog.label, action: "SOFTKEY_PRG_\(prog.label)"))
                     }
                 } else {
-                    var vars = Set<String>()
-                    for step in retroUI.c47Program!.steps {
-                        if step.count == 1 && step.first!.isLetter { vars.insert(step) }
-                        else if step.hasPrefix("STO ") { vars.insert(String(step.dropFirst(4))) }
-                        else if step.hasPrefix("RCL ") { vars.insert(String(step.dropFirst(4))) }
-                    }
+                    let vars = retroUI.softkeyProgram!.extractVariables()
                     for v in vars.sorted() {
                         let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
                         let label = hasVal ? "@\(v)" : " \(v)"
-                        items.append(MenuItem(label: label, action: "C47_VAR_\(v)"))
+                        items.append(MenuItem(label: label, action: "SOFTKEY_VAR_\(v)"))
                     }
-                    if retroUI.c47Mode == .plot || retroUI.c47Mode == .xeq {
-                        items.append(MenuItem(label: "EXEC", action: "C47_EXEC"))
+                    if retroUI.softkeyMode == .plot || retroUI.softkeyMode == .xeq {
+                        items.append(MenuItem(label: "EXEC", action: "SOFTKEY_EXEC"))
                     }
                 }
                 
                 if index < items.count {
-                    c47ActionStr = items[index].action
+                    softkeyActionStr = items[index].action
                 }
             }
             
-            if c47ActionStr.hasPrefix("C47_PRG_") {
-                let progLabel = String(c47ActionStr.dropFirst(8))
-                retroUI.c47Program = engine.programs.first(where: { $0.label == progLabel })
+            if softkeyActionStr.hasPrefix("SOFTKEY_PRG_") {
+                let progLabel = String(softkeyActionStr.dropFirst(12))
+                retroUI.softkeyProgram = engine.programs.first(where: { $0.label == progLabel })
                 return
             }
             
-            if c47ActionStr.hasPrefix("C47_VAR_") {
-                let varName = String(c47ActionStr.dropFirst(8))
+            if softkeyActionStr.hasPrefix("SOFTKEY_VAR_") {
+                let varName = String(softkeyActionStr.dropFirst(12))
                 if engine.isBuildingNumber {
                     engine.commitInput()
                     engine.variables[varName] = engine.stack.first ?? CalculatorValue()
                 } else {
-                    if retroUI.c47Mode == .solve, let prog = retroUI.c47Program {
+                    if retroUI.softkeyMode == .solve, let prog = retroUI.softkeyProgram {
                         let target = engine.stack.first?.real ?? 0.0
                         engine.statusMessage = "CALCULATING"
                         _ = engine.solve(for: varName, program: prog, target: target)
                         engine.statusMessage = nil
-                        retroUI.c47Mode = .none
-                        retroUI.c47Program = nil
-                    } else if retroUI.c47Mode == .integrate, let prog = retroUI.c47Program {
+                        retroUI.softkeyMode = .none
+                        retroUI.softkeyProgram = nil
+                    } else if retroUI.softkeyMode == .integrate, let prog = retroUI.softkeyProgram {
                         let upper = engine.stack.count > 0 ? engine.stack[0].real : 0.0
                         let lower = engine.stack.count > 1 ? engine.stack[1].real : 0.0
                         engine.statusMessage = "CALCULATING"
                         _ = engine.integrate(variable: varName, lower: lower, upper: upper, program: prog)
                         engine.statusMessage = nil
-                        retroUI.c47Mode = .none
-                        retroUI.c47Program = nil
+                        retroUI.softkeyMode = .none
+                        retroUI.softkeyProgram = nil
                     } else {
-                        retroUI.c47SelectedVar = varName
+                        retroUI.softkeySelectedVar = varName
                     }
                 }
                 return
             }
             
-            if c47ActionStr == "C47_EXEC" {
-                if retroUI.c47Mode == .plot {
-                    engine.generatePlot(variable: retroUI.c47SelectedVar, explicitMin: -10, explicitMax: 10)
+            if softkeyActionStr == "SOFTKEY_EXEC" {
+                if retroUI.softkeyMode == .plot {
+                    engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
-                } else if retroUI.c47Mode == .xeq, let prog = retroUI.c47Program {
+                } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
                     engine.currentProgramLabel = prog.label
                     _ = engine.evaluateProgram(prog, variables: engine.variables)
                 }
-                retroUI.c47Mode = .none
-                retroUI.c47Program = nil
+                retroUI.softkeyMode = .none
+                retroUI.softkeyProgram = nil
                 return
             }
         }
@@ -211,29 +206,44 @@ public class RetroUIController {
         }
 
         
-        if engine.isWaitingForAlpha {
-            if engine.alphaAction == .fnEq, finalOp.stringValue.hasPrefix("LFU_") {
-                let suffix = String(finalOp.stringValue.dropFirst(4))
-                let index = parseInteger(suffix) ?? 0
-                
-                var items: [MenuItem] = []
-                for prog in engine.programs {
-                    items.append(MenuItem(label: prog.label, action: prog.label))
-                }
-                
-                if index == 5 && items.count - retroUI.menuOffset > 6 {
-                    retroUI.menuOffset += 5
-                    return
-                }
-                
-                let visibleItems = Array(items.dropFirst(retroUI.menuOffset))
-                if index < visibleItems.count {
-                    let selected = visibleItems[index]
-                    engine.submitAlpha(selected.label)
-                    retroUI.menuOffset = 0
-                }
+        if (engine.isEquationMode || engine.alphaAction == .fnEq), finalOp.stringValue.hasPrefix("LFU_") {
+            let suffix = String(finalOp.stringValue.dropFirst(4))
+            let index = parseInteger(suffix) ?? 0
+            
+            var items: [MenuItem] = [
+                MenuItem(label: "NEW", action: "EQN_NEW")
+            ]
+            for prog in engine.programs {
+                items.append(MenuItem(label: prog.label.isEmpty ? "EQN" : prog.label, action: "EQN_EDIT_\(prog.label)"))
+            }
+            
+            if index == 5 && items.count - retroUI.menuOffset > 6 {
+                retroUI.menuOffset += 5
                 return
             }
+            
+            let visibleItems = Array(items.dropFirst(retroUI.menuOffset))
+            if index < visibleItems.count {
+                let selected = visibleItems[index]
+                if selected.action == "EQN_NEW" {
+                    engine.isWaitingForLabel = true
+                    engine.startAlpha()
+                    engine.alphaPrompt = "LBL _"
+                    engine.promptString = "LBL "
+                } else if selected.action.hasPrefix("EQN_EDIT_") {
+                    let lbl = String(selected.action.dropFirst(9))
+                    if let existing = engine.programs.first(where: { $0.label == lbl }) {
+                        engine.editEquation(existing)
+                    }
+                } else {
+                    engine.submitAlpha(selected.label)
+                }
+                retroUI.menuOffset = 0
+            }
+            return
+        }
+        
+        if engine.isWaitingForAlpha {
 
             if finalOp == .backspace || finalOp == .clear || finalOp == .c {
                 engine.submitAlpha("<-")

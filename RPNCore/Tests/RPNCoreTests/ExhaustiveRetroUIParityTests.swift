@@ -196,21 +196,21 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
     // MARK: - 6. Exhaustive Advanced Solver / Integrator Emulation Test
     func testExhaustiveSolverAndIntegratorEmulation() {
         // Add test program
-        let prog = CalculatorEngine.Program(label: "F", steps: ["X", "2", "^", "1", "-"])
+        let prog = CalculatorEngine.Program(label: "F", steps: ["X", "2", "^", "1", "-"].compactMap { Instruction(fromString: $0) })
         engine.programs = [prog]
         
         // Trigger SOLVE mode
         controller.processAction(.solve)
-        XCTAssertEqual(controller.retroUI.c47Mode, .solve)
+        XCTAssertEqual(controller.retroUI.softkeyMode, .solve)
         controller.render()
         
         // Manually select program for Advanced emulation test
-        controller.retroUI.c47Program = prog
-        XCTAssertEqual(controller.retroUI.c47Program?.label, "F")
+        controller.retroUI.softkeyProgram = prog
+        XCTAssertEqual(controller.retroUI.softkeyProgram?.label, "F")
         
         // Clear mode
         controller.processAction(.c)
-        XCTAssertEqual(controller.retroUI.c47Mode, .none)
+        XCTAssertEqual(controller.retroUI.softkeyMode, .none)
     }
 
     // MARK: - 7. Exhaustive Plots, Equations & Text Clipping / Non-Overlap Test

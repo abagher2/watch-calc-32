@@ -17,7 +17,7 @@ public class Renderer {
     
     public func fitSoftkeyLabel(_ rawLabel: String) -> String {
         var l = rawLabel
-        while getStringWidth(l, size: .tiny) > 20 && !l.isEmpty {
+        while getStringWidth(l, size: .tiny) > 60 && !l.isEmpty {
             l.removeLast()
         }
         return l
@@ -107,10 +107,17 @@ public class Renderer {
         var processed = str
         
         let replacements: [(String, String)] = [
-            ("1/𝑥", "\u{E000}"), ("10ˣ", "\u{E001}"), ("𝑒ˣ", "\u{E002}"),
-            ("𝑦ˣ", "\u{E003}"), ("𝑥²", "\u{E004}"), ("√𝑥", "\u{E005}"),
-            ("ˣ√𝑦", "\u{E006}"), ("𝑥!", "\u{E007}"), ("s,σ", "\u{E008}"),
-            ("𝑥̄,𝑦̄", "\u{E009}"), ("Σ+", "\u{E00A}"), ("Σ-", "\u{E00B}"),
+            ("1/𝑥", "\u{E000}"), ("1/x", "\u{E000}"), ("¹/𝑥", "\u{E000}"), ("¹/x", "\u{E000}"),
+            ("10ˣ", "\u{E001}"), ("10^x", "\u{E001}"),
+            ("𝑒ˣ", "\u{E002}"), ("eˣ", "\u{E002}"), ("e^x", "\u{E002}"),
+            ("𝑦ˣ", "\u{E003}"), ("yˣ", "\u{E003}"), ("y^x", "\u{E003}"),
+            ("𝑥²", "\u{E004}"), ("x²", "\u{E004}"), ("x^2", "\u{E004}"),
+            ("√𝑥", "\u{E005}"), ("√x", "\u{E005}"),
+            ("ˣ√𝑦", "\u{E006}"), ("x√y", "\u{E006}"), ("ˣ√y", "\u{E006}"),
+            ("𝑥!", "\u{E007}"), ("x!", "\u{E007}"),
+            ("s,σ", "\u{E008}"),
+            ("𝑥̄,𝑦̄", "\u{E009}"), ("x̄,ȳ", "\u{E009}"),
+            ("Σ+", "\u{E00A}"), ("Σ-", "\u{E00B}"),
             ("x̂", "\u{E00C}"), ("ŷ,r", "\u{E00D}"), ("x̄", "\u{E00E}"),
             ("ȳ", "\u{E00F}"), ("L.R.", "\u{E012}"), ("INT÷", "\u{E013}"),
             ("4-LVL", "\u{E016}")

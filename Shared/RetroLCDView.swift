@@ -13,8 +13,8 @@ public struct RetroLCDView: View {
     public init(
         engine: CalculatorEngine,
         controller: RetroUIController? = nil,
-        pixelColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (20, 25, 20, 255),
-        backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (155, 175, 145, 255)
+        pixelColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (0, 0, 0, 255),
+        backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (245, 245, 245, 255)
     ) {
         self.engine = engine
         self.controller = controller ?? RetroUIController(engine: engine)

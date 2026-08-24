@@ -327,11 +327,32 @@ public class CalculatorEngine {
     public struct Program: Codable, Identifiable {
         public var id: String { label }
         public var label: String
-        public var steps: [String]
+        public var steps: [Instruction]
         
-        public init(label: String, steps: [String]) {
+        public init(label: String, steps: [Instruction]) {
             self.label = label
             self.steps = steps
+        }
+        
+        private enum CodingKeys: String, CodingKey {
+            case label, steps
+        }
+        
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.label = try container.decode(String.self, forKey: .label)
+            do {
+                self.steps = try container.decode([Instruction].self, forKey: .steps)
+            } catch {
+                let stringSteps = try container.decode([String].self, forKey: .steps)
+                self.steps = stringSteps.compactMap { Instruction(fromString: $0) }
+            }
+        }
+        
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(label, forKey: .label)
+            try container.encode(steps, forKey: .steps)
         }
         
         public func extractVariables() -> [String] {
@@ -339,13 +360,23 @@ public class CalculatorEngine {
             var seen = Set<String>()
             for step in steps {
                 var v: String? = nil
-                if step.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(step) {
-                    v = step
-                } else if (step.hasPrefix("RCL ") || step.hasPrefix("STO ")) && step.count == 5 {
-                    let char = String(step.last!)
-                    if "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(char) {
-                        v = char
+                switch step {
+                case .operation(let op):
+                    if op.stringValue.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(op.stringValue) {
+                        v = op.stringValue
                     }
+                case .sto(let s), .rcl(let s):
+                    v = s
+                case .custom(let s):
+                    if s.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(s) {
+                        v = s
+                    } else if (s.hasPrefix("RCL ") || s.hasPrefix("STO ")) && s.count == 5 {
+                        let char = String(s.last!)
+                        if "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(char) {
+                            v = char
+                        }
+                    }
+                default: break
                 }
                 
                 if let v = v, seen.insert(v).inserted {
@@ -359,9 +390,9 @@ public class CalculatorEngine {
     public struct Program: Identifiable {
         public var id: String { label }
         public var label: String
-        public var steps: [String]
+        public var steps: [Instruction]
         
-        public init(label: String, steps: [String]) {
+        public init(label: String, steps: [Instruction]) {
             self.label = label
             self.steps = steps
         }
@@ -371,13 +402,23 @@ public class CalculatorEngine {
             var seen = Set<String>()
             for step in steps {
                 var v: String? = nil
-                if step.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(step) {
-                    v = step
-                } else if (step.hasPrefix("RCL ") || step.hasPrefix("STO ")) && step.count == 5 {
-                    let char = String(step.last!)
-                    if "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(char) {
-                        v = char
+                switch step {
+                case .operation(let op):
+                    if op.stringValue.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(op.stringValue) {
+                        v = op.stringValue
                     }
+                case .sto(let s), .rcl(let s):
+                    v = s
+                case .custom(let s):
+                    if s.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(s) {
+                        v = s
+                    } else if (s.hasPrefix("RCL ") || s.hasPrefix("STO ")) && s.count == 5 {
+                        let char = String(s.last!)
+                        if "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains(char) {
+                            v = char
+                        }
+                    }
+                default: break
                 }
                 
                 if let v = v, seen.insert(v).inserted {
@@ -406,7 +447,8 @@ public class CalculatorEngine {
         }
         #endif
         
-        let normalPDF = Program(label: "NPDF", steps: ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"])
+        let pdfSteps = ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"]
+        let normalPDF = Program(label: "NPDF", steps: pdfSteps.compactMap { Instruction(fromString: $0) })
         if !programs.contains(where: { $0.label == "NPDF" }) {
             programs.append(normalPDF)
         }
@@ -431,7 +473,7 @@ public class CalculatorEngine {
         } else if isEquationMode {
             if !programs.isEmpty {
                 currentEquationIndex = max(0, currentEquationIndex - 1)
-                currentEquation = programs[currentEquationIndex].steps.joined(separator: " ")
+                currentEquation = programs[currentEquationIndex].steps.map { $0.stringValue }.joined(separator: " ")
                 updateDisplay()
             }
         }
@@ -446,7 +488,7 @@ public class CalculatorEngine {
         } else if isEquationMode {
             if !programs.isEmpty {
                 currentEquationIndex = min(programs.count - 1, currentEquationIndex + 1)
-                currentEquation = programs[currentEquationIndex].steps.joined(separator: " ")
+                currentEquation = programs[currentEquationIndex].steps.map { $0.stringValue }.joined(separator: " ")
                 updateDisplay()
             }
         }
@@ -481,7 +523,7 @@ public class CalculatorEngine {
     public func editEquation(_ program: Program) {
         isProgrammingMode = true
         currentProgramLabel = program.label
-        currentProgramSteps = program.steps
+        currentProgramSteps = program.steps.map { $0.stringValue }
         updateProgramDisplay()
     }
     
@@ -535,9 +577,9 @@ public class CalculatorEngine {
     
     private func saveProgram() {
         if let idx = programs.firstIndex(where: { $0.label == currentProgramLabel }) {
-            programs[idx] = Program(label: currentProgramLabel, steps: currentProgramSteps)
+            programs[idx] = Program(label: currentProgramLabel, steps: currentProgramSteps.compactMap { Instruction(fromString: $0) })
         } else {
-            programs.append(Program(label: currentProgramLabel, steps: currentProgramSteps))
+            programs.append(Program(label: currentProgramLabel, steps: currentProgramSteps.compactMap { Instruction(fromString: $0) }))
         }
     }
     
@@ -1132,7 +1174,32 @@ public class CalculatorEngine {
         executeMath(opString)
     }
 
+    public func execute(_ instruction: Instruction) {
+        if isWaitingForLabel {
+            if instruction == .operation(.clear) || instruction == .operation(.backspace) {
+                cancelAlpha()
+            }
+            return
+        }
+        
+        switch instruction {
+        case .operation(let op):
+            let raw = op.rawValue
+            if raw >= CalculatorOperation.digit0.rawValue && raw <= CalculatorOperation.digit9.rawValue {
+                digit(raw - CalculatorOperation.digit0.rawValue)
+                return
+            }
+        default:
+            break
+        }
+        
+        // Forward all remaining logic directly via the stringValue to the existing handleCommand block.
+        // This is safe since we eliminated strings from the *Program* evaluator!
+        handleCommand(instruction.stringValue)
+    }
+    
     public func executeMath(_ operation: String) {
+
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
@@ -1363,20 +1430,22 @@ public class CalculatorEngine {
                 rollDown()
             } else if operation == "PLOT" {
                 generatePlot()
-            } else if operation == "ENTER" || operation == "SOLVE" || operation == "∫" {
+            } else if operation == "ENTER" {
+                enter()
+            } else if operation == "SOLVE" || operation == "∫" {
                 if !currentEquation.isEmpty && currentEquation != "EQN=" {
                     let steps = currentEquation.split(separator: " ").map { String($0) }
                     if programs.isEmpty {
-                        programs.append(Program(label: "", steps: steps))
+                        programs.append(Program(label: "", steps: steps.compactMap { Instruction(fromString: $0) }))
                         currentEquationIndex = 0
                     } else {
-                        programs[currentEquationIndex].steps = steps
+                        programs[currentEquationIndex].steps = steps.compactMap { Instruction(fromString: $0) }
                     }
                     
                     let program = programs[currentEquationIndex]
                     currentEvaluatingProgram = program
                     let knownCommands: Set<String> = ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR", "ENTER", "BACKSPACE", "+", "-", "×", "÷", ".", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN", "LOG", "LN", "ABS", "INTG", "FRAC", "RND", "LAST𝑥", "𝑥≷𝑦", "𝑥≷𝑦", "R↓", "R↑", "𝑦ˣ", "xVy", "1/𝑥", "𝑥!", "√𝑥", "𝑥²", "𝑒ˣ", "10ˣ", "%", "%CHG", "π", "LBL", "GTO", "XEQ", "RTN", "STO", "RCL", "MEM", "PROB", "PARTS", "SUMS", "BASE", "FLAGS", "CMPLX", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "SD", "𝑥?0", "𝑥?𝑦", "INT÷", "AND", "OR", "XOR", "NOT"]
-                    pendingEquationVars = program.steps.filter { step in
+                    pendingEquationVars = program.steps.map { $0.stringValue }.filter { step in
                         guard let first = step.first, first.isLetter else { return false }
                         return !knownCommands.contains(step)
                     }
@@ -1393,9 +1462,6 @@ public class CalculatorEngine {
                         startAlpha()
                         alphaAction = .integrate
                         alphaPrompt = "∫ _"
-                    } else {
-                        alphaAction = .evalEquation
-                        promptNextEquationVar()
                     }
                 }
             } else {
@@ -2119,36 +2185,70 @@ public class CalculatorEngine {
                 i += 1
                 continue
             }
-            if isProgramNumberStep(step) {
-                if !self.isBuildingNumber {
-                    if self.stackLiftEnabled && !self.stack.isEmpty {
-                        self.pushToStack(self.stack[0]) // Push stack
+            
+            switch step {
+            case .operation(let op):
+                let raw = op.rawValue
+                if raw >= CalculatorOperation.digit0.rawValue && raw <= CalculatorOperation.digit9.rawValue {
+                    let d = raw - CalculatorOperation.digit0.rawValue
+                    if !self.isBuildingNumber {
+                        if self.stackLiftEnabled && !self.stack.isEmpty {
+                            self.pushToStack(self.stack[0]) // Push stack
+                        }
+                        self.isBuildingNumber = true
+                        self.currentInputLength = 0
                     }
-                    self.isBuildingNumber = true
-                    self.currentInputLength = 0
+                    if self.currentInputLength < 64 {
+                        self.currentInputBuffer[self.currentInputLength] = UInt8(48 + d)
+                        self.currentInputLength += 1
+                    }
+                } else if op == .decimal {
+                    if !self.isBuildingNumber {
+                        if self.stackLiftEnabled && !self.stack.isEmpty {
+                            self.pushToStack(self.stack[0])
+                        }
+                        self.isBuildingNumber = true
+                        self.currentInputLength = 0
+                    }
+                    if self.currentInputLength < 64 {
+                        self.currentInputBuffer[self.currentInputLength] = 46 // '.'
+                        self.currentInputLength += 1
+                    }
+                } else if op == .toggleSign && self.isBuildingNumber {
+                    // Handled if we need to implement +/- inside numbers natively
+                    // Let executeMath handle it for simplicity for now, wait, toggleSign is parsed as math
+                    self.execute(step)
+                } else {
+                    self.execute(step)
                 }
-                let bytes = Array(step.utf8)
-                let lengthToAdd = min(bytes.count, 64 - self.currentInputLength)
-                for j in 0..<lengthToAdd {
-                    self.currentInputBuffer[self.currentInputLength + j] = bytes[j]
-                }
-                self.currentInputLength += lengthToAdd
-            } else if let val = variables[step] {
-                self.push(val)
-                self.stackLiftEnabled = true
-            } else if step.hasPrefix("RCL ") {
-                let varName = String(step.dropFirst(4))
+                
+            case .rcl(let varName):
                 if let val = variables[varName] {
                     self.push(val)
                     self.stackLiftEnabled = true
                 }
-            } else if step.hasPrefix("STO ") {
-                let varName = String(step.dropFirst(4))
+            case .sto(let varName):
                 self.variables[varName] = self.stack.first ?? CalculatorValue()
-            } else if ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR"].contains(step) {
-                // Handled by action closure
-            } else {
-                self.executeMath(step)
+            case .custom(let str):
+                if let val = variables[str] {
+                    self.push(val)
+                    self.stackLiftEnabled = true
+                } else if str.hasPrefix("RCL ") {
+                    let varName = String(str.dropFirst(4))
+                    if let val = variables[varName] {
+                        self.push(val)
+                        self.stackLiftEnabled = true
+                    }
+                } else if str.hasPrefix("STO ") {
+                    let varName = String(str.dropFirst(4))
+                    self.variables[varName] = self.stack.first ?? CalculatorValue()
+                } else if ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR"].contains(str) {
+                    // Handled by action closure
+                } else {
+                    self.execute(step)
+                }
+            default:
+                self.execute(step)
             }
             i += 1
         }
@@ -2166,17 +2266,19 @@ public class CalculatorEngine {
         self.displayX = savedDisplayX
         self.isProgrammingMode = savedProgMode
         self.isEquationMode = savedEqMode
-        self.currentInputBuffer = savedInputBuffer
         self.currentInputLength = savedInputLength
+        for j in 0..<savedInputLength {
+            self.currentInputBuffer[j] = savedInputBuffer[j]
+        }
         self.isBuildingNumber = savedIsBuildingNum
         self.shiftState = savedShift
         self.stackLiftEnabled = savedLiftEnabled
         self.currentEvaluatingProgram = nil
-        
         self.updateDisplay()
+        
         return result
     }
-
+    
     private func isProgramNumberStep(_ step: String) -> Bool {
         if step == "-" { return false }
         if step == "E" { return false }
@@ -2461,7 +2563,7 @@ public class CalculatorEngine {
             isProgrammingMode = true
             currentProgramLabel = initialChar
             if let existing = programs.first(where: { $0.label == currentProgramLabel }) {
-                currentProgramSteps = existing.steps
+                currentProgramSteps = existing.steps.map { $0.stringValue }
             } else {
                 currentProgramSteps = []
             }
@@ -2470,7 +2572,7 @@ public class CalculatorEngine {
             if let program = programs.first(where: { $0.label == initialChar }) {
                 currentEvaluatingProgram = program
                 let knownCommands: Set<String> = ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR", "ENTER", "BACKSPACE", "+", "-", "×", "÷", ".", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN", "LOG", "LN", "ABS", "INTG", "FRAC", "RND", "LAST𝑥", "𝑥≷𝑦", "𝑥≷𝑦", "R↓", "R↑", "𝑦ˣ", "xVy", "1/𝑥", "𝑥!", "√𝑥", "𝑥²", "𝑒ˣ", "10ˣ", "%", "%CHG", "π", "LBL", "GTO", "XEQ", "RTN", "STO", "RCL", "MEM", "PROB", "PARTS", "SUMS", "BASE", "FLAGS", "CMPLX", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "SD", "𝑥?0", "𝑥?𝑦", "INT÷", "AND", "OR", "XOR", "NOT"]
-                pendingEquationVars = program.steps.filter { step in
+                pendingEquationVars = program.steps.map { $0.stringValue }.filter { step in
                     guard let first = step.first, first.isLetter else { return false }
                     return !knownCommands.contains(step)
                 }
@@ -2640,7 +2742,7 @@ public class CalculatorEngine {
                 isProgrammingMode = true
                 currentProgramLabel = "P" // default to P for testing
                 if let existing = programs.first(where: { $0.label == currentProgramLabel }) {
-                    currentProgramSteps = existing.steps
+                    currentProgramSteps = existing.steps.map { $0.stringValue }
                 } else {
                     currentProgramSteps = []
                 }
@@ -2791,7 +2893,7 @@ public class CalculatorEngine {
         if currentProgramSteps.isEmpty {
             promptString = "00 LBL \(currentProgramLabel)"
         } else {
-            let stepNum = "\(currentProgramSteps.count)"
+            let stepNum = currentProgramSteps.count < 10 ? "0\(currentProgramSteps.count)" : "\(currentProgramSteps.count)"
             promptString = "\(stepNum) \(currentProgramSteps.last!)"
         }
     }
@@ -2811,26 +2913,26 @@ public class CalculatorEngine {
 
     public func updateDisplay() {
         if isSilent { return }
-                if isEquationMode {
+        if let err = errorMessage {
+            displayX = err
+            promptString = err
+            _populateBufferWithString(displayX)
+            return
+        }
+        if isEquationMode {
             promptString = currentEquation.isEmpty ? "EQN=" : currentEquation
             displayX = promptString!
-            #if hasFeature(Embedded)
             _populateBufferWithString(displayX)
-            #endif
             return
         }
         if isProgrammingMode {
             displayX = promptString ?? "00 LBL \(currentProgramLabel)"
-            #if hasFeature(Embedded)
             _populateBufferWithString(displayX)
-            #endif
             return
         }
         if let prompt = promptString {
             displayX = prompt
-            #if hasFeature(Embedded)
             _populateBufferWithString(prompt)
-            #endif
             return
         }
         
@@ -2860,6 +2962,7 @@ public class CalculatorEngine {
                 }
                 #else
                 displayX = formatNumber(stack[0].real)
+                _populateBufferWithString(displayX)
                 #endif
             }
         #if !hasFeature(Embedded)

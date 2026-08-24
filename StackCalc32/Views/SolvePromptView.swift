@@ -124,9 +124,7 @@ struct XEQPromptView: View {
                         }
                         if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
                             engine.currentEvaluatingProgram = program
-                            let bareVars = program.steps.filter { $0.count == 1 && "ABCDEFGHIJKLMNOPQRSTUVWXYZ".contains($0) }
-                            var seen = Set<String>()
-                            engine.pendingEquationVars = bareVars.filter { seen.insert($0).inserted }
+                            engine.pendingEquationVars = program.extractVariables()
                             engine.promptNextEquationVar()
                         }
                         dismiss()
