@@ -90,12 +90,16 @@ FRONT_LIP = 0.8   # Structural retaining bezel
 # Calculate required chassis depth to securely fit all components
 CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
 
-EINK_W = 65.0   # module width  (mm)
-EINK_H = 30.2   # module height (mm)
+DISP_W = 62.8   # module width  (mm)
+DISP_H = 42.82  # module height (mm)
+DISP_T = 1.43   # module thickness (mm)
+ACTIVE_W = 58.80
+ACTIVE_H = 35.28
+
 pad_x = (fp_w - pcb_width) / 2
 pad_y = (fp_h - pcb_height) / 2
 disp_x = fp_w / 2
-disp_y = (disp['y'] + pad_y + 4) if disp else (fp_h - EINK_H / 2 - 5)
+disp_y = (disp['y'] + pad_y + 4) if disp else (fp_h - DISP_H / 2 - 5)
 PCB_SCREW_INSET = 7.0
 chassis_screws = [
     # Bottom screws (keypad end)
@@ -155,20 +159,23 @@ module squircle_centered(w, h, depth, r) {{
 }}
 
 module key_button(w, h) {{
-    // Bottom piston (prints on bed) - Squircle
+    // Base plunger (touches tactile switch)
     squircle_centered(w, h, 1.0, 1.5);
     // Taper Up (45-degree overhang transition)
+    // Taller shaft: 2.4mm tall instead of 2.0mm
     translate([0, 0, 1.0]) hull() {{
         squircle_centered(w, h, 0.01, 1.5);
-        translate([0, 0, 2.0]) rotate([0, 0, 90]) cylinder(d=min(w, h) - 1.5, h=0.01, $fn=3);
+        translate([0, 0, 2.4]) rotate([0, 0, 90]) cylinder(d=min(w, h) - 1.5, h=0.01, $fn=3);
     }}
     // Taper Out (45-degree overhang transition)
-    translate([0, 0, 3.0]) hull() {{
+    // Shifted up by 0.4mm
+    translate([0, 0, 3.4]) hull() {{
         rotate([0, 0, 90]) cylinder(d=min(w, h) - 1.5, h=0.01, $fn=3);
         translate([0, 0, 2.0]) squircle_centered(w, h, 0.01, 1.5);
     }}
     // Top piston - Squircle
-    translate([0, 0, 5.0]) squircle_centered(w, h, 1.0, 1.5);
+    // Shifted up by 0.4mm
+    translate([0, 0, 5.4]) squircle_centered(w, h, 1.0, 1.5);
 }}
 
 module button_pocket(w, h) {{
@@ -192,19 +199,14 @@ module faceplate() {{
     difference() {{
         faceplate_body();
 
-        // 65x30 E-Ink Module Base Pocket (Z=-0.1 to Z=1.0)
-        translate([{disp_x:.3f} - 65.4/2, {disp_y:.3f} - 30.6/2, -0.1])
-            cube([65.4, 30.6, 1.1]);
-
-        ACTIVE_W = 49.0;
-        ACTIVE_H = 24.0;
-        // Interior Chamfer: Start from the EXACT glass pocket bounds (65.4x30.6) at Z=1.0
-        // and taper to the bezel window (49.0x24.0) at Z=3.1 to completely eliminate flat overhangs!
+        // Bezel Window: Starts small (ACTIVE_W x ACTIVE_H) at the FRONT (Z=-0.1).
+        // Expands smoothly to the full screen bounds (DISP_W x DISP_H) at the BACK (Z=pt+0.1).
+        // Because it EXPANDS as it goes up (when printed Face Up at Z=0), it requires ZERO SUPPORTS!
         hull() {{
-            translate([{disp_x:.3f} - 65.4/2, {disp_y:.3f} - 30.6/2, 1.0])
-                cube([65.4, 30.6, 0.01]);
-            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, pt + 0.1])
+            translate([{disp_x:.3f} - ACTIVE_W/2, {disp_y:.3f} - ACTIVE_H/2, -0.1])
                 cube([ACTIVE_W, ACTIVE_H, 0.01]);
+            translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, pt + 0.1])
+                cube([{DISP_W:.3f}, {DISP_H:.3f}, 0.01]);
         }}
 
         // Button pockets
@@ -244,8 +246,8 @@ module faceplate_assembly() {
 
     closing_str = f"""    }}
 }}
-// Render Faceplate Assembly perfectly FACE DOWN on the bed!
-faceplate_assembly();
+// Render Faceplate Assembly perfectly FACE UP on the bed (Z=0 on bed)
+translate([0, 0, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
 """
     faceplate_mjf += closing_str
     faceplate_fdm += closing_str
@@ -333,9 +335,11 @@ module chassis_shell() {{
         translate([offset_x, {FRONT_LIP} - 0.1, wall])
             cube([fp_w, pt + 0.1, ch + 0.1]);
             
-        // Middle Cavity: Hollows out the center between Faceplate and PCB, leaving 2.0mm rails for the PCB
-        translate([(cw - (pcb_w - 4.0))/2, {FRONT_LIP} + pt - 0.1, wall])
-            cube([pcb_w - 4.0, 1.5 + 0.2, ch + 0.1]);
+        // Middle Cavity: Hollows out the center for the 65.4mm E-Ink Display to slide down!
+        // We make this cavity 66.4mm wide, which leaves ~2.1mm solid rails on the left and right
+        // to securely hold the Faceplate in place!
+        translate([(cw - 66.4)/2, {FRONT_LIP} + pt - 0.1, wall])
+            cube([66.4, 1.5 + 0.2, ch + 0.1]);
             
         // Tier 2: PCB Cavity (Slides in from Z=ch)
         // Shifted by 1.5mm to create a physical rail for the faceplate and clear the tactile switches
@@ -751,21 +755,21 @@ module dummy_pcb() {{
     }}
 
 
-    // E-Ink Display Module Base (White)
+    // Sharp Memory LCD Base (White)
     color("White") {{
         translate([{disp_x:.3f}, {disp_y:.3f}, 1.6]) 
-            translate([-{EINK_W:.3f}/2, -{EINK_H:.3f}/2, 0])
-            cube([{EINK_W:.3f}, {EINK_H:.3f}, 1.0]);
+            translate([-{DISP_W:.3f}/2, -{DISP_H:.3f}/2, 0])
+            cube([{DISP_W:.3f}, {DISP_H:.3f}, {DISP_T - 0.4:.3f}]);
     }}
 
-    // E-Ink Display Active Glass Area (Black)
+    // Sharp LCD Active Glass Area (Black)
     color("Black") {{
-        translate([{disp_x:.3f}, {disp_y:.3f}, 2.6]) 
-            translate([-49.0/2, -24.0/2, 0])
-            cube([49.0, 24.0, 0.4]);
+        translate([{disp_x:.3f}, {disp_y:.3f}, 1.6 + {DISP_T - 0.4:.3f}]) 
+            translate([-ACTIVE_W/2, -ACTIVE_H/2, 0])
+            cube([ACTIVE_W, ACTIVE_H, 0.4]);
     }}
 
-    // Tactile Switches (6.0 x 3.5 x 1.5mm body + 3.0x0.5mm plunger)
+    // Tactile Switches (6.0 x 3.5 x 1.0mm body + 3.0x0.5mm plunger -> 1.5mm total Z-height)
     color("Silver") {{
 """
     for row in rows:
@@ -773,8 +777,8 @@ module dummy_pcb() {{
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
             dummy_scad += f"""        translate([{ox:.3f}, {oy:.3f}, 1.6]) {{
-            translate([-3.0, -1.75, 0]) cube([6.0, 3.5, 1.5]);
-            translate([0, 0, 1.5]) cylinder(d=3.0, h=0.5);
+            translate([-3.0, -1.75, 0]) cube([6.0, 3.5, 1.0]);
+            translate([0, 0, 1.0]) cylinder(d=3.0, h=0.5);
         }}
 """
             

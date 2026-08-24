@@ -515,11 +515,11 @@ public class CalculatorEngine {
     public enum BaseMode { case dec, hex, oct, bin }
     
     public enum AlphaAction {
-        case none, sto, stoAdd, stoSub, stoMul, stoDiv, rcl, evalEquation, promptVar, view, swapVar
+        case none, sto, stoAdd, stoSub, stoMul, stoDiv, rcl, evalEquation, promptVar, view, swapVar, solve, integrate, fnEq
     }
     
     public var usesContextualAlphaPad: Bool {
-        return alphaAction == .sto || alphaAction == .stoAdd || alphaAction == .stoSub || alphaAction == .stoMul || alphaAction == .stoDiv || alphaAction == .rcl || alphaAction == .promptVar || alphaAction == .view || alphaAction == .swapVar
+        return alphaAction == .sto || alphaAction == .stoAdd || alphaAction == .stoSub || alphaAction == .stoMul || alphaAction == .stoDiv || alphaAction == .rcl || alphaAction == .promptVar || alphaAction == .view || alphaAction == .swapVar || alphaAction == .solve || alphaAction == .integrate || alphaAction == .fnEq
     }
     
 
@@ -1345,6 +1345,47 @@ public class CalculatorEngine {
                 updateDisplay()
             } else if operation == "RCL" {
                 startRcl()
+            } else if operation == "R↑" {
+                scrollUp()
+            } else if operation == "R↓" {
+                scrollDown()
+            } else if operation == "PLOT" {
+                generatePlot()
+            } else if operation == "ENTER" || operation == "SOLVE" || operation == "∫" {
+                if !currentEquation.isEmpty && currentEquation != "EQN=" {
+                    let steps = currentEquation.split(separator: " ").map { String($0) }
+                    if programs.isEmpty {
+                        programs.append(Program(label: "", steps: steps))
+                        currentEquationIndex = 0
+                    } else {
+                        programs[currentEquationIndex].steps = steps
+                    }
+                    
+                    let program = programs[currentEquationIndex]
+                    currentEvaluatingProgram = program
+                    let knownCommands: Set<String> = ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR", "ENTER", "BACKSPACE", "+", "-", "×", "÷", ".", "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN", "LOG", "LN", "ABS", "INTG", "FRAC", "RND", "LAST𝑥", "𝑥≷𝑦", "𝑥≷𝑦", "R↓", "R↑", "𝑦ˣ", "xVy", "1/𝑥", "𝑥!", "√𝑥", "𝑥²", "𝑒ˣ", "10ˣ", "%", "%CHG", "π", "LBL", "GTO", "XEQ", "RTN", "STO", "RCL", "MEM", "PROB", "PARTS", "SUMS", "BASE", "FLAGS", "CMPLX", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "SD", "𝑥?0", "𝑥?𝑦", "INT÷", "AND", "OR", "XOR", "NOT"]
+                    pendingEquationVars = program.steps.filter { step in
+                        guard let first = step.first, first.isLetter else { return false }
+                        return !knownCommands.contains(step)
+                    }
+                    var seen = Set<String>()
+                    pendingEquationVars = pendingEquationVars.filter { seen.insert($0).inserted }
+                    
+                    if operation == "SOLVE" {
+                        isWaitingForLabel = true
+                        startAlpha()
+                        alphaAction = .solve
+                        alphaPrompt = "SOLVE _"
+                    } else if operation == "∫" {
+                        isWaitingForLabel = true
+                        startAlpha()
+                        alphaAction = .integrate
+                        alphaPrompt = "∫ _"
+                    } else {
+                        alphaAction = .evalEquation
+                        promptNextEquationVar()
+                    }
+                }
             } else {
                 appendToEquation(operation)
                 updateDisplay()
@@ -1355,6 +1396,14 @@ public class CalculatorEngine {
         if operation == "EQN" {
             isEquationMode = true
             updateDisplay()
+            return
+        }
+        
+        if operation == "FN=" {
+            isWaitingForLabel = true
+            startAlpha()
+            alphaAction = .fnEq
+            alphaPrompt = "FN= _"
             return
         }
         
@@ -1939,7 +1988,9 @@ public class CalculatorEngine {
             plotMarkers.removeAll()
             
             let prog: Program?
-            if let label = currentProgramLabel.isEmpty ? nil : currentProgramLabel,
+            if isEquationMode && programs.count > currentEquationIndex {
+                prog = programs[currentEquationIndex]
+            } else if let label = currentProgramLabel.isEmpty ? nil : currentProgramLabel,
                let p = programs.first(where: { $0.label == label }) {
                 prog = p
             } else if let firstProgram = programs.first {
@@ -2418,6 +2469,36 @@ public class CalculatorEngine {
                 
                 promptNextEquationVar()
             }
+        } else if alphaAction == .solve {
+            if let currentEvaluatingProgram = currentEvaluatingProgram {
+                if let ans = solve(for: initialChar, program: currentEvaluatingProgram) {
+                    pushToStack(CalculatorValue(real: ans))
+                    updateDisplay()
+                } else {
+                    errorMessage = "NO ROOT"
+                    updateDisplay()
+                }
+            }
+            alphaAction = .none
+        } else if alphaAction == .integrate {
+            if let currentEvaluatingProgram = currentEvaluatingProgram {
+                let lower = stack.count > 1 ? stack[1].real : 0.0
+                let upper = stack.count > 0 ? stack[0].real : 0.0
+                let ans = integrate(variable: initialChar, lower: lower, upper: upper, program: currentEvaluatingProgram)
+                pushToStack(CalculatorValue(real: ans))
+                updateDisplay()
+            }
+            alphaAction = .none
+        } else if alphaAction == .fnEq {
+            if let program = programs.first(where: { $0.label == initialChar }) {
+                currentEvaluatingProgram = program
+                currentProgramLabel = initialChar
+                if let idx = programs.firstIndex(where: { $0.label == initialChar }) {
+                    currentEquationIndex = idx
+                }
+            }
+            alphaAction = .none
+            updateDisplay()
         } else if isProgrammingMode {
             if alphaAction == .sto {
                 currentProgramSteps.append("STO \(initialChar)")

@@ -8,7 +8,7 @@ public class Renderer {
     
     public var detectOverlap: Bool = false
     public var hasOverlap: Bool = false
-    public var boldFonts: Bool = true
+    public var boldFonts: Bool = false
     
     public init() {
         buffer = [UInt8](repeating: 0, count: 1024)
@@ -120,8 +120,9 @@ public class Renderer {
             }
         }
     }
-    private func applyGlyphReplacements(to str: String) -> String {
+    private func applyGlyphReplacements(to str: String, size: FontSize) -> String {
         var processed = str
+        
         let replacements: [(String, String)] = [
             ("1/𝑥", "\u{E000}"), ("10ˣ", "\u{E001}"), ("𝑒ˣ", "\u{E002}"),
             ("𝑦ˣ", "\u{E003}"), ("𝑥²", "\u{E004}"), ("√𝑥", "\u{E005}"),
@@ -159,7 +160,7 @@ public class Renderer {
     }
 
     public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
-        let processed = applyGlyphReplacements(to: str)
+        let processed = applyGlyphReplacements(to: str, size: size)
         var total = 0
         let shouldBold = boldFonts && size != .tiny
         for scalar in processed.unicodeScalars {
@@ -206,7 +207,7 @@ public class Renderer {
     }
 
     public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
-        let processed = applyGlyphReplacements(to: str)
+        let processed = applyGlyphReplacements(to: str, size: size)
         var cursorX = x
         for scalar in processed.unicodeScalars {
 
@@ -281,20 +282,20 @@ public class Renderer {
             }
             
             let segment = menuSegments[colIndex]
-            fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
+            fillRect(x: segment.x, y: 53, w: segment.w, h: 11, color: true)
             
             let label = fitSoftkeyLabel(item.label)
             let textW = getStringWidth(label, size: .tiny)
             let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-            drawString(label, x: textX, y: 54, size: .tiny, color: false)
+            drawString(label, x: textX, y: 53, size: .tiny, color: false)
         }
         
         if isMore {
             let segment = menuSegments[5]
-            fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
+            fillRect(x: segment.x, y: 53, w: segment.w, h: 11, color: true)
             let textW = getStringWidth("▶", size: .tiny)
             let textX = segment.x + (segment.w - textW) / 2
-            drawString("▶", x: textX, y: 54, size: .tiny, color: false)
+            drawString("▶", x: textX, y: 53, size: .tiny, color: false)
         }
     }
     
@@ -304,11 +305,11 @@ public class Renderer {
             guard let rawName = manager.slots[i] else { continue }
             
             let funcName = fitSoftkeyLabel(rawName)
-            fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
+            fillRect(x: segment.x, y: 53, w: segment.w, h: 11, color: true)
             
             let textW = getStringWidth(funcName, size: .tiny)
             let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-            drawString(funcName, x: textX, y: 54, size: .tiny, color: false)
+            drawString(funcName, x: textX, y: 53, size: .tiny, color: false)
         }
     }
 }

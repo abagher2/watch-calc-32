@@ -117,13 +117,13 @@ public class RetroUI {
                     for i in 0..<min(6, items.count) {
                         let item = items[i]
                         let segment = renderer.menuSegments[i]
-                        renderer.fillRect(x: segment.x, y: 53, w: segment.w, h: 10, color: true)
+                        renderer.fillRect(x: segment.x, y: 53, w: segment.w, h: 11, color: true)
                         let textW = renderer.getStringWidth(item.label, size: .tiny)
                         let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-                        renderer.drawString(item.label, x: textX, y: 54, size: .tiny, color: false)
+                        renderer.drawString(item.label, x: textX, y: 53, size: .tiny, color: false)
                     }
                 } else if let pending = waitingForMenuDigit {
-                    FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 53)
+                    FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 52)
                 }
     
             } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
@@ -135,7 +135,7 @@ public class RetroUI {
                         let label = "R\(i + 1)"
                         let textW = renderer.getStringWidth(label, size: .tiny)
                         let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
-                        renderer.drawString(label, x: textX, y: 54, size: .tiny, color: isSelected)
+                        renderer.drawString(label, x: textX, y: 53, size: .tiny, color: isSelected)
                     }
                 } else {
                     renderer.renderLFU(manager: lfuManager)
@@ -164,8 +164,8 @@ public class RetroUI {
             engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                 let len = min(engine.displayXLength, 64)
                 for i in 0..<len {
-                    if let glyph = FontData.Small.glyph(forScalar: UInt32(ptr[i])) {
-                        textW += glyph.width + 1
+                    if let glyph = FontData.Display.glyph(forScalar: UInt32(ptr[i])) {
+                        textW += glyph.width
                     }
                 }
             }
@@ -174,20 +174,25 @@ public class RetroUI {
             }
             
             var startX = 2
-            if textW > 124 {
-                FirmwareText("<", font: .small).draw(in: renderer, x: 0, y: 28)
-                startX = 124 - textW
+            let overflow = textW > 130
+            if overflow {
+                startX = 130 - textW
             }
             
             engine.displayXBuffer.withUnsafeBufferPointer { ptr in
                 let len = min(engine.displayXLength, 64)
                 for i in 0..<len {
-                    let w = renderer.drawChar(UInt32(ptr[i]), x: startX, y: 28, size: .small, color: true)
-                    startX += w + 1
+                    let w = renderer.drawChar(UInt32(ptr[i]), x: startX, y: 28, size: .display, color: true)
+                    startX += w
                 }
             }
             if hasCursor {
                 renderer.fillRect(x: startX, y: 46, w: 7, h: 2, color: true)
+            }
+            
+            if overflow {
+                renderer.fillRect(x: 0, y: 28, w: 10, h: 16, color: false)
+                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 28)
             }
         } else if isShowingRegisters {
             let getRegVal: (Int) -> Double = { idx in
@@ -233,13 +238,13 @@ public class RetroUI {
             valStr = doubleFormatter?(xVal, engine.displayMode) ?? "\(xVal)"
             #endif
             
-            let textW = renderer.getStringWidth(valStr, size: .small)
+            let textW = renderer.getStringWidth(valStr, size: .display)
             if textW > 124 {
-                FirmwareText("<", font: .small).draw(in: renderer, x: 0, y: 28)
+                FirmwareText("<", font: .display).draw(in: renderer, x: 0, y: 28)
                 let overflowOffset = 124 - textW
-                FirmwareText(valStr, font: .small).draw(in: renderer, x: overflowOffset, y: 28)
+                FirmwareText(valStr, font: .display).draw(in: renderer, x: overflowOffset, y: 28)
             } else {
-                FirmwareText(valStr, font: .small).draw(in: renderer, x: 2, y: 28)
+                FirmwareText(valStr, font: .display).draw(in: renderer, x: 2, y: 28)
             }
         }
     }
