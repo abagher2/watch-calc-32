@@ -33,16 +33,22 @@ struct iOSContentView: View {
             let retroNumpadPadHoriz: CGFloat = geo.size.width * 0.08
             let numpadPadHoriz: CGFloat = isRetro ? retroNumpadPadHoriz : baseNumpadPadHoriz
             
+            // In Retro mode, the LCD is strictly 400x240 (5:3 aspect ratio).
+            // We use the exact 5:3 aspect ratio to ensure no letterboxing padding occurs.
             let retroLcdHeight: CGFloat = (geo.size.width - (numpadPadHoriz * 2)) * (240.0 / 400.0)
             
-            let lcdHeight: CGFloat = isRetro ? retroLcdHeight : standardLcdHeight
+            let lcdHeight: CGFloat = isRetro ? 0 : standardLcdHeight
             
-            let extraPadding: CGFloat = landscape ? (isPad ? 132 : 40) : (isPad ? 160 : 125)
+            let extraPadding: CGFloat = isRetro ? 16 : (landscape ? (isPad ? 132 : 40) : (isPad ? 160 : 125))
             let availableHForNumpad = geo.size.height - lcdHeight - extraPadding
-            let maxH = geo.size.width / totalCols * 1.1
+            let maxHMultiplier: CGFloat = isRetro ? 1.35 : 1.1
+            let maxH = geo.size.width / totalCols * maxHMultiplier
             let rawH = availableHForNumpad / totalRows
-            let h = isPad ? min(rawH, maxH) : rawH
-            let numpadHeight = h * totalRows
+            let h = (isPad || isRetro) ? min(rawH, maxH) : rawH
+            
+            // In Retro mode, we apply an affine transformation to map the physical FDM faceplate into the available screen height exactly.
+            let numpadHeight = isRetro ? availableHForNumpad : (h * totalRows)
+
             
             mainContent(geo: geo, landscape: landscape, isPad: isPad, numpadHeight: numpadHeight, retroLcdHeight: retroLcdHeight)
         }
@@ -72,10 +78,14 @@ struct iOSContentView: View {
             }
             
             // Calculator Branding Nameplate
-            if !landscape && !isPad {
-                nameplateView(compact: false)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
+            if !landscape && themeManager.activeThemeType != .retro {
+                HStack {
+                    if isPad { Spacer() }
+                    nameplateView(compact: false)
+                        .padding(.horizontal, isPad ? 48 : 24)
+                        .padding(.top, isPad ? 32 : 16)
+                    if !isPad { Spacer() }
+                }
             }
             
             // 1-Line LCD Display (HP32SII style)
@@ -87,7 +97,9 @@ struct iOSContentView: View {
         }
         
         let bgView: AnyView
-        if themeManager.activeThemeType == .beta {
+        if themeManager.activeThemeType == .retro {
+            bgView = AnyView(Color.black.ignoresSafeArea())
+        } else if themeManager.activeThemeType == .beta {
             bgView = AnyView(Color(UIColor.systemGroupedBackground).ignoresSafeArea())
         } else {
             if landscape {
@@ -122,7 +134,7 @@ struct iOSContentView: View {
         VStack(alignment: .trailing, spacing: 2) {
             HStack(alignment: .top) {
                 if themeManager.activeThemeType == .retro {
-                    RetroLCDView(engine: engine)
+                    RetroLCDView(engine: engine, pixelColor: (15, 20, 15, 255), backgroundColor: (0, 0, 0, 0))
                         .frame(maxWidth: lcdMaxWidth, maxHeight: retroLcdHeight)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
@@ -187,7 +199,9 @@ struct iOSContentView: View {
                     .padding(.trailing, nameplatePadTrailing)
             }
             
-            Spacer(minLength: 16)
+            if themeManager.activeThemeType != .retro {
+                Spacer(minLength: 16)
+            }
             
             HapticNumpadView(onMenuAction: { command in
                 NotificationCenter.default.post(name: NSNotification.Name("iOSMenuTrigger"), object: nil, userInfo: ["command": command])
@@ -225,16 +239,7 @@ struct iOSContentView: View {
         let numpadPadHoriz: CGFloat = (themeManager.activeThemeType == .retro) ? (geo.size.width * 0.08) : baseNumpadPadHoriz
         let numpadPadBottom: CGFloat = isPad ? 48 : 32
         
-        if themeManager.activeThemeType == .retro {
-            RetroLCDView(engine: engine)
-                .frame(maxWidth: .infinity, maxHeight: retroLcdHeight)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(themeManager.theme.lcdBackgroundColor)
-                )
-                .padding(.horizontal, numpadPadHoriz)
-                .padding(.top, lcdPadTop)
-        } else {
+        if themeManager.activeThemeType != .retro {
             VStack(alignment: .trailing, spacing: 2) {
                 LCDAnnunciatorsView(
                     engine: engine,
@@ -287,16 +292,10 @@ struct iOSContentView: View {
         }
 
         
-        if isPad {
-            HStack {
-                Spacer()
-                nameplateView()
-                    .padding(.top, 32)
-                    .padding(.trailing, 48)
-            }
-        }
         
-        Spacer(minLength: 16)
+        if themeManager.activeThemeType != .retro {
+            Spacer(minLength: 16)
+        }
         
         HapticNumpadView(onMenuAction: { command in
             NotificationCenter.default.post(name: NSNotification.Name("iOSMenuTrigger"), object: nil, userInfo: ["command": command])

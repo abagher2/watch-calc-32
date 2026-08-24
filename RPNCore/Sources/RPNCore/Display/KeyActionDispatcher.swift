@@ -43,6 +43,8 @@ public func mapOp(_ opToExecute: String) -> CalculatorOperation {
     case "𝑒ˣ":            return .exp
     case "10ˣ":            return .exp10
     case "+/-":            return .toggleSign
+    case "÷R":             return .intDiv
+    case "|x|":            return .abs
     default:
         // Try to find a matching stringValue
         if let op = CalculatorOperation.allCases.first(where: { $0.stringValue == opToExecute }) {

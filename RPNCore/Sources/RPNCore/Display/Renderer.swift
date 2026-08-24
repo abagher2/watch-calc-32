@@ -51,40 +51,40 @@ public class Renderer {
         case tiny, small, display, medium, large
     }
     
-    public func drawChar(_ scalarValue: UInt32, x: Int, y: Int, size: FontSize = .small, color: Bool = true) -> Int {
+    public func drawChar(_ scalarValue: UInt32, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) -> Int {
         var returnWidth: Int = 0
         let shouldBold = boldFonts && size != .tiny
         switch size {
         case .tiny:
             if let result = FontData.Tiny.glyph(forScalar: scalarValue) {
-                returnWidth = result.width
-                drawGlyphFromStatic(FontData.Tiny.bitmapData, offset: result.offset, width: result.width, height: FontData.Tiny.charHeight, bytesPerRow: FontData.Tiny.bytesPerRow, x: x, y: y, color: color, bold: false)
+                returnWidth = result.width * scale
+                drawGlyphFromStatic(FontData.Tiny.bitmapData, offset: result.offset, width: result.width, height: FontData.Tiny.charHeight, bytesPerRow: FontData.Tiny.bytesPerRow, x: x, y: y, color: color, bold: false, scale: scale)
             }
         case .small:
             if let result = FontData.Small.glyph(forScalar: scalarValue) {
-                returnWidth = result.width + (shouldBold ? 1 : 0)
-                drawGlyphFromStatic(FontData.Small.bitmapData, offset: result.offset, width: result.width, height: FontData.Small.charHeight, bytesPerRow: FontData.Small.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
+                returnWidth = (result.width + (shouldBold ? 1 : 0)) * scale
+                drawGlyphFromStatic(FontData.Small.bitmapData, offset: result.offset, width: result.width, height: FontData.Small.charHeight, bytesPerRow: FontData.Small.bytesPerRow, x: x, y: y, color: color, bold: shouldBold, scale: scale)
             }
         case .display:
             if let result = FontData.Display.glyph(forScalar: scalarValue) {
-                returnWidth = result.width + (shouldBold ? 1 : 0)
-                drawGlyphFromStatic(FontData.Display.bitmapData, offset: result.offset, width: result.width, height: FontData.Display.charHeight, bytesPerRow: FontData.Display.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
+                returnWidth = (result.width + (shouldBold ? 1 : 0)) * scale
+                drawGlyphFromStatic(FontData.Display.bitmapData, offset: result.offset, width: result.width, height: FontData.Display.charHeight, bytesPerRow: FontData.Display.bytesPerRow, x: x, y: y, color: color, bold: shouldBold, scale: scale)
             }
         case .medium:
             if let result = FontData.Medium.glyph(forScalar: scalarValue) {
-                returnWidth = result.width + (shouldBold ? 1 : 0)
-                drawGlyphFromStatic(FontData.Medium.bitmapData, offset: result.offset, width: result.width, height: FontData.Medium.charHeight, bytesPerRow: FontData.Medium.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
+                returnWidth = (result.width + (shouldBold ? 1 : 0)) * scale
+                drawGlyphFromStatic(FontData.Medium.bitmapData, offset: result.offset, width: result.width, height: FontData.Medium.charHeight, bytesPerRow: FontData.Medium.bytesPerRow, x: x, y: y, color: color, bold: shouldBold, scale: scale)
             }
         case .large:
             if let result = FontData.Large.glyph(forScalar: scalarValue) {
-                returnWidth = result.width + (shouldBold ? 1 : 0)
-                drawGlyphFromStatic(FontData.Large.bitmapData, offset: result.offset, width: result.width, height: FontData.Large.charHeight, bytesPerRow: FontData.Large.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
+                returnWidth = (result.width + (shouldBold ? 1 : 0)) * scale
+                drawGlyphFromStatic(FontData.Large.bitmapData, offset: result.offset, width: result.width, height: FontData.Large.charHeight, bytesPerRow: FontData.Large.bytesPerRow, x: x, y: y, color: color, bold: shouldBold, scale: scale)
             }
         }
         return returnWidth
     }
     
-    private func drawGlyphFromStatic(_ data: [UInt8], offset: Int, width: Int, height: Int, bytesPerRow: Int, x: Int, y: Int, color: Bool, bold: Bool = false) {
+    private func drawGlyphFromStatic(_ data: [UInt8], offset: Int, width: Int, height: Int, bytesPerRow: Int, x: Int, y: Int, color: Bool, bold: Bool = false, scale: Int = 1) {
         for row in 0..<height {
             for byteIdx in 0..<bytesPerRow {
                 let rowByte = data[offset + row * bytesPerRow + byteIdx]
@@ -93,9 +93,13 @@ public class Renderer {
                     if col < width {
                         let pixel = (rowByte & (1 << (7 - bitIdx))) != 0
                         if pixel {
-                            setPixel(x: x + col, y: y + row, color: color)
-                            if bold {
-                                setPixel(x: x + col + 1, y: y + row, color: color)
+                            for sy in 0..<scale {
+                                for sx in 0..<scale {
+                                    setPixel(x: x + col * scale + sx, y: y + row * scale + sy, color: color)
+                                    if bold {
+                                        setPixel(x: x + col * scale + sx + scale, y: y + row * scale + sy, color: color)
+                                    }
+                                }
                             }
                         }
                     }
@@ -188,20 +192,19 @@ public class Renderer {
     }
     
     
-    public func drawString(_ buffer: UnsafePointer<UInt8>, length: Int, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
+    public func drawString(_ buffer: UnsafePointer<UInt8>, length: Int, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) {
         var cursorX = x
         for i in 0..<length {
-            let width = drawChar(UInt32(buffer[i]), x: cursorX, y: y, size: size, color: color)
+            let width = drawChar(UInt32(buffer[i]), x: cursorX, y: y, size: size, color: color, scale: scale)
             cursorX += width
         }
     }
 
-    public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true) {
+    public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) {
         let processed = applyGlyphReplacements(to: str, size: size)
         var cursorX = x
         for scalar in processed.unicodeScalars {
-
-            let width = drawChar(scalar.value, x: cursorX, y: y, size: size, color: color)
+            let width = drawChar(scalar.value, x: cursorX, y: y, size: size, color: color, scale: scale)
             cursorX += width
         }
     }

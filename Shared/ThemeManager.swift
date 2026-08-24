@@ -124,14 +124,14 @@ struct DM32Theme: AppTheme {
 }
 
 struct RetroTheme: AppTheme {
-    var chassisColor: Color = Color(red: 0.15, green: 0.15, blue: 0.15)
-    var digitKeyColor: Color = Color(white: 0.18)
-    var functionKeyColor: Color = Color(white: 0.18)
+    var chassisColor: Color = Color.black
+    var digitKeyColor: Color = Color.white.opacity(0.1)
+    var functionKeyColor: Color = Color.white.opacity(0.15)
     var digitTextColor: Color = .white
     var functionTextColor: Color = .white
     
-    var yellowShiftColor: Color = Color(red: 0.95, green: 0.55, blue: 0.1)
-    var blueShiftColor: Color = Color(red: 0.2, green: 0.6, blue: 0.8)
+    var yellowShiftColor: Color = Color.orange
+    var blueShiftColor: Color = Color.cyan
     
     var shift1Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.left"))"
     var shift2Label: LocalizedStringKey = "\(Image(systemName: "arrow.turn.up.right"))"

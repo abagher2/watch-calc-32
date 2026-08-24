@@ -12,7 +12,7 @@ cp bom.csv output/PCBWay_Order/PCBA_Files/
 cp centroid.csv output/PCBWay_Order/PCBA_Files/
 
 # Faceplate Files
-cp ../scratch/stl/faceplate_mjf.stl output/PCBWay_Order/Faceplate_Files/
+cp ../scratch/stl/faceplate_fdm.stl output/PCBWay_Order/Faceplate_Files/
 cp uv_silkscreen.svg output/PCBWay_Order/Faceplate_Files/
 
 cd output/PCBWay_Order

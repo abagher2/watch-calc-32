@@ -28,26 +28,80 @@ struct HapticNumpadView: View {
             let rawH = geo.size.height / CGFloat(totalRows)
             let h = UIDevice.current.userInterfaceIdiom == .pad ? min(rawH, maxH) : rawH
             
+            let isRetro = themeManager.activeThemeType == .retro
+            let physKeypadW: CGFloat = 68.0
+            // In Retro mode, total height = LCD (35.28) + gap (4.0) + keypad (94.0)
+            let physKeypadH: CGFloat = isRetro ? 133.28 : 94.0
+            let uniformScale = min(geo.size.width / physKeypadW, geo.size.height / physKeypadH)
+            
+            // In Retro mode, place the entire block (LCD + keypad) at the bottom of the view.
+            let emptySpaceY = geo.size.height - (physKeypadH * uniformScale)
+            let offsetY_retro = isRetro ? (emptySpaceY + 39.28 * uniformScale) : emptySpaceY
+            let offsetX_retro = (geo.size.width - (physKeypadW * uniformScale)) / 2
+            
             let topW = geo.size.width / 6
             let bottomW = geo.size.width / 5
             let voyagerW = geo.size.width / 11
 
             let gridHeight = h * CGFloat(totalRows)
-            let offsetY = geo.size.height - gridHeight
+            let offsetY = isVoyager ? geo.size.height * 0.05 : 0
 
             ZStack(alignment: .topLeading) {
                 // Background is handled by iOSContentView's chassisColor
                 
-                ForEach(keys) { key in
-                    let colW = isVoyager ? voyagerW : (key.row < 4 ? topW : bottomW)
-                    let w = colW * CGFloat(key.colSpan)
-                    let buttonHeight = h * CGFloat(key.rowSpan)
+                if isRetro {
+                    // Physical LCD Active Area is 58.8 x 35.28 mm
+                    // Center of LCD is at x = 34.0 mm, which means it starts at 4.6 mm
+                    let lcdWidth = 58.8 * uniformScale
+                    let lcdHeight = 35.28 * uniformScale
+                    let lcdX = (34.0 - (58.8 / 2)) * uniformScale + offsetX_retro
                     
-                    let xOffset = CGFloat(key.col) * colW
-                    let yOffset = offsetY + (CGFloat(key.row) * h)
+                    // The LCD is placed at the top of the block
+                    let lcdY = emptySpaceY
+                    
+                    RetroLCDView(engine: engine, pixelColor: (15, 20, 15, 255), backgroundColor: (0, 0, 0, 0))
+                        .frame(width: lcdWidth, height: lcdHeight)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(themeManager.theme.lcdBackgroundColor)
+                        )
+                        .position(x: lcdX + lcdWidth/2, y: lcdY + lcdHeight/2)
+                        
+                    // X-center of the empty gap is 22.35mm
+                    let logoX = offsetX_retro + ((22.35 - 3.85) / physKeypadW) * (physKeypadW * uniformScale)
+                    let logoY = offsetY_retro + (94.0 * uniformScale) - (((28.0 - 7.0) / 94.0) * (94.0 * uniformScale))
+                    
+                    Text("STACK\nCALC 32")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.white.opacity(0.85))
+                        .multilineTextAlignment(.leading)
+                        .fixedSize()
+                        .position(x: logoX, y: logoY)
+                }
+                
+                ForEach(keys) { key in
+                    let isRetro = themeManager.activeThemeType == .retro
+                    let phys = isRetro ? physicalKeyOffsets[physicalKeyFor(key: key)] : nil
+                    
+                    let colW = isVoyager ? voyagerW : (key.row < 4 ? topW : bottomW)
+                    
+                    let w = phys != nil ? phys!.w * uniformScale : colW * CGFloat(key.colSpan)
+                    let buttonHeight = phys != nil ? phys!.h * uniformScale : h * CGFloat(key.rowSpan)
+                    
+                    // In retro mode, X calculation must account for the centering offset
+                    let normX = phys != nil ? (phys!.x - 3.85) / physKeypadW : 0
+                    let normY = phys != nil ? (phys!.y - 7.0) / physKeypadH : 0
+                    
+                    let xOffset = phys != nil ? (offsetX_retro + (normX * (physKeypadW * uniformScale)) - (w / 2)) : (CGFloat(key.col) * colW)
+                    let yOffset = phys != nil ? (offsetY_retro + (physKeypadH * uniformScale) - (normY * (physKeypadH * uniformScale)) - (buttonHeight / 2)) : (offsetY + (CGFloat(key.row) * h))
+                    
+                    let adjustedWidth = phys != nil ? w + (3.5 * uniformScale) : w
+                    let adjustedHeight = phys != nil ? buttonHeight + (6.0 * uniformScale) : buttonHeight
                     
                     ButtonView(key: key, isHovered: hoveredKey == key, width: w, height: buttonHeight)
-                        .frame(width: w, height: buttonHeight)
+                        .frame(width: adjustedWidth, height: adjustedHeight)
+                        .contentShape(Rectangle())
+                        .offset(x: phys != nil ? xOffset - (adjustedWidth - w)/2 : xOffset, y: phys != nil ? yOffset - (adjustedHeight - buttonHeight)/2 : yOffset)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(key.label.isEmpty ? (key.primaryAction?.stringValue ?? "") : key.label)
                         .accessibilityAddTraits(.isButton)
@@ -56,7 +110,6 @@ struct HapticNumpadView: View {
                             triggerHaptic(for: key, at: CGPoint(x: xOffset + w/2, y: yOffset + buttonHeight/2), in: geo.size)
                             executeAction(for: key)
                         }
-                        .offset(x: xOffset, y: yOffset)
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
@@ -86,6 +139,24 @@ struct HapticNumpadView: View {
         let actStr = key.primaryAction?.stringValue ?? ""
         if Int(actStr) != nil || actStr == "." { return "btn_\(actStr)" }
         return "func_\(actStr)"
+    }
+    
+    private func physicalKeyFor(key: HP32Key) -> String {
+        if key.primaryAction == .lfu0 { return "SOFT1" }
+        if key.primaryAction == .lfu1 { return "SOFT2" }
+        if key.primaryAction == .lfu2 { return "SOFT3" }
+        if key.primaryAction == .lfu3 { return "SOFT4" }
+        if key.primaryAction == .lfu4 { return "SOFT5" }
+        if key.primaryAction == .lfu5 { return "SOFT6" }
+        if key.primaryAction == .shiftYellow { return "f" }
+        if key.primaryAction == .shiftBlue { return "g" }
+        if key.primaryAction == .reciprocal { return "1/𝑥" }
+        if key.label.isEmpty {
+            if key.primaryAction == .enter { return "ENTER" }
+            if key.primaryAction == .backspace { return "<-" }
+            return key.primaryAction?.stringValue ?? ""
+        }
+        return key.label
     }
     
     private func handleDrag(location: CGPoint, size: CGSize) {
@@ -254,12 +325,73 @@ struct ButtonView: View {
         }
         return key.yellowLabel
     }
+    
+    @ViewBuilder
+    func renderLabel(_ str: String, size: CGFloat) -> some View {
+        let mathFont = Font.system(size: size, weight: .bold, design: .serif).italic()
+        let subFont = Font.system(size: size * 0.65, weight: .bold)
+        let mathSubFont = Font.system(size: size * 0.65, weight: .bold, design: .serif).italic()
+        
+        if str == "𝑒ˣ" || str == "e^x" {
+            HStack(spacing: 0) {
+                Text("e").font(mathFont)
+                Text("x").font(mathSubFont).baselineOffset(size * 0.4)
+            }
+        } else if str == "𝑦ˣ" || str == "y^x" {
+            HStack(spacing: 0) {
+                Text("y").font(mathFont)
+                Text("x").font(mathSubFont).baselineOffset(size * 0.4)
+            }
+        } else if str == "10ˣ" || str == "10^x" {
+            HStack(spacing: 0) {
+                Text("10").font(.system(size: size, weight: .bold))
+                Text("x").font(mathSubFont).baselineOffset(size * 0.4)
+            }
+        } else if str == "𝑥²" || str == "x^2" {
+            HStack(spacing: 0) {
+                Text("x").font(mathFont)
+                Text("2").font(subFont).baselineOffset(size * 0.4)
+            }
+        } else if str == "¹/𝑥" || str == "1/x" {
+            HStack(spacing: 0) {
+                Text("1/").font(.system(size: size, weight: .bold))
+                Text("x").font(mathFont)
+            }
+        } else if str == "√𝑥" || str == "sqrt(x)" {
+            HStack(spacing: 0) {
+                Text("√").font(.system(size: size, weight: .bold))
+                Text("x").font(mathFont)
+            }
+        } else if str == "𝑥!" || str == "x!" {
+            HStack(spacing: 0) {
+                Text("x").font(mathFont)
+                Text("!").font(.system(size: size, weight: .bold))
+            }
+        } else if str == "𝑥≷𝑦" || str == "x<>y" {
+            HStack(spacing: 2) {
+                Text("x").font(mathFont)
+                Image(systemName: "arrow.left.and.right").font(.system(size: size * 0.75, weight: .bold))
+                Text("y").font(mathFont)
+            }
+        } else if str == "𝑥≷?" || str == "x<>?" {
+            HStack(spacing: 2) {
+                Text("x").font(mathFont)
+                Image(systemName: "arrow.left.and.right").font(.system(size: size * 0.75, weight: .bold))
+                Text("?").font(.system(size: size, weight: .bold))
+            }
+        } else {
+            Text(str).font(.system(size: size, weight: .bold))
+        }
+    }
 
     var resolvedBlueLabel: String {
         if let blue = key.blueAction, blue.rawValue >= CalculatorOperation.lfu0.rawValue && blue.rawValue <= CalculatorOperation.lfu5.rawValue {
             let slot = blue.rawValue - CalculatorOperation.lfu0.rawValue
             return uiLabel(for: engine.lfuManager.getFunction(for: slot))
         }
+#if os(iOS) || os(watchOS)
+        if key.blueLabel == "OFF" { return "" }
+#endif
         return key.blueLabel
     }
 
@@ -272,6 +404,10 @@ struct ButtonView: View {
         let isDigit = key.primaryAction?.stringValue.count == 1 && key.primaryAction?.stringValue.first?.isNumber == true || key.primaryAction == .decimal
         let baseColor = isDigit ? themeManager.theme.digitKeyColor : themeManager.theme.functionKeyColor
         
+        let mainFontSize: CGFloat = themeManager.activeThemeType == .retro ? 14 : 14
+        let shiftFontSize: CGFloat = themeManager.activeThemeType == .retro ? 9 : 10
+        let alphaFontSize: CGFloat = themeManager.activeThemeType == .retro ? 11 : 11
+        
         let bgColor = isYellowShift ? themeManager.theme.yellowShiftColor :
                       isBlueShift ? themeManager.theme.blueShiftColor :
                       isClear ? Color(red: 0.5, green: 0.35, blue: 0.25) :
@@ -282,16 +418,16 @@ struct ButtonView: View {
         VStack(spacing: 2) {
             // Top shift labels (above the button)
             HStack(alignment: .bottom, spacing: 0) {
-                Text(resolvedYellowLabel)
-                    .font(.system(size: 10, weight: .semibold))
-                    .minimumScaleFactor(0.1)
+                renderLabel(resolvedYellowLabel, size: shiftFontSize)
+                    .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                    .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
                     .foregroundColor(themeManager.theme.yellowShiftColor)
                     .opacity(isAlphaMode ? 0.15 : (engine.shiftState == 0 ? 1.0 : (engine.shiftState == 1 ? 1.0 : 0.3)))
                     .lineLimit(1)
-                Spacer(minLength: 0)
-                Text(resolvedBlueLabel)
-                    .font(.system(size: 10, weight: .semibold))
-                    .minimumScaleFactor(0.1)
+                Spacer(minLength: 4)
+                renderLabel(resolvedBlueLabel, size: shiftFontSize)
+                    .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                    .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
                     .foregroundColor(themeManager.theme.blueShiftColor)
                     .opacity(isAlphaMode ? 0.15 : (engine.shiftState == 0 ? 1.0 : (engine.shiftState == 2 ? 1.0 : 0.3)))
                     .lineLimit(1)
@@ -303,6 +439,10 @@ struct ButtonView: View {
             HStack(alignment: .bottom, spacing: 2) {
                 // Button
                 ZStack {
+                    let labelText: String = isYellowShift ? "yellow" :
+                                    isBlueShift ? "blue" :
+                                    (resolvedLabel == "<-" ? "<-" : resolvedLabel)
+                                    
                     if themeManager.activeThemeType == .beta {
                         let fillOpacity = (isYellowShift || isBlueShift || isClear) ? 0.85 : 0.15
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -319,6 +459,19 @@ struct ButtonView: View {
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
                             )
+                    } else if themeManager.activeThemeType == .retro {
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(
+                                LinearGradient(gradient: Gradient(colors: [
+                                    isHovered ? Color.black.opacity(0.3) : bgColor.opacity(0.9),
+                                    isHovered ? Color.black.opacity(0.5) : bgColor.opacity(0.5)
+                                ]), startPoint: .top, endPoint: .bottom)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .strokeBorder(LinearGradient(gradient: Gradient(colors: [.white.opacity(0.5), .clear, .black.opacity(0.8)]), startPoint: .top, endPoint: .bottom), lineWidth: 1.5)
+                            )
+                            .shadow(color: .black.opacity(0.5), radius: isHovered ? 0 : 1.5, x: 0, y: isHovered ? 1 : 4)
                     } else {
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
                             .fill(
@@ -334,24 +487,49 @@ struct ButtonView: View {
                             .shadow(color: .black.opacity(0.5), radius: isHovered ? 0 : 1.5, x: 0, y: isHovered ? 1 : 4)
                     }
                     
-                    let labelText: LocalizedStringKey = isYellowShift ? themeManager.theme.shift1Label :
-                                    isBlueShift ? themeManager.theme.shift2Label :
-                                    (resolvedLabel == "<-" ? themeManager.theme.backspaceLabel : LocalizedStringKey(resolvedLabel))
                     let textColor = isYellowShift || isBlueShift || isClear ? Color.white :
                                     (isDigit ? themeManager.theme.digitTextColor : themeManager.theme.functionTextColor)
-                    Text(labelText)
-                        .font(.system(size: 14, weight: .bold))
-                        .minimumScaleFactor(0.1)
-                        .foregroundColor(textColor)
-                        .opacity(isAlphaMode ? 0.15 : 1.0)
-                        .lineLimit(1)
+                    
+                    if isYellowShift {
+                        Text(themeManager.theme.shift1Label)
+                            .font(.system(size: mainFontSize, weight: .bold))
+                            .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                            .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
+                            .foregroundColor(textColor)
+                            .opacity(isAlphaMode ? 0.15 : 1.0)
+                            .lineLimit(1)
+                    } else if isBlueShift {
+                        Text(themeManager.theme.shift2Label)
+                            .font(.system(size: mainFontSize, weight: .bold))
+                            .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                            .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
+                            .foregroundColor(textColor)
+                            .opacity(isAlphaMode ? 0.15 : 1.0)
+                            .lineLimit(1)
+                    } else if resolvedLabel == "<-" {
+                        Text(themeManager.theme.backspaceLabel)
+                            .font(.system(size: mainFontSize, weight: .bold))
+                            .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                            .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
+                            .foregroundColor(textColor)
+                            .opacity(isAlphaMode ? 0.15 : 1.0)
+                            .lineLimit(1)
+                    } else {
+                        renderLabel(isAlphaMode ? key.alphaLabel : labelText, size: mainFontSize)
+                            .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                            .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
+                            .foregroundColor(textColor)
+                            .opacity(isAlphaMode ? 0.15 : 1.0)
+                            .lineLimit(1)
+                    }
                 }
                 
                 // Alpha label — always in its side position, highlighted in alpha mode
                 if !key.alphaLabel.isEmpty {
                     Text(key.alphaLabel)
-                        .font(.system(size: 11, weight: .bold))
-                        .minimumScaleFactor(0.1)
+                        .font(.system(size: alphaFontSize, weight: .bold))
+                        .minimumScaleFactor(themeManager.activeThemeType == .retro ? 1.0 : 0.1)
+                        .fixedSize(horizontal: themeManager.activeThemeType == .retro, vertical: false)
                         .foregroundColor(engine.isWaitingForAlpha ? .primary : .gray)
                         .frame(width: 8, alignment: .leading)
                 } else {
@@ -365,6 +543,7 @@ struct ButtonView: View {
         .opacity(isYellowShift && engine.shiftState == 2 ? 0.5 : isBlueShift && engine.shiftState == 1 ? 0.5 : 1.0)
     }
 }
+
 
 
 import CoreHaptics

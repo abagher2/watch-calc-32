@@ -16,6 +16,7 @@
 		2042F1A1DF5C6B14EBF72E42 /* CalcButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8506526603110A266289A4E2 /* CalcButton.swift */; };
 		23F34F5B17CD6BFD86CD732B /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D9F087E7A97B44ADA3898 /* SnapshotHelper.swift */; };
 		241EC476F1A92B21CBF8F3BA /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A75546566D53661DBECAB6 /* iOSApp.swift */; };
+		255877EC64F087A18F149DF8 /* MathLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354335B39A637693BBC2FB3F /* MathLabel.swift */; };
 		2BBBAF3A69144D288FA3D5E2 /* ProgramEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8ECE50DC8B879057CADC60 /* ProgramEditorView.swift */; };
 		3587A5B5DDC2E42BE06F9FC2 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F8FC3AEDDF00C3949286E5 /* iOSContentView.swift */; };
 		38398546BC0A3AC3FE5CDBB3 /* SolvePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA501192C5B4F36A59DE4A73 /* SolvePromptView.swift */; };
@@ -56,14 +57,17 @@
 		9F66473A96E8612574704901 /* RetroLayoutVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF995AB41C039F300255ABC /* RetroLayoutVerificationView.swift */; };
 		A459FEC0F56550A5A1155A04 /* FullScreenPlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB60ADDA01A5617FEBE3A8B /* FullScreenPlotView.swift */; };
 		A53B17107550F7237A661F19 /* PlotPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60D548A53A0143A282DA711 /* PlotPromptView.swift */; };
+		A7268FD733FA372EA2C99B9E /* StackLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA7AEDB370F73268FB74D88 /* StackLogoView.swift */; };
 		ACE73E5DF321CB49060CE5B3 /* SolvePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA501192C5B4F36A59DE4A73 /* SolvePromptView.swift */; };
 		B3AA976C23F45FB4D2E5B339 /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D86D63CCF736E0CBDC908C /* VariablePromptView.swift */; };
 		B7487DF8371A4148E1EB662B /* TestTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3165DB6603B8CB899FE106 /* TestTap.swift */; };
 		B8ED1650BA3AA84075A38875 /* StackCalc32UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33991CEEE3881C86E8B242A0 /* StackCalc32UITests.swift */; };
 		B9FA11B7F63EE213B7ADB96D /* StackCalc32App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6874FCE7E3E7B8669044CA8E /* StackCalc32App.swift */; };
+		BA8276F2E388DCF4C43EAD31 /* StackLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA7AEDB370F73268FB74D88 /* StackLogoView.swift */; };
 		BC09E79710CDB2A1603D7F8C /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */; };
 		BC0EB6F339B61915EF683409 /* SharedCalculatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 821A0A21D3AEAC4738B67E9F /* SharedCalculatorTest.swift */; };
 		CC5777F99FA708E2BB4C5692 /* TestBasicEnter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04B69DB5D370F5005699EE /* TestBasicEnter.swift */; };
+		CD4B4A0AEBA30ED6194EAFA6 /* MathLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354335B39A637693BBC2FB3F /* MathLabel.swift */; };
 		CDADABE8100D140FD3BC3ECF /* HapticNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8EAFAE50B65BD0D63BBABB /* HapticNumpadView.swift */; };
 		CDED8EE30136E8D9D153EC8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7462880D8B9F366053F6FCC1 /* Assets.xcassets */; };
 		D04AA9592412BDD0A8BD4003 /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBC21B712EDFACA7BD5413B /* ClearMenuView.swift */; };
@@ -130,6 +134,7 @@
 		33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BezelButtonStyle.swift; sourceTree = "<group>"; };
 		33991CEEE3881C86E8B242A0 /* StackCalc32UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackCalc32UITests.swift; sourceTree = "<group>"; };
 		34A59967A5C5ECDEC366BEA8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		354335B39A637693BBC2FB3F /* MathLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathLabel.swift; sourceTree = "<group>"; };
 		37BCF319542E7552AACD65B9 /* MemMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemMenuView.swift; sourceTree = "<group>"; };
 		3C7C283D0CEAB022295E7B1D /* TestMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMath.swift; sourceTree = "<group>"; };
 		4030A1A308D48EE534D7C057 /* StackCalc32UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = StackCalc32UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -172,6 +177,7 @@
 		F78F8FBFD7746B6965AB581D /* iOSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSUITests.swift; sourceTree = "<group>"; };
 		FA501192C5B4F36A59DE4A73 /* SolvePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolvePromptView.swift; sourceTree = "<group>"; };
 		FAF995AB41C039F300255ABC /* RetroLayoutVerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetroLayoutVerificationView.swift; sourceTree = "<group>"; };
+		FEA7AEDB370F73268FB74D88 /* StackLogoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackLogoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -331,8 +337,10 @@
 				5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */,
 				6DEDBBAF63A2C6EAC6AB81D1 /* KeyActionDispatcher.swift */,
 				002FF637DAD5F31759348EDE /* LCDDisplayView.swift */,
+				354335B39A637693BBC2FB3F /* MathLabel.swift */,
 				FAF995AB41C039F300255ABC /* RetroLayoutVerificationView.swift */,
 				C5FF932005D901141851A10E /* RetroLCDView.swift */,
+				FEA7AEDB370F73268FB74D88 /* StackLogoView.swift */,
 				DEF9F3C351B685B2FD45CD98 /* ThemeManager.swift */,
 			);
 			path = Shared;
@@ -568,6 +576,7 @@
 				564A856B750D5CABF62B9459 /* IntegratePromptView.swift in Sources */,
 				0F99DE1984389A7419231CE0 /* KeyActionDispatcher.swift in Sources */,
 				766A50250E73EDFA8C2285A1 /* LCDDisplayView.swift in Sources */,
+				255877EC64F087A18F149DF8 /* MathLabel.swift in Sources */,
 				7A3313512AB45EAB46463B35 /* MemMenuView.swift in Sources */,
 				9830D38C81D879E22E86BEFC /* PioneerButtonStyle.swift in Sources */,
 				A53B17107550F7237A661F19 /* PlotPromptView.swift in Sources */,
@@ -579,6 +588,7 @@
 				E75E3F78D38CE1C48CF825FE /* ShowView.swift in Sources */,
 				38398546BC0A3AC3FE5CDBB3 /* SolvePromptView.swift in Sources */,
 				B9FA11B7F63EE213B7ADB96D /* StackCalc32App.swift in Sources */,
+				BA8276F2E388DCF4C43EAD31 /* StackLogoView.swift in Sources */,
 				B7487DF8371A4148E1EB662B /* TestTap.swift in Sources */,
 				FAB3BCE1C091D18D4574FACC /* ThemeManager.swift in Sources */,
 				7004274447FC3D008108160E /* TopNumpadView.swift in Sources */,
@@ -630,6 +640,7 @@
 				60328FD87215F85105CEF251 /* IntegratePromptView.swift in Sources */,
 				785FB9E266A5B027815B2256 /* KeyActionDispatcher.swift in Sources */,
 				8026EF4091B6E3F7549CFEAB /* LCDDisplayView.swift in Sources */,
+				CD4B4A0AEBA30ED6194EAFA6 /* MathLabel.swift in Sources */,
 				4E159211C4D5B9AC9A2D94C5 /* MemMenuView.swift in Sources */,
 				4FEDF1CBFBFE2055B3FFDA17 /* PioneerButtonStyle.swift in Sources */,
 				D1585529D8621614941AC37C /* PlotPromptView.swift in Sources */,
@@ -638,6 +649,7 @@
 				7A5BD6D1D54854D0759F85A2 /* RetroLCDView.swift in Sources */,
 				9F66473A96E8612574704901 /* RetroLayoutVerificationView.swift in Sources */,
 				ACE73E5DF321CB49060CE5B3 /* SolvePromptView.swift in Sources */,
+				A7268FD733FA372EA2C99B9E /* StackLogoView.swift in Sources */,
 				EED7EC62ABC410EF0DC23A55 /* ThemeManager.swift in Sources */,
 				77164E31A3687033BE610F74 /* VariablePromptView.swift in Sources */,
 				241EC476F1A92B21CBF8F3BA /* iOSApp.swift in Sources */,

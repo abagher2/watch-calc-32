@@ -25,14 +25,14 @@ def generate_svg(kicad_pcb_path, output_svg_path):
     
     # (primary, yellow, blue, alpha)
     labels_grid = [
-        [("", "", "", ""), ("", "", "", ""), ("", "", "", ""), ("", "", "", ""), ("", "", "", ""), ("", "", "", "")], # Soft keys
-        [("√𝑥", "x²", "PARTS", "A"), ("𝑒ˣ", "10ˣ", "PROB", "B"), ("LN", "LOG", "L.R.", "C"), ("𝑦ˣ", "x√y", "𝑥̄,𝑦̄", "D"), ("1/𝑥", "𝑥!", "s,σ", "E"), ("Σ+", "Σ-", "SUMS", "F")],
+        [("", "", "", ""), ("", "", "", ""), ("", "", "", ""), ("", "", "", ""), ("", "", "", ""), ("", "", "", "")],
+        [("√𝑥", "𝑥²", "PARTS", "A"), ("𝑒ˣ", "10ˣ", "PROB", "B"), ("LN", "LOG", "L.R.", "C"), ("𝑦ˣ", "ˣ√𝑦", "𝑥̄,𝑦̄", "D"), ("¹/𝑥", "𝑥!", "s,σ", "E"), ("Σ+", "Σ-", "SUMS", "F")],
         [("STO", "CMPLX", "EQN", "G"), ("RCL", "RND", "SCRL", "H"), ("R↓", "HYP", "R↑", "I"), ("SIN", "ASIN", "π", "J"), ("COS", "ACOS", "%", "K"), ("TAN", "ATAN", "%CHG", "L")],
-        [("ENTER", "LAST𝑥", "SHOW", "M"), ("𝑥≷𝑦", "MEM", "x><?", "N"), ("+/-", "MODES", "", "O"), ("E", "DISP", "INT÷", "P"), ("<-", "CLEAR", "", "")],
+        [("ENTER", "LAST𝑥", "SHOW", "M"), ("𝑥≷𝑦", "MEM", "𝑥≷?", "N"), ("+/-", "MODES", "|x|", "O"), ("E", "DISP", "÷R", "P"), ("<-", "CLEAR", "", "")],
         [("XEQ", "FN=", "", ""), ("7", "↓", "SOLVE", "Q"), ("8", "↑", "∫", "R"), ("9", "▸km", "▸mi", "S"), ("÷", "𝑥?𝑦", "𝑥?0", "")],
         [("yellow_shift", "", "", ""), ("4", "▸θ,𝑟", "▸𝑦,𝑥", "T"), ("5", "▸HR", "▸HMS", "U"), ("6", "▸DEG", "▸RAD", "V"), ("×", "BASE", "FLAGS", "")],
         [("blue_shift", "", "", ""), ("1", "▸kg", "▸lb", "W"), ("2", "▸°C", "▸°F", "X"), ("3", "▸cm", "▸in", "Y"), ("-", "▸l", "▸gal", "")],
-        [("C", "", "", ""), ("0", "REGS", "VIEW", "Z"), (".", "FDISP", "/c", ""), ("PLOT", "CONST", "", ""), ("+", "LBL", "RTN", "")]
+        [("C", "", "OFF", ""), ("0", "REGS", "VIEW", "Z"), (".", "FDISP", "/c", ""), ("PLOT", "CNST", "", ""), ("+", "LBL", "RTN", "")],
     ]
     
     # Extract buttons and sort by Y, then X
@@ -45,7 +45,7 @@ def generate_svg(kicad_pcb_path, output_svg_path):
             x = pos.x / 1e6 - min_x
             y = y_max - pos.y / 1e6 
             buttons.append({'ref': ref, 'x': x, 'y': y, 'pos_y': pos.y / 1e6 - min_y})
-        elif "Disp" in ref:
+        elif ref == "J1":
             disp_fp = fp
 
     buttons.sort(key=lambda b: b['y'], reverse=True)
@@ -66,10 +66,10 @@ def generate_svg(kicad_pcb_path, output_svg_path):
         rows.append(current_row)
         
     # Styles
-    yellow_style = "font-family: Arial, sans-serif; font-size: 2px; fill: #FF9900; font-weight: bold; text-anchor: middle;"
-    blue_style = "font-family: Arial, sans-serif; font-size: 2px; fill: #00CCFF; font-weight: bold; text-anchor: middle;"
-    alpha_style = "font-family: Arial, sans-serif; font-size: 2px; fill: #888888; font-weight: normal; text-anchor: middle;"
     white_style = "font-family: Arial, sans-serif; font-size: 3.2px; fill: #FFFFFF; font-weight: bold; text-anchor: middle; dominant-baseline: middle;"
+    yellow_style = "font-family: Arial, sans-serif; font-size: 2px; fill: #FF9900; font-weight: bold;"
+    blue_style = "font-family: Arial, sans-serif; font-size: 2px; fill: #00CCFF; font-weight: bold;"
+    alpha_style = "font-family: Arial, sans-serif; font-size: 2px; fill: #888888; font-weight: normal;"
     f_style = "font-family: Arial, sans-serif; font-size: 3.5px; fill: #FF9900; font-weight: bold; text-anchor: middle; dominant-baseline: middle;"
     g_style = "font-family: Arial, sans-serif; font-size: 3.5px; fill: #00CCFF; font-weight: bold; text-anchor: middle; dominant-baseline: middle;"
     outline_style = "fill: none; stroke: #FFFFFF; stroke-width: 0.15; stroke-opacity: 0.3;"
@@ -97,6 +97,12 @@ def generate_svg(kicad_pcb_path, output_svg_path):
                 # Print 'g' in blue inside the button
                 t_prim = ET.SubElement(svg, 'text', {'x': f"{cx:.2f}", 'y': f"{cy:.2f}", 'style': g_style})
                 t_prim.text = "g"
+            elif primary == "C":
+                # Print 'C' normally, then add 'ON' below it
+                t_prim = ET.SubElement(svg, 'text', {'x': f"{cx:.2f}", 'y': f"{cy:.2f}", 'style': white_style})
+                t_prim.text = "C"
+                t_on = ET.SubElement(svg, 'text', {'x': f"{cx:.2f}", 'y': f"{cy + 1.2:.2f}", 'style': "font-family: Arial, sans-serif; font-size: 1.5px; fill: #FFFFFF; font-weight: normal; text-anchor: middle;"})
+                t_on.text = "ON"
             elif primary:
                 # Normal primary white text
                 t_prim = ET.SubElement(svg, 'text', {'x': f"{cx:.2f}", 'y': f"{cy:.2f}", 'style': white_style})
@@ -110,48 +116,54 @@ def generate_svg(kicad_pcb_path, output_svg_path):
             d_top = f"M {cx - r_top:.2f} {cy:.2f} A {r_top} {r_top} 0 0 0 {cx + r_top:.2f} {cy:.2f}"
             d_bot = f"M {cx - r_bot:.2f} {cy:.2f} A {r_bot} {r_bot} 0 0 1 {cx + r_bot:.2f} {cy:.2f}"
             
+            # Button radius is ~4mm, place text outside the button bounds.
             if yellow or blue:
-                ET.SubElement(svg, 'path', {'id': f"{path_id}_top", 'd': d_top, 'fill': 'none'})
+                ET.SubElement(svg, 'path', {'id': f"{path_id}_top", 'd': d_top, 'fill': 'none'}) # Keep path if needed for reference, but we won't use textPath
             if alpha:
                 ET.SubElement(svg, 'path', {'id': f"{path_id}_bot", 'd': d_bot, 'fill': 'none'})
 
-            # Yellow Shift (Top left - curve)
+            # Yellow Shift (Top left - straight)
             if yellow:
-                t_yel = ET.SubElement(svg, 'text', {'style': yellow_style})
-                tp = ET.SubElement(t_yel, 'textPath', {'href': f"#{path_id}_top", 'startOffset': '25%', 'text-anchor': 'middle'})
-                tp.text = yellow
+                # Top-left corner
+                t_yel = ET.SubElement(svg, 'text', {'x': f"{cx - 2.5:.2f}", 'y': f"{cy - 4.2:.2f}", 'style': yellow_style + " text-anchor: end;"})
+                t_yel.text = yellow
                 
-            # Blue Shift (Top right - curve)
+            # Blue Shift (Top right - straight)
             if blue:
-                t_blu = ET.SubElement(svg, 'text', {'style': blue_style})
-                tp = ET.SubElement(t_blu, 'textPath', {'href': f"#{path_id}_top", 'startOffset': '75%', 'text-anchor': 'middle'})
-                tp.text = blue
+                # Top-right corner
+                t_blu = ET.SubElement(svg, 'text', {'x': f"{cx + 2.5:.2f}", 'y': f"{cy - 4.2:.2f}", 'style': blue_style + " text-anchor: start;"})
+                t_blu.text = blue
                 
-            # Alpha Label (Bottom right - curve)
+            # Alpha Label (Bottom right - straight)
             if alpha:
-                t_alp = ET.SubElement(svg, 'text', {'style': alpha_style + " dominant-baseline: hanging;"})
-                tp = ET.SubElement(t_alp, 'textPath', {'href': f"#{path_id}_bot", 'startOffset': '75%', 'text-anchor': 'middle'})
-                tp.text = alpha
+                # Bottom-right corner
+                t_alp = ET.SubElement(svg, 'text', {'x': f"{cx + 2.5:.2f}", 'y': f"{cy + 4.2:.2f}", 'style': alpha_style + " dominant-baseline: hanging; text-anchor: start;"})
+                t_alp.text = alpha
 
     if disp_fp:
         disp_cx = (disp_fp.GetPosition().x / 1e6) - min_x + 2
         disp_cy = (disp_fp.GetPosition().y / 1e6) - min_y + 2
-        
-        # WatchCalc text (White, italic, heavy weight)
-        t_watchcalc = ET.SubElement(svg, 'text', {
-            'x': str(disp_cx), 
-            'y': str(disp_cy - 18.5), 
-            'style': "font-family: Arial, sans-serif; font-size: 3.5px; fill: #FFFFFF; font-weight: 900; font-style: italic; text-anchor: middle;"
-        })
-        t_watchcalc.text = "WatchCalc"
-        
-        # 32 text (Cyan, italic, heavy weight, larger font)
-        t_32 = ET.SubElement(svg, 'text', {
-            'x': str(disp_cx), 
-            'y': str(disp_cy - 14.5), 
-            'style': "font-family: Arial, sans-serif; font-size: 5px; fill: #00CCFF; font-weight: 900; font-style: italic; text-anchor: middle;"
-        })
-        t_32.text = "32"
+
+    # Inject the vertical stack logo between the first column and the numpad
+    if len(rows) >= 4:
+        bottom_rows = rows[-4:]
+        try:
+            col0_x = sum(r[0]['x'] for r in bottom_rows) / 4.0
+            col1_x = sum(r[1]['x'] for r in bottom_rows) / 4.0
+            logo_x = col0_x + (col1_x - col0_x) * 0.45 + 2 # +2 for board offset
+            
+            start_y = bottom_rows[0]['pos_y'] + 2 - 1.0
+            line_height = (bottom_rows[-1]['pos_y'] - bottom_rows[0]['pos_y']) / 3.0
+            
+            logo_style = "font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif; font-size: 3.8px; fill: #FFFFFF; font-weight: bold; text-anchor: start;"
+            
+            lines = ["Sta", "ck +", "Calc", "32"]
+            for i, line in enumerate(lines):
+                t_logo = ET.SubElement(svg, 'text', {'x': f"{logo_x:.2f}", 'y': f"{start_y + i * line_height:.2f}", 'style': logo_style})
+                t_logo.text = line
+        except Exception as e:
+            print(f"Could not add logo: {e}")
+
 
     tree = ET.ElementTree(svg)
     ET.indent(tree, space="  ", level=0)

@@ -151,7 +151,7 @@ import RPNCore
 
     func testAllRetroMenusVisual() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting"]
+        app.launchArguments = ["-UITesting", "-useRetroUI"]
         app.launch()
         
         Thread.sleep(forTimeInterval: 1.0)
@@ -1718,7 +1718,7 @@ import XCTest
     
     func testRetroThemeUIAndMenuParityInSimulator() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting"]
+        app.launchArguments = ["-UITesting", "-useRetroUI"]
         setupSnapshot(app)
         app.launch()
         
@@ -1744,7 +1744,7 @@ import XCTest
 
     func setupApp() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-parityMode", "1", "-animations", "0"]
+        app.launchArguments = ["-parityMode", "1", "-animations", "0", "-useRetroUI"]
         app.launch()
         
         app.buttons["btn_yellow_shift"].tap()

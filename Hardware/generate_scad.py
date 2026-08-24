@@ -107,9 +107,6 @@ disp_x = fp_w / 2
 disp_y = 121.575 # Vertically centered between Top edge (143.15) and Soft Keys (100.0)
 PCB_SCREW_INSET = 7.0
 chassis_screws = [
-    # Bottom screws (keypad end)
-    (pad_x + 9.0, pad_y + pcb_height - 8.0), 
-    (pad_x + pcb_width - 9.0, pad_y + pcb_height - 8.0),
     # Top screws (display end, used by Top Cap)
     (pad_x + 9.0, pad_y + 8.0),
     (pad_x + pcb_width - 9.0, pad_y + 8.0),
@@ -400,6 +397,12 @@ module chassis() {{
         // ── RAILWAY GROOVES ──────────────────────────────────────────────
         // Removed! TPU stretch cover is used instead.
         // railway_grooves();
+
+        // ── TITLE ETCHING (Back of Chassis) ──────────────────────────────
+        translate([cw/2, D + 0.1, ch * 0.75])
+            rotate([90, 0, 180])
+                linear_extrude(1.0)
+                    text("StackCalc 32", size=6, font="Arial:style=Bold", halign="center", valign="center");
     }}
 }}
 chassis();

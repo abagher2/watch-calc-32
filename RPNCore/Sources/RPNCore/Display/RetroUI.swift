@@ -98,7 +98,7 @@ public class RetroUI {
                 let len = min(engine.displayXLength, 64)
                 for i in 0..<len {
                     if let scalar = UnicodeScalar(UInt32(ptr[i])) {
-                        charNodes.append(FirmwareText(String(scalar), font: .large))
+                        charNodes.append(FirmwareText(String(scalar), font: .display))
                     }
                 }
             }
@@ -106,7 +106,7 @@ public class RetroUI {
             if hasCursor {
                 // Approximate a block cursor underneath
                 charNodes.append(FirmwareVStack(alignment: .center, children: [
-                    FirmwareSpacer(minWidth: 18, minHeight: FontData.Large.charHeight - 6),
+                    FirmwareSpacer(minWidth: 18, minHeight: FontData.Display.charHeight - 6),
                     FirmwareRect(width: 18, height: 6, color: true)
                 ]))
             }
@@ -117,8 +117,8 @@ public class RetroUI {
             if textW > 396 {
                 // Overflow mode: right-align and add '<'
                 mainContent = FirmwareHStack(alignment: .bottom, spacing: 0, children: [
-                    FirmwareText("<", font: .large),
-                    FirmwareFrame(width: 396 - renderer.getStringWidth("<", size: .large), alignment: .trailing, child: textStack)
+                    FirmwareText("<", font: .display),
+                    FirmwareFrame(width: 396 - renderer.getStringWidth("<", size: .display), alignment: .trailing, child: textStack)
                 ])
             } else {
                 mainContent = FirmwarePadding(leading: 6, child: textStack)
@@ -169,14 +169,14 @@ public class RetroUI {
             valStr = doubleFormatter?(xVal, engine.displayMode) ?? "\(xVal)"
             #endif
             
-            let textW = renderer.getStringWidth(valStr, size: .large)
+            let textW = renderer.getStringWidth(valStr, size: .display)
             if textW > 390 {
                 mainContent = FirmwareHStack(alignment: .bottom, spacing: 0, children: [
-                    FirmwareText("<", font: .large),
-                    FirmwareFrame(width: 390 - renderer.getStringWidth("<", size: .large), alignment: .trailing, child: FirmwareText(valStr, font: .large))
+                    FirmwareText("<", font: .display),
+                    FirmwareFrame(width: 390 - renderer.getStringWidth("<", size: .display), alignment: .trailing, child: FirmwareText(valStr, font: .display))
                 ])
             } else {
-                mainContent = FirmwarePadding(leading: 6, child: FirmwareText(valStr, font: .large))
+                mainContent = FirmwarePadding(leading: 6, child: FirmwareText(valStr, font: .display))
             }
         }
         
@@ -231,7 +231,7 @@ public class RetroUI {
                         let segment = renderer.menuSegments[i]
                         let item = items[i]
                         let btnText = FirmwareText(item.label, font: .tiny, color: false)
-                        let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 36, child: btnText))
+                        let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 32, child: btnText))
                         softkeyNodes.append(btnBackground)
                     }
                     footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
@@ -265,9 +265,16 @@ public class RetroUI {
                     }
                     footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
                 } else {
-                    // Fallback to manual LFU drawing for now (since we don't know its internals)
-                    // We'll wrap it in a custom FirmwareView block
-                    // Since LFUManager is its own thing, we will draw it manually in the screen tree
+                    var softkeyNodes: [FirmwareView] = []
+                    for i in 0..<6 {
+                        let segment = renderer.menuSegments[i]
+                        let funcName = engine.lfuManager.slots[i] ?? ""
+                        let label = renderer.fitSoftkeyLabel(funcName)
+                        let btnText = FirmwareText(label, font: .tiny, color: false)
+                        let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 32, child: btnText))
+                        softkeyNodes.append(btnBackground)
+                    }
+                    footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
                 }
             }
         }
@@ -281,9 +288,6 @@ public class RetroUI {
         screen.draw(in: renderer, x: 0, y: 0)
         
         // Handle custom rendering bypasses
-        if !hideSoftkeys && !(activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq) && !engine.isGeneratingPlot && !engine.isPlotLoading && !engine.requestPlot {
-             renderer.renderLFU(manager: lfuManager)
-        }
         if engine.isEquationMode && !(engine.isProgrammingMode || engine.isBuildingNumber || engine.isWaitingForAlpha) {
             // Draw equation plotting logic on top (this should probably be refactored into the FirmwareView tree too)
             // But we'll leave this untouched for parity correctness

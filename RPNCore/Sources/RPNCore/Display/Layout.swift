@@ -2,7 +2,7 @@ public enum FirmwareView {
     public enum HStackAlignment { case top, center, bottom }
     public enum VStackAlignment { case leading, center, trailing }
 
-    case textNode(String, Renderer.FontSize, Bool)
+    case textNode(String, Renderer.FontSize, Bool, Int)
     case spacerNode(Int, Int)
     indirect case hstackNode(HStackAlignment, Int, [FirmwareView])
     indirect case vstackNode(VStackAlignment, Int, [FirmwareView])
@@ -12,8 +12,8 @@ public enum FirmwareView {
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
         switch self {
-        case .textNode(let text, let font, _):
-            let w = renderer.getStringWidth(text, size: font)
+        case .textNode(let text, let font, _, let scale):
+            let w = renderer.getStringWidth(text, size: font) * scale
             let h: Int
             switch font {
             case .tiny: h = FontData.Tiny.charHeight
@@ -22,7 +22,7 @@ public enum FirmwareView {
             case .medium: h = FontData.Medium.charHeight
             case .large: h = FontData.Large.charHeight
             }
-            return (w, h)
+            return (w, h * scale)
         case .spacerNode(let w, let h):
             return (w, h)
         case .hstackNode(_, let spacing, let children):
@@ -58,8 +58,8 @@ public enum FirmwareView {
     
     public func draw(in renderer: Renderer, x: Int, y: Int) {
         switch self {
-        case .textNode(let text, let font, let color):
-            renderer.drawString(text, x: x, y: y, size: font, color: color)
+        case .textNode(let text, let font, let color, let scale):
+            renderer.drawString(text, x: x, y: y, size: font, color: color, scale: scale)
         case .spacerNode:
             break
         case .hstackNode(let alignment, let spacing, let children):
@@ -120,8 +120,8 @@ public enum FirmwareView {
     }
 }
 
-public func FirmwareText(_ text: String, font: Renderer.FontSize = .small, color: Bool = true) -> FirmwareView {
-    return .textNode(text, font, color)
+public func FirmwareText(_ text: String, font: Renderer.FontSize = .small, color: Bool = true, scale: Int = 1) -> FirmwareView {
+    return .textNode(text, font, color, scale)
 }
 
 public func FirmwareSpacer(minWidth: Int = 0, minHeight: Int = 0) -> FirmwareView {

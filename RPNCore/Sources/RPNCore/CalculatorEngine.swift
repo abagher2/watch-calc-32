@@ -341,18 +341,15 @@ public class CalculatorEngine {
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.label = try container.decode(String.self, forKey: .label)
-            do {
-                self.steps = try container.decode([Instruction].self, forKey: .steps)
-            } catch {
-                let stringSteps = try container.decode([String].self, forKey: .steps)
-                self.steps = stringSteps.compactMap { Instruction(fromString: $0) }
-            }
+            let stringSteps = try container.decode([String].self, forKey: .steps)
+            self.steps = stringSteps.compactMap { Instruction(fromString: $0) }
         }
         
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encode(label, forKey: .label)
-            try container.encode(steps, forKey: .steps)
+            let stringSteps = steps.map { $0.stringValue }
+            try container.encode(stringSteps, forKey: .steps)
         }
         
         public func extractVariables() -> [String] {

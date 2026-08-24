@@ -20,7 +20,7 @@ Upload this folder to the **PCB Assembly (PCBA)** quoting engine.
 
 ### B. `Faceplate_Files` (The MJF Nylon Cover)
 Go to the **CNC/3D Printing** quoting engine and upload the `.stl` file from this folder.
-* **faceplate_mjf.stl** (Standard flat design)
+* **faceplate_fdm.stl** (Standard flat design)
 * **faceplate_tapered.stl** (Classic HP-32SII style with raised, sloped bezel around screen)
 - **Technology:** MJF (Multi Jet Fusion)
 - **Material:** HP Nylon PA12

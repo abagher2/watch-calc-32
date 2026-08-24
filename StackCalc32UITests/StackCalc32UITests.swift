@@ -97,7 +97,7 @@ import RPNCore
               app.otherElements["invisible_ENTER"].tap()
           } else if op == "<-" {
               app.buttons["func_<-"].tap()
-          } else if ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].contains(op) {
+          } else if ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."].contains(op) {
               app.buttons["btn_\(op)"].tap()
           } else if op == "A" {
               let textField = app.textFields.firstMatch

@@ -172,8 +172,8 @@ struct ArithmeticPadView: View {
         Grid(horizontalSpacing: 2, verticalSpacing: 2) {
             GridRow {
                 CalcButton("÷", yellow: "𝑥?𝑦", blue: "𝑥?0", isDigit: false) { onAction($0) }
-                CalcButton("+/-", yellow: "MODES", blue: "MOD", isDigit: false) { onAction($0) }
-                CalcButton("E", yellow: "DISP", blue: "INT÷", isDigit: false) { onAction($0) }
+                CalcButton("+/-", yellow: "MODES", blue: "|x|", isDigit: false) { onAction($0) }
+                CalcButton("E", yellow: "DISP", blue: "÷R", isDigit: false) { onAction($0) }
             }
             GridRow {
                 CalcButton("×", yellow: "BASE", blue: "FLAGS", isDigit: false) { onAction($0) }
