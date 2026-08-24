@@ -192,6 +192,29 @@ public class RetroUIController {
 
         
         if engine.isWaitingForAlpha {
+            if engine.alphaAction == .fnEq, finalOp.stringValue.hasPrefix("LFU_") {
+                let suffix = String(finalOp.stringValue.dropFirst(4))
+                let index = parseInteger(suffix) ?? 0
+                
+                var items: [MenuItem] = []
+                for prog in engine.programs {
+                    items.append(MenuItem(label: prog.label, action: prog.label))
+                }
+                
+                if index == 5 && items.count - retroUI.menuOffset > 6 {
+                    retroUI.menuOffset += 5
+                    return
+                }
+                
+                let visibleItems = Array(items.dropFirst(retroUI.menuOffset))
+                if index < visibleItems.count {
+                    let selected = visibleItems[index]
+                    engine.submitAlpha(selected.label)
+                    retroUI.menuOffset = 0
+                }
+                return
+            }
+
             if finalOp == .backspace || finalOp == .clear || finalOp == .c {
                 engine.submitAlpha("<-")
             } else if finalOp == .enter {

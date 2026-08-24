@@ -86,7 +86,7 @@ public class RetroUI {
         // --- 2. Bottom Softkeys (Menus / LFU) ---
         let hideSoftkeys = isShowingRegisters || isShowingFullPrecision
         if !hideSoftkeys {
-            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none
+            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || c47Mode != .none || engine.alphaAction == .fnEq
             if menuActive {
                 if let menu = activeMenu {
                     renderer.renderMenu(menu: menu, query: menuAlphaQuery, offset: menuOffset)
@@ -121,6 +121,27 @@ public class RetroUI {
                         let textW = renderer.getStringWidth(item.label, size: .tiny)
                         let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
                         renderer.drawString(item.label, x: textX, y: 53, size: .tiny, color: false)
+                    }
+                } else if engine.alphaAction == .fnEq {
+                    var items: [MenuItem] = []
+                    for prog in engine.programs {
+                        items.append(MenuItem(label: prog.label, action: prog.label))
+                    }
+                    let visibleItems = Array(items.dropFirst(menuOffset))
+                    for i in 0..<min(6, visibleItems.count) {
+                        let segment = renderer.menuSegments[i]
+                        renderer.fillRect(x: segment.x, y: 53, w: segment.w, h: 11, color: true)
+                        
+                        let label: String
+                        if i == 5 && visibleItems.count > 6 {
+                            label = "..."
+                        } else {
+                            label = visibleItems[i].label
+                        }
+                        
+                        let textW = renderer.getStringWidth(label, size: .tiny)
+                        let textX = max(segment.x, segment.x + (segment.w - textW) / 2)
+                        renderer.drawString(label, x: textX, y: 53, size: .tiny, color: false)
                     }
                 } else if let pending = waitingForMenuDigit {
                     FirmwareText("\(pending.action) _", font: .tiny).draw(in: renderer, x: 2, y: 52)
