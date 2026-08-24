@@ -99,8 +99,12 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         } else if isCommand(buf, len, "ENTER") {
             engine.submitAlpha("ENTER")
         } else {
-            // Very rare case for waitingForLabel, convert to String as fallback
-            let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            var s = 0
+            var e = len
+            while s < e && buf[s] <= 32 { s += 1 }
+            while e > s && buf[e - 1] <= 32 { e -= 1 }
+            let trimmedLen = e - s
+            let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
             engine.submitAlpha(str)
         }
         needsDisplay = true
@@ -128,7 +132,12 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         uiController.retroUI.regsOffset = 0
         needsDisplay = true
     } else {
-        let str = String(decoding: UnsafeBufferPointer(start: buf, count: len), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+        var s = 0
+        var e = len
+        while s < e && buf[s] <= 32 { s += 1 }
+        while e > s && buf[e - 1] <= 32 { e -= 1 }
+        let trimmedLen = e - s
+        let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
         engine.executeMath(str)
     }
 }

@@ -132,17 +132,26 @@ void hw_init(void) {
     }
 }
 
+static uint8_t hw_prev_eink[4000] = {0};
+
 void display_send_buffer(const uint8_t* buffer) {
     watchdog_update();
 #ifndef EMULATOR
     // Reset RAM addresses
-    eink_send_cmd(0x4E);
-    eink_send_data(0x00);
-    eink_send_cmd(0x4F);
-    eink_send_data(0x00);
-    eink_send_data(0x00);
+    eink_send_cmd(0x4E); eink_send_data(0x00);
+    eink_send_cmd(0x4F); eink_send_data(0x00); eink_send_data(0x00);
 
-    eink_send_cmd(0x24); // Write RAM
+    // Write Previous RAM
+    eink_send_cmd(0x26);
+    for (int i = 0; i < 4000; i++) {
+        eink_send_data(hw_prev_eink[i]);
+    }
+
+    // Reset RAM addresses again
+    eink_send_cmd(0x4E); eink_send_data(0x00);
+    eink_send_cmd(0x4F); eink_send_data(0x00); eink_send_data(0x00);
+
+    eink_send_cmd(0x24); // Write New RAM
     for (int ey = 0; ey < 250; ey++) {
         for (int ex_byte = 0; ex_byte < 16; ex_byte++) {
             uint8_t out_byte = 0;
@@ -151,8 +160,6 @@ void display_send_buffer(const uint8_t* buffer) {
                 if (ex >= 122) continue; // Out of bounds for 122px
 
                 // Map 250x122 (portrait) back to 128x64 (landscape) scaled 2x.
-                // ey is E-Ink Y (0..249). Maps to OLED x (0..124).
-                // ex is E-Ink X (0..121). Maps to OLED y (0..60).
                 int oled_x = ey / 2;
                 int oled_y = ex / 2;
                 
@@ -169,12 +176,13 @@ void display_send_buffer(const uint8_t* buffer) {
                 }
             }
             eink_send_data(out_byte);
+            hw_prev_eink[ey * 16 + ex_byte] = out_byte;
         }
     }
     
-    // Trigger display update
+    // Trigger display partial update (using 0x04 or 0x0C for SSD1680 partial refresh)
     eink_send_cmd(0x22);
-    eink_send_data(0xC7); // Update config (Display update)
+    eink_send_data(0x04); // Partial update sequence
     eink_send_cmd(0x20); // Activate update
     eink_wait_busy();
 #else

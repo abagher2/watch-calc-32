@@ -224,11 +224,10 @@ module faceplate() {{
     }
 }
 
-// Render faceplate
-faceplate();
-
-// Render buttons and micro-supports
-color("Silver") {
+// Group into an assembly for easy rotation
+module faceplate_assembly() {
+    faceplate();
+    color("Silver") {
 """
     faceplate_mjf = faceplate
     faceplate_fdm = faceplate
@@ -239,13 +238,17 @@ color("Silver") {
         for b in row:
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
-            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']});\n"
+            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']});\n"
             faceplate_mjf += btn_str
             faceplate_fdm += btn_str
 
-    faceplate_mjf += "}\n"
-    faceplate_fdm += "}\n"
-
+    closing_str = f"""    }}
+}}
+// Render Faceplate Assembly perfectly FACE DOWN on the bed!
+faceplate_assembly();
+"""
+    faceplate_mjf += closing_str
+    faceplate_fdm += closing_str
 
     # --- FACEPLATE TAPERED ---
     # Replace faceplate_body with bezel
@@ -278,9 +281,9 @@ color("Silver") {
         for b in row:
             ox = b['x'] + pad_x
             oy = b['y'] + pad_y
-            btn_str = f"    translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']});\n"
+            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']});\n"
             faceplate_tapered += btn_str
-    faceplate_tapered += "}\n"
+    faceplate_tapered += closing_str
     with open("designs/faceplate_mjf.scad", "w") as f:
         f.write(faceplate_mjf)
         
@@ -462,8 +465,21 @@ wall  = {WALL:.3f};
 cap_t = {cap_t_val};
 ch    = {fp_h + WALL:.3f}; // 145.350
 
+module top_cap_profile(h_val) {{
+    hull() {{
+        translate([3, 3, 0]) cylinder(r=3, h=h_val);
+        translate([cw-3, 3, 0]) cylinder(r=3, h=h_val);
+        translate([3, D-3, 0]) cylinder(r=3, h=h_val);
+        translate([cw-3, D-3, 0]) cylinder(r=3, h=h_val);
+    }}
+}}
+
 module top_cap() {{
     union() {{
+        // ── OVERHANG ARMOR (Sits completely flush ON TOP of chassis) ─────
+        translate([0, 0, ch])
+            top_cap_profile(cap_t);
+
         // ── MAIN PLATE (Flush Plug, Z=ch-cap_t to Z=ch) ─────────
         // Fits perfectly inside Tier 1/2/3 cavity
         translate([wall, {FRONT_LIP}, ch - cap_t])
@@ -472,10 +488,10 @@ module top_cap() {{
         // ── FRONT LIP ROOF (Bridges across Faceplate to create the upper lip) ──────
         // Drops down to Z=ch-0.8 at the front to cover the faceplate
         translate([wall + 4.0, 0, ch - 0.8])
-            cube([cw - 2*wall - 8.0, {FRONT_LIP} + pt, 0.8]);
+            cube([cw - 2*wall - 8.0, {FRONT_LIP} + pt, 0.8 + cap_t]);
 
         // ── SCREW BOSSES (Drop down into chassis Tier 3) ─────────────────
-        // Left Standoff (Tapered to not punch through back wall!)
+        // Left Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
 """
     cz_top_screw = py_ch - py_offset_z - (pad_y + 5.0)
     cz_boss_bottom = cz_top_screw - 3.55
@@ -485,22 +501,22 @@ module top_cap() {{
     top_cap += f"""
         difference() {{
             hull() {{
-                translate([{lx:.3f} - 3.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
-                    cube([6.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
-                translate([{lx:.3f} - 3.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
-                    cube([6.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                translate([{lx:.3f} - 7.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                translate([{lx:.3f} - 7.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
+                    cube([10.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
             }}
             // Clearance hole for M2 screw (d=2.2)
             translate([{lx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
         
-        // Right Standoff (Tapered)
+        // Right Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
         difference() {{
             hull() {{
                 translate([{rx:.3f} - 3.0, {pt} + 1.5 + {PCB_T}, {cz_boss_bottom:.3f}]) 
-                    cube([6.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                    cube([10.0, 11.7 - ({pt} + 1.5 + {PCB_T}), 0.1]);
                 translate([{rx:.3f} - 3.0, {pt} + 1.5 + {PCB_T}, ch - cap_t]) 
-                    cube([6.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
+                    cube([10.0, 12.2 - ({pt} + 1.5 + {PCB_T}), 0.1]);
             }}
             translate([{rx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=2.2, h=D + 2.0);
         }}
