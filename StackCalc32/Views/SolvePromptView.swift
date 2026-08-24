@@ -56,8 +56,15 @@ struct SolvePromptView: View {
 #if os(iOS)
                     .pickerStyle(.segmented)
 #endif
-                    
-                    Button {
+                }
+            }
+            .navigationTitle("Solve")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Solve") {
                         if !selectedProgramLabel.isEmpty {
                             engine.currentProgramLabel = selectedProgramLabel
                         }
@@ -70,18 +77,7 @@ struct SolvePromptView: View {
                             }
                         }
                         dismiss()
-                    } label: {
-                        Text("Solve")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(.blue)
-                            .fontWeight(.bold)
                     }
-                }
-            }
-            .navigationTitle("Solve")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
                 }
             }
             .onAppear {
@@ -114,7 +110,15 @@ struct XEQPromptView: View {
                         }
                     }
                     
-                    Button {
+                }
+            }
+            .navigationTitle("XEQ")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Evaluate") {
                         if !selectedProgramLabel.isEmpty {
                             engine.currentProgramLabel = selectedProgramLabel
                         }
@@ -126,18 +130,7 @@ struct XEQPromptView: View {
                             engine.promptNextEquationVar()
                         }
                         dismiss()
-                    } label: {
-                        Text("Evaluate")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(.blue)
-                            .fontWeight(.bold)
                     }
-                }
-            }
-            .navigationTitle("XEQ")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
                 }
             }
             .onAppear {

@@ -79,26 +79,20 @@ struct IntegratePromptView: View {
 
                     }
                 }
-                Section {
-                    Button {
-                        if !selectedProgramLabel.isEmpty {
-                            engine.currentProgramLabel = selectedProgramLabel
-                        }
-                        shouldEvaluate = true
-                        dismiss()
-                    } label: {
-                        Text("Evaluate")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(.blue)
-                            .fontWeight(.bold)
-                    }
-                    // .disabled(variables.isEmpty)
-                }
             }
             .navigationTitle("Integrate")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Evaluate") {
+                        if !selectedProgramLabel.isEmpty {
+                            engine.currentProgramLabel = selectedProgramLabel
+                        }
+                        shouldEvaluate = true
+                        dismiss()
+                    }
                 }
             }
             .onAppear {

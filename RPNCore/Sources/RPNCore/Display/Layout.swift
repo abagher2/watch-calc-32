@@ -7,6 +7,8 @@ public enum FirmwareView {
     indirect case hstackNode(HStackAlignment, Int, [FirmwareView])
     indirect case vstackNode(VStackAlignment, Int, [FirmwareView])
     indirect case paddingNode(Int, Int, Int, Int, FirmwareView)
+    indirect case backgroundNode(Bool, FirmwareView)
+    indirect case frameNode(Int?, Int?, FirmwareView.VStackAlignment, FirmwareView.HStackAlignment, FirmwareView)
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
         switch self {
@@ -46,6 +48,11 @@ public enum FirmwareView {
         case .paddingNode(let top, let bottom, let leading, let trailing, let child):
             let s = child.size(in: renderer)
             return (s.width + leading + trailing, s.height + top + bottom)
+        case .backgroundNode(_, let child):
+            return child.size(in: renderer)
+        case .frameNode(let w, let h, _, _, let child):
+            let s = child.size(in: renderer)
+            return (w ?? s.width, h ?? s.height)
         }
     }
     
@@ -83,8 +90,32 @@ public enum FirmwareView {
                 child.draw(in: renderer, x: drawX, y: cursorY)
                 cursorY += s.height + spacing
             }
-        case .paddingNode(let top, let bottom, let leading, let trailing, let child):
+        case .paddingNode(let top, _, let leading, _, let child):
             child.draw(in: renderer, x: x + leading, y: y + top)
+        case .backgroundNode(let color, let child):
+            let s = self.size(in: renderer)
+            renderer.fillRect(x: x, y: y, w: s.width, h: s.height, color: color)
+            child.draw(in: renderer, x: x, y: y)
+        case .frameNode(let targetW, let targetH, let hAlign, let vAlign, let child):
+            let s = child.size(in: renderer)
+            let finalW = targetW ?? s.width
+            let finalH = targetH ?? s.height
+            
+            var drawX = x
+            switch hAlign {
+            case .leading: drawX = x
+            case .center: drawX = x + (finalW - s.width) / 2
+            case .trailing: drawX = x + finalW - s.width
+            }
+            
+            var drawY = y
+            switch vAlign {
+            case .top: drawY = y
+            case .center: drawY = y + (finalH - s.height) / 2
+            case .bottom: drawY = y + finalH - s.height
+            }
+            
+            child.draw(in: renderer, x: drawX, y: drawY)
         }
     }
 }
@@ -107,4 +138,16 @@ public func FirmwareVStack(alignment: FirmwareView.VStackAlignment = .leading, s
 
 public func FirmwarePadding(top: Int = 0, bottom: Int = 0, leading: Int = 0, trailing: Int = 0, child: FirmwareView) -> FirmwareView {
     return .paddingNode(top, bottom, leading, trailing, child)
+}
+
+public func FirmwareBackground(color: Bool, child: FirmwareView) -> FirmwareView {
+    return .backgroundNode(color, child)
+}
+
+public func FirmwareRect(width: Int, height: Int, color: Bool = true) -> FirmwareView {
+    return FirmwareBackground(color: color, child: FirmwareFrame(width: width, height: height, child: FirmwareSpacer()))
+}
+
+public func FirmwareFrame(width: Int? = nil, height: Int? = nil, alignment: FirmwareView.VStackAlignment = .center, vAlignment: FirmwareView.HStackAlignment = .center, child: FirmwareView) -> FirmwareView {
+    return .frameNode(width, height, alignment, vAlignment, child)
 }

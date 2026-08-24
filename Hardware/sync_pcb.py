@@ -120,7 +120,7 @@ def sync_pcb():
         # Move to X=35 (center), Y=-8 (bottom of board, below keypad)
         # Note: in KiCad, Y is negative here. So Y=-8 is near the bottom edge.
         x_jst_kicad = 35.0
-        y_jst_kicad = -8.0
+        y_jst_kicad = -148.0
         jst_fp.SetPosition(pcbnew.VECTOR2I(int(x_jst_kicad * 1e6), int(y_jst_kicad * 1e6)))
         print(f"Moved JST1 (Battery) to X:{x_jst_kicad:.2f} Y:{y_jst_kicad:.2f}")
 

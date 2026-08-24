@@ -9,7 +9,7 @@ import subprocess
 # ─────────────────────────────────────────────────────────
 # KiCad Board – read PCB dimensions and component positions
 # ─────────────────────────────────────────────────────────
-board_path = "calculator.kicad_pcb"
+board_path = "output/pcbs/calculator.kicad_pcb"
 board = pcbnew.LoadBoard(board_path)
 
 bbox   = board.GetBoardEdgesBoundingBox()
@@ -104,15 +104,15 @@ ACTIVE_H = 35.28
 pad_x = (fp_w - pcb_width) / 2
 pad_y = (fp_h - pcb_height) / 2
 disp_x = fp_w / 2
-disp_y = (disp['y'] + pad_y + 4) if disp else (fp_h - DISP_H / 2 - 5)
+disp_y = 121.575 # Vertically centered between Top edge (143.15) and Soft Keys (100.0)
 PCB_SCREW_INSET = 7.0
 chassis_screws = [
     # Bottom screws (keypad end)
-    (pad_x + 7.0, pad_y + pcb_height - 5.0), 
-    (pad_x + pcb_width - 7.0, pad_y + pcb_height - 5.0),
+    (pad_x + 9.0, pad_y + pcb_height - 8.0), 
+    (pad_x + pcb_width - 9.0, pad_y + pcb_height - 8.0),
     # Top screws (display end, used by Top Cap)
-    (pad_x + 7.0, pad_y + 5.0),
-    (pad_x + pcb_width - 7.0, pad_y + 5.0),
+    (pad_x + 9.0, pad_y + 8.0),
+    (pad_x + pcb_width - 9.0, pad_y + 8.0),
 ]
 
 def top_fillet_cutter_scad():
@@ -311,6 +311,10 @@ translate([0, 0, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
 // WatchCalc 32 Chassis — v8 (Closed Top, Bottom-Loading)
 $fn = 24;
 pt   = {pt:.3f};
+ACTIVE_W = {ACTIVE_W:.3f};
+ACTIVE_H = {ACTIVE_H:.3f};
+DISP_W = {DISP_W:.3f};
+DISP_H = {DISP_H:.3f};
 cw   = {cw:.3f};
 ch   = {fp_h + WALL:.3f};
 D    = {D:.3f};
@@ -502,11 +506,11 @@ module top_cap() {{
         // ── SCREW BOSSES (Drop down into chassis Tier 3) ─────────────────
         // Left Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
 """
-    cz_top_screw = py_ch - py_offset_z - (pad_y + 5.0)
+    cz_top_screw = py_WALL + py_fp_h - 12.0
     cz_boss_bottom = cz_top_screw - 3.55
     # Calculate exact X coordinates to match chassis holes!
-    lx = py_offset_x + pad_x + 7.0
-    rx = py_offset_x + pad_x + pcb_width - 7.0
+    lx = (cw - pcb_width)/2 + 9.0
+    rx = (cw - pcb_width)/2 + pcb_width - 9.0
     top_cap += f"""
         difference() {{
             hull() {{
@@ -535,7 +539,7 @@ module top_cap() {{
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
         // Moved to align with JST1 connector at X=68.0 (KiCad) -> X=56.15 (PCB relative)
-        translate([{py_offset_x} + {jst_x} - 14.0, {pt} + {TACTILE_H} + {PCB_T}, ch - 26]) {{
+        translate([(cw - pcb_width)/2 + {jst_x} - 14.0, {pt} + {TACTILE_H} + {PCB_T}, ch - 26]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{
@@ -845,6 +849,6 @@ if __name__ == "__main__":
     os.makedirs(mfg_3d, exist_ok=True)
     for name, scad_file, stl_file in tasks:
         # print(f"  Building {name} ...")
-        # subprocess.run(["/usr/local/bin/openscad", "-o", stl_file, scad_file], check=True)
+        # print(["/usr/local/bin/openscad", "-o", stl_file, scad_file], check=True)
         pass
     print("Done generating SCAD files!")

@@ -63,6 +63,7 @@ struct iOSContentView: View {
                 }
             }
         }
+        }
     }
     
     private func mainContent(geo: GeometryProxy, landscape: Bool, isPad: Bool, numpadHeight: CGFloat, retroLcdHeight: CGFloat) -> AnyView {

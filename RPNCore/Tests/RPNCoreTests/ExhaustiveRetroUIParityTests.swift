@@ -21,6 +21,13 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         controller = RetroUIController(engine: engine, lfuManager: lfuManager)
     }
     
+    func getLogicalPixel(renderer: Renderer, x: Int, y: Int) -> Bool {
+        if x < 0 || x >= 400 || y < 0 || y >= 240 { return false }
+        let byteIndex = y * 50 + (x / 8)
+        let bitIndex = x % 8
+        return (renderer.buffer[byteIndex] & UInt8(1 << bitIndex)) != 0
+    }
+    
     // MARK: - 1. Exhaustive All Menus Test
     func testExhaustiveAllMenusRenderingAndParity() {
         let menuToOp: [CalculatorMenu: CalculatorOperation] = [
@@ -55,11 +62,11 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
 
             
             if !menuCase.items.isEmpty {
-                // Verify softkey pixels in bottom region (Page 6 & 7, Y: 48..63)
+                // Verify softkey pixels in bottom region (Y: 200..239)
                 var softkeyPixels = 0
-                for page in 6...7 {
-                    for col in 0..<128 {
-                        if controller.renderer.buffer[page * 128 + col] != 0 { softkeyPixels += 1 }
+                for y in 200...239 {
+                    for x in 0..<400 {
+                        if getLogicalPixel(renderer: controller.renderer, x: x, y: y) { softkeyPixels += 1 }
                     }
                 }
                 XCTAssertGreaterThan(softkeyPixels, 0, "Menu \(menuCase.rawValue) must render softkeys in bottom region")
@@ -101,10 +108,12 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         
         controller.render()
         
-        // Assert left-justified pixels starting at left margin (Page 3, X: 0..20)
+        // Assert left-justified pixels starting at left margin (X: 0..20)
         var leftMarginPixels = 0
-        for col in 0...20 {
-            if controller.renderer.buffer[3 * 128 + col] != 0 { leftMarginPixels += 1 }
+        for x in 0...20 {
+            for y in 40...190 {
+                if getLogicalPixel(renderer: controller.renderer, x: x, y: y) { leftMarginPixels += 1 }
+            }
         }
         XCTAssertGreaterThan(leftMarginPixels, 0, "Building number entry must be left-justified starting at X: 2")
         
@@ -138,10 +147,12 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         XCTAssertEqual(controller.engine.baseMode, .hex)
         controller.render()
         
-        // Assert HEX annunciator pixel rendering in top region (Page 0)
+        // Assert HEX annunciator pixel rendering in top region
         var topAnnunciatorPixels = 0
-        for col in 0..<128 {
-            if controller.renderer.buffer[0 * 128 + col] != 0 { topAnnunciatorPixels += 1 }
+        for x in 0..<400 {
+            for y in 0...30 {
+                if getLogicalPixel(renderer: controller.renderer, x: x, y: y) { topAnnunciatorPixels += 1 }
+            }
         }
         XCTAssertGreaterThan(topAnnunciatorPixels, 0, "HEX annunciator must render in top region Page 0")
         
@@ -166,11 +177,11 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         
         controller.render()
         
-        // Verify equation steps rendered on screen (Page 1 & 2)
+        // Verify equation steps rendered on screen
         var programStepPixels = 0
-        for page in 1...3 {
-            for col in 0..<128 {
-                if controller.renderer.buffer[page * 128 + col] != 0 { programStepPixels += 1 }
+        for y in 40...190 {
+            for x in 0..<400 {
+                if getLogicalPixel(renderer: controller.renderer, x: x, y: y) { programStepPixels += 1 }
             }
         }
         XCTAssertGreaterThan(programStepPixels, 0, "Programming steps must render on LCD screen")
@@ -210,9 +221,9 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         controller.render()
         
         var plotPixels = 0
-        for page in 1...6 {
-            for col in 0..<128 {
-                if controller.renderer.buffer[page * 128 + col] != 0 { plotPixels += 1 }
+        for y in 30...190 {
+            for x in 0..<400 {
+                if getLogicalPixel(renderer: controller.renderer, x: x, y: y) { plotPixels += 1 }
             }
         }
         XCTAssertGreaterThan(plotPixels, 0, "Graph plot must render pixels in main content region")
@@ -235,9 +246,9 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         controller.render()
         
         var equationPixels = 0
-        for page in 1...4 {
-            for col in 0..<128 {
-                if controller.renderer.buffer[page * 128 + col] != 0 { equationPixels += 1 }
+        for y in 40...190 {
+            for x in 0..<400 {
+                if getLogicalPixel(renderer: controller.renderer, x: x, y: y) { equationPixels += 1 }
             }
         }
         XCTAssertGreaterThan(equationPixels, 0, "Equation text must render pixels in main display region")
@@ -254,21 +265,8 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             XCTAssertLessThanOrEqual(min(visibleCount, 6), 6, "Maximum 6 softkeys rendered per page")
             
             for item in items.prefix(5) {
-                // Check fitted label width
-                var label = item.label
-                if label == "4-LVL" { label = "4LV" }
-                else if label == "PRGM" { label = "PRG" }
-                else if label == "REGS" { label = "REG" }
-                else if label == "FRAC" { label = "FRC" }
-                else if label == "RAND" { label = "RND" }
-                else if label == "VARS" { label = "VAR" }
-                else if label == "GRAD" { label = "GRD" }
-                else if label == "MODES" { label = "MOD" }
-                else if label == "MODINT" { label = "MOD" }
-                else if label == "L.R." { label = "LR" }
-                
-                let textW = controller.renderer.getStringWidth(label, size: .tiny)
-                XCTAssertLessThanOrEqual(textW, 20, "Softkey '\(item.label)' fitted width \(textW)px must not exceed 20px softkey slot bounds")
+                let textW = controller.renderer.getStringWidth(item.label, size: .tiny)
+                XCTAssertLessThanOrEqual(textW, 66, "Softkey '\(item.label)' fitted width \(textW)px must not exceed 66px softkey slot bounds")
             }
         }
     }

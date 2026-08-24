@@ -29,7 +29,7 @@ public struct RetroLCDView: View {
                 Image(decorative: cgImage, scale: 1.0, orientation: .up)
                     .resizable()
                     .interpolation(.none)
-                    .aspectRatio(128.0 / 64.0, contentMode: .fit)
+                    .aspectRatio(400.0 / 240.0, contentMode: .fit)
                     .accessibilityValue(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
             } else {
                 Color.black

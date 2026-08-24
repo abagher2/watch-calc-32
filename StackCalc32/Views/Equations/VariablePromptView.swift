@@ -26,14 +26,6 @@ struct VariablePromptView: View {
                     }
                 }
                 
-                Section {
-                    Button(action: executeProgram) {
-                        Text("Execute")
-                            .frame(maxWidth: .infinity)
-                            .foregroundColor(.white)
-                    }
-                    .listRowBackground(Color.blue)
-                }
             }
             .navigationTitle(engine.currentEvaluatingProgram?.label ?? "Variables")
             .toolbar {

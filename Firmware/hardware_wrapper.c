@@ -6,21 +6,18 @@
 #include <string.h>
 #include <stdio.h>
 
-#define SPI_PORT spi1
-#define PIN_SCK  10
-#define PIN_MOSI 11
-#define PIN_CS   18
-#define PIN_DC   19
-#define PIN_RST  20
-#define PIN_BUSY 21
+#define SPI_PORT spi0
+#define PIN_CS   17
+#define PIN_SCK  18
+#define PIN_MOSI 19
 
-// Keypad pins remapped to avoid conflict with SPI E-Ink pins
+// Keypad pins remapped
 const uint8_t col_pins[] = {0, 1, 4, 2, 3, 9};
 const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 12};
 
 struct EmuDisplay {
     uint32_t magic[4];
-    uint8_t buffer[1024];
+    uint8_t buffer[12000];
 };
 
 volatile struct EmuDisplay emu_display = {
@@ -28,31 +25,24 @@ volatile struct EmuDisplay emu_display = {
     .buffer = {0}
 };
 
-static inline void eink_send_cmd(uint8_t cmd) {
 #ifndef EMULATOR
-    gpio_put(PIN_DC, 0);
-    gpio_put(PIN_CS, 0);
-    spi_write_blocking(SPI_PORT, &cmd, 1);
-    gpio_put(PIN_CS, 1);
-#endif
-}
+volatile uint8_t vcom_state = 0;
+struct repeating_timer vcom_timer;
 
-static inline void eink_send_data(uint8_t data) {
-#ifndef EMULATOR
-    gpio_put(PIN_DC, 1);
-    gpio_put(PIN_CS, 0);
-    spi_write_blocking(SPI_PORT, &data, 1);
+bool vcom_timer_callback(struct repeating_timer *t) {
+    vcom_state ^= 0x02; // Toggle VCOM bit (bit 1)
+    
+    // Send VCOM toggle command
+    uint8_t cmd[2] = { vcom_state, 0x00 };
     gpio_put(PIN_CS, 1);
-#endif
+    spi_write_blocking(SPI_PORT, cmd, 2);
+    gpio_put(PIN_CS, 0);
+    
+    return true;
 }
+#endif
 
-static void eink_wait_busy(void) {
-#ifndef EMULATOR
-    while(gpio_get(PIN_BUSY) == 1) {
-        sleep_ms(10);
-    }
-#endif
-}
+
 
 void hw_init(void) {
     stdio_init_all();
@@ -65,58 +55,21 @@ void hw_init(void) {
     free(ptr);
 
 #ifndef EMULATOR
-    // SPI Init
-    spi_init(SPI_PORT, 4000 * 1000); // 4 MHz
+    // SPI Init (Sharp Memory LCD can run up to 2MHz, but let's be safe with 1MHz)
+    spi_init(SPI_PORT, 1000 * 1000); 
+    
+    // According to datasheet, Sharp expects LSB first.
+    spi_set_format(SPI_PORT, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_LSB_FIRST);
+
     gpio_set_function(PIN_SCK, GPIO_FUNC_SPI);
     gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
 
     gpio_init(PIN_CS);
     gpio_set_dir(PIN_CS, GPIO_OUT);
-    gpio_put(PIN_CS, 1);
+    gpio_put(PIN_CS, 0); // CS is active HIGH for Sharp Memory LCD
 
-    gpio_init(PIN_DC);
-    gpio_set_dir(PIN_DC, GPIO_OUT);
-    gpio_put(PIN_DC, 0);
-
-    gpio_init(PIN_RST);
-    gpio_set_dir(PIN_RST, GPIO_OUT);
-    gpio_put(PIN_RST, 1);
-
-    gpio_init(PIN_BUSY);
-    gpio_set_dir(PIN_BUSY, GPIO_IN);
-    
-    // SSD1680 Init Sequence
-    gpio_put(PIN_RST, 1);
-    sleep_ms(20);
-    gpio_put(PIN_RST, 0);
-    sleep_ms(2);
-    gpio_put(PIN_RST, 1);
-    sleep_ms(20);
-    eink_wait_busy();
-
-    eink_send_cmd(0x12); // SWRESET
-    eink_wait_busy();
-
-    eink_send_cmd(0x01); // Driver output control
-    eink_send_data(0xF9);
-    eink_send_data(0x00);
-    eink_send_data(0x00);
-
-    eink_send_cmd(0x11); // Data entry mode
-    eink_send_data(0x03);
-
-    eink_send_cmd(0x44); // set Ram-X address start/end position
-    eink_send_data(0x00);
-    eink_send_data(0x0F);
-
-    eink_send_cmd(0x45); // set Ram-Y address start/end position
-    eink_send_data(0x00);
-    eink_send_data(0x00);
-    eink_send_data(0xF9);
-    eink_send_data(0x00);
-
-    eink_send_cmd(0x3C); // BorderWavefrom
-    eink_send_data(0x05); 
+    // Start 1Hz timer for VCOM toggle
+    add_repeating_timer_ms(1000, vcom_timer_callback, NULL, &vcom_timer);
 #endif
 
     // Matrix init
@@ -132,61 +85,31 @@ void hw_init(void) {
     }
 }
 
-static uint8_t hw_prev_eink[4000] = {0};
-
 void display_send_buffer(const uint8_t* buffer) {
     watchdog_update();
 #ifndef EMULATOR
-    // Reset RAM addresses
-    eink_send_cmd(0x4E); eink_send_data(0x00);
-    eink_send_cmd(0x4F); eink_send_data(0x00); eink_send_data(0x00);
-
-    // Write Previous RAM
-    eink_send_cmd(0x26);
-    for (int i = 0; i < 4000; i++) {
-        eink_send_data(hw_prev_eink[i]);
-    }
-
-    // Reset RAM addresses again
-    eink_send_cmd(0x4E); eink_send_data(0x00);
-    eink_send_cmd(0x4F); eink_send_data(0x00); eink_send_data(0x00);
-
-    eink_send_cmd(0x24); // Write New RAM
-    for (int ey = 0; ey < 250; ey++) {
-        for (int ex_byte = 0; ex_byte < 16; ex_byte++) {
-            uint8_t out_byte = 0;
-            for (int bit = 0; bit < 8; bit++) {
-                int ex = ex_byte * 8 + bit;
-                if (ex >= 122) continue; // Out of bounds for 122px
-
-                // Map 250x122 (portrait) back to 128x64 (landscape) scaled 2x.
-                int oled_x = ey / 2;
-                int oled_y = ex / 2;
-                
-                int page = oled_y / 8;
-                int oled_bit = oled_y % 8;
-                int index = page * 128 + oled_x;
-                
-                uint8_t pixel = (buffer[index] & (1 << oled_bit)) ? 1 : 0;
-                
-                // SSD1680: 1=white, 0=black. 
-                // The OLED logic sets pixel=1 for text. E-Ink wants text black.
-                if (pixel == 0) {
-                    out_byte |= (1 << (7 - bit)); // Set white bit for background
-                }
-            }
-            eink_send_data(out_byte);
-            hw_prev_eink[ey * 16 + ex_byte] = out_byte;
-        }
+    gpio_put(PIN_CS, 1);
+    
+    uint8_t mode = 0x01 | vcom_state; // Update Line mode
+    spi_write_blocking(SPI_PORT, &mode, 1);
+    
+    for (int y = 0; y < 240; y++) {
+        uint8_t line_addr = y + 1; // 1-indexed
+        spi_write_blocking(SPI_PORT, &line_addr, 1);
+        
+        // 50 bytes per line
+        spi_write_blocking(SPI_PORT, buffer + (y * 50), 50);
+        
+        uint8_t dummy = 0x00;
+        spi_write_blocking(SPI_PORT, &dummy, 1); // Trailer per line
     }
     
-    // Trigger display partial update (using 0x04 or 0x0C for SSD1680 partial refresh)
-    eink_send_cmd(0x22);
-    eink_send_data(0x04); // Partial update sequence
-    eink_send_cmd(0x20); // Activate update
-    eink_wait_busy();
+    uint8_t dummy = 0x00;
+    spi_write_blocking(SPI_PORT, &dummy, 1); // Final trailer
+    
+    gpio_put(PIN_CS, 0);
 #else
-    for (int i = 0; i < 1024; i++) {
+    for (int i = 0; i < 12000; i++) {
         emu_display.buffer[i] = buffer[i];
     }
 #endif
@@ -297,45 +220,12 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
 
 void hw_display_sleep_c(void) {
 #ifndef EMULATOR
-    eink_send_cmd(0x10); // Deep Sleep mode
-    eink_send_data(0x01);
+    // Clear display to white/black before sleep if desired, but Sharp Memory LCD is static
 #endif
 }
 
 void hw_display_wake_c(void) {
 #ifndef EMULATOR
-    // Wake from deep sleep requires hardware reset
-    gpio_put(PIN_RST, 1);
-    sleep_ms(20);
-    gpio_put(PIN_RST, 0);
-    sleep_ms(2);
-    gpio_put(PIN_RST, 1);
-    sleep_ms(20);
-    eink_wait_busy();
-
-    eink_send_cmd(0x12); // SWRESET
-    eink_wait_busy();
-    
-    // Re-initialize registers
-    eink_send_cmd(0x01); // Driver output control
-    eink_send_data(0xF9);
-    eink_send_data(0x00);
-    eink_send_data(0x00);
-
-    eink_send_cmd(0x11); // Data entry mode
-    eink_send_data(0x03);
-
-    eink_send_cmd(0x44); // set Ram-X address start/end position
-    eink_send_data(0x00);
-    eink_send_data(0x0F);
-
-    eink_send_cmd(0x45); // set Ram-Y address start/end position
-    eink_send_data(0x00);
-    eink_send_data(0x00);
-    eink_send_data(0xF9);
-    eink_send_data(0x00);
-
-    eink_send_cmd(0x3C); // BorderWavefrom
-    eink_send_data(0x05);
+    // No hardware reset needed for Sharp Memory LCD
 #endif
 }

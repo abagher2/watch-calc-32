@@ -18,10 +18,10 @@ When submitting the BOM and CPL (Component Placement List) to PCBWay, you **MUST
 - **Part:** ALPS SKQGABE010 (or equivalent ultra-low profile SMD tactile switch).
 - **Assembly Note:** The Z-height of the tactile switches must be exactly **1.5mm** off the surface of the PCB. Negative tolerance (1.4mm) is acceptable. Positive tolerance (1.6mm+) will cause the buttons to permanently actuate against the faceplate.
 
-### B. E-Ink Display Stackup
-- **Part:** 24-pin FPC ZIF Connector (Bottom Contact) + Bare E-Ink Glass Panel (e.g., Good Display or Waveshare bare panel).
-- **Assembly Note:** Do **NOT** use thick Arduino breakout boards with 8-pin headers. The bare E-Ink glass must be mounted directly to the PCB surface using thin double-sided adhesive foam. 
-- **Tolerance Note:** The combined thickness of the adhesive foam + the E-Ink glass must not exceed **1.5mm**. (e.g., a 1.18mm glass panel requires a 0.3mm thick foam pad).
+### B. Sharp LCD Stackup
+- **Part:** 10-pin FPC ZIF Connector (Bottom Contact) + Sharp Memory LCD LS027B7DH01.
+- **Assembly Note:** Do **NOT** use thick breakout boards. The bare Sharp LCD glass must be mounted directly to the PCB surface using thin double-sided adhesive foam. 
+- **Tolerance Note:** The combined thickness of the adhesive foam + the Sharp LCD glass must be exactly **1.5mm**. The LCD glass is 1.43mm, so instruct PCBWay to shim the Sharp LCD with tape by exactly **0.07mm**.
 
 ## 3. Submission Checklist
 1. Export Gerber files from KiCad (`File -> Fabrication Outputs -> Gerbers`).

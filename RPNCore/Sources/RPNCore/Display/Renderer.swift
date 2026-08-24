@@ -11,7 +11,7 @@ public class Renderer {
     public var boldFonts: Bool = false
     
     public init() {
-        buffer = [UInt8](repeating: 0, count: 1024)
+        buffer = [UInt8](repeating: 0, count: 12000) // 400x240 memory LCD (50 bytes * 240 rows)
         previousBuffer = nil
     }
     
@@ -24,27 +24,26 @@ public class Renderer {
     }
     
     public func clear() {
-        for i in 0..<1024 {
+        for i in 0..<12000 {
             buffer[i] = 0
         }
         hasOverlap = false
     }
     
     public func setPixel(x: Int, y: Int, color: Bool) {
-        if x < 0 || x >= 128 || y < 0 || y >= 64 { return }
+        if x < 0 || x >= 400 || y < 0 || y >= 240 { return }
         
-        // OLED mapping: usually 128 columns, 8 pages (each page is 8 vertical pixels)
-        let page = y / 8
-        let bit = y % 8
-        let index = page * 128 + x
+        let byteIndex = y * 50 + (x / 8)
+        let bitIndex = x % 8
+        let mask = UInt8(1 << bitIndex)
         
         if color {
-            if detectOverlap && (buffer[index] & UInt8(1 << bit)) != 0 {
+            if detectOverlap && (buffer[byteIndex] & mask) != 0 {
                 hasOverlap = true
             }
-            buffer[index] |= UInt8(1 << bit)
+            buffer[byteIndex] |= mask
         } else {
-            buffer[index] &= ~UInt8(1 << bit)
+            buffer[byteIndex] &= ~mask
         }
     }
     
@@ -57,54 +56,38 @@ public class Renderer {
         let shouldBold = boldFonts && size != .tiny
         switch size {
         case .tiny:
-            if var result = FontData.Tiny.glyph(forScalar: scalarValue) {
+            if let result = FontData.Tiny.glyph(forScalar: scalarValue) {
                 returnWidth = result.width
-                withUnsafeBytes(of: &result.bitmap) { ptr in
-                    let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Tiny.charHeight, x: x, y: y, color: color, bold: false)
-                }
+                drawGlyphFromStatic(FontData.Tiny.bitmapData, offset: result.offset, width: result.width, height: FontData.Tiny.charHeight, bytesPerRow: FontData.Tiny.bytesPerRow, x: x, y: y, color: color, bold: false)
             }
         case .small:
-            if var result = FontData.Small.glyph(forScalar: scalarValue) {
+            if let result = FontData.Small.glyph(forScalar: scalarValue) {
                 returnWidth = result.width + (shouldBold ? 1 : 0)
-                withUnsafeBytes(of: &result.bitmap) { ptr in
-                    let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Small.charHeight, x: x, y: y, color: color, bold: shouldBold)
-                }
+                drawGlyphFromStatic(FontData.Small.bitmapData, offset: result.offset, width: result.width, height: FontData.Small.charHeight, bytesPerRow: FontData.Small.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
             }
         case .display:
-            if var result = FontData.Display.glyph(forScalar: scalarValue) {
+            if let result = FontData.Display.glyph(forScalar: scalarValue) {
                 returnWidth = result.width + (shouldBold ? 1 : 0)
-                withUnsafeBytes(of: &result.bitmap) { ptr in
-                    let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Display.charHeight, x: x, y: y, color: color, bold: shouldBold)
-                }
+                drawGlyphFromStatic(FontData.Display.bitmapData, offset: result.offset, width: result.width, height: FontData.Display.charHeight, bytesPerRow: FontData.Display.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
             }
         case .medium:
-            if var result = FontData.Medium.glyph(forScalar: scalarValue) {
+            if let result = FontData.Medium.glyph(forScalar: scalarValue) {
                 returnWidth = result.width + (shouldBold ? 1 : 0)
-                withUnsafeBytes(of: &result.bitmap) { ptr in
-                    let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Medium.charHeight, x: x, y: y, color: color, bold: shouldBold)
-                }
+                drawGlyphFromStatic(FontData.Medium.bitmapData, offset: result.offset, width: result.width, height: FontData.Medium.charHeight, bytesPerRow: FontData.Medium.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
             }
         case .large:
-            if var result = FontData.Large.glyph(forScalar: scalarValue) {
+            if let result = FontData.Large.glyph(forScalar: scalarValue) {
                 returnWidth = result.width + (shouldBold ? 1 : 0)
-                withUnsafeBytes(of: &result.bitmap) { ptr in
-                    let bytes = ptr.bindMemory(to: UInt8.self)
-                    drawGlyphBytes(bytes, width: result.width, height: FontData.Large.charHeight, x: x, y: y, color: color, bold: shouldBold)
-                }
+                drawGlyphFromStatic(FontData.Large.bitmapData, offset: result.offset, width: result.width, height: FontData.Large.charHeight, bytesPerRow: FontData.Large.bytesPerRow, x: x, y: y, color: color, bold: shouldBold)
             }
         }
         return returnWidth
     }
     
-    private func drawGlyphBytes(_ bytes: UnsafeBufferPointer<UInt8>, width: Int, height: Int, x: Int, y: Int, color: Bool, bold: Bool = false) {
-        let bytesPerRow = (width + 7) / 8
+    private func drawGlyphFromStatic(_ data: [UInt8], offset: Int, width: Int, height: Int, bytesPerRow: Int, x: Int, y: Int, color: Bool, bold: Bool = false) {
         for row in 0..<height {
             for byteIdx in 0..<bytesPerRow {
-                let rowByte = bytes[row * bytesPerRow + byteIdx]
+                let rowByte = data[offset + row * bytesPerRow + byteIdx]
                 for bitIdx in 0..<8 {
                     let col = byteIdx * 8 + bitIdx
                     if col < width {
@@ -246,15 +229,15 @@ public class Renderer {
         setPixel(x: x + 2, y: y + 2, color: true)
     }
     
-    // Perfectly symmetrically balanced segments mapping the 128 pixel display 
-    // to exactly 6 hardware columns (which average 21.333 pixels wide)
+    // Perfectly symmetrically balanced segments mapping the 400 pixel display 
+    // to exactly 6 hardware columns
     public let menuSegments: [(x: Int, w: Int)] = [
-        (0, 21),
-        (22, 20),
-        (43, 21),
-        (65, 21),
-        (87, 20),
-        (108, 21)
+        (0, 66),
+        (67, 66),
+        (134, 66),
+        (201, 66),
+        (268, 66),
+        (335, 65)
     ]
     
     public func renderMenu(menu: CalculatorMenu, query: String = "", offset: Int = 0) {
@@ -323,19 +306,18 @@ public extension Renderer {
         backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (160, 180, 150, 255),
         scale: Int = 1
     ) -> CGImage? {
-        let baseW = 128
-        let baseH = 64
+        let baseW = 400
+        let baseH = 240
         let s = max(1, scale)
         let width = baseW * s
         let height = baseH * s
         var rgbaPixels = [UInt8](repeating: 0, count: width * height * 4)
         
         for y in 0..<baseH {
-            let page = y / 8
-            let bit = y % 8
             for x in 0..<baseW {
-                let bufferIndex = page * 128 + x
-                let isPixelOn = (buffer[bufferIndex] & UInt8(1 << bit)) != 0
+                let byteIndex = y * 50 + (x / 8)
+                let bitIndex = x % 8
+                let isPixelOn = (buffer[byteIndex] & UInt8(1 << bitIndex)) != 0
                 let color = isPixelOn ? pixelColor : backgroundColor
                 
                 for sy in 0..<s {

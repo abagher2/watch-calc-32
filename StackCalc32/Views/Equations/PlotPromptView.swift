@@ -107,19 +107,8 @@ struct PlotPromptView: View {
                         .foregroundColor(.gray)
                 }
                 
-                Section {
-                    Button {
-                        actionToExecute = "plot"
-                        dismiss()
-                    } label: {
-                        Text("Plot")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .foregroundColor(.blue)
-                            .fontWeight(.bold)
-                    }
-                    .accessibilityIdentifier("btn_plot_execute")
-                    
-                    if plotSource == "Equation" {
+                if plotSource == "Equation" {
+                    Section {
                         Button {
                             actionToExecute = "integrate"
                             dismiss()
@@ -131,13 +120,18 @@ struct PlotPromptView: View {
                         }
                         .accessibilityIdentifier("btn_integrate_execute")
                     }
-                    // .disabled(plotSource == "Equation" && variables.isEmpty)
                 }
             }
             .navigationTitle("Plot")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Plot") {
+                        actionToExecute = "plot"
+                        dismiss()
+                    }
                 }
             }
             .onAppear {
