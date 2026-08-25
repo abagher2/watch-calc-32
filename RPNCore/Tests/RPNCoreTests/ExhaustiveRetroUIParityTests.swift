@@ -55,7 +55,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             controller.processAction(op)
             
             // Verify menu opens
-            XCTAssertNotNil(controller.retroUI.activeMenu, "Menu \(menuCase.rawValue) should open")
+            XCTAssertNotNil(controller.engine.activeMenu, "Menu \(menuCase.rawValue) should open")
             
             // Render frame
             controller.render()
@@ -74,7 +74,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             
             // Close menu
             controller.processAction(.c)
-            XCTAssertNil(controller.retroUI.activeMenu, "Menu \(menuCase.rawValue) should close after C")
+            XCTAssertNil(controller.engine.activeMenu, "Menu \(menuCase.rawValue) should close after C")
         }
     }
     
@@ -82,7 +82,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
     func testExhaustiveMenuAlphaFilteringAndPagination() {
         // 1. Test CONST menu pagination (MORE▶)
         controller.processAction(.const)
-        XCTAssertEqual(controller.retroUI.activeMenu, .const)
+        XCTAssertEqual(controller.engine.activeMenu, .const)
         
         let initialOffset = controller.retroUI.menuOffset
         controller.processAction(.lfu5) // LFU_5 is MORE▶ for long menus
@@ -91,10 +91,10 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         // 2. Test Menu Backspace and Exit
         controller.processAction(.c)
         controller.processAction(.base)
-        XCTAssertEqual(controller.retroUI.activeMenu, .base)
+        XCTAssertEqual(controller.engine.activeMenu, .base)
         
         controller.processAction(.backspace)
-        XCTAssertNil(controller.retroUI.activeMenu, "Backspace on empty query should exit menu")
+        XCTAssertNil(controller.engine.activeMenu, "Backspace on empty query should exit menu")
     }
 
     // MARK: - 3. Exhaustive RPN Stack & Left-Justified Display Test
@@ -256,7 +256,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         
         // 3. Test Text Clipping & Softkey Bounds Non-Overlap Audit across all 18 Menus
         for menuCase in CalculatorMenu.allCases {
-            controller.retroUI.activeMenu = menuCase
+            controller.engine.activeMenu = menuCase
             controller.render()
             
             // Verify softkey items in menu stay bounded within 20px column widths

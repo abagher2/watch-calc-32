@@ -427,6 +427,25 @@ class KeyCommandViewController: UIViewController {
 enum ActiveMenu: String, Identifiable {
     case base, testXY, testX0, mean, sums, stdDev, lr, parts, prob, clear, flags, regs, mem, const, disp, modes, eqn, plot, show, integrate, solve, xeq
     var id: String { self.rawValue }
+
+    /// Maps this ActiveMenu to the corresponding RPNCore CalculatorMenu, if one exists.
+    /// Menus that return nil have bespoke SwiftUI presentations (show, eqn, regs, mem, const, flags, plot, integrate, solve, xeq, clear).
+    var calculatorMenu: CalculatorMenu? {
+        switch self {
+        case .disp:    return .disp
+        case .modes:   return .modes
+        case .base:    return .base
+        case .testXY:  return .testXY
+        case .testX0:  return .testX0
+        case .mean:    return .statMean
+        case .sums:    return .sums
+        case .stdDev:  return .statStdDev
+        case .lr:      return .lr
+        case .parts:   return .parts
+        case .prob:    return .prob
+        default:       return nil
+        }
+    }
 }
 
 struct iOSMenuModifier: ViewModifier {
@@ -434,7 +453,6 @@ struct iOSMenuModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
     
     @State private var activeMenu: ActiveMenu?
-    @State private var dispPrecision: Int = 4
     @AppStorage("hapticsEnabled") private var hapticsEnabled: Bool = true
     
     func body(content: Content) -> some View {
@@ -512,140 +530,20 @@ struct iOSMenuModifier: ViewModifier {
         case .xeq:
             return AnyView(XEQPromptView().environment(engine))
         default:
-            return AnyView(
-                NavigationStack {
-                    menuView(for: menu)
-                }
-                .tint(.blue)
-                .foregroundColor(.primary)
-            )
-        }
-    }
-    
-    private func menuView(for menu: ActiveMenu) -> AnyView {
-        switch menu {
-        case .disp:
-            if let calcMenu = CalculatorMenu(rawValue: "DISP") {
-                return AnyView(Form {
-                    Picker("Precision (Digits)", selection: $dispPrecision) {
-                        ForEach(0...9, id: \.self) { val in
-                            Text("\(val)").tag(val)
-                        }
-                    }
-                    ForEach(calcMenu.items, id: \.label) { item in
-                        Button("\(item.label)") {
-                            if item.requiresDigit {
-                                engine.executeMath("\(item.action) \(dispPrecision)")
-                            } else {
-                                engine.executeMath(item.action)
-                            }
-                            activeMenu = nil
-                        }
-                    }
-                }.navigationTitle("Display"))
-            } else { return AnyView(EmptyView()) }
-        case .modes:
-            if let calcMenu = CalculatorMenu(rawValue: "MODES") {
-                return AnyView(List {
-                    ForEach(calcMenu.items, id: \.label) { item in
-                        Button(item.label) { engine.executeMath(item.action); activeMenu = nil }
-                    }
-                }.navigationTitle("Modes"))
-            } else { return AnyView(EmptyView()) }
-        case .base:
-            if let calcMenu = CalculatorMenu(rawValue: "BASE") {
-                return AnyView(List {
-                    Section("Base") {
-                        ForEach(calcMenu.items, id: \.label) { item in
-                            Button(item.label) { engine.executeMath(item.action); activeMenu = nil }
-                        }
-                    }
-                    Section("Bitwise Logic") {
-                        Button("AND") { engine.executeOp(.and); activeMenu = nil }
-                        Button("OR") { engine.executeOp(.or); activeMenu = nil }
-                        Button("XOR") { engine.executeOp(.xor); activeMenu = nil }
-                        Button("NOT") { engine.executeOp(.not); activeMenu = nil }
-                    }
-                }.navigationTitle("Base"))
-            } else { return AnyView(EmptyView()) }
-        case .testXY:
-            if let calcMenu = CalculatorMenu(rawValue: "𝑥?𝑦") {
-                return AnyView(List {
-                    ForEach(calcMenu.items, id: \.label) { item in
-                        Button(item.label) { engine.executeMath(item.action); activeMenu = nil }
-                    }
-                }.navigationTitle("Test x ? y"))
-            } else { return AnyView(EmptyView()) }
-        case .testX0:
-            if let calcMenu = CalculatorMenu(rawValue: "𝑥?0") {
-                return AnyView(List {
-                    ForEach(calcMenu.items, id: \.label) { item in
-                        Button(item.label) { engine.executeMath(item.action); activeMenu = nil }
-                    }
-                }.navigationTitle("Test x ? 0"))
-            } else { return AnyView(EmptyView()) }
-        case .mean:
-            return AnyView(List {
-                Button("x̄ (Mean of x)") { engine.executeMath("x-bar"); activeMenu = nil }
-                Button("ȳ (Mean of y)") { engine.executeMath("y-bar"); activeMenu = nil }
-                Button("x̄w (Weighted Mean)") { engine.executeMath("xw"); activeMenu = nil }
+            // Generic menus — delegate to shared CalculatorMenuPresenter
+            if let calcMenu = menu.calculatorMenu {
+                return AnyView(
+                    CalculatorMenuPresenter(
+                        menu: calcMenu,
+                        isPresented: Binding(
+                            get: { activeMenu != nil },
+                            set: { if !$0 { activeMenu = nil } }
+                        )
+                    )
+                    .environment(engine)
+                    .presentationDetents([.medium, .large])
+                )
             }
-            .navigationTitle("MEAN"))
-        case .sums:
-            return AnyView(List {
-                Section("Sums") {
-                    Button("n") { engine.executeMath("n"); activeMenu = nil }
-                    Button("Σx") { engine.executeMath("Σx"); activeMenu = nil }
-                    Button("Σy") { engine.executeMath("Σy"); activeMenu = nil }
-                    Button("Σx²") { engine.executeMath("Σx²"); activeMenu = nil }
-                    Button("Σy²") { engine.executeMath("Σy²"); activeMenu = nil }
-                    Button("Σxy") { engine.executeMath("Σxy"); activeMenu = nil }
-                }
-            }
-            .navigationTitle("SUMS"))
-        case .stdDev:
-            return AnyView(List {
-                Button("sx (Sample SD of x)") { engine.executeMath("s"); activeMenu = nil }
-                Button("sy (Sample SD of y)") { engine.executeMath("sy"); activeMenu = nil }
-                Button("σx (Population SD of x)") { engine.executeMath("σx"); activeMenu = nil }
-                Button("σy (Population SD of y)") { engine.executeMath("σy"); activeMenu = nil }
-            }
-            .navigationTitle("Std Dev"))
-        case .lr:
-            return AnyView(List {
-                Button("ŷ (Estimate y)") { engine.executeMath("y-hat"); activeMenu = nil }
-                Button("x̂ (Estimate x)") { engine.executeMath("x-hat"); activeMenu = nil }
-                Button("r (Correlation)") { engine.executeMath("r"); activeMenu = nil }
-                Button("m (Slope)") { engine.executeMath("m"); activeMenu = nil }
-                Button("b (Y-Intercept)") { engine.executeMath("b"); activeMenu = nil }
-            }
-            .navigationTitle("Linear Reg"))
-        case .parts:
-            return AnyView(List {
-                Button("Integer Part") { engine.executeOp(.intg); activeMenu = nil }
-                Button("Fractional Part") { engine.executeOp(.frac); activeMenu = nil }
-                Button("Absolute Value") { engine.executeOp(.abs); activeMenu = nil }
-                Button("Round") { engine.executeOp(.rnd); activeMenu = nil }
-            }
-            .navigationTitle("Parts"))
-        case .prob:
-            return AnyView(List {
-                Button("Cn,r (Combinations)") { engine.executeOp(.nCr); activeMenu = nil }
-                Button("Pn,r (Permutations)") { engine.executeOp(.nPr); activeMenu = nil }
-                Button("SD (Seed Random)") { engine.executeMath("SD"); activeMenu = nil }
-                Button("R# (Random Number)") { engine.executeMath("R#"); activeMenu = nil }
-            }
-            .navigationTitle("Probability"))
-        case .clear:
-            return AnyView(List {
-                Button("Clear X") { engine.executeOp(.clear); activeMenu = nil }
-                Button("Clear Statistics (Σ)") { engine.executeMath("CLΣ"); activeMenu = nil }
-                Button("Clear ALL") { engine.executeMath("CLALL"); activeMenu = nil }
-            }
-            .navigationTitle("Clear"))
-        case .flags:
-            return AnyView(FlagsMenuView(engine: engine).environmentObject(themeManager))
-        case .regs, .mem, .const, .eqn, .plot, .show, .integrate, .solve, .xeq:
             return AnyView(EmptyView())
         }
     }

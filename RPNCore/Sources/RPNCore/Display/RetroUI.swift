@@ -1,6 +1,6 @@
 public class RetroUI {
     public var lfuManager: LFUManager
-    public var activeMenu: CalculatorMenu?
+    // activeMenu is now engine.activeMenu — the canonical shared state.
     public var waitingForMenuDigit: MenuItem?
     public var menuAlphaQuery: String = ""
     public var menuOffset: Int = 0
@@ -188,9 +188,9 @@ public class RetroUI {
         let hideSoftkeys = isShowingRegisters || isShowingFullPrecision
         
         if !hideSoftkeys {
-            let menuActive = activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq
+            let menuActive = engine.activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq
             if menuActive {
-                if let menu = activeMenu {
+                if let menu = engine.activeMenu {
                     // Temporarily using renderer.renderMenu as it might still contain manual logic
                     // We'll wrap it in a custom FirmwareView or skip rewriting renderMenu for this pass
                     // wait, renderMenu draws directly to renderer!

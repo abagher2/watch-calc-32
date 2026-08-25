@@ -33,8 +33,8 @@ final class RetroUIParityTests: XCTestCase {
         
         let cgImage = controller.renderer.toCGImage()
         XCTAssertNotNil(cgImage, "Renderer.toCGImage() should produce a valid CGImage")
-        XCTAssertEqual(cgImage?.width, 128, "CGImage width should be 128")
-        XCTAssertEqual(cgImage?.height, 64, "CGImage height should be 64")
+        XCTAssertEqual(cgImage?.width, 400, "CGImage width should be 400")
+        XCTAssertEqual(cgImage?.height, 240, "CGImage height should be 240")
     }
     #endif
     
@@ -56,20 +56,20 @@ final class RetroUIParityTests: XCTestCase {
 
     func testBaseMenuSoftkey() {
         controller.processAction(.base)
-        XCTAssertEqual(controller.retroUI.activeMenu?.rawValue, "BASE")
+        XCTAssertEqual(controller.engine.activeMenu?.rawValue, "BASE")
         
         controller.processAction(.lfu0)
         XCTAssertEqual(controller.engine.baseMode, .hex)
-        XCTAssertNil(controller.retroUI.activeMenu)
+        XCTAssertNil(controller.engine.activeMenu)
     }
 
     func testDispMenuSoftkeyAndFix4() {
         controller.processAction(.disp)
-        XCTAssertEqual(controller.retroUI.activeMenu?.rawValue, "DISP")
+        XCTAssertEqual(controller.engine.activeMenu?.rawValue, "DISP")
         
         controller.processAction(.lfu0)
         XCTAssertEqual(controller.retroUI.waitingForMenuDigit?.action, "FIX")
-        XCTAssertNil(controller.retroUI.activeMenu)
+        XCTAssertNil(controller.engine.activeMenu)
         
         controller.processAction(.digit4)
         if case .fix(let p) = controller.engine.displayMode {
@@ -95,34 +95,40 @@ final class RetroUIParityTests: XCTestCase {
     }
     
     func testLayoutRegionNonOverlapping() {
-        // 1. Softkey row (Y: 54-63) must strictly be contained within bottom 10 rows
+        // 1. Softkey row (Y: 200-239)
         controller.processAction(.base) // Opens softkey menu
         controller.render()
         
-        // Scan buffer (8 pages x 128 cols = 1024 bytes)
-        // Softkey region is Page 6 and 7 (Y: 48..63), specifically softkey boxes are Y: 54..63 (Page 6/7)
         var softkeyPixelsDrawn = false
-        for page in 6...7 {
-            for col in 0..<128 {
-                if controller.renderer.buffer[page * 128 + col] != 0 {
+        for y in 200..<240 {
+            for x in 0..<400 {
+                let byteIdx = y * 50 + (x / 8)
+                let bitIdx = x % 8
+                if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
                     softkeyPixelsDrawn = true
+                    break
                 }
             }
         }
-        XCTAssertTrue(softkeyPixelsDrawn, "Softkeys must render pixels in softkey region Y: 48-63")
+        XCTAssertTrue(softkeyPixelsDrawn, "Softkeys must render pixels in softkey region Y: 200-239")
         
-        // 2. Annunciators row (Page 0, Y: 0-7) must render within top region
+        // 2. Annunciators row (Y: 0-40)
         controller.processAction(.c) // Close menu
         engine.setShift(1)
         controller.render()
         
         var annunciatorPixelsDrawn = false
-        for col in 0..<128 {
-            if controller.renderer.buffer[0 * 128 + col] != 0 {
-                annunciatorPixelsDrawn = true
+        for y in 0..<40 {
+            for x in 0..<400 {
+                let byteIdx = y * 50 + (x / 8)
+                let bitIdx = x % 8
+                if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
+                    annunciatorPixelsDrawn = true
+                    break
+                }
             }
         }
-        XCTAssertTrue(annunciatorPixelsDrawn, "Annunciator must render pixels in top region Y: 0-7")
+        XCTAssertTrue(annunciatorPixelsDrawn, "Annunciator must render pixels in top region Y: 0-40")
     }
     
     func testHP32SIIDisplayJustification() {
@@ -132,20 +138,32 @@ final class RetroUIParityTests: XCTestCase {
         controller.render()
         
         var leftSideDigitPixels = 0
-        for col in 0...30 {
-            if controller.renderer.buffer[3 * 128 + col] != 0 { leftSideDigitPixels += 1 }
+        for y in 50..<180 {
+            for x in 0..<100 {
+                let byteIdx = y * 50 + (x / 8)
+                let bitIdx = x % 8
+                if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
+                    leftSideDigitPixels += 1
+                }
+            }
         }
-        XCTAssertGreaterThan(leftSideDigitPixels, 0, "Building number entry must be left-justified starting at X: 2")
+        XCTAssertGreaterThan(leftSideDigitPixels, 0, "Building number entry must be left-justified starting near left edge")
         
         // 2. Left-justified error message
         engine.errorMessage = "INVALID DATA"
         controller.render()
         
         var leftSidePixels = 0
-        for col in 0...30 {
-            if controller.renderer.buffer[3 * 128 + col] != 0 { leftSidePixels += 1 }
+        for y in 50..<180 {
+            for x in 0..<100 {
+                let byteIdx = y * 50 + (x / 8)
+                let bitIdx = x % 8
+                if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
+                    leftSidePixels += 1
+                }
+            }
         }
-        XCTAssertGreaterThan(leftSidePixels, 0, "Error message must be left-justified starting at X: 2")
+        XCTAssertGreaterThan(leftSidePixels, 0, "Error message must be left-justified starting near left edge")
     }
 }
 

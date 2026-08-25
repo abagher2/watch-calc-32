@@ -43,7 +43,7 @@ public struct HP32Key: Identifiable, Equatable {
 }
 
 public struct HP32KeyMap {
-    public static let standardGrid: [HP32Key] = [
+        private static let standardGrid_chunk0: [HP32Key] = [
         // Top Section (Functions)
         // Row 0 (6 cols) - LFU Pad (Dynamic)
         HP32Key(row: 0, col: 0, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu0),
@@ -53,15 +53,17 @@ public struct HP32KeyMap {
         HP32Key(row: 0, col: 4, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu4),
         HP32Key(row: 0, col: 5, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu5),
         
-        // Row 1 (6 cols) - Math Row
+        // Row 1 (6 cols) - Math Row,
         HP32Key(row: 1, col: 0, rowSpan: 1, label: "√𝑥", yellowLabel: "𝑥²", blueLabel: "PARTS", alphaLabel: "A", yellowAction: .square, blueAction: .parts, primaryAction: .sqrt),
         HP32Key(row: 1, col: 1, rowSpan: 1, label: "𝑒ˣ", yellowLabel: "10ˣ", blueLabel: "PROB", alphaLabel: "B", yellowAction: .exp10, blueAction: .prob, primaryAction: .exp),
-        HP32Key(row: 1, col: 2, rowSpan: 1, label: "LN", yellowLabel: "LOG", blueLabel: "L.R.", alphaLabel: "C", yellowAction: .log, blueAction: .lr, primaryAction: .ln),
+        HP32Key(row: 1, col: 2, rowSpan: 1, label: "LN", yellowLabel: "LOG", blueLabel: "L.R.", alphaLabel: "C", yellowAction: .log, blueAction: .lr, primaryAction: .ln)
+    ]
+    private static let standardGrid_chunk1: [HP32Key] = [
         HP32Key(row: 1, col: 3, rowSpan: 1, label: "𝑦ˣ", yellowLabel: "ˣ√𝑦", blueLabel: "𝑥̄,𝑦̄", alphaLabel: "D", yellowAction: .xRootY, blueAction: .statMean, primaryAction: .power),
         HP32Key(row: 1, col: 4, rowSpan: 1, label: "¹/𝑥", yellowLabel: "𝑥!", blueLabel: "s,σ", alphaLabel: "E", yellowAction: .factorial, blueAction: .statStdDev, primaryAction: .reciprocal),
         HP32Key(row: 1, col: 5, rowSpan: 1, label: "Σ+", yellowLabel: "Σ-", blueLabel: "SUMS", alphaLabel: "F", yellowAction: .statSub, blueAction: .sums, primaryAction: .statAdd),
         
-        // Row 2 (6 cols)
+        // Row 2 (6 cols),
         HP32Key(row: 2, col: 0, rowSpan: 1, label: "STO", yellowLabel: "CMPLX", blueLabel: "EQN", alphaLabel: "G", yellowAction: .cmplx, blueAction: .eqn, primaryAction: .sto),
         HP32Key(row: 2, col: 1, rowSpan: 1, label: "RCL", yellowLabel: "RND", blueLabel: "SCRL", alphaLabel: "H", yellowAction: .rnd, blueAction: .scrl, primaryAction: .rcl),
         HP32Key(row: 2, col: 2, rowSpan: 1, label: "R↓", yellowLabel: "HYP", blueLabel: "R↑", alphaLabel: "I", yellowAction: .hyp, blueAction: .rollUp, primaryAction: .rollDown),
@@ -70,99 +72,105 @@ public struct HP32KeyMap {
         HP32Key(row: 2, col: 5, rowSpan: 1, label: "TAN", yellowLabel: "ATAN", blueLabel: "%CHG", alphaLabel: "L", yellowAction: .atan, blueAction: .percentChange, primaryAction: .tan),
         
         // Row 3 (5 cols)
-        // Note: ENTER spans 2 columns in the UI, but we place it at col 0.
-        HP32Key(row: 3, col: 0, rowSpan: 1, colSpan: 2, label: "ENTER", yellowLabel: "LAST𝑥", blueLabel: "SHOW", alphaLabel: "M", yellowAction: .lastx, blueAction: .show, primaryAction: .enter),
+        // Note: ENTER spans 2 columns in the UI, but we place it at col 0.,
+        HP32Key(row: 3, col: 0, rowSpan: 1, colSpan: 2, label: "ENTER", yellowLabel: "LAST𝑥", blueLabel: "SHOW", alphaLabel: "M", yellowAction: .lastx, blueAction: .show, primaryAction: .enter)
+    ]
+    private static let standardGrid_chunk2: [HP32Key] = [
         HP32Key(row: 3, col: 2, rowSpan: 1, label: "𝑥≷𝑦", yellowLabel: "MEM", blueLabel: "𝑥≷?", alphaLabel: "N", yellowAction: .mem, blueAction: .swapXYPrompt, primaryAction: .swapXY),
         HP32Key(row: 3, col: 3, rowSpan: 1, label: "+/-", yellowLabel: "MODES", blueLabel: "|x|", alphaLabel: "O", yellowAction: .modes, blueAction: .abs, primaryAction: .toggleSign),
         HP32Key(row: 3, col: 4, rowSpan: 1, label: "E", yellowLabel: "DISP", blueLabel: "÷R", alphaLabel: "P", yellowAction: .disp, blueAction: .intDiv, primaryAction: .e),
         HP32Key(row: 3, col: 5, rowSpan: 1, label: "<-", yellowLabel: "CLEAR", blueLabel: "", alphaLabel: "", yellowAction: .clear, blueAction: nil, primaryAction: .backspace),
         
         // Bottom Section (Numpad)
-        // Row 4 (5 cols)
+        // Row 4 (5 cols),
         HP32Key(row: 4, col: 0, rowSpan: 1, label: "XEQ", yellowLabel: "FN=", blueLabel: "", alphaLabel: "", yellowAction: .fnEq, blueAction: nil, primaryAction: .xeq),
         HP32Key(row: 4, col: 1, rowSpan: 1, label: "7", yellowLabel: "↓", blueLabel: "SOLVE", alphaLabel: "Q", yellowAction: .scrollDown, blueAction: .solve, primaryAction: .digit7),
         HP32Key(row: 4, col: 2, rowSpan: 1, label: "8", yellowLabel: "↑", blueLabel: "∫", alphaLabel: "R", yellowAction: .scrollUp, blueAction: .integrate, primaryAction: .digit8),
         HP32Key(row: 4, col: 3, rowSpan: 1, label: "9", yellowLabel: "▸km", blueLabel: "▸mi", alphaLabel: "S", yellowAction: .toKm, blueAction: .toMi, primaryAction: .digit9),
         HP32Key(row: 4, col: 4, rowSpan: 1, label: "÷", yellowLabel: "𝑥?𝑦", blueLabel: "𝑥?0", alphaLabel: "", yellowAction: .testXY, blueAction: .testX0, primaryAction: .divide),
         
-        // Row 5 (5 cols)
-        HP32Key(row: 5, col: 0, rowSpan: 1, label: "yellow", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftYellow),
+        // Row 5 (5 cols),
+        HP32Key(row: 5, col: 0, rowSpan: 1, label: "yellow", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftYellow)
+    ]
+    private static let standardGrid_chunk3: [HP32Key] = [
         HP32Key(row: 5, col: 1, rowSpan: 1, label: "4", yellowLabel: "▸θ,𝑟", blueLabel: "▸𝑦,𝑥", alphaLabel: "T", yellowAction: .toPolar, blueAction: .toRectangular, primaryAction: .digit4),
         HP32Key(row: 5, col: 2, rowSpan: 1, label: "5", yellowLabel: "▸HR", blueLabel: "▸HMS", alphaLabel: "U", yellowAction: .toHr, blueAction: .toHms, primaryAction: .digit5),
         HP32Key(row: 5, col: 3, rowSpan: 1, label: "6", yellowLabel: "▸DEG", blueLabel: "▸RAD", alphaLabel: "V", yellowAction: .toDeg, blueAction: .toRad, primaryAction: .digit6),
         HP32Key(row: 5, col: 4, rowSpan: 1, label: "×", yellowLabel: "BASE", blueLabel: "FLAGS", alphaLabel: "", yellowAction: .base, blueAction: .flags, primaryAction: .multiply),
         
-        // Row 6 (5 cols)
+        // Row 6 (5 cols),
         HP32Key(row: 6, col: 0, rowSpan: 1, label: "blue", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftBlue),
         HP32Key(row: 6, col: 1, rowSpan: 1, label: "1", yellowLabel: "▸kg", blueLabel: "▸lb", alphaLabel: "W", yellowAction: .toKg, blueAction: .toLb, primaryAction: .digit1),
         HP32Key(row: 6, col: 2, rowSpan: 1, label: "2", yellowLabel: "▸°C", blueLabel: "▸°F", alphaLabel: "X", yellowAction: .toCelsius, blueAction: .toFahrenheit, primaryAction: .digit2),
         HP32Key(row: 6, col: 3, rowSpan: 1, label: "3", yellowLabel: "▸cm", blueLabel: "▸in", alphaLabel: "Y", yellowAction: .toCm, blueAction: .toIn, primaryAction: .digit3),
         HP32Key(row: 6, col: 4, rowSpan: 1, label: "-", yellowLabel: "▸l", blueLabel: "▸gal", alphaLabel: "", yellowAction: .toLiters, blueAction: .toGal, primaryAction: .subtract),
         
-        // Row 7 (5 cols)
-        HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: .c),
+        // Row 7 (5 cols),
+        HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: .c)
+    ]
+    private static let standardGrid_chunk4: [HP32Key] = [
         HP32Key(row: 7, col: 1, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
         HP32Key(row: 7, col: 2, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
         HP32Key(row: 7, col: 3, rowSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "", yellowAction: .const, blueAction: nil, primaryAction: .plot),
         HP32Key(row: 7, col: 4, rowSpan: 1, label: "+", yellowLabel: "LBL", blueLabel: "RTN", alphaLabel: "", yellowAction: .lbl, blueAction: .rtn, primaryAction: .add)
     ]
-    
-        public static let landscapeGrid: [HP32Key] = [
+    public static let standardGrid: [HP32Key] = standardGrid_chunk0 + standardGrid_chunk1 + standardGrid_chunk2 + standardGrid_chunk3 + standardGrid_chunk4
+#if canImport(CoreGraphics)
+    public static let landscapeGrid: [HP32Key] = [
         // Voyage Layout (HP-15C style geometry)
         // 4 Rows total, 11 columns. Numpad on the right (4 rows x 4 cols).
         // Middle separator (col 6) with vertical ENTER. Functions on the left (4 rows x 6 cols).
         
-        // Row 0
-        HP32Key(row: 0, col: 0, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu0),
-        HP32Key(row: 0, col: 1, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu1),
-        HP32Key(row: 0, col: 2, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu2),
-        HP32Key(row: 0, col: 3, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu3),
-        HP32Key(row: 0, col: 4, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu4),
-        HP32Key(row: 0, col: 5, rowSpan: 1, label: "", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .lfu5),
-        HP32Key(row: 0, col: 6, rowSpan: 1, label: "<-", yellowLabel: "CLEAR", blueLabel: "OFF", alphaLabel: "", yellowAction: .clear, blueAction: nil, primaryAction: .backspace),
-        HP32Key(row: 0, col: 7, rowSpan: 1, label: "7", yellowLabel: "↓", blueLabel: "SOLVE", alphaLabel: "Q", yellowAction: nil, blueAction: .solve, primaryAction: .digit7),
-        HP32Key(row: 0, col: 8, rowSpan: 1, label: "8", yellowLabel: "↑", blueLabel: "∫", alphaLabel: "R", yellowAction: nil, blueAction: .integrate, primaryAction: .digit8),
-        HP32Key(row: 0, col: 9, rowSpan: 1, label: "9", yellowLabel: "▸km", blueLabel: "▸mi", alphaLabel: "S", yellowAction: .toKm, blueAction: .toMi, primaryAction: .digit9),
-        HP32Key(row: 0, col: 10, rowSpan: 1, label: "÷", yellowLabel: "𝑥?𝑦", blueLabel: "𝑥?0", alphaLabel: "", yellowAction: .testXY, blueAction: .testX0, primaryAction: .divide),
+        // Row 0 (Top row)
+        HP32Key(row: 0, col: 0, rowSpan: 1, label: "√𝑥", yellowLabel: "A", blueLabel: "MATRIX", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .sqrt),
+        HP32Key(row: 0, col: 1, rowSpan: 1, label: "𝑒ˣ", yellowLabel: "B", blueLabel: "COMPLEX", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .exp),
+        HP32Key(row: 0, col: 2, rowSpan: 1, label: "10ˣ", yellowLabel: "C", blueLabel: "SOLVE", alphaLabel: "", yellowAction: nil, blueAction: .solve, primaryAction: .exp10),
+        HP32Key(row: 0, col: 3, rowSpan: 1, label: "𝑦ˣ", yellowLabel: "D", blueLabel: "INTEGRATE", alphaLabel: "", yellowAction: nil, blueAction: .integrate, primaryAction: .power),
+        HP32Key(row: 0, col: 4, rowSpan: 1, label: "¹/𝑥", yellowLabel: "E", blueLabel: "MODES", alphaLabel: "", yellowAction: nil, blueAction: .modes, primaryAction: .reciprocal),
+        HP32Key(row: 0, col: 5, rowSpan: 1, label: "CHS", yellowLabel: "F", blueLabel: "CLEAR", alphaLabel: "", yellowAction: nil, blueAction: .clear, primaryAction: .toggleSign),
+        HP32Key(row: 0, col: 7, rowSpan: 1, label: "7", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit7),
+        HP32Key(row: 0, col: 8, rowSpan: 1, label: "8", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit8),
+        HP32Key(row: 0, col: 9, rowSpan: 1, label: "9", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit9),
+        HP32Key(row: 0, col: 10, rowSpan: 1, label: "÷", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .divide),
         
         // Row 1
-        HP32Key(row: 1, col: 0, rowSpan: 1, label: "√𝑥", yellowLabel: "𝑥²", blueLabel: "PARTS", alphaLabel: "A", yellowAction: .square, blueAction: .parts, primaryAction: .sqrt),
-        HP32Key(row: 1, col: 1, rowSpan: 1, label: "𝑒ˣ", yellowLabel: "10ˣ", blueLabel: "PROB", alphaLabel: "B", yellowAction: .exp10, blueAction: .prob, primaryAction: .exp),
-        HP32Key(row: 1, col: 2, rowSpan: 1, label: "LN", yellowLabel: "LOG", blueLabel: "L.R.", alphaLabel: "C", yellowAction: .log, blueAction: .lr, primaryAction: .ln),
-        HP32Key(row: 1, col: 3, rowSpan: 1, label: "𝑦ˣ", yellowLabel: "ˣ√𝑦", blueLabel: "𝑥̄,𝑦̄", alphaLabel: "D", yellowAction: .xRootY, blueAction: .statMean, primaryAction: .power),
-        HP32Key(row: 1, col: 4, rowSpan: 1, label: "¹/𝑥", yellowLabel: "𝑥!", blueLabel: "s,σ", alphaLabel: "E", yellowAction: .factorial, blueAction: .statStdDev, primaryAction: .reciprocal),
-        HP32Key(row: 1, col: 5, rowSpan: 1, label: "Σ+", yellowLabel: "Σ-", blueLabel: "SUMS", alphaLabel: "F", yellowAction: .statSub, blueAction: .sums, primaryAction: .statAdd),
-        HP32Key(row: 1, col: 6, rowSpan: 1, label: "XEQ", yellowLabel: "FN=", blueLabel: "", alphaLabel: "", yellowAction: .fnEq, blueAction: nil, primaryAction: .xeq),
-        HP32Key(row: 1, col: 7, rowSpan: 1, label: "4", yellowLabel: "▸θ,𝑟", blueLabel: "▸𝑦,𝑥", alphaLabel: "T", yellowAction: .toPolar, blueAction: .toRectangular, primaryAction: .digit4),
-        HP32Key(row: 1, col: 8, rowSpan: 1, label: "5", yellowLabel: "▸HR", blueLabel: "▸HMS", alphaLabel: "U", yellowAction: .toHr, blueAction: .toHms, primaryAction: .digit5),
-        HP32Key(row: 1, col: 9, rowSpan: 1, label: "6", yellowLabel: "▸DEG", blueLabel: "▸RAD", alphaLabel: "V", yellowAction: .toDeg, blueAction: .toRad, primaryAction: .digit6),
-        HP32Key(row: 1, col: 10, rowSpan: 1, label: "×", yellowLabel: "BASE", blueLabel: "FLAGS", alphaLabel: "", yellowAction: .base, blueAction: .flags, primaryAction: .multiply),
+        HP32Key(row: 1, col: 0, rowSpan: 1, label: "SST", yellowLabel: "G", blueLabel: "LBL", alphaLabel: "", yellowAction: nil, blueAction: .lbl, primaryAction: nil),
+        HP32Key(row: 1, col: 1, rowSpan: 1, label: "GTO", yellowLabel: "H", blueLabel: "HYP", alphaLabel: "", yellowAction: nil, blueAction: .hyp, primaryAction: nil),
+        HP32Key(row: 1, col: 2, rowSpan: 1, label: "SIN", yellowLabel: "I", blueLabel: "ASIN", alphaLabel: "", yellowAction: nil, blueAction: .asin, primaryAction: .sin),
+        HP32Key(row: 1, col: 3, rowSpan: 1, label: "COS", yellowLabel: "J", blueLabel: "ACOS", alphaLabel: "", yellowAction: nil, blueAction: .acos, primaryAction: .cos),
+        HP32Key(row: 1, col: 4, rowSpan: 1, label: "TAN", yellowLabel: "K", blueLabel: "ATAN", alphaLabel: "", yellowAction: nil, blueAction: .atan, primaryAction: .tan),
+        HP32Key(row: 1, col: 5, rowSpan: 1, label: "EEX", yellowLabel: "L", blueLabel: "MEM", alphaLabel: "", yellowAction: nil, blueAction: .mem, primaryAction: .e),
+        HP32Key(row: 1, col: 6, rowSpan: 2, label: "ENTER", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .enter), // Tall ENTER
+        HP32Key(row: 1, col: 7, rowSpan: 1, label: "4", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit4),
+        HP32Key(row: 1, col: 8, rowSpan: 1, label: "5", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit5),
+        HP32Key(row: 1, col: 9, rowSpan: 1, label: "6", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit6),
+        HP32Key(row: 1, col: 10, rowSpan: 1, label: "×", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .multiply),
         
         // Row 2
-        HP32Key(row: 2, col: 0, rowSpan: 1, label: "STO", yellowLabel: "CMPLX", blueLabel: "EQN", alphaLabel: "G", yellowAction: .cmplx, blueAction: .eqn, primaryAction: .sto),
-        HP32Key(row: 2, col: 1, rowSpan: 1, label: "RCL", yellowLabel: "RND", blueLabel: "SCRL", alphaLabel: "H", yellowAction: .rnd, blueAction: .scrl, primaryAction: .rcl),
-        HP32Key(row: 2, col: 2, rowSpan: 1, label: "R↓", yellowLabel: "HYP", blueLabel: "R↑", alphaLabel: "I", yellowAction: .hyp, blueAction: .rollUp, primaryAction: .rollDown),
-        HP32Key(row: 2, col: 3, rowSpan: 1, label: "SIN", yellowLabel: "ASIN", blueLabel: "π", alphaLabel: "J", yellowAction: .asin, blueAction: .pi, primaryAction: .sin),
-        HP32Key(row: 2, col: 4, rowSpan: 1, label: "COS", yellowLabel: "ACOS", blueLabel: "%", alphaLabel: "K", yellowAction: .acos, blueAction: .percent, primaryAction: .cos),
-        HP32Key(row: 2, col: 5, rowSpan: 1, label: "TAN", yellowLabel: "ATAN", blueLabel: "%CHG", alphaLabel: "L", yellowAction: .atan, blueAction: .percentChange, primaryAction: .tan),
-        HP32Key(row: 2, col: 6, rowSpan: 2, label: "ENTER", yellowLabel: "LAST𝑥", blueLabel: "SHOW", alphaLabel: "M", yellowAction: .lastx, blueAction: .show, primaryAction: .enter),
-        HP32Key(row: 2, col: 7, rowSpan: 1, label: "1", yellowLabel: "▸kg", blueLabel: "▸lb", alphaLabel: "W", yellowAction: .toKg, blueAction: .toLb, primaryAction: .digit1),
-        HP32Key(row: 2, col: 8, rowSpan: 1, label: "2", yellowLabel: "▸°C", blueLabel: "▸°F", alphaLabel: "X", yellowAction: .toCelsius, blueAction: .toFahrenheit, primaryAction: .digit2),
-        HP32Key(row: 2, col: 9, rowSpan: 1, label: "3", yellowLabel: "▸cm", blueLabel: "▸in", alphaLabel: "Y", yellowAction: .toCm, blueAction: .toIn, primaryAction: .digit3),
-        HP32Key(row: 2, col: 10, rowSpan: 1, label: "-", yellowLabel: "▸l", blueLabel: "▸gal", alphaLabel: "", yellowAction: .toLiters, blueAction: .toGal, primaryAction: .subtract),
+        HP32Key(row: 2, col: 0, rowSpan: 1, label: "R/S", yellowLabel: "M", blueLabel: "PRGM", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: nil),
+        HP32Key(row: 2, col: 1, rowSpan: 1, label: "GSB", yellowLabel: "N", blueLabel: "RTN", alphaLabel: "", yellowAction: nil, blueAction: .rtn, primaryAction: nil),
+        HP32Key(row: 2, col: 2, rowSpan: 1, label: "R↓", yellowLabel: "O", blueLabel: "R↑", alphaLabel: "", yellowAction: nil, blueAction: .rollUp, primaryAction: .rollDown),
+        HP32Key(row: 2, col: 3, rowSpan: 1, label: "𝑥≷𝑦", yellowLabel: "P", blueLabel: "𝑥≷?", alphaLabel: "", yellowAction: nil, blueAction: .swapXYPrompt, primaryAction: .swapXY),
+        HP32Key(row: 2, col: 4, rowSpan: 1, label: "<-", yellowLabel: "Q", blueLabel: "TEST", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .backspace),
+        HP32Key(row: 2, col: 5, rowSpan: 1, label: "ON", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: nil),
+        HP32Key(row: 2, col: 7, rowSpan: 1, label: "1", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit1),
+        HP32Key(row: 2, col: 8, rowSpan: 1, label: "2", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit2),
+        HP32Key(row: 2, col: 9, rowSpan: 1, label: "3", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit3),
+        HP32Key(row: 2, col: 10, rowSpan: 1, label: "-", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .subtract),
         
-        // Row 3
-        HP32Key(row: 3, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: .c),
-        HP32Key(row: 3, col: 1, rowSpan: 1, label: "yellow", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftYellow),
-        HP32Key(row: 3, col: 2, rowSpan: 1, label: "blue", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftBlue),
-        HP32Key(row: 3, col: 3, rowSpan: 1, label: "𝑥≷𝑦", yellowLabel: "MEM", blueLabel: "𝑥≷?", alphaLabel: "N", yellowAction: .mem, blueAction: .swapXYPrompt, primaryAction: .swapXY),
-        HP32Key(row: 3, col: 4, rowSpan: 1, label: "+/-", yellowLabel: "MODES", blueLabel: "|x|", alphaLabel: "O", yellowAction: .modes, blueAction: .abs, primaryAction: .toggleSign),
-        HP32Key(row: 3, col: 5, rowSpan: 1, label: "E", yellowLabel: "DISP", blueLabel: "÷R", alphaLabel: "P", yellowAction: .disp, blueAction: .intDiv, primaryAction: .e),
-        HP32Key(row: 3, col: 7, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
-        HP32Key(row: 3, col: 8, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
-        HP32Key(row: 3, col: 9, rowSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "", yellowAction: .const, blueAction: nil, primaryAction: .plot),
-        HP32Key(row: 3, col: 10, rowSpan: 1, label: "+", yellowLabel: "LBL", blueLabel: "RTN", alphaLabel: "", yellowAction: .lbl, blueAction: .rtn, primaryAction: .add)
+        // Row 3 (Bottom row)
+        HP32Key(row: 3, col: 0, rowSpan: 1, label: "yellow", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftYellow),
+        HP32Key(row: 3, col: 1, rowSpan: 1, label: "blue", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .shiftBlue),
+        HP32Key(row: 3, col: 2, rowSpan: 1, label: "STO", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "", yellowAction: .regs, blueAction: .view, primaryAction: .sto),
+        HP32Key(row: 3, col: 3, rowSpan: 1, label: "RCL", yellowLabel: "INT", blueLabel: "FRAC", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .rcl),
+        HP32Key(row: 3, col: 4, rowSpan: 1, label: "Σ+", yellowLabel: "STAT", blueLabel: "ABS", alphaLabel: "", yellowAction: nil, blueAction: .abs, primaryAction: .statAdd),
+        HP32Key(row: 3, col: 5, rowSpan: 1, label: "MACRO", yellowLabel: "SHOW", blueLabel: "DISP", alphaLabel: "", yellowAction: .show, blueAction: .disp, primaryAction: nil),
+        HP32Key(row: 3, col: 7, rowSpan: 1, label: "0", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit0),
+        HP32Key(row: 3, col: 8, rowSpan: 1, label: ".", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .decimal),
+        HP32Key(row: 3, col: 9, rowSpan: 1, label: "Σ-", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .statSub),
+        HP32Key(row: 3, col: 10, rowSpan: 1, label: "+", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .add)
     ]
+#endif
 }
 
 
@@ -176,6 +184,7 @@ public func alphaLabel(for primaryAction: CalculatorOperation?) -> String? {
     return nil
 }
 
+#if canImport(CoreGraphics)
     public let physicalKeyOffsets: [String: (x: CGFloat, y: CGFloat, w: CGFloat, h: CGFloat)] = [
         "SOFT1": (x: 7.600, y: 94.000, w: 7.5, h: 6.0),
         "SOFT2": (x: 18.600, y: 94.000, w: 7.5, h: 6.0),
@@ -221,3 +230,4 @@ public func alphaLabel(for primaryAction: CalculatorOperation?) -> String? {
         "PLOT": (x: 51.600, y: 10.000, w: 7.5, h: 6.0),
         "+": (x: 62.600, y: 10.000, w: 7.5, h: 6.0),
     ]
+#endif

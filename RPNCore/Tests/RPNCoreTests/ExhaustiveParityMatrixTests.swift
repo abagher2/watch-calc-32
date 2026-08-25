@@ -19,7 +19,7 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
             guard let op = menuOp else { continue }
             
             controller.processAction(op)
-            XCTAssertEqual(controller.retroUI.activeMenu, menu, "Failed to open menu \(menu.rawValue)")
+            XCTAssertEqual(controller.engine.activeMenu, menu, "Failed to open menu \(menu.rawValue)")
             
             // Assert display rendering
             controller.render()
@@ -59,7 +59,7 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
                 }
                 
                 // Active menu should be closed after selection
-                XCTAssertNil(controller.retroUI.activeMenu, "Menu \(menu.rawValue) did not close after selecting \(item.label)")
+                XCTAssertNil(controller.engine.activeMenu, "Menu \(menu.rawValue) did not close after selecting \(item.label)")
                 
                 // Reset for next item
                 controller.processAction(.clear)

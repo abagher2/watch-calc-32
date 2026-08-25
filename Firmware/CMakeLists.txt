@@ -29,6 +29,7 @@ file(GLOB FIRMWARE_SOURCES "*.swift" "core/*.swift" "display/*.swift")
 
 add_executable(WatchCalcFirmware
     hardware_wrapper.c
+    font_bitmaps.c
     missing_stubs.c
     ${FIRMWARE_SOURCES}
     ${RPN_CORE_SOURCES}
@@ -39,6 +40,7 @@ target_compile_definitions(WatchCalcFirmware PRIVATE EMULATOR=1)
 target_compile_options(WatchCalcFirmware PRIVATE $<$<COMPILE_LANGUAGE:Swift>:-DEMULATOR>)
 
 set_target_properties(WatchCalcFirmware PROPERTIES LINKER_LANGUAGE CXX)
+target_link_options(WatchCalcFirmware PRIVATE -Wl,--defsym=PICO_HEAP_SIZE=220000)
 
 target_link_libraries(WatchCalcFirmware
     pico_stdlib hardware_spi hardware_gpio hardware_timer

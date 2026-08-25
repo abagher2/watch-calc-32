@@ -24,8 +24,8 @@ public func mapOp(_ opToExecute: String) -> CalculatorOperation {
     case "𝑥?𝑦":           return .testXY
     case "𝑥?0":           return .testX0
     case "LAST𝑥":         return .lastx
-    case "𝑥≷𝑦", "𝑥≷𝑦":  return .swapXY
-    case "𝑥≷?", "𝑥≷?":  return .swapXYPrompt
+    case "𝑥≷𝑦":           return .swapXY
+    case "𝑥≷?":           return .swapXYPrompt
     case "∫":              return .integrate
     case "Σ+":             return .statAdd
     case "Σ-":             return .statSub

@@ -84,7 +84,7 @@ public class Renderer {
         return returnWidth
     }
     
-    private func drawGlyphFromStatic(_ data: [UInt8], offset: Int, width: Int, height: Int, bytesPerRow: Int, x: Int, y: Int, color: Bool, bold: Bool = false, scale: Int = 1) {
+    final private func drawGlyphFromStatic<C: RandomAccessCollection>(_ data: C, offset: Int, width: Int, height: Int, bytesPerRow: Int, x: Int, y: Int, color: Bool, bold: Bool = false, scale: Int = 1) where C.Element == UInt8, C.Index == Int {
         for row in 0..<height {
             for byteIdx in 0..<bytesPerRow {
                 let rowByte = data[offset + row * bytesPerRow + byteIdx]

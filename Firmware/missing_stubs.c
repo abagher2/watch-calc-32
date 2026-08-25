@@ -5,6 +5,9 @@
 #include <stdio.h>
 int posix_memalign(void **memptr, size_t alignment, size_t size) {
     *memptr = malloc(size);
+    if (*memptr == NULL) {
+        printf("posix_memalign OOM: size=%zu align=%zu\n", size, alignment);
+    }
     return 0;
 }
 

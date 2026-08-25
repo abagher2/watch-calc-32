@@ -6,9 +6,13 @@ import CoreGraphics
 
 public struct RetroLCDView: View {
     @Bindable public var engine: CalculatorEngine
-    public var controller: RetroUIController
+    @State private var internalController: RetroUIController
     public var pixelColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8)
     public var backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8)
+    
+    public var controller: RetroUIController {
+        internalController
+    }
     
     public init(
         engine: CalculatorEngine,
@@ -17,7 +21,7 @@ public struct RetroLCDView: View {
         backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (245, 245, 245, 255)
     ) {
         self.engine = engine
-        self.controller = controller ?? RetroUIController(engine: engine)
+        self._internalController = State(initialValue: controller ?? RetroUIController(engine: engine))
         self.pixelColor = pixelColor
         self.backgroundColor = backgroundColor
     }

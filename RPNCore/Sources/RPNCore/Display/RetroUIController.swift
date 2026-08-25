@@ -82,7 +82,7 @@ public class RetroUIController {
         if finalOp == .regs {
             retroUI.isShowingRegisters = true
             retroUI.regsOffset = 0
-            retroUI.activeMenu = nil
+            engine.activeMenu = nil
             return
         }
         
@@ -93,7 +93,7 @@ public class RetroUIController {
             if finalOp == .plot { retroUI.softkeyMode = .plot }
             if finalOp == .xeq { retroUI.softkeyMode = .xeq }
             retroUI.softkeyProgram = nil
-            retroUI.activeMenu = nil
+            engine.activeMenu = nil
             return
         }
         
@@ -250,7 +250,7 @@ public class RetroUIController {
             } else if finalOp == .enter {
                 engine.submitAlpha("ENTER")
             } else if let alpha = finalOp.alphaLabel ?? (finalOp.stringValue.count == 1 ? finalOp.stringValue : nil) {
-                if let menu = retroUI.activeMenu {
+                if let menu = engine.activeMenu {
                     retroUI.menuAlphaQuery.append(alpha)
                     menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
                 } else {
@@ -266,11 +266,11 @@ public class RetroUIController {
                 engine.executeMath("\(pendingItem.action) \(digit)")
             }
             retroUI.waitingForMenuDigit = nil
-            retroUI.activeMenu = nil
+            engine.activeMenu = nil
             return
         }
         
-        if let menu = retroUI.activeMenu {
+        if let menu = engine.activeMenu {
             let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
             
             if finalOp.stringValue.hasPrefix("LFU_") {
@@ -307,7 +307,7 @@ public class RetroUIController {
                     let selected = items[actualIndex]
                     if selected.requiresDigit {
                         retroUI.waitingForMenuDigit = selected
-                        retroUI.activeMenu = nil
+                        engine.activeMenu = nil
                         retroUI.menuOffset = 0
                     } else {
                         if selected.action == "REGS" {
@@ -317,7 +317,7 @@ public class RetroUIController {
                             engine.executeMath(selected.action)
                             lfuManager.recordUsage(of: selected.action)
                         }
-                        retroUI.activeMenu = nil
+                        engine.activeMenu = nil
                         retroUI.menuOffset = 0
                     }
                 }
@@ -329,7 +329,7 @@ public class RetroUIController {
                     retroUI.menuAlphaQuery.removeLast()
                     menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
                 } else {
-                    retroUI.activeMenu = nil
+                    engine.activeMenu = nil
                     retroUI.menuOffset = 0
                 }
                 return
@@ -338,7 +338,7 @@ public class RetroUIController {
 
         
         if let newMenu = CalculatorMenu(rawValue: finalOp.stringValue) {
-            retroUI.activeMenu = newMenu
+            engine.activeMenu = newMenu
             retroUI.menuAlphaQuery = ""
             retroUI.menuOffset = 0
             menuItemsDisplayCache = newMenu.items

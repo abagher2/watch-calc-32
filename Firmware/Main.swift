@@ -289,7 +289,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             if isSleeping {
                 var changed = false
                 if let prev = renderer.previousBuffer {
-                    for i in 0..<1024 {
+                    for i in 0..<renderer.buffer.count {
                         if prev[i] != renderer.buffer[i] { changed = true; break }
                     }
                 } else { changed = true }
@@ -297,8 +297,8 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 if changed {
                     renderer.buffer.withUnsafeBufferPointer { ptr in
                         display_send_buffer(ptr.baseAddress!)
-                        if renderer.previousBuffer == nil { renderer.previousBuffer = [UInt8](repeating: 0, count: 1024) }
-                        for i in 0..<1024 { renderer.previousBuffer![i] = ptr[i] }
+                        if renderer.previousBuffer == nil { renderer.previousBuffer = [UInt8](repeating: 0, count: renderer.buffer.count) }
+                        for i in 0..<renderer.buffer.count { renderer.previousBuffer![i] = ptr[i] }
                     }
                 }
                 hw_display_sleep_c()
@@ -311,7 +311,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             
             var changed = false
             if let prev = renderer.previousBuffer {
-                for i in 0..<1024 {
+                for i in 0..<renderer.buffer.count {
                     if prev[i] != renderer.buffer[i] { changed = true; break }
                 }
             } else { changed = true }
@@ -319,8 +319,8 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             if changed {
                 renderer.buffer.withUnsafeBufferPointer { ptr in
                     display_send_buffer(ptr.baseAddress!)
-                    if renderer.previousBuffer == nil { renderer.previousBuffer = [UInt8](repeating: 0, count: 1024) }
-                    for i in 0..<1024 { renderer.previousBuffer![i] = ptr[i] }
+                    if renderer.previousBuffer == nil { renderer.previousBuffer = [UInt8](repeating: 0, count: renderer.buffer.count) }
+                    for i in 0..<renderer.buffer.count { renderer.previousBuffer![i] = ptr[i] }
                 }
             }
             needsDisplay = false

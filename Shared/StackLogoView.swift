@@ -11,15 +11,15 @@ public struct StackLogoView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: -0.1 * fontSize) {
-            Text("S")
-            Text("t")
-            Text("a")
-            Text("c")
-            Text("k")
-            Text("C")
-            Text("a")
-            Text("l")
-            Text("c")
+            Text("S").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("t").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("a").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("c").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("k").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("C").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("a").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("l").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
+            Text("c").rotationEffect(.degrees(90)) // Rotates 90 degrees clockwise
             Text("32")
         }
         .font(.system(size: fontSize, weight: .bold, design: .monospaced))

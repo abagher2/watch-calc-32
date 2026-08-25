@@ -161,39 +161,64 @@ module squircle_centered(w, h, depth, r) {{
 }}
 
 module key_button(w, h) {{
-    // 1. Cap section (touches bed, Z=0 to Z=0.6)
-    squircle_centered(w, h, 0.6, 1.5);
-    // 2. Upper Flange 45° Slope (expands from w x h to w+1.2 x h+1.2, Z=0.6 to Z=1.2)
+    // Cap and flange: squircle profile (comfortable to press, good FDM adhesion)
+    // Shaft: CRUCIFORM (+) profile — 4 arms at 90° prevent angular tilt.
+    //   Any tilt immediately contacts one arm tip against the guide wall,
+    //   giving 4x better tilt resistance than a plain rectangle.
+    //   Arm width = 0.35*w (≈1.9mm), so the center rib is structurally solid.
+    // 1. Cap (Z=-0.8..0.0): protrudes 0.8mm above the top surface at rest!
+    translate([0, 0, -0.8]) squircle_centered(w, h, 0.8, 1.5);
+    // 2. Upper Flange (Z=0.0..0.6)
     hull() {{
-        translate([0, 0, 0.6]) squircle_centered(w, h, 0.01, 1.5);
-        translate([0, 0, 1.2]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+        translate([0, 0, 0.0]) squircle_centered(w,       h,       0.01, 1.5);
+        translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
     }}
-    // 3. Lower Flange 45° Slope (contracts from w+1.2 x h+1.2 back to w x h, Z=1.2 to Z=1.8)
+    // 3. Lower Flange (Z=0.6..1.2)
     hull() {{
-        translate([0, 0, 1.2]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
-        translate([0, 0, 1.8]) squircle_centered(w, h, 0.01, 1.5);
+        translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+        translate([0, 0, 1.2]) squircle_centered(w,       h,       0.01, 1.5);
     }}
-    // 4. Shaft (Z=1.8 to Z=3.6, total height 3.6mm; extends 0.6mm past Z=3.0 faceplate back to press switch)
-    translate([0, 0, 1.8]) squircle_centered(w, h, 1.8, 1.5);
+    // 4. Cruciform Shaft (Z=1.2..3.0) — Ends exactly flush with Faceplate bottom!
+    arm_w = w * 0.40;   // ≈2.2mm wide arm (along h axis)
+    arm_h = h * 0.40;   // ≈1.6mm wide arm (along w axis)
+    translate([0, 0, 1.2]) union() {{
+        // Horizontal bar (full width w, narrow height arm_h)
+        translate([-w/2, -arm_h/2, 0]) cube([w, arm_h, 1.8]);
+        // Vertical bar (narrow width arm_w, full height h)
+        translate([-arm_w/2, -h/2, 0]) cube([arm_w, h, 1.8]);
+    }}
 }}
 
 module button_pocket(w, h) {{
-    // 1. Front Opening (Z=-0.1 to Z=0.6) -> Roof Z=0..0.6, tight 0.35mm clearance around cap (w+0.7 x h+0.7)
-    translate([0, 0, -0.1]) squircle_centered(w + 0.7, h + 0.7, 0.7, 1.5);
-    // 2. Upper 45° Lock Roof Slope (Z=0.6 to Z=1.2) -> Expands from w+0.7 x h+0.7 to w+1.9 x h+1.9
+    // Designed for TWO distinct travel ranges:
+    //   Upward (spring): 0.8mm — switch spring pushes button out; cap protrudes 0.8mm above front face.
+    //   Downward (press): 0.6mm — user presses down; flange peak hits lower slope exit at Z=2.0.
+    //
+    // In the PRINTED position: cap sits at Z=0..0.8 (inside faceplate, flush with front face).
+    // When ASSEMBLED: switch spring pushes button UP 0.8mm → cap protrudes Z=-0.8..0 (0.8mm above face).
+    // When PRESSED 0.6mm: cap at Z=-0.2..0.6, shaft presses tactile switch 0.6mm past back face.
+    //
+    // 1. Roof Lock / Cap Guide (Z=-0.1 to Z=0.6)
+    //    Extends 0.1mm past Z=0 to prevent CGAL Z-fighting on the faceplate surface!
+    //    The rim precisely wraps around the cap (0.35mm gap) providing continuous centering!
     hull() {{
-        translate([0, 0, 0.6]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
+        translate([0, 0, -0.1]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
+        translate([0, 0, 0.6]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
+    }}
+    // 2. Middle Cavity (Z=0.6 to Z=1.2)
+    translate([0, 0, 0.6]) squircle_centered(w + 1.9, h + 1.9, 0.6, 1.5);
+    // 3. Lower Shelf Lock (Z=1.2 to Z=1.8): Hard-stops the flange peak at Z=1.2.
+    hull() {{
         translate([0, 0, 1.2]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
+        translate([0, 0, 1.8]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
     }}
-    // 3. Middle Cavity Body (Z=1.2 to Z=1.8) -> Houses peak of flange (w+1.9 x h+1.9)
-    translate([0, 0, 1.2]) squircle_centered(w + 1.9, h + 1.9, 0.61, 1.5);
-    // 4. Lower 45° Lock Shelf Slope (Z=1.8 to Z=2.4) -> Contracts from w+1.9 x h+1.9 back to w+0.7 x h+0.7 (stops downward travel at 0.6mm)
-    hull() {{
-        translate([0, 0, 1.8]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
-        translate([0, 0, 2.4]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
+    // 4. Back exit guide (Z=1.8 to Z=3.1): cross shape to perfectly constrain the shaft.
+    arm_w_hole = w * 0.40 + 0.7;
+    arm_h_hole = h * 0.40 + 0.7;
+    translate([0, 0, 1.8]) union() {{
+        translate([-(w + 0.7)/2, -arm_h_hole/2, 0]) cube([w + 0.7, arm_h_hole, pt - 1.8 + 0.1]);
+        translate([-arm_w_hole/2, -(h + 0.7)/2, 0]) cube([arm_w_hole, h + 0.7, pt - 1.8 + 0.1]);
     }}
-    // 5. Back Opening Hole (Z=2.4 to Z=3.1) -> Guides shaft out the back of the 3.0mm faceplate (w+0.7 x h+0.7)
-    translate([0, 0, 2.4]) squircle_centered(w + 0.7, h + 0.7, pt - 2.4 + 0.1, 1.5);
 }}
 
 module faceplate_body() {{

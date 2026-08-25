@@ -14,7 +14,8 @@ public struct MenuItem: Equatable {
     }
 }
 
-public enum CalculatorMenu: String, CaseIterable {
+public enum CalculatorMenu: String, CaseIterable, Identifiable {
+    public var id: String { rawValue }
     case disp = "DISP"
     case modes = "MODES"
     case base = "BASE"
@@ -88,21 +89,34 @@ public enum CalculatorMenu: String, CaseIterable {
             MenuItem(label: "INF", action: "STKINF")
         ]
         case .clear: return [
-            MenuItem(label: "Σ", action: "CLΣ"), MenuItem(label: "PRGM", action: "CLPRGM"),
-            MenuItem(label: "REGS", action: "CLREGS"), MenuItem(label: "VARS", action: "CLVARS"),
-            MenuItem(label: "STK", action: "CLSTK"), MenuItem(label: "ALL", action: "CLALL")
+            MenuItem(label: "CLx"),
+            MenuItem(label: "CLΣ", action: "CLΣ"),
+            MenuItem(label: "CLVARS"),
+            MenuItem(label: "CLREGS"),
+            MenuItem(label: "CLSTK"),
+            MenuItem(label: "CLPRGM"),
+            MenuItem(label: "CLALL")
         ]
         case .parts: return [
             MenuItem(label: "INT", action: "INTG"), MenuItem(label: "FRAC"), MenuItem(label: "ABS"), MenuItem(label: "SGN")
         ]
         case .prob: return [
-            MenuItem(label: "nPr"), MenuItem(label: "nCr"), MenuItem(label: "!", action: "𝑥!"), MenuItem(label: "RAND")
+            MenuItem(label: "Cn,r", action: "nCr"),
+            MenuItem(label: "Pn,r", action: "nPr"),
+            MenuItem(label: "n!",   action: "𝑥!"),
+            MenuItem(label: "RAND")
         ]
         case .sums: return [
             MenuItem(label: "Σx"), MenuItem(label: "Σy"), MenuItem(label: "Σx²"), MenuItem(label: "Σy²"), MenuItem(label: "Σxy"), MenuItem(label: "n")
         ]
+        /// .stat is the top-level entry point for the statistics sub-menu group (triggered by SD/YELLOW+Σ+).
+        /// On iOS/watch it shows the four statistical sub-menus as navigation items.
+        /// On firmware, the SD key triggers .statMean directly (LFU-row navigation).
         case .stat: return [
-            MenuItem(label: "x̄"), MenuItem(label: "ȳ"), MenuItem(label: "s"), MenuItem(label: "σ"), MenuItem(label: "L.R."), MenuItem(label: "ŷ")
+            MenuItem(label: "𝑥̄,ȳ",  action: "STATMEAN"),
+            MenuItem(label: "s,σ",  action: "STATSTDDEV"),
+            MenuItem(label: "L.R.", action: "STATLR"),
+            MenuItem(label: "SUMS", action: "STATSUMS")
         ]
         case .mem: return [
             MenuItem(label: "VARS"), MenuItem(label: "PRGM"), MenuItem(label: "REGS")
@@ -122,7 +136,27 @@ public enum CalculatorMenu: String, CaseIterable {
         case .testX0: return [
             MenuItem(label: "x=0"), MenuItem(label: "x≠0"), MenuItem(label: "x>0"), MenuItem(label: "x<0"), MenuItem(label: "x≥0"), MenuItem(label: "x≤0")
         ]
-        default: return []
+        }
+    }
+
+    public var title: String {
+        switch self {
+        case .disp:        return "Display"
+        case .modes:       return "Modes"
+        case .base:        return "Base"
+        case .clear:       return "Clear"
+        case .flags:       return "Flags"
+        case .mem:         return "Memory"
+        case .parts:       return "Parts"
+        case .prob:        return "Probability"
+        case .sums:        return "Sums"
+        case .stat:        return "Statistics"
+        case .statMean:    return "Mean"
+        case .statStdDev:  return "Std Dev"
+        case .lr:          return "Linear Reg"
+        case .testXY:      return "Test x ? y"
+        case .testX0:      return "Test x ? 0"
+        case .const:       return "Constants"
         }
     }
 }

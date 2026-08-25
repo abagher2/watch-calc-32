@@ -31,7 +31,7 @@ final class RetroUIOverlapTests: XCTestCase {
     
     func testNoOverlapInMenuMode() {
         engine.digit(1)
-        retroUI.activeMenu = .modes
+        engine.activeMenu = .modes
         
         renderer.clear()
         retroUI.render(engine: engine, renderer: renderer)

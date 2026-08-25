@@ -32,6 +32,8 @@
 		50F3561737A713F6E54AAF53 /* RetroLCDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5FF932005D901141851A10E /* RetroLCDView.swift */; };
 		557C12CDF899D0D4437A8DE7 /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8E389B957D6122784C1BA759 /* RPNCore */; };
 		564A856B750D5CABF62B9459 /* IntegratePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8E529A160D5BC4C1496CD8 /* IntegratePromptView.swift */; };
+		11AA22BB33CC44DD55EE66FF /* CalculatorMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */; };
+		77AA88BB99CC00DD11EE22FF /* CalculatorMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */; };
 		58F28A184C1A9E523281AA68 /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */; };
 		5D743E950F2FC3AAB6617887 /* TestMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7C283D0CEAB022295E7B1D /* TestMath.swift */; };
 		60328FD87215F85105CEF251 /* IntegratePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8E529A160D5BC4C1496CD8 /* IntegratePromptView.swift */; };
@@ -132,6 +134,7 @@
 		17629A8693F8F771F62F569E /* BottomNumpadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNumpadView.swift; sourceTree = "<group>"; };
 		1F3165DB6603B8CB899FE106 /* TestTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTap.swift; sourceTree = "<group>"; };
 		33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BezelButtonStyle.swift; sourceTree = "<group>"; };
+		AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorMenuPresenter.swift; sourceTree = "<group>"; };
 		33991CEEE3881C86E8B242A0 /* StackCalc32UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackCalc32UITests.swift; sourceTree = "<group>"; };
 		34A59967A5C5ECDEC366BEA8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		354335B39A637693BBC2FB3F /* MathLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathLabel.swift; sourceTree = "<group>"; };
@@ -334,6 +337,7 @@
 			isa = PBXGroup;
 			children = (
 				33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */,
+				AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */,
 				5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */,
 				6DEDBBAF63A2C6EAC6AB81D1 /* KeyActionDispatcher.swift */,
 				002FF637DAD5F31759348EDE /* LCDDisplayView.swift */,
@@ -565,6 +569,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EBEE1C5B5484AA09EDE6E96D /* BezelButtonStyle.swift in Sources */,
+				11AA22BB33CC44DD55EE66FF /* CalculatorMenuPresenter.swift in Sources */,
 				3BA3B085D748B38A164EF9BC /* BottomNumpadView.swift in Sources */,
 				2042F1A1DF5C6B14EBF72E42 /* CalcButton.swift in Sources */,
 				7BBE0D33444587D0C2FCD853 /* ClearMenuView.swift in Sources */,
@@ -631,6 +636,7 @@
 			files = (
 				0477C536F67CD3E9B9719732 /* AppDelegate.swift in Sources */,
 				58F28A184C1A9E523281AA68 /* BezelButtonStyle.swift in Sources */,
+				77AA88BB99CC00DD11EE22FF /* CalculatorMenuPresenter.swift in Sources */,
 				D04AA9592412BDD0A8BD4003 /* ClearMenuView.swift in Sources */,
 				F676D4B28518720C8B6C44AF /* ConstantsMenuView.swift in Sources */,
 				4A36F668EE43AE7CCFFD8DC3 /* EquationListView.swift in Sources */,

@@ -6,40 +6,14 @@ struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     @AppStorage("hasSeenEnterTip") private var hasSeenEnterTip = false
-    @State private var showingPlot = false
-    @State private var showEquations = false
-    @State private var showClearMenu = false
-    @State private var showProbMenu = false
-    @State private var showPartsMenu = false
-    @State private var showLRMenu = false
-    @State private var showSumsMenu = false
-    @State private var showMeanMenu = false
-    @State private var showStdDevMenu = false
-    @State private var showFN = false
-    @State private var showSolve = false
-    @State private var showXEQ = false
-    @State private var showConstMenu = false
-    @State private var showIntegrate = false
-    @State private var showPlotPrompt = false
-    @State private var showShow = false
-    @State private var showMemMenu = false
-    @State private var showRegsMenu = false
-    @State private var showProgramEditor = false
     @State private var crownValue: Double = 0.0
     @FocusState private var isFocused: Bool
     @FocusState private var isAlphaFocused: Bool
     @State private var alphaInput = ""
-    @State private var showDisp = false
-    @State private var showModes = false
-    @State private var showTestXY = false
-    @State private var showTestX0 = false
-    @State private var showBaseMenu = false
-    @State private var showFlagsMenu = false
-    
+
     @State private var horizontalPage: Int = 1
     @State private var verticalPage: Int = 0
-    @State private var dispPrecision: Int = 4
-    
+
     #if os(watchOS)
     @AppStorage("hapticsMode") private var hapticsMode: Int = 2
 #else
@@ -75,6 +49,19 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
+    private var plotProgressOverlay: some View {
+        if engine.isGeneratingPlot {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .scaleEffect(1.5)
+                .padding()
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(8)
+                .position(x: 30, y: 30)
+        }
+    }
+
     var body: some View {
         @Bindable var bindableEngine = engine
         GeometryReader { geo in
@@ -89,13 +76,21 @@ struct ContentView: View {
                         .focusable()
                         .focused($isFocused)
                         .digitalCrownRotation($crownValue)
-                        .onChange(of: crownValue) { old, new in
+                        .onChange(of: crownValue) { new in
                             let delta = new - engine.lastCrownValue
                             if abs(delta) > 0.5 {
                                 if engine.isProgrammingMode {
-                                    showProgramEditor = true
+                                    NotificationCenter.default.post(
+                                        name: NSNotification.Name("WatchMenuTrigger"),
+                                        object: nil,
+                                        userInfo: ["command": CalculatorOperation.eqn]
+                                    )
                                 } else if engine.isEquationMode {
-                                    showEquations = true
+                                    NotificationCenter.default.post(
+                                        name: NSNotification.Name("WatchMenuTrigger"),
+                                        object: nil,
+                                        userInfo: ["command": CalculatorOperation.eqn]
+                                    )
                                 }
                                 engine.lastCrownValue = new
                             }
@@ -109,7 +104,10 @@ struct ContentView: View {
                             .opacity(0.01)
                         }
                         
-                    BottomNumpadView(showDisp: $showDisp, showModes: $showModes, showTestXY: $showTestXY, showTestX0: $showTestX0, showBaseMenu: $showBaseMenu, showFlagsMenu: $showFlagsMenu, showingPlot: $showingPlot, showPlotPrompt: $showPlotPrompt, showEquations: $showEquations, showShow: $showShow, showFN: $showFN, showSolve: $showSolve, showIntegrate: $showIntegrate, showClearMenu: $showClearMenu, showProbMenu: $showProbMenu, showPartsMenu: $showPartsMenu, showLRMenu: $showLRMenu, showSumsMenu: $showSumsMenu, showMeanMenu: $showMeanMenu, showStdDevMenu: $showStdDevMenu, showMemMenu: $showMemMenu, showRegsMenu: $showRegsMenu, showXEQ: $showXEQ, showConstMenu: $showConstMenu, horizontalPage: $horizontalPage, verticalPage: $verticalPage)
+                    BottomNumpadView(
+                        horizontalPage: $horizontalPage,
+                        verticalPage: $verticalPage
+                    )
                         .frame(height: totalHeight - (totalHeight * 0.2864) - 8 - toolbarHeight)
                         .clipped()
                 }
@@ -144,19 +142,7 @@ struct ContentView: View {
                 }
             }
         )
-        .overlay(
-            Group {
-                if engine.isGeneratingPlot {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.5)
-                        .padding()
-                        .background(Color.black.opacity(0.7))
-                        .cornerRadius(8)
-                        .position(x: 30, y: 30)
-                }
-            }
-        )
+        .overlay(plotProgressOverlay)
         .ignoresSafeArea()
         .background(
             Group {
@@ -169,260 +155,7 @@ struct ContentView: View {
                 }
             }
         )
-        .onChange(of: bindableEngine.isWaitingForAlpha) { oldValue, newValue in
-            if newValue && bindableEngine.usesContextualAlphaPad {
-                withAnimation {
-                    horizontalPage = 0
-                    verticalPage = 0
-                }
-            } else if !newValue {
-                withAnimation {
-                    horizontalPage = 1
-                }
-            }
-        }
-        .sheet(isPresented: Binding(
-            get: { bindableEngine.isWaitingForAlpha && !bindableEngine.usesContextualAlphaPad && !bindableEngine.isProgrammingMode },
-            set: { if !$0 { bindableEngine.cancelAlpha() } }
-        )) {
-            NavigationStack {
-                Form {
-                    Section {
-                        TextField(bindableEngine.alphaPrompt ?? "Alpha", text: $alphaInput)
-                            .accessibilityIdentifier("tf_alpha_input")
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.characters)
-                            .onAppear {
-                                alphaInput = ""
-                            }
-                    }
-                    
-                    Section("Existing") {
-                        let existingKeys = bindableEngine.alphaAction == .evalEquation 
-                            ? bindableEngine.programs.map(\.label).sorted() 
-                            : Array(bindableEngine.variables.keys).sorted()
-                            
-                        ForEach(existingKeys, id: \.self) { key in
-                            Button(key) {
-                                bindableEngine.submitAlpha(key)
-                            }
-                            .foregroundColor(.primary)
-                        }
-                    }
-                }
-                .navigationTitle(bindableEngine.alphaPrompt ?? "Alpha")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            bindableEngine.cancelAlpha()
-                        }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Submit") {
-                            bindableEngine.submitAlpha(alphaInput)
-                        }
-                        .accessibilityIdentifier("btn_alpha_submit")
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showingPlot) {
-            FullScreenPlotView()
-        }
-        .sheet(isPresented: $showPlotPrompt) {
-            PlotPromptView()
-                .environment(engine)
-        }
-        .sheet(isPresented: $showEquations) {
-            EquationListView(isFNMode: false)
-                .environment(engine)
-        }
-        .sheet(isPresented: $showFN) {
-            EquationListView(isFNMode: true)
-                .environment(engine)
-        }
-        .sheet(isPresented: $showSolve) {
-            SolvePromptView()
-                .environment(engine)
-        }
-        .sheet(isPresented: $showXEQ) {
-            XEQPromptView()
-                .environment(engine)
-        }
-        .sheet(isPresented: $showIntegrate) {
-            IntegratePromptView()
-                .environment(engine)
-        }
-        .sheet(isPresented: $showShow) {
-            ShowView(rawValue: engine.stack.first?.real ?? 0)
-        }
-        .sheet(isPresented: $showProgramEditor) {
-            ProgramEditorView()
-        }
-        .sheet(isPresented: $showRegsMenu) {
-            RegsMenuView()
-                .environment(engine)
-        }
-        .onChange(of: bindableEngine.isProgrammingMode) { oldValue, newValue in
-            if !newValue {
-                showProgramEditor = false
-            }
-        }
-        .sheet(isPresented: Binding(
-            get: { bindableEngine.currentEvaluatingProgram != nil },
-            set: { if !$0 { bindableEngine.currentEvaluatingProgram = nil } }
-        )) {
-            VariablePromptView()
-        }
-        .sheet(isPresented: $showDisp) {
-            NavigationStack {
-                Form {
-                    Picker("Precision (Digits)", selection: $dispPrecision) {
-                        ForEach(0...9, id: \.self) { val in
-                            Text("\(val)").tag(val)
-                        }
-                    }
-                    Button("Fixed Precision (FIX)") { engine.executeMath("FIX \(dispPrecision)"); showDisp = false }
-                    Button("Scientific (SCI)") { engine.executeMath("SCI \(dispPrecision)"); showDisp = false }
-                    Button("Engineering (ENG)") { engine.executeMath("ENG \(dispPrecision)"); showDisp = false }
-                    Button("All (ALL)") { engine.executeMath("ALL"); showDisp = false }
-                }
-                .navigationTitle("Display")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("C") { showDisp = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showModes) {
-            NavigationStack {
-                List {
-                    Section(header: Text("Angle Mode")) {
-                        Button("Degrees (DEG)") { engine.executeMath("DEG"); showModes = false }
-                        Button("Radians (RAD)") { engine.executeMath("RAD"); showModes = false }
-                        Button("Gradians (GRD)") { engine.executeMath("GRD"); showModes = false }
-                    }
-                    Section(header: Text("Haptics")) {
-                        Button("Mechanical" + (hapticsMode == 0 ? " ✓" : "")) { hapticsMode = 0; showModes = false }
-                        Button("Soft" + (hapticsMode == 1 ? " ✓" : "")) { hapticsMode = 1; showModes = false }
-                        Button("Muted" + (hapticsMode == 2 ? " ✓" : "")) { hapticsMode = 2; showModes = false }
-                    }
-                }
-                .navigationTitle("Modes")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("C") { showModes = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showTestXY) {
-            NavigationStack {
-                List {
-                    Button("x = y") { engine.executeMath("x=y"); showTestXY = false }
-                    Button("x ≠ y") { engine.executeMath("x!=y"); showTestXY = false }
-                    Button("x > y") { engine.executeMath("x>y"); showTestXY = false }
-                    Button("x < y") { engine.executeMath("x<y"); showTestXY = false }
-                    Button("x ≤ y") { engine.executeMath("x<=y"); showTestXY = false }
-                }
-                .navigationTitle("Test x ? y")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("C") { showTestXY = false }.accessibilityIdentifier("sheet_dismiss_btn") } }
-            }
-        }
-        .sheet(isPresented: $showTestX0) {
-            NavigationStack {
-                List {
-                    Button("x = 0") { engine.executeMath("x=0"); showTestX0 = false }
-                    Button("x ≠ 0") { engine.executeMath("x!=0"); showTestX0 = false }
-                    Button("x > 0") { engine.executeMath("x>0"); showTestX0 = false }
-                    Button("x < 0") { engine.executeMath("x<0"); showTestX0 = false }
-                    Button("x ≤ 0") { engine.executeMath("x<=0"); showTestX0 = false }
-                }
-                .navigationTitle("Test x ? 0")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("C") { showTestX0 = false }.accessibilityIdentifier("sheet_dismiss_btn") } }
-            }
-        }
-        .sheet(isPresented: $showBaseMenu) {
-            NavigationStack {
-                List {
-                    Section("Base") {
-                        Button("Hexadecimal (HEX)") { engine.executeMath("HEX"); showBaseMenu = false }
-                        Button("Decimal (DEC)") { engine.executeMath("DEC"); showBaseMenu = false }
-                        Button("Octal (OCT)") { engine.executeMath("OCT"); showBaseMenu = false }
-                        Button("Binary (BIN)") { engine.executeMath("BIN"); showBaseMenu = false }
-                    }
-                    Section("Bitwise Logic") {
-                        Button("AND") { engine.executeOp(.and); showBaseMenu = false }
-                        Button("OR") { engine.executeOp(.or); showBaseMenu = false }
-                        Button("XOR") { engine.executeOp(.xor); showBaseMenu = false }
-                        Button("NOT") { engine.executeOp(.not); showBaseMenu = false }
-                    }
-                }
-                .navigationTitle("Base")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("C") { showBaseMenu = false }.accessibilityIdentifier("sheet_dismiss_btn") } }
-            }
-        }
-        .sheet(isPresented: $showFlagsMenu) {
-            FlagsMenuView(engine: engine, isPresented: $showFlagsMenu)
-        }
-        .sheet(isPresented: $showMeanMenu) {
-            NavigationStack {
-                List {
-                    Button("x̄ (Mean of x)") { engine.executeMath("x-bar"); showMeanMenu = false }
-                    Button("ȳ (Mean of y)") { engine.executeMath("y-bar"); showMeanMenu = false }
-                    Button("x̄w (Weighted Mean)") { engine.executeMath("xw"); showMeanMenu = false }
-                }
-                .navigationTitle("MEAN")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("C") { showMeanMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showStdDevMenu) {
-            StdDevMenuSheetView(engine: engine, showStdDevMenu: $showStdDevMenu)
-        }
-        .sheet(isPresented: $showSumsMenu) {
-            SumsMenuSheetView(engine: engine, showSumsMenu: $showSumsMenu)
-        }
-        .sheet(isPresented: $showLRMenu) {
-            LRMenuSheetView(engine: engine, showLRMenu: $showLRMenu)
-        }
-
-        .sheet(isPresented: $showConstMenu) {
-            ConstantsMenuView(engine: engine, isPresented: $showConstMenu)
-        }
-        .sheet(isPresented: $showPartsMenu) {
-            PartsMenuSheetView(engine: engine, showPartsMenu: $showPartsMenu)
-        }
-        .sheet(isPresented: $showProbMenu) {
-            ProbMenuSheetView(engine: engine, showProbMenu: $showProbMenu)
-        }
-        .sheet(isPresented: $showClearMenu) {
-            ClearMenuSheetView(engine: engine, showClearMenu: $showClearMenu)
-        }
-        .sheet(isPresented: $showMemMenu) {
-            MemMenuView()
-                .environment(engine)
-        }
-        .onChange(of: bindableEngine.requestPlot) { oldValue, newValue in
-            if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showingPlot = true
-                    bindableEngine.requestPlot = false
-                }
-            }
-        }
-        .onChange(of: bindableEngine.requestPlotPrompt) { oldValue, newValue in
-            if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showPlotPrompt = true
-                    bindableEngine.requestPlotPrompt = false
-                }
-            }
-        }
+        .modifier(WatchMenuModifier())
     }
 
     var stickyToolbar: some View {
@@ -680,6 +413,118 @@ struct StdDevMenuSheetView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - WatchMenuModifier
+/// Holds all .sheet() and menu-related .onChange() modifiers for ContentView.
+/// Extracted from body to keep the modifier chain within Swift's type-check limit.
+/// Mirrors the iOS iOSMenuModifier pattern.
+struct WatchMenuModifier: ViewModifier {
+    @Environment(CalculatorEngine.self) var engine
+    @EnvironmentObject var themeManager: ThemeManager
+
+    @State private var showingPlot = false
+    @State private var showPlotPrompt = false
+    @State private var showEquations = false
+    @State private var showFN = false
+    @State private var showSolve = false
+    @State private var showXEQ = false
+    @State private var showIntegrate = false
+    @State private var showShow = false
+    @State private var showProgramEditor = false
+    @State private var showRegsMenu = false
+    @State private var showMemMenu = false
+    @State private var showConstMenu = false
+    @State private var showFlagsMenu = false
+    @State private var showClearMenu = false
+    @State private var alphaInput = ""
+
+    func body(content: Content) -> some View {
+        @Bindable var bindableEngine = engine
+        content
+            .sheet(isPresented: Binding(
+                get: { bindableEngine.isWaitingForAlpha && !bindableEngine.usesContextualAlphaPad && !bindableEngine.isProgrammingMode },
+                set: { if !$0 { bindableEngine.cancelAlpha() } }
+            )) {
+                NavigationStack {
+                    Form {
+                        Section {
+                            TextField(bindableEngine.alphaPrompt ?? "Alpha", text: $alphaInput)
+                                .accessibilityIdentifier("tf_alpha_input")
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.characters)
+                                .onAppear { alphaInput = "" }
+                        }
+                        Section("Existing") {
+                            let existingKeys = bindableEngine.alphaAction == .evalEquation
+                                ? bindableEngine.programs.map(\.label).sorted()
+                                : Array(bindableEngine.variables.keys).sorted()
+                            ForEach(existingKeys, id: \.self) { key in
+                                Button(key) { bindableEngine.submitAlpha(key) }
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                    }
+                    .navigationTitle(bindableEngine.alphaPrompt ?? "Alpha")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { bindableEngine.cancelAlpha() }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Submit") { bindableEngine.submitAlpha(alphaInput) }
+                                .accessibilityIdentifier("btn_alpha_submit")
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showingPlot) { FullScreenPlotView() }
+            .sheet(isPresented: $showPlotPrompt) { PlotPromptView().environment(engine) }
+            .sheet(isPresented: $showEquations) { EquationListView(isFNMode: false).environment(engine) }
+            .sheet(isPresented: $showFN) { EquationListView(isFNMode: true).environment(engine) }
+            .sheet(isPresented: $showSolve) { SolvePromptView().environment(engine) }
+            .sheet(isPresented: $showXEQ) { XEQPromptView().environment(engine) }
+            .sheet(isPresented: $showIntegrate) { IntegratePromptView().environment(engine) }
+            .sheet(isPresented: $showShow) { ShowView(rawValue: engine.stack.first?.real ?? 0) }
+            .sheet(isPresented: $showProgramEditor) { ProgramEditorView() }
+            .sheet(isPresented: $showRegsMenu) { RegsMenuView().environment(engine) }
+            .sheet(isPresented: Binding(
+                get: { bindableEngine.currentEvaluatingProgram != nil },
+                set: { if !$0 { bindableEngine.currentEvaluatingProgram = nil } }
+            )) { VariablePromptView() }
+            .sheet(item: Binding(
+                get: { engine.activeMenu },
+                set: { engine.activeMenu = $0 }
+            )) { menu in
+                CalculatorMenuPresenter(menu: menu, isPresented: Binding(
+                    get: { engine.activeMenu == menu },
+                    set: { if !$0 { engine.activeMenu = nil } }
+                ))
+                .environment(engine)
+            }
+            .sheet(isPresented: $showFlagsMenu) { FlagsMenuView(engine: engine, isPresented: $showFlagsMenu) }
+            .sheet(isPresented: $showClearMenu) { ClearMenuView().environment(engine) }
+            .sheet(isPresented: $showMemMenu) { MemMenuView().environment(engine) }
+            .sheet(isPresented: $showConstMenu) { ConstantsMenuView(engine: engine, isPresented: $showConstMenu) }
+            .onChange(of: bindableEngine.isProgrammingMode) { _, newValue in
+                if !newValue { showProgramEditor = false }
+            }
+            .onChange(of: bindableEngine.requestPlot) { _, newValue in
+                if newValue {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showingPlot = true
+                        bindableEngine.requestPlot = false
+                    }
+                }
+            }
+            .onChange(of: bindableEngine.requestPlotPrompt) { _, newValue in
+                if newValue {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showPlotPrompt = true
+                        bindableEngine.requestPlotPrompt = false
+                    }
+                }
+            }
     }
 }
 

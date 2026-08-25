@@ -17,7 +17,7 @@ func saveBuffer(name: String) {
 
 func clear_all() {
     c.engine.clearAll()
-    c.retroUI.activeMenu = nil
+    c.engine.activeMenu = nil
 }
 
 // 1. Complex Equation

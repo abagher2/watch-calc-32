@@ -5,35 +5,9 @@ struct BottomNumpadView: View {
     @Environment(CalculatorEngine.self) var engine
     @EnvironmentObject var themeManager: ThemeManager
 
-    @Binding var showDisp: Bool
-    @Binding var showModes: Bool
-    @Binding var showTestXY: Bool
-    @Binding var showTestX0: Bool
-    @Binding var showBaseMenu: Bool
-    @Binding var showFlagsMenu: Bool
-    @Binding var showingPlot: Bool
-    @Binding var showPlotPrompt: Bool
-
-    @Binding var showEquations: Bool
-    @Binding var showShow: Bool
-    @Binding var showFN: Bool
-    @Binding var showSolve: Bool
-    @Binding var showIntegrate: Bool
-    @Binding var showClearMenu: Bool
-    @Binding var showProbMenu: Bool
-    @Binding var showPartsMenu: Bool
-    @Binding var showLRMenu: Bool
-    @Binding var showSumsMenu: Bool
-    @Binding var showMeanMenu: Bool
-    @Binding var showStdDevMenu: Bool
-    @Binding var showMemMenu: Bool
-    @Binding var showRegsMenu: Bool
-    @Binding var showXEQ: Bool
-    @Binding var showConstMenu: Bool
-    
     @Binding var horizontalPage: Int
     @Binding var verticalPage: Int
-    
+
     var body: some View {
         Group {
             if horizontalPage == 0 {
@@ -43,8 +17,6 @@ struct BottomNumpadView: View {
             } else {
                 if verticalPage == 0 {
                     NumericPadView() { op in handleMenuOp(op) }
-                } else if verticalPage == 1 {
-                    UpperMatrixPadView { op in handleMenuOp(op) }
                 } else {
                     UpperMatrixPadView { op in handleMenuOp(op) }
                 }
@@ -56,12 +28,10 @@ struct BottomNumpadView: View {
                 .accessibilityIdentifier("numpad_bg")
         )
     }
-    
-            private func handleMenuOp(_ op: CalculatorOperation) {
-        if op == .clear {
-            showClearMenu = true
-            return
-        } else if op == .sto {
+
+    private func handleMenuOp(_ op: CalculatorOperation) {
+        // Special direct-input ops
+        if op == .sto {
             engine.startSto()
             withAnimation { horizontalPage = 0 }
             return
@@ -70,62 +40,39 @@ struct BottomNumpadView: View {
             withAnimation { horizontalPage = 0 }
             return
         }
-        
+
         var handledMenu = false
+
+        // All menu ops post a WatchMenuTrigger notification.
+        // WatchMenuModifier listens and handles presentation.
         switch op {
-        case .disp: showDisp = true; handledMenu = true
-        case .modes: showModes = true; handledMenu = true
-        case .testXY: showTestXY = true; handledMenu = true
-        case .testX0: showTestX0 = true; handledMenu = true
-        case .base: showBaseMenu = true; handledMenu = true
-        case .flags: showFlagsMenu = true; handledMenu = true
-        case .lr: showLRMenu = true; handledMenu = true
-        case .sums: showSumsMenu = true; handledMenu = true
-        case .statMean: showMeanMenu = true; handledMenu = true
-        case .statStdDev: showStdDevMenu = true; handledMenu = true
-        case .prob: showProbMenu = true; handledMenu = true
-        case .parts: showPartsMenu = true; handledMenu = true
-        case .mem: showMemMenu = true; handledMenu = true
-        case .xeq: showXEQ = true; handledMenu = true
-        case .fnEq: showFN = true; handledMenu = true
-        case .eqn: 
-            if engine.isEquationMode || engine.isProgrammingMode {
-                engine.isEquationMode = false
-                engine.isProgrammingMode = false
-                engine.isWaitingForLabel = false
-                engine.updateDisplay()
-            } else {
-                showEquations = true
-            }
+        case .clear, .flags, .mem, .regs, .const, .eqn, .fnEq,
+             .solve, .integrate, .plot, .show, .xeq:
+            postMenuTrigger(op)
             handledMenu = true
-        case .solve: showSolve = true; handledMenu = true
-        case .integrate: showIntegrate = true; handledMenu = true
-        case .plot: showPlotPrompt = true; handledMenu = true
-        case .show: showShow = true; handledMenu = true
-        case .const: showConstMenu = true; handledMenu = true
-        case .regs: showRegsMenu = true; handledMenu = true
         default: break
         }
-        
+
         if handledMenu {
-            if engine.autoReturnToMainPad && horizontalPage == 1 && verticalPage != 0 {
-                withAnimation { verticalPage = 0 }
-            }
-            if horizontalPage == 2 {
-                withAnimation { horizontalPage = 1 }
-            }
+            autoReturn()
             return
         }
 
+        // CalculatorMenu menus — route via engine.activeMenu directly
+        if let menu = menuForOp(op) {
+            engine.activeMenu = menu
+            autoReturn()
+            return
+        }
+
+        // Regular key — execute directly
+        engine.executeOp(op)
+
         if horizontalPage == 0 && op == .enter {
-            // Because CalcButton maps single letters to .enter, we assume if horizontalPage == 0 and we got .enter, it might be an alpha submission (LFU action)
-            // Wait, this isn't exact but we can leave the auto-return logic for horizontalPage == 0 here.
             if engine.autoReturnToMainPad && !engine.isEquationMode {
                 withAnimation { horizontalPage = 1 }
             }
         }
-        
-        // Auto-return for math functions on menu pads
         if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isEquationMode && !engine.isProgrammingMode {
             withAnimation { verticalPage = 0 }
         }
@@ -134,7 +81,42 @@ struct BottomNumpadView: View {
         }
     }
 
+    private func menuForOp(_ op: CalculatorOperation) -> CalculatorMenu? {
+        switch op {
+        case .disp:      return .disp
+        case .modes:     return .modes
+        case .base:      return .base
+        case .testXY:    return .testXY
+        case .testX0:    return .testX0
+        case .prob:      return .prob
+        case .parts:     return .parts
+        case .sums:      return .sums
+        case .statMean:  return .statMean
+        case .statStdDev: return .statStdDev
+        case .lr:        return .lr
+        default:         return nil
+        }
+    }
+
+    private func postMenuTrigger(_ op: CalculatorOperation) {
+        NotificationCenter.default.post(
+            name: NSNotification.Name("WatchMenuTrigger"),
+            object: nil,
+            userInfo: ["command": op]
+        )
+    }
+
+    private func autoReturn() {
+        if engine.autoReturnToMainPad && horizontalPage == 1 && verticalPage != 0 {
+            withAnimation { verticalPage = 0 }
+        }
+        if horizontalPage == 2 {
+            withAnimation { horizontalPage = 1 }
+        }
+    }
 }
+
+// MARK: - Sub-pad views (unchanged)
 
 struct NumericPadView: View {
     var onAction: (CalculatorOperation) -> Void = { _ in }
@@ -203,7 +185,7 @@ struct ArithmeticPadView: View {
 struct AlphaLFUPadView: View {
     @Environment(CalculatorEngine.self) var engine
     let onAction: (CalculatorOperation) -> Void
-    
+
     private func uiLabel(for op: String) -> String {
         if op.isEmpty { return "" }
         switch op {
@@ -241,13 +223,13 @@ struct AlphaLFUPadView: View {
                 }
             }
             GridRow {
-                CalcButton("X", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 1)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 2)), isAlpha: true) { op in 
+                CalcButton("X", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 1)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 2)), isAlpha: true) { op in
                     onAction(op)
                 }
-                CalcButton("Y", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 3)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 4)), isAlpha: true) { op in 
+                CalcButton("Y", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 3)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 4)), isAlpha: true) { op in
                     onAction(op)
                 }
-                CalcButton("Z", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 5)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 6)), isAlpha: true) { op in 
+                CalcButton("Z", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 5)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 6)), isAlpha: true) { op in
                     onAction(op)
                 }
             }
@@ -287,7 +269,7 @@ struct UpperMatrixPadView: View {
 struct StackPadView: View {
     @Environment(CalculatorEngine.self) var engine
     let onDismiss: () -> Void
-    
+
     var visibleStack: [(Int, String)] {
         let logicalStack = engine.getLogicalStack()
         var maxIndex = 0
@@ -299,7 +281,7 @@ struct StackPadView: View {
         }
         return Array(engine.stackStrings.prefix(maxIndex + 1).enumerated())
     }
-    
+
     var body: some View {
         List {
             ForEach(visibleStack, id: \.0) { index, val in
@@ -313,9 +295,7 @@ struct StackPadView: View {
                 }
             }
             .onDelete { indexSet in
-                for index in indexSet {
-                    engine.removeStackItem(at: index)
-                }
+                for index in indexSet { engine.removeStackItem(at: index) }
             }
             .onMove { indices, newOffset in
                 engine.moveStackItem(fromOffsets: indices, toOffset: newOffset)
@@ -328,7 +308,7 @@ struct StackPadView: View {
             }
         }
     }
-    
+
     private func levelName(_ index: Int) -> String {
         switch index {
         case 0: return "X"

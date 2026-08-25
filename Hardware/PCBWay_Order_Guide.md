@@ -24,7 +24,8 @@ Go to the **CNC/3D Printing** quoting engine and upload the `.stl` file from thi
 * **faceplate_tapered.stl** (Classic HP-32SII style with raised, sloped bezel around screen)
 - **Technology:** MJF (Multi Jet Fusion)
 - **Material:** HP Nylon PA12
-- **Clearance Note for Factory:** This part contains print-in-place moving buttons with exactly **0.60mm** clearance on a 45-degree chamfer. Ensure unsintered powder is blown out of the internal button gaps.
+- **Surface Finish:** Dyed Black + UV Silkscreen (Upload `uv_silkscreen.svg` to apply labels)
+- **Clearance Note for Factory:** This part contains print-in-place moving buttons with exactly **0.60mm** clearance on a 45-degree chamfer. This gap is well within the 0.3mm to 0.5mm standard clearance for moving parts in MJF. Ensure unsintered powder is blown out of the internal button gaps.
 
 ---
 

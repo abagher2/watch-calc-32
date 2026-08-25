@@ -1,125 +1,130 @@
-# HP32SII UI & Implementation Rubric
+# HP32SII Deviation Rubric
 
-This document tracks how every physical button on the original HP32SII is implemented across all surfaces, providing a definitive reference for parity testing.
+This document tracks **only the ways StackCalc32 intentionally deviates from the original HP32SII**. Any key combination not listed here is expected to behave identically to the HP32SII (or DM32 where noted). Refer to the [HP 32SII Owner's Manual](https://www.hpcalc.org/hp32s/) and [DM32 User Manual](https://technical.swissmicros.com/dm32/) for baseline behavior.
 
-## Base State
-
-| Button / Combo | HP32SII Original | Firmware / RetroUI | iOS | WatchOS |
-|---|---|---|---|---|
-| **√𝑥** | Calculates square root | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **√𝑥** (`𝑥²`) | Calculates square | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **√𝑥** (`PARTS`) | Opens PARTS menu | `shiftState=2` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **𝑒ˣ** | Calculates 𝑒ˣ | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **𝑒ˣ** (`10ˣ`) | Calculates 10ˣ | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **𝑒ˣ** (`PROB`) | Opens PROB menu | `shiftState=2` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **LN** | Calculates natural log | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **LN** (`LOG`) | Calculates base-10 log | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **LN** (`L.R.`) | Opens Linear Reg. menu| `shiftState=2` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **𝑦ˣ** | Calculates power | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **𝑦ˣ** (`ˣ√𝑦`) | Calculates x-root of y | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **𝑦ˣ** (`𝑥̄,𝑦̄`) | Means of x/y | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **¹/𝑥** | Calculates reciprocal | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **¹/𝑥** (`𝑥!`) | Calculates factorial | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **¹/𝑥** (`s,σ`) | StdDev of x/y | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **Σ+** | Adds to stat sum | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **Σ+** (`Σ-`) | Subtracts from stat sum | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **Σ+** (`SUMS`) | Opens SUMS menu | `shiftState=2` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **STO** | Prompts `STO _` | Renders `STO _` on LCD | Opens SwiftUI Alpha Sheet | Opens Full-screen Alpha Picker |
-| **YELLOW** + **STO** (`CMPLX`) | Opens Complex Menu | `shiftState=1` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **BLUE** + **STO** (`EQN`) | Opens Equation List | `shiftState=2` -> Physical Key | Opens SwiftUI NavigationStack | Full-screen SwiftUI List |
-| **RCL** | Prompts `RCL _` | Renders `RCL _` on LCD | Opens SwiftUI Alpha Sheet | Opens Full-screen Alpha Picker |
-| **YELLOW** + **RCL** (`RND`) | Rounds X register | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **RCL** (`SCRL`) | Scrolls LCD | Handled by `RetroUIController` | Handled by `iOSContentView` | Handled by `WatchContentView` |
-| **R↓** | Rolls stack down | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **R↓** (`HYP`) | Sets `HYP` flag | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **R↓** (`R↑`) | Rolls stack up | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **SIN** | Calculates sine | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **SIN** (`ASIN`) | Calculates arcsine | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **SIN** (`π`) | Enters PI | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **COS** | Calculates cosine | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **COS** (`ACOS`) | Calculates arccosine | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **COS** (`%`) | Calculates percentage | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **TAN** | Calculates tangent | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **TAN** (`ATAN`) | Calculates arctangent | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **TAN** (`%CHG`) | Percent change | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **ENTER** | Commits stack / eval | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **ENTER** (`LAST𝑥`) | Recalls Last X | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **ENTER** (`SHOW`) | Shows full precision | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **𝑥≷𝑦** | Swaps X and Y | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **𝑥≷𝑦** (`MEM`) | Opens MEM menu | `shiftState=1` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **BLUE** + **𝑥≷𝑦** (`𝑥≷?`) | Prompts `x<>_` | `shiftState=2` -> Physical Key | Opens SwiftUI Alpha Sheet | Opens Full-screen Alpha Picker |
-| **+/-** | Toggles sign | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **+/-** (`MODES`) | Opens MODES menu | `shiftState=1` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **BLUE** + **+/-** (`MOD`) | Calculates modulo | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **E** | Starts scientific not. | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **E** (`DISP`) | Opens DISP menu | `shiftState=1` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **BLUE** + **E** (`INT÷`) | Integer division | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **<-** | Backspaces digit/alpha | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **<-** (`CLEAR`) | Opens CLEAR menu | `shiftState=1` -> Physical Key | Opens SwiftUI Menu Sheet | Full-screen SwiftUI List |
-| **XEQ** | Prompts `XEQ _` | Renders `XEQ _` on LCD | Opens SwiftUI Alpha Sheet | Opens Full-screen Alpha Picker |
-| **YELLOW** + **XEQ** (`FN=`) | Prompts `FN= _` | Renders `FN= _` on LCD | Opens SwiftUI Alpha Sheet | Opens Full-screen Alpha Picker |
-| **Numpad 7-9** | Enters 7-9 | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **YELLOW** + **7/8** (`↓/↑`) | Scrolls up/down | `shiftState=1` -> Physical Key | Taps yellow shift -> Button | Tap yellow shift -> Button |
-| **BLUE** + **7/8** (`SOLVE/∫`) | Prompts `SOLVE/∫ _` | Renders `SOLVE _` on LCD | Opens SwiftUI Alpha Sheet | Opens Full-screen Alpha Picker |
-| **BLUE** + **9** (`▸mi`) | Converts to miles | `shiftState=2` -> Physical Key | Taps blue shift -> Button | Tap blue shift -> Button |
-| **Numpad 4-6** | Enters 4-6 | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **Numpad 1-3** | Enters 1-3 | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **Numpad 0** | Enters 0 | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **.** | Enters decimal | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
-| **PLOT** | Enters Plot Mode | Transitions UI to Plot | Opens NavigationStack | Full Screen Plot View |
-| **+ / - / × / ÷** | Arithmetic operations | Physical Key -> LCD | Taps native SwiftUI Button | Taps native SwiftUI Button |
+For a full description of how every menu operates across all surfaces, see [menu_operation.md](menu_operation.md).
 
 ---
 
-## Modeless / State-Specific Overrides
-The sections below describe how the physical keys behave differently when the calculator is in a specific mode. If a key is not mentioned, it performs its Base State behavior or is disabled (ignored) in that context.
+## Base State — Key Remaps & Additions
 
-### 1. Menu Mode (e.g., `DISP`, `MODES`, `CLEAR`)
-Activated when a menu key is pressed and softkey options are presented.
+These keys exist on the physical StackCalc32 hardware but **differ in label or function** from the HP32SII.
 
-| Button / Combo | HP32SII Original | Firmware / RetroUI | iOS | WatchOS |
-|---|---|---|---|---|
-| **LFU Keys (Top 6)** | N/A (Uses softkeys on Retro) | Directly maps to on-screen softkeys | Irrelevant (Taps SwiftUI List/Button) | Irrelevant (Taps SwiftUI List/Button) |
-| **<- / C** | Cancels menu | Clears active menu state | Native "Cancel/Done" button or dismisses sheet | Native back button |
-| **Numeric Entry** | N/A | Intercepted if `requiresDigit` (e.g. `FIX 4`) | Native number pad on sheet | Full screen digit picker |
+| Button / Combo | HP32SII Original | StackCalc32 | Rationale |
+|---|---|---|---|
+| **BLUE + +/-** | `(` (open parenthesis — for EQN/solver entry) | `\|x\|` (Absolute Value) | Parentheses are less useful in RPN direct mode; ABS is more ergonomic. |
+| **BLUE + E** | `)` (close parenthesis — for EQN/solver entry) | `÷R` (Integer Division) | Parentheses serve EQN mode only; `÷R` is more useful as a direct key. |
+| **BLUE + <-** | `=` (equals — for EQN/solver entry) | *(no function)* | `=` is not needed in RPN mode; key is left unassigned. |
+| **YELLOW + 0** | `INPUT` (program input prompt — recall var and show name+value) | `REGS` (Show Registers) | `INPUT` is programming-only. StackCalc32 repurposes the key for the register viewer. |
+| **PLOT** | *(key does not exist on HP32SII)* | Opens Plot Mode | StackCalc32-exclusive key. Not on the HP32SII or DM32. |
+| **YELLOW + PLOT** | *(key does not exist)* | `CNST` (Physical Constants Menu) | StackCalc32-exclusive. HP32SII has no built-in constants menu; users stored constants in registers. |
 
-### 2. Equation Mode (EQN List)
-Activated via `BLUE + STO (EQN)`. Displays the list of available equations.
+---
 
-| Button / Combo | HP32SII Original | Firmware / RetroUI | iOS | WatchOS |
-|---|---|---|---|---|
-| **LFU Keys (Top 6)** | N/A | Maps to `EQN_NEW` and `EQN_EDIT` softkeys | Uses SwiftUI List interactions | Uses SwiftUI List interactions |
-| **YELLOW + 7/8 (`↓/↑`)** | Scrolls equation list | Uses `scrollUp` / `scrollDown` via `c47ActionStr` | Native ScrollView | Native ScrollView |
-| **ENTER** | Evaluates equation | Prompts for inputs then evaluates | Evaluates via list tap | Evaluates via list tap |
+## LFU Row (Top 6 Dynamic Softkeys)
 
-### 3. Programming Mode (EQN Edit)
-Activated when editing a specific Equation/Program. 
+The **LFU (Least Frequently Used) row** is a StackCalc32-exclusive feature. The HP32SII has **no dedicated softkey row** — its top row of keys (`√𝑥`, `𝑒ˣ`, `LN`, `𝑦ˣ`, `¹/𝑥`, `Σ+`) are always fixed math function keys, with no dynamic softkey strip at all.
+
+StackCalc32 permanently reserves the top 6 keys as a dynamic, context-aware softkey strip. In menu contexts, this LFU row repurposes identically to how the HP32SII repurposed its numeric top row — except it is reserved for this purpose at all times rather than only during menus.
+
+| Context | HP32SII Original | StackCalc32 Firmware / RetroUI | iOS / watchOS |
+|---|---|---|---|
+| **Normal State** | Top row = `√𝑥 𝑒ˣ LN 𝑦ˣ ¹/𝑥 Σ+` (always fixed) | Top row shows 6 most recently used functions (LFU algorithm) | N/A — no physical row |
+| **Menu Active** | Top numeric row remapped to softkey labels | LFU row remaps to softkeys (e.g., `FIX SCI ENG ALL`) | Native sheet / list replaces entirely |
+| **EQN List** | *(no softkeys — navigate with `↓`/`↑` only)* | LFU row shows `EQN_NEW`, `EQN_EDIT` softkeys | Native list with `+` button and swipe-to-delete |
+
+---
+
+## Menu Navigation Model
+
+All menus exist on all three surfaces and produce identical calculator results. The **mechanism** differs by surface. This is not a functional deviation — it is a platform adaptation.
+
+| Surface | How Menus Are Navigated |
+|---|---|
+| **HP32SII** | Physical softkey row (top numeric keys) remapped to menu labels during menu state. User presses the key physically below the label on the LCD. Multi-page menus use a `▸` page key. |
+| **Firmware / RetroUI** | LFU row replaces the softkey row. Same single-press selection. `requiresDigit` menus (FIX, SCI, ENG, SF, CF) wait for a follow-up digit keypress on the same row. |
+| **iOS** | Native modal sheet with tappable list items. `requiresDigit` menus present an inline digit picker. Dismisses automatically after selection. |
+| **watchOS** | Full-screen SwiftUI list. Tap or Digital Crown to select. Sub-picker for digit-requiring options. |
+
 > [!NOTE]
-> We intentionally deviate from the HP32SII's Algebraic mode here. All targets use a unified RPN Programming Mode to define equations, ensuring a consistent execution model.
+> See [menu_operation.md](menu_operation.md) for the complete per-menu breakdown of items and behavior on each surface.
 
-| Button / Combo | HP32SII Original | Firmware / RetroUI | iOS | WatchOS |
-|---|---|---|---|---|
-| **Base Functions (SIN, COS, etc)** | Enters algebraic text | Appends instruction to program steps | Taps iOS button -> Appends step | Taps Watch button -> Appends step |
-| **Numpad** | Enters algebraic text | Appends numeric constant as step | Appends numeric constant | Appends numeric constant |
-| **ENTER** | Submits equation | Commits current line | Commits current line | Commits current line |
-| **<- / C** | Backspaces character | Deletes previous program step | Deletes previous program step | Deletes previous program step |
+The following menus are present on all surfaces with **no functional deviation** from the HP32SII. Only the navigation mechanism differs as described above:
 
-### 4. Alpha Mode (LBL, STO, RCL Prompts)
-Activated when the engine requires a variable or label name (e.g. `STO _`).
+| Menu | Trigger | HP32SII Items | StackCalc32 Additions |
+|---|---|---|---|
+| **DISP** | `YELLOW + E` | `FIX n`, `SCI n`, `ENG n`, `ALL` | — |
+| **MODES** | `YELLOW + +/-` | `DEG`, `RAD`, `GRAD` | — |
+| **BASE** | `YELLOW + ×` | `HEX`, `DEC`, `OCT`, `BIN` | — |
+| **CLEAR** | `YELLOW + <-` | `CLx`, `CLVARS`, `CLΣ`, `ALL` *(PGM only in PRGM mode)* | `CLPRGM`, `CLREGS`, `CLSTK` added as always-visible items |
+| **FLAGS** | `BLUE + ×` | `SF n`, `CF n`, `FS? n`, `FC? n` | `4-LVL`, `8-LVL`, `INF` stack-size options |
+| **MEM** | `YELLOW + x≷y` | `VARS`, `PRGM`, `REGS` | — |
+| **PARTS** | `BLUE + √𝑥` | `IP`, `FP`, `ABS` | `SGN` added |
+| **PROB** | `BLUE + 𝑒ˣ` | `Cn,r`, `Pn,r`, `𝑥!`, `RAND` | — |
+| **SUMS** | `BLUE + Σ+` | `Σx`, `Σy`, `Σx²`, `Σy²`, `Σxy`, `n` | — |
+| **𝑥̄,𝑦̄** | `BLUE + 𝑦ˣ` | `x̄`, `ȳ`, `x̄w` | — |
+| **s,σ** | `BLUE + ¹/𝑥` | `sx`, `sy`, `σx`, `σy` | — |
+| **L.R.** | `BLUE + LN` | `ŷ`, `x̂`, `r`, `m`, `b` | — |
+| **𝑥?𝑦** | `YELLOW + ÷` | `x=y`, `x≠y`, `x>y`, `x<y`, `x≥y`, `x≤y` | — |
+| **𝑥?0** | `BLUE + ÷` | `x=0`, `x≠0`, `x>0`, `x<0`, `x≥0`, `x≤0` | — |
 
-| Button / Combo | HP32SII Original | Firmware / RetroUI | iOS | WatchOS |
-|---|---|---|---|---|
-| **A-Z Keys (Alpha)** | Appends letter | Evaluates physical key's `alphaLabel` | Native iOS Keyboard | Full-screen A-Z Picker |
-| **Numpad 0-9** | Appends number | Appends number | Native iOS Keyboard | Full-screen A-Z Picker |
-| **<- / C** | Backspaces character | Backspaces character | Native backspace | Native backspace |
-| **ENTER** | Submits string | Submits string | Native Enter/Done | Native Enter/Done |
+---
 
-### 5. Plot Mode
-Activated via the `PLOT` key.
+## Modeless / State-Specific Deviations
 
-| Button / Combo | HP32SII Original | Firmware / RetroUI | iOS | WatchOS |
-|---|---|---|---|---|
-| **Numpad 2/4/6/8** | Pans graph | Pans graph (Up/Left/Right/Down) | Touch pan gesture | Digital Crown or Touch pan |
-| **+ / -** | Zooms in/out | Zooms in/out | Pinch gesture | Tap +/- buttons |
-| **<- / C** | Exits plot | Exits plot | SwiftUI Back/Done button | SwiftUI Back/Done button |
-| **LFU Keys (Top 6)** | N/A | N/A or trace mode | Tap to trace | Tap to trace |
+### 1. Programming / Equation Mode (EQN Edit)
+
+> [!IMPORTANT]
+> This is the **largest intentional deviation** from the HP32SII.
+
+The HP32SII uses **algebraic entry** for equations (e.g., `SIN(X) + 1`). StackCalc32 intentionally deviates: all equation programs use **RPN instruction entry** (appending steps like `SIN`, `1`, `+`). This creates a unified execution model across the physical device, iOS, and watchOS.
+
+| Button / Combo | HP32SII Original | StackCalc32 |
+|---|---|---|
+| **Base Functions (SIN, COS, etc.)** | Appends algebraic text character(s) to equation | Appends RPN instruction step |
+| **Numpad** | Appends digit(s) to algebraic expression | Appends numeric constant as a discrete step |
+| **ENTER** | Submits the algebraic equation | Commits the current RPN program to storage |
+| **`<-` / C** | Backspaces one character in algebraic string | Deletes the previous RPN instruction step |
+
+---
+
+### 2. Plot Mode — `PLOT` key
+
+The HP32SII has **no Plot Mode**. This entire section is a StackCalc32 extension.
+
+| Button / Combo | HP32SII Original | StackCalc32 |
+|---|---|---|
+| **PLOT** | *(key does not exist)* | Enters Plot Mode — transitions UI to graph renderer |
+| **Numpad 2/4/6/8** | *(N/A)* | Pans graph (Down/Left/Right/Up) |
+| **+ / -** | *(N/A)* | Zooms in/out |
+| **`<-` / C** | *(N/A)* | Exits plot, returns to normal mode |
+| **LFU Keys (Top 6)** | *(N/A)* | Reserved for trace mode (not yet implemented) |
+
+---
+
+### 3. Alpha Mode — Platform Differences Only
+
+The Alpha entry mode (triggered by `STO _`, `RCL _`, `XEQ _`, etc.) behaves identically to the HP32SII on the Firmware/RetroUI surface. The iOS and watchOS surfaces deviate only at the **input mechanism level** — the calculator engine behavior is identical.
+
+| Platform | Alpha Input Method | Deviation from HP32SII? |
+|---|---|---|
+| **Firmware / RetroUI** | Physical alpha key labels (`A`–`Z` printed on key faces) | **No deviation** |
+| **iOS** | Native iOS keyboard sheet | UI-level only — engine accepts same inputs |
+| **watchOS** | Full-screen A–Z picker | UI-level only — engine accepts same inputs |
+
+---
+
+## Summary: StackCalc32-Only Additions (Not on HP32SII)
+
+| Feature | Key / Trigger | HP32SII Original | Notes |
+|---|---|---|---|
+| LFU Dynamic Softkey Row | Top 6 physical keys | Fixed math keys (`√𝑥 𝑒ˣ LN 𝑦ˣ ¹/𝑥 Σ+`) | HP32SII had no softkey row |
+| Physical Constants Menu (`CNST`) | `YELLOW + PLOT` | *(key doesn't exist)* | HP32SII: users stored constants in registers |
+| Plot Mode | `PLOT` (dedicated key) | *(key doesn't exist)* | Full graphing; HP32SII had no plot capability |
+| Register Viewer (`REGS`) | `YELLOW + 0` | `INPUT` (program input prompt) | Repurposes a programming-only key |
+| Absolute Value (`\|x\|`) | `BLUE + +/-` | `(` (open parenthesis for EQN) | Parentheses less useful in RPN direct mode |
+| Integer Division (`÷R`) | `BLUE + E` | `)` (close parenthesis for EQN) | Parentheses less useful in RPN direct mode |
+| `CLPRGM`, `CLREGS`, `CLSTK` | Inside `CLEAR` menu | Not in HP32SII CLEAR menu | HP32SII CLEAR has: `CLx`, `CLVARS`, `CLΣ`, `ALL` |
+| `SGN` | Inside `PARTS` menu | Not in HP32SII PARTS menu | HP32SII PARTS has: `IP`, `FP`, `ABS` |
+| Stack Size Flags (`4-LVL`, `8-LVL`, `INF`) | Inside `FLAGS` menu | HP32SII has a fixed 4-level stack | |
+| `EQN_NEW`, `EQN_EDIT` softkeys | LFU row in EQN List | *(no softkeys in EQN list)* | HP32SII navigates equations with `↓`/`↑` only |

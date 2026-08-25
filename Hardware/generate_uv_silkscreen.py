@@ -152,12 +152,16 @@ def generate_svg(kicad_pcb_path, output_svg_path):
             col1_x = sum(r[1]['x'] for r in bottom_rows) / 4.0
             logo_x = col0_x + (col1_x - col0_x) * 0.45 + 2 # +2 for board offset
             
-            start_y = bottom_rows[0]['pos_y'] + 2 - 1.0
-            line_height = (bottom_rows[-1]['pos_y'] - bottom_rows[0]['pos_y']) / 3.0
+            lines = ["S", "t", "a", "c", "k", "C", "a", "l", "c", "32"]
             
-            logo_style = "font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif; font-size: 3.8px; fill: #FFFFFF; font-weight: bold; text-anchor: start;"
+            # The space spans from top button (pos_y) to bottom button (pos_y)
+            # Adjust start_y and line_height based on 10 elements
+            start_y = bottom_rows[0][0]['pos_y'] - 0.5
+            total_height = (bottom_rows[-1][0]['pos_y'] - bottom_rows[0][0]['pos_y']) + 4.0
+            line_height = total_height / len(lines)
             
-            lines = ["Sta", "ck +", "Calc", "32"]
+            logo_style = "font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro', sans-serif; font-size: 3.5px; fill: #FFFFFF; font-weight: bold; text-anchor: start;"
+            
             for i, line in enumerate(lines):
                 t_logo = ET.SubElement(svg, 'text', {'x': f"{logo_x:.2f}", 'y': f"{start_y + i * line_height:.2f}", 'style': logo_style})
                 t_logo.text = line

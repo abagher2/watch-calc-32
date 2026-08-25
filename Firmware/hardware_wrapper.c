@@ -109,8 +109,10 @@ void display_send_buffer(const uint8_t* buffer) {
     
     gpio_put(PIN_CS, 0);
 #else
+    int nonZero = 0;
     for (int i = 0; i < 12000; i++) {
         emu_display.buffer[i] = buffer[i];
+        if (buffer[i] != 0) nonZero++;
     }
 #endif
 }
