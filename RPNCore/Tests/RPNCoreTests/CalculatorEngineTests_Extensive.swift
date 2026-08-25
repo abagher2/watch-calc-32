@@ -27,18 +27,18 @@ final class CalculatorEngineTests_Extensive: XCTestCase {
         engine.digit(0)
         engine.executeMath("HEX")
         XCTAssertEqual(engine.baseMode, .hex)
-        XCTAssertEqual(engine.formatNumber(engine.stack[0].real), "A")
+        XCTAssertEqual(engine.formatNumber(engine.stack[0].real), "Ah") // HP-style hex suffix
         
         engine.executeMath("DEC")
         XCTAssertEqual(engine.baseMode, .dec)
         
         engine.executeMath("BIN")
         XCTAssertEqual(engine.baseMode, .bin)
-        XCTAssertEqual(engine.formatNumber(engine.stack[0].real), "1010")
+        XCTAssertEqual(engine.formatNumber(engine.stack[0].real), "1010b") // HP-style bin suffix
         
         engine.executeMath("OCT")
         XCTAssertEqual(engine.baseMode, .oct)
-        XCTAssertEqual(engine.formatNumber(engine.stack[0].real), "12")
+        XCTAssertEqual(engine.formatNumber(engine.stack[0].real), "12o") // HP-style oct suffix
     }
 
     func testTestX0Conditionals() {

@@ -107,7 +107,7 @@ corner = 6.0
 # Internal Component Heights (mm)
 TACTILE_H = 1.6   # 1.5mm switches + 0.1mm gap for sliding clearance
 PCB_T     = 1.6   # PCB thickness
-BATT_H    = 7.0   # Clearance for wired CR2450 battery holder (Z)
+BATT_H    = 6.0   # Clearance for wired CR2450 battery holder — reduced 7→6mm to hit 15.5mm total depth
 plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
 FRONT_LIP = 1.5   # Structural retaining bezel — increased 0.8→1.5mm to stop top-corner bending
 
@@ -143,7 +143,7 @@ def generate_scad():
     py_fp_w = 74.650
     py_fp_h = 147.150
     py_WALL = 1.800
-    py_ch = py_fp_h + py_WALL
+    py_ch = py_fp_h + 0.85    # Trimmed from fp_h+WALL (148.95) → 148.0mm to match HP32SII height limit
     py_cw = py_fp_w + 2*py_WALL
     py_offset_x = (py_cw - py_fp_w) / 2
     py_offset_z = (py_ch - py_fp_h) / 2
@@ -161,7 +161,7 @@ def generate_scad():
     ph = 4.0
 
     faceplate = f"""
-// WatchCalc 32 Faceplate — Print FACE-DOWN
+// WatchCalc 32 Faceplate — Print FACE-UP on the bed (Z=0 on bed)
 // Front of faceplate is on Z=3.0 (build plate). Keys face down.
 $fn = 24;
 fp_w = {fp_w:.3f};
@@ -185,27 +185,24 @@ module squircle_centered(w, h, depth, r) {{
 // Each bar = one cube → printer makes 4 direction changes per stroke max.
 // Character grid: H=4.0mm tall, W=2.8mm wide, T=0.60mm stroke, G=0.12mm gap.
 // ─────────────────────────────────────────────────────────────────────────────
-SH = 4.0;   // segment character height
-SW = 2.8;   // segment character width
-ST = 0.60;  // stroke thickness
-SG = 0.12;  // gap at segment ends (avoids corner merges)
-SD = 0.55;  // extrude depth (cut depth for sunken text)
+SH = 4.2;   // segment char height — slightly taller for legibility
+SW = 3.0;   // segment char width
+ST = 0.70;  // stroke thickness — 1.75× nozzle, clean print
+SG = 0;     // NO gap — corners intentionally overlap so letters are one connected body
+SD = 0.65;  // tool cut depth (cap is 0.8mm; 0.65mm leaves 0.15mm floor)
 
-// ── Primitive segments ──────────────────────────────────────────────────────
-module s_top()  {{ translate([SG,       SH-ST,        0]) cube([SW-2*SG, ST,       SD]); }}
-module s_mid()  {{ translate([SG,       SH/2-ST/2,    0]) cube([SW-2*SG, ST,       SD]); }}
-module s_bot()  {{ translate([SG,       0,            0]) cube([SW-2*SG, ST,       SD]); }}
-module s_tl()   {{ translate([0,        SH/2+SG,      0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
-module s_tr()   {{ translate([SW-ST,    SH/2+SG,      0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
-module s_bl()   {{ translate([0,        ST+SG,        0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
-module s_br()   {{ translate([SW-ST,    ST+SG,        0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
-// Center vertical (for T, I)
-module s_cv()   {{ translate([SW/2-ST/2, ST+SG,       0]) cube([ST, SH-2*ST-2*SG,  SD]); }}
-// Full left/right verticals (for N, U, H etc.)
-module s_lv()   {{ translate([0,        ST+SG,        0]) cube([ST, SH-2*ST-2*SG,  SD]); }}
-module s_rv()   {{ translate([SW-ST,    ST+SG,        0]) cube([ST, SH-2*ST-2*SG,  SD]); }}
-// Dot
-module s_dot()  {{ translate([SW/2-ST/2, 0,           0]) cube([ST, ST,             SD]); }}
+// Segments — corners overlap so each letter is fully connected (one slicer island per letter)
+module s_top()  {{ translate([0,       SH-ST,     0]) cube([SW,    ST,   SD]); }}
+module s_mid()  {{ translate([0,       SH/2-ST/2, 0]) cube([SW,    ST,   SD]); }}
+module s_bot()  {{ translate([0,       0,         0]) cube([SW,    ST,   SD]); }}
+module s_tl()   {{ translate([0,       SH/2,      0]) cube([ST, SH/2,   SD]); }}  // upper-left vert
+module s_tr()   {{ translate([SW-ST,   SH/2,      0]) cube([ST, SH/2,   SD]); }}  // upper-right vert
+module s_bl()   {{ translate([0,       0,         0]) cube([ST, SH/2,   SD]); }}  // lower-left vert
+module s_br()   {{ translate([SW-ST,   0,         0]) cube([ST, SH/2,   SD]); }}  // lower-right vert
+module s_cv()   {{ translate([SW/2-ST/2, 0,       0]) cube([ST, SH,     SD]); }}  // full center vert
+module s_lv()   {{ translate([0,       0,         0]) cube([ST, SH,     SD]); }}  // full left vert
+module s_rv()   {{ translate([SW-ST,   0,         0]) cube([ST, SH,     SD]); }}  // full right vert
+module s_dot()  {{ translate([SW/2-ST/2, 0,       0]) cube([ST, ST,     SD]); }}
 
 // ── Glyph modules ───────────────────────────────────────────────────────────
 module g_0()  {{ s_top(); s_tl(); s_tr(); s_bl(); s_br(); s_bot(); }}
@@ -311,11 +308,11 @@ module key_button(w, h, label="") {{
                 translate([-arm_w/2, -h/2, 0]) cube([arm_w, h, 1.8]);
             }}
         }}
-        // SUNKEN LABEL CUT — 0.50mm deep from cap top (Z=-0.8).
-        // seg_word renders at Z=0..SD (0.55mm), translated to Z=-1.30..−0.75.
-        // mirror([1,0,0]) so glyphs read correctly from the FRONT of the faceplate.
+        // SUNKEN LABEL CUT — SD deep from cap top surface (Z=0).
+        // seg_word renders Z=0..SD; after translate([0,0,-SD]) it cuts from Z=-SD to Z=0.
+        // mirror([1,0,0]) corrects text orientation when viewed from front.
         if (label != "") {{
-            translate([0, 0, -1.30])
+            translate([0, 0, -SD])
                 mirror([1, 0, 0])
                     seg_word(label, w - 1.5);
         }}
@@ -359,7 +356,7 @@ module button_pocket(w, h) {{
 module faceplate_body() {{
     // Faceplate body shrunk by 0.1mm each side (X) and 0.1mm front (Y=0) for sliding clearance.
     // A 1mm chamfer on the leading edge (Y=fp_h side = top when printed face-up) guides it in.
-    FP_CLR = 0.10;  // clearance per side
+    FP_CLR = 0.20;  // clearance per side — increased 0.1→0.2mm for easier faceplate removal
     translate([FP_CLR, FP_CLR, 0])
         difference() {{
             cube([fp_w - 2*FP_CLR, fp_h - 0.8 - FP_CLR, pt]);
@@ -442,8 +439,9 @@ module faceplate_assembly() {
 
     closing_str = f"""    }}
 }}
-// Render Faceplate Assembly perfectly FACE UP on the bed (Z=0 on bed)
-translate([0, 0, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
+// Render faceplate face-UP on the bed. translate([0,fp_h,pt]) cancels the Y-flip from
+// rotate([180,0,0]) so the model lands at Y=0..fp_h, Z=0..pt (all positive coords).
+translate([0, {fp_h:.3f}, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
 """
     faceplate_mjf += closing_str
     faceplate_fdm += closing_str
@@ -511,7 +509,7 @@ ACTIVE_H = {ACTIVE_H:.3f};
 DISP_W = {DISP_W:.3f};
 DISP_H = {DISP_H:.3f};
 cw   = {cw:.3f};
-ch   = {fp_h + WALL:.3f};
+ch   = {fp_h + 0.85:.3f};  // trimmed height: fp_h+0.85 = 148.000mm (HP32SII limit)
 D    = {D:.3f};
 wall = {WALL:.3f};
 fp_w = {fp_w:.3f};
@@ -535,9 +533,9 @@ module chassis_shell() {{
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        // Tier 1: Faceplate Cavity — +0.2mm wider (0.1mm/side) to match faceplate's sliding clearance
-        translate([offset_x - 0.1, {FRONT_LIP} - 0.1, wall])
-            cube([fp_w + 0.2, pt + 0.1, ch + 0.1]);
+        // Tier 1: Faceplate Cavity — +0.4mm wider (0.2mm/side) for removable faceplate clearance
+        translate([offset_x - 0.2, {FRONT_LIP} - 0.2, wall])
+            cube([fp_w + 0.4, pt + 0.2, ch + 0.1]);
             
         // Middle Cavity: Hollows out the center for the 65.4mm E-Ink Display to slide down!
         // We make this cavity 66.4mm wide, which leaves ~2.1mm solid rails on the left and right
@@ -545,11 +543,10 @@ module chassis_shell() {{
         translate([(cw - 66.4)/2, {FRONT_LIP} + pt - 0.1, wall])
             cube([66.4, {TACTILE_H} + 0.2, ch + 0.1]);
             
-        // Tier 2: PCB Cavity (Slides in from Z=ch)
-        // +0.2mm wider (0.1mm/side) so PCB slides in without rubbing on chassis walls.
-        // +0.1mm deeper to give 0.1mm top-face clearance.
-        translate([(cw - pcb_w)/2 - 0.1, {FRONT_LIP} + pt + {TACTILE_H} - 0.1, wall])
-            cube([pcb_w + 0.2, {PCB_T} + 0.2 + 0.1, ch + 0.1]);
+        // Tier 2: PCB Cavity — +0.4mm wider (0.2mm/side) so PCB slides in without sanding.
+        // +0.2mm deeper for top-face clearance.
+        translate([(cw - pcb_w)/2 - 0.2, {FRONT_LIP} + pt + {TACTILE_H} - 0.2, wall])
+            cube([pcb_w + 0.4, {PCB_T} + 0.4, ch + 0.1]);
             
         // Tier 2.5: PCB Trace Clearance
         // Hollows out 0.5mm behind the PCB so traces/vias don't scratch the back wall.

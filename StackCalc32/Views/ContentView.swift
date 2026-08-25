@@ -303,119 +303,6 @@ struct ContentView: View {
 }
 
 
-
-
-struct FlagsMenuView: View {
-    @Bindable var engine: CalculatorEngine
-    @EnvironmentObject var themeManager: ThemeManager
-    @Binding var isPresented: Bool
-    @State private var selectedAction = "SF"
-    @State private var dragOffset = CGSize.zero
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Settings") {
-                    Toggle("Exam Mode", isOn: $engine.isExamMode)
-                        .tint(.yellow)
-                        
-                    Picker("Theme", selection: $themeManager.activeThemeType) {
-                        ForEach(ThemeType.allCases.filter { $0 != .retro }) { theme in
-                            Text(theme.rawValue).tag(theme)
-                        }
-                    }
-                    
-                    Toggle("Auto-Return to Main Pad", isOn: $engine.autoReturnToMainPad)
-                    
-                    HStack {
-                        Text("Stack Size: \(engine.stackSizeLimit)")
-                            .font(.system(size: 14))
-                        Spacer()
-                        Stepper("", value: $engine.stackSizeLimit, in: 4...100)
-                            .labelsHidden()
-                    }
-                }
-                
-                Section("Flags (0-11)") {
-                    ForEach(0..<12, id: \.self) { i in
-                        Toggle(isOn: Bindable(engine).flags[i]) {
-                            Text("User Flag \(i)")
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Flags")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { isPresented = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}
-
-struct SumsMenuSheetView: View {
-    @Bindable var engine: CalculatorEngine
-    @Binding var showSumsMenu: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section(header: Text("Sums")) {
-                    Button("n") { engine.executeMath("n"); showSumsMenu = false }
-                    Button("Σx") { engine.executeMath("Σx"); showSumsMenu = false }
-                    Button("Σy") { engine.executeMath("Σy"); showSumsMenu = false }
-                    Button("Σx²") { engine.executeMath("Σx²"); showSumsMenu = false }
-                    Button("Σy²") { engine.executeMath("Σy²"); showSumsMenu = false }
-                    Button("Σxy") { engine.executeMath("Σxy"); showSumsMenu = false }
-                }
-                
-                if !engine.statPoints.isEmpty {
-                    Section(header: Text("Data Points")) {
-                        ForEach(Array(engine.statPoints.enumerated()), id: \.offset) { index, point in
-                            VStack(alignment: .leading) {
-                                Text("X: \(point.x)")
-                                Text("Y: \(point.y)")
-                            }
-                        }
-                        .onDelete { offsets in
-                            engine.statPoints.remove(atOffsets: offsets)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("SUMS")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("C") { showSumsMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}
-
-struct StdDevMenuSheetView: View {
-    @Bindable var engine: CalculatorEngine
-    @Binding var showStdDevMenu: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Button("sx (Sample SD of x)") { engine.executeMath("s"); showStdDevMenu = false }
-                Button("sy (Sample SD of y)") { engine.executeMath("sy"); showStdDevMenu = false }
-                Button("σx (Population SD of x)") { engine.executeMath("σ"); showStdDevMenu = false }
-                Button("σy (Population SD of y)") { engine.executeMath("σy"); showStdDevMenu = false }
-            }
-            .navigationTitle("STD DEV")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("C") { showStdDevMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}
-
 // MARK: - WatchMenuModifier
 /// Holds all .sheet() and menu-related .onChange() modifiers for ContentView.
 /// Extracted from body to keep the modifier chain within Swift's type-check limit.
@@ -433,11 +320,6 @@ struct WatchMenuModifier: ViewModifier {
     @State private var showIntegrate = false
     @State private var showShow = false
     @State private var showProgramEditor = false
-    @State private var showRegsMenu = false
-    @State private var showMemMenu = false
-    @State private var showConstMenu = false
-    @State private var showFlagsMenu = false
-    @State private var showClearMenu = false
     @State private var alphaInput = ""
 
     func body(content: Content) -> some View {
@@ -487,11 +369,12 @@ struct WatchMenuModifier: ViewModifier {
             .sheet(isPresented: $showIntegrate) { IntegratePromptView().environment(engine) }
             .sheet(isPresented: $showShow) { ShowView(rawValue: engine.stack.first?.real ?? 0) }
             .sheet(isPresented: $showProgramEditor) { ProgramEditorView() }
-            .sheet(isPresented: $showRegsMenu) { RegsMenuView().environment(engine) }
             .sheet(isPresented: Binding(
                 get: { bindableEngine.currentEvaluatingProgram != nil },
                 set: { if !$0 { bindableEngine.currentEvaluatingProgram = nil } }
             )) { VariablePromptView() }
+            // All CalculatorMenu menus (disp, modes, base, clear, flags, mem, const, etc.)
+            // route through engine.activeMenu → CalculatorMenuPresenter.
             .sheet(item: Binding(
                 get: { engine.activeMenu },
                 set: { engine.activeMenu = $0 }
@@ -502,10 +385,6 @@ struct WatchMenuModifier: ViewModifier {
                 ))
                 .environment(engine)
             }
-            .sheet(isPresented: $showFlagsMenu) { FlagsMenuView(engine: engine, isPresented: $showFlagsMenu) }
-            .sheet(isPresented: $showClearMenu) { ClearMenuView().environment(engine) }
-            .sheet(isPresented: $showMemMenu) { MemMenuView().environment(engine) }
-            .sheet(isPresented: $showConstMenu) { ConstantsMenuView(engine: engine, isPresented: $showConstMenu) }
             .onChange(of: bindableEngine.isProgrammingMode) { _, newValue in
                 if !newValue { showProgramEditor = false }
             }
@@ -528,99 +407,3 @@ struct WatchMenuModifier: ViewModifier {
     }
 }
 
-struct LRMenuSheetView: View {
-    @Bindable var engine: CalculatorEngine
-    @Binding var showLRMenu: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Button("ŷ,r (Estimate y and Correlation)") { engine.executeMath("ŷ,r"); showLRMenu = false }
-                Button("x̂ (Estimate x)") { engine.executeMath("x̂"); showLRMenu = false }
-            }
-            .navigationTitle("L.R.")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("C") { showLRMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}
-
-struct PartsMenuSheetView: View {
-    @Bindable var engine: CalculatorEngine
-    @Binding var showPartsMenu: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Button("IP (Integer Part)") { engine.executeOp(.intg); showPartsMenu = false }
-                Button("FP (Fractional Part)") { engine.executeOp(.frac); showPartsMenu = false }
-                Button("ABS (Absolute Value)") { engine.executeOp(.abs); showPartsMenu = false }
-            }
-            .navigationTitle("PARTS")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("C") { showPartsMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}
-
-struct ProbMenuSheetView: View {
-    @Bindable var engine: CalculatorEngine
-    @Binding var showProbMenu: Bool
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Button("Cn,r (Combinations)") { engine.executeOp(.nCr); showProbMenu = false }
-                Button("Pn,r (Permutations)") { engine.executeOp(.nPr); showProbMenu = false }
-                Button("SD (Seed Random)") { engine.executeMath("SD"); showProbMenu = false }
-                Button("R# (Random Number)") { engine.executeMath("R#"); showProbMenu = false }
-            }
-            .navigationTitle("PROB")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("C") { showProbMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}
-
-struct ClearMenuSheetView: View {
-    @Bindable var engine: CalculatorEngine
-    @Binding var showClearMenu: Bool
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Button("Clear x") { 
-                    engine.executeOp(.clear); 
-                    showClearMenu = false 
-                }
-                Button("Clear VARS") { 
-                    engine.clearVars(); 
-                    showClearMenu = false 
-                }
-                Button("Clear ALL") { 
-                    engine.clearAll(); 
-                    showClearMenu = false 
-                }
-                Button("Clear Σ (Stats)") { 
-                    engine.clearStats(); 
-                    showClearMenu = false 
-                }
-            }
-            .navigationTitle("Clear")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("C") { showClearMenu = false }.accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-    }
-}

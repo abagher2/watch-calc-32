@@ -41,26 +41,24 @@ struct BottomNumpadView: View {
             return
         }
 
-        var handledMenu = false
-
-        // All menu ops post a WatchMenuTrigger notification.
-        // WatchMenuModifier listens and handles presentation.
-        switch op {
-        case .clear, .flags, .mem, .regs, .const, .eqn, .fnEq,
-             .solve, .integrate, .plot, .show, .xeq:
-            postMenuTrigger(op)
-            handledMenu = true
-        default: break
-        }
-
-        if handledMenu {
+        // CalculatorMenu menus — route via engine.activeMenu (covers all menus, including
+        // clear/flags/mem/regs/const which were previously posted as unhandled notifications)
+        if let menu = menuForOp(op) {
+            engine.activeMenu = menu
             autoReturn()
             return
         }
 
-        // CalculatorMenu menus — route via engine.activeMenu directly
-        if let menu = menuForOp(op) {
-            engine.activeMenu = menu
+        // Non-menu ops that require special sheet presentation (eqn, plot, solve, integrate, xeq, show)
+        var handledSpecial = false
+        switch op {
+        case .eqn, .fnEq, .solve, .integrate, .plot, .show, .xeq:
+            postMenuTrigger(op)
+            handledSpecial = true
+        default: break
+        }
+
+        if handledSpecial {
             autoReturn()
             return
         }
@@ -83,18 +81,22 @@ struct BottomNumpadView: View {
 
     private func menuForOp(_ op: CalculatorOperation) -> CalculatorMenu? {
         switch op {
-        case .disp:      return .disp
-        case .modes:     return .modes
-        case .base:      return .base
-        case .testXY:    return .testXY
-        case .testX0:    return .testX0
-        case .prob:      return .prob
-        case .parts:     return .parts
-        case .sums:      return .sums
-        case .statMean:  return .statMean
+        case .disp:       return .disp
+        case .modes:      return .modes
+        case .base:       return .base
+        case .testXY:     return .testXY
+        case .testX0:     return .testX0
+        case .prob:       return .prob
+        case .parts:      return .parts
+        case .sums:       return .sums
+        case .statMean:   return .statMean
         case .statStdDev: return .statStdDev
-        case .lr:        return .lr
-        default:         return nil
+        case .lr:         return .lr
+        case .clear:      return .clear
+        case .flags:      return .flags
+        case .mem:        return .mem
+        case .const:      return .const
+        default:          return nil
         }
     }
 

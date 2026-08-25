@@ -429,7 +429,8 @@ enum ActiveMenu: String, Identifiable {
     var id: String { self.rawValue }
 
     /// Maps this ActiveMenu to the corresponding RPNCore CalculatorMenu, if one exists.
-    /// Menus that return nil have bespoke SwiftUI presentations (show, eqn, regs, mem, const, flags, plot, integrate, solve, xeq, clear).
+    /// Menus that return nil have presentations outside CalculatorMenuPresenter
+    /// (show, eqn, regs, plot, integrate, solve, xeq).
     var calculatorMenu: CalculatorMenu? {
         switch self {
         case .disp:    return .disp
@@ -443,6 +444,10 @@ enum ActiveMenu: String, Identifiable {
         case .lr:      return .lr
         case .parts:   return .parts
         case .prob:    return .prob
+        case .clear:   return .clear   // bespoke in CalculatorMenuPresenter (confirm dialog)
+        case .flags:   return .flags   // bespoke in CalculatorMenuPresenter (toggles)
+        case .mem:     return .mem     // bespoke in CalculatorMenuPresenter (readout)
+        case .const:   return .const   // bespoke in CalculatorMenuPresenter (searchable)
         default:       return nil
         }
     }
@@ -500,17 +505,8 @@ struct iOSMenuModifier: ViewModifier {
                 .presentationDetents([.medium])
             )
         case .regs:
-            return AnyView(NavigationStack { RegsMenuView() }.presentationDetents([.medium, .large]))
-        case .mem:
-            return AnyView(NavigationStack { MemMenuView() }.presentationDetents([.medium, .large]))
-        case .const:
-            return AnyView(
-                ConstantsMenuView(engine: engine, isPresented: Binding(
-                    get: { activeMenu == .const },
-                    set: { if !$0 { activeMenu = nil } }
-                ))
-                .presentationDetents([.large])
-            )
+            // .regs uses a bespoke scrollable register table, not a CalculatorMenu.items list.
+            return AnyView(NavigationStack { RegsMenuView() }.environment(engine).presentationDetents([.medium, .large]))
         case .eqn:
             return AnyView(NavigationStack {
                 EquationListView(isPresented: Binding(
@@ -592,48 +588,5 @@ struct iOSMenuModifier: ViewModifier {
     }
 
 }
-
-struct FlagsMenuView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var themeManager: ThemeManager
-    @Bindable var engine: CalculatorEngine
-    @AppStorage("hapticsEnabled") private var hapticsEnabled: Bool = true
-    
-    var body: some View {
-        List {
-            Section("Settings") {
-                Toggle("Exam Mode", isOn: $engine.isExamMode)
-                    .tint(.yellow)
-                Toggle("Enable Haptics", isOn: $hapticsEnabled)
-                    .tint(.blue)
-                Picker("Theme", selection: $themeManager.activeThemeType) {
-                    ForEach(ThemeType.allCases) { theme in
-                        Text(theme.rawValue).tag(theme)
-                    }
-                }
-                Stepper(value: $engine.stackSizeLimit, in: 4...100) {
-                    Text("Stack Size Limit: \(engine.stackSizeLimit)")
-                }
-            }
-            Section("Flags (0-11)") {
-                ForEach(0..<12, id: \.self) { i in
-                    Toggle(isOn: $engine.flags[i]) {
-                        Text("User Flag \(i)")
-                    }
-                }
-            }
-        }
-        .navigationTitle("Flags")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Done") {
-                    dismiss()
-                }
-                .foregroundColor(Color(red: 0.5, green: 0.35, blue: 0.25))
-            }
-        }
-    }
-}
-
 
 
