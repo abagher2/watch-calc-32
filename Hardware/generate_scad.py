@@ -59,22 +59,41 @@ if cur_row:
     rows.append(cur_row)
 
 labels = [
+    # Row 0: Soft keys (blank — function shown on vinyl sticker only)
     ["", "", "", "", "", ""],
-    ["√𝑥", "𝑒ˣ", "LN", "𝑦ˣ", "1/𝑥", "Σ+"],
-    ["STO", "RCL", "R↓", "SIN", "COS", "TAN"],
-    ["ENTER", "𝑥≷𝑦", "+/-", "E", "<-"],
-    ["XEQ", "7", "8", "9", "÷"],
-    ["f", "4", "5", "6", "×"],
+    # Row 1: Math functions (≤2 chars each for 0.4mm nozzle)
+    ["Sx", "ex", "LN", "yx", "1x", "S+"],
+    # Row 2: Store/Recall/Trig
+    ["ST", "RC", "Rv", "SI", "CO", "TA"],
+    # Row 3: ENTER (full word — spans ST+RC width), then 2-char labels
+    ["ENTER", "xy", "+-", "E", "<-"],
+    # Rows 4–7: Numpad
+    ["XQ", "7", "8", "9", "/"],
+    ["f", "4", "5", "6", "x"],
     ["g", "1", "2", "3", "-"],
-    ["C", "0", ".", "PLOT", "+"],
+    ["C", "0", ".", "PT", "+"],
 ]
 for r_idx, row in enumerate(rows):
     for c_idx, b in enumerate(row):
         lbl = (labels[r_idx][c_idx]
                if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
         b['label'] = lbl
-        b['w']     = 7.5 if r_idx == 0 else (16.0 if lbl == "ENTER" else 8.0 if lbl in ("f","g","C") else 7.5)
+        b['w']     = 7.5 if r_idx == 0 else (8.0 if lbl in ("f","g","C") else 7.5)
         b['h']     = 6.0
+
+# --- Compute ENTER width to span ST (row2[0]) + RC (row2[1]) ---
+# After X-mirror: ox = fp_w - (b['x'] + pad_x). The mirrored positions of
+# ST and RC determine the left/right edges that ENTER must span.
+# We do this AFTER pad_x is computed (below in generate_scad), so store the
+# raw PCB x values now for later use.
+_enter_btn = None
+_st_btn    = None
+_rc_btn    = None
+if len(rows) >= 4 and len(rows[3]) >= 1:
+    _enter_btn = rows[3][0]   # ENTER = first in row 3 (sorted by PCB x)
+if len(rows) >= 3 and len(rows[2]) >= 2:
+    _st_btn = rows[2][0]      # ST = first in row 2
+    _rc_btn = rows[2][1]      # RC = second in row 2
 
 # ─────────────────────────────────────────────────────────
 # Global constants & Component Geometry
@@ -90,7 +109,7 @@ TACTILE_H = 1.6   # 1.5mm switches + 0.1mm gap for sliding clearance
 PCB_T     = 1.6   # PCB thickness
 BATT_H    = 7.0   # Clearance for wired CR2450 battery holder (Z)
 plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
-FRONT_LIP = 0.8   # Structural retaining bezel
+FRONT_LIP = 1.5   # Structural retaining bezel — increased 0.8→1.5mm to stop top-corner bending
 
 # Calculate required chassis depth to securely fit all components
 CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
@@ -160,34 +179,150 @@ module squircle_centered(w, h, depth, r) {{
     }}
 }}
 
-module key_button(w, h) {{
-    // Cap and flange: squircle profile (comfortable to press, good FDM adhesion)
-    // Shaft: CRUCIFORM (+) profile — 4 arms at 90° prevent angular tilt.
-    //   Any tilt immediately contacts one arm tip against the guide wall,
-    //   giving 4x better tilt resistance than a plain rectangle.
-    //   Arm width = 0.35*w (≈1.9mm), so the center rib is structurally solid.
-    // 1. Cap (Z=-0.8..0.0): protrudes 0.8mm above the top surface at rest!
-    translate([0, 0, -0.8]) squircle_centered(w, h, 0.8, 1.5);
-    // 2. Upper Flange (Z=0.0..0.6)
-    hull() {{
-        translate([0, 0, 0.0]) squircle_centered(w,       h,       0.01, 1.5);
-        translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
-    }}
-    // 3. Lower Flange (Z=0.6..1.2)
-    hull() {{
-        translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
-        translate([0, 0, 1.2]) squircle_centered(w,       h,       0.01, 1.5);
-    }}
-    // 4. Cruciform Shaft (Z=1.2..3.0) — Ends exactly flush with Faceplate bottom!
-    arm_w = w * 0.40;   // ≈2.2mm wide arm (along h axis)
-    arm_h = h * 0.40;   // ≈1.6mm wide arm (along w axis)
-    translate([0, 0, 1.2]) union() {{
-        // Horizontal bar (full width w, narrow height arm_h)
-        translate([-w/2, -arm_h/2, 0]) cube([w, arm_h, 1.8]);
-        // Vertical bar (narrow width arm_w, full height h)
-        translate([-arm_w/2, -h/2, 0]) cube([arm_w, h, 1.8]);
+// ─────────────────────────────────────────────────────────────────────────────
+// SEGMENT BAR FONT — LCD / 7-segment style. Every glyph is composed of
+// thick rectangular bars only (NO pixels, NO curves, NO diagonals).
+// Each bar = one cube → printer makes 4 direction changes per stroke max.
+// Character grid: H=4.0mm tall, W=2.8mm wide, T=0.60mm stroke, G=0.12mm gap.
+// ─────────────────────────────────────────────────────────────────────────────
+SH = 4.0;   // segment character height
+SW = 2.8;   // segment character width
+ST = 0.60;  // stroke thickness
+SG = 0.12;  // gap at segment ends (avoids corner merges)
+SD = 0.55;  // extrude depth (cut depth for sunken text)
+
+// ── Primitive segments ──────────────────────────────────────────────────────
+module s_top()  {{ translate([SG,       SH-ST,        0]) cube([SW-2*SG, ST,       SD]); }}
+module s_mid()  {{ translate([SG,       SH/2-ST/2,    0]) cube([SW-2*SG, ST,       SD]); }}
+module s_bot()  {{ translate([SG,       0,            0]) cube([SW-2*SG, ST,       SD]); }}
+module s_tl()   {{ translate([0,        SH/2+SG,      0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
+module s_tr()   {{ translate([SW-ST,    SH/2+SG,      0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
+module s_bl()   {{ translate([0,        ST+SG,        0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
+module s_br()   {{ translate([SW-ST,    ST+SG,        0]) cube([ST, SH/2-ST-2*SG,  SD]); }}
+// Center vertical (for T, I)
+module s_cv()   {{ translate([SW/2-ST/2, ST+SG,       0]) cube([ST, SH-2*ST-2*SG,  SD]); }}
+// Full left/right verticals (for N, U, H etc.)
+module s_lv()   {{ translate([0,        ST+SG,        0]) cube([ST, SH-2*ST-2*SG,  SD]); }}
+module s_rv()   {{ translate([SW-ST,    ST+SG,        0]) cube([ST, SH-2*ST-2*SG,  SD]); }}
+// Dot
+module s_dot()  {{ translate([SW/2-ST/2, 0,           0]) cube([ST, ST,             SD]); }}
+
+// ── Glyph modules ───────────────────────────────────────────────────────────
+module g_0()  {{ s_top(); s_tl(); s_tr(); s_bl(); s_br(); s_bot(); }}
+module g_1()  {{ s_tr(); s_br(); }}
+module g_2()  {{ s_top(); s_tr(); s_mid(); s_bl(); s_bot(); }}
+module g_3()  {{ s_top(); s_tr(); s_mid(); s_br(); s_bot(); }}
+module g_4()  {{ s_tl(); s_tr(); s_mid(); s_br(); }}
+module g_5()  {{ s_top(); s_tl(); s_mid(); s_br(); s_bot(); }}
+module g_6()  {{ s_top(); s_tl(); s_mid(); s_bl(); s_br(); s_bot(); }}
+module g_7()  {{ s_top(); s_tr(); s_br(); }}
+module g_8()  {{ s_top(); s_tl(); s_tr(); s_mid(); s_bl(); s_br(); s_bot(); }}
+module g_9()  {{ s_top(); s_tl(); s_tr(); s_mid(); s_br(); s_bot(); }}
+module g_A()  {{ s_top(); s_tl(); s_tr(); s_mid(); s_bl(); s_br(); }}
+module g_C()  {{ s_top(); s_tl(); s_bl(); s_bot(); }}
+module g_E()  {{ s_top(); s_tl(); s_mid(); s_bl(); s_bot(); }}
+module g_F()  {{ s_top(); s_tl(); s_mid(); s_bl(); }}
+module g_G()  {{ s_top(); s_tl(); s_bl(); s_br(); s_mid(); s_bot(); }}
+module g_H()  {{ s_tl(); s_tr(); s_mid(); s_bl(); s_br(); }}
+module g_I()  {{ s_top(); s_cv(); s_bot(); }}
+module g_J()  {{ s_tr(); s_br(); s_bl(); s_bot(); }}
+module g_L()  {{ s_tl(); s_bl(); s_bot(); }}
+module g_N()  {{ s_top(); s_lv(); s_rv(); s_bot(); }}  // box-N
+module g_O()  {{ g_0(); }}
+module g_P()  {{ s_top(); s_tl(); s_tr(); s_mid(); s_bl(); }}
+module g_Q()  {{ g_9(); }}  // 9-style Q
+module g_R()  {{ s_top(); s_tl(); s_tr(); s_mid(); s_bl(); s_br(); }}  // like A
+module g_S()  {{ g_5(); }}
+module g_T()  {{ s_top(); s_cv(); }}
+module g_U()  {{ s_tl(); s_tr(); s_bl(); s_br(); s_bot(); }}
+module g_V()  {{ s_bl(); s_br(); s_bot(); }}
+module g_X()  {{ s_tl(); s_tr(); s_mid(); s_bl(); s_br(); }}  // H-style X
+module g_Y()  {{ s_tl(); s_tr(); s_mid(); s_br(); s_bot(); }}
+module g_plus()  {{ s_cv(); s_mid(); }}
+module g_minus() {{ s_mid(); }}
+module g_slash() {{ s_tr(); s_mid(); s_bl(); }}
+module g_dot()   {{ s_dot(); }}
+module g_lt()    {{ s_tr(); s_mid(); s_br(); }}  // arrow left ‹
+module g_pm()    {{ s_cv(); s_mid(); s_bot(); }} // ±
+
+// ── Dispatcher ──────────────────────────────────────────────────────────────
+module seg_char(c) {{
+    if      (c=="0") g_0();  else if (c=="1") g_1();  else if (c=="2") g_2();
+    else if (c=="3") g_3();  else if (c=="4") g_4();  else if (c=="5") g_5();
+    else if (c=="6") g_6();  else if (c=="7") g_7();  else if (c=="8") g_8();
+    else if (c=="9") g_9();  else if (c=="A") g_A();  else if (c=="C") g_C();
+    else if (c=="E") g_E();  else if (c=="F") g_F();  else if (c=="G") g_G();
+    else if (c=="H") g_H();  else if (c=="I") g_I();  else if (c=="J") g_J();
+    else if (c=="L") g_L();  else if (c=="N") g_N();  else if (c=="O") g_O();
+    else if (c=="P") g_P();  else if (c=="Q") g_Q();  else if (c=="R") g_R();
+    else if (c=="S") g_S();  else if (c=="T") g_T();  else if (c=="U") g_U();
+    else if (c=="V") g_V();  else if (c=="X") g_X();  else if (c=="Y") g_Y();
+    else if (c=="+") g_plus();  else if (c=="-") g_minus();
+    else if (c=="/") g_slash(); else if (c==".") g_dot();
+    else if (c=="<") g_lt();    else if (c=="\u00b1") g_pm();
+    // lowercase aliases (same shape at this scale)
+    else if (c=="v") g_V();     else if (c=="x") g_X();
+    else if (c=="f") g_F();     else if (c=="g") g_9();
+    else if (c=="y") g_Y();     else if (c=="e") g_E();
+    else if (c=="s") g_S();     else if (c=="n") g_N();
+    else if (c=="r") {{ s_top(); s_tl(); s_mid(); s_bl(); }}  // small r
+    else if (c=="t") g_T();
+}}
+
+// ── Word renderer — centers up to 5 chars, auto-scales for ENTER ────────────
+module seg_word(word, avail_w=7.0) {{
+    n = len(word);
+    // For ENTER (5 chars), compress horizontally to fit
+    char_w = (n <= 2) ? SW : (n == 3) ? SW * 0.85 : (n == 4) ? SW * 0.75 : SW * 0.62;
+    gap    = (n <= 2) ? 0.5 : 0.35;
+    total_w = n * char_w + (n-1) * gap;
+    sx = (total_w > avail_w) ? (avail_w / total_w) : 1.0;
+    sy = (n > 3) ? ((char_w / SW) * 1.0) : 1.0;  // keep aspect ratio
+    scale([sx, sy, 1])
+    translate([-total_w/2, -SH/2, 0])
+    for (i = [0 : n-1]) {{
+        translate([i * (char_w + gap), 0, 0])
+        scale([char_w / SW, 1, 1])
+            seg_char(word[i]);
     }}
 }}
+
+// ── Button cap with sunken 7-segment label ───────────────────────────────────
+module key_button(w, h, label="") {{
+    difference() {{
+        union() {{
+            // 1. Cap (Z=-0.8..0.0): protrudes 0.8mm above the faceplate top surface at rest
+            translate([0, 0, -0.8]) squircle_centered(w, h, 0.8, 1.5);
+            // 2. Upper Flange (Z=0.0..0.6)
+            hull() {{
+                translate([0, 0, 0.0]) squircle_centered(w,       h,       0.01, 1.5);
+                translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+            }}
+            // 3. Lower Flange (Z=0.6..1.2)
+            hull() {{
+                translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+                translate([0, 0, 1.2]) squircle_centered(w,       h,       0.01, 1.5);
+            }}
+            // 4. Cruciform Shaft (Z=1.2..3.0)
+            arm_w = w * 0.40;
+            arm_h = h * 0.40;
+            translate([0, 0, 1.2]) union() {{
+                translate([-w/2, -arm_h/2, 0]) cube([w, arm_h, 1.8]);
+                translate([-arm_w/2, -h/2, 0]) cube([arm_w, h, 1.8]);
+            }}
+        }}
+        // SUNKEN LABEL CUT — 0.50mm deep from cap top (Z=-0.8).
+        // seg_word renders at Z=0..SD (0.55mm), translated to Z=-1.30..−0.75.
+        // mirror([1,0,0]) so glyphs read correctly from the FRONT of the faceplate.
+        if (label != "") {{
+            translate([0, 0, -1.30])
+                mirror([1, 0, 0])
+                    seg_word(label, w - 1.5);
+        }}
+    }}
+}}
+
+
 
 module button_pocket(w, h) {{
     // Designed for TWO distinct travel ranges:
@@ -222,7 +357,17 @@ module button_pocket(w, h) {{
 }}
 
 module faceplate_body() {{
-    cube([fp_w, fp_h - 0.8, pt]);
+    // Faceplate body shrunk by 0.1mm each side (X) and 0.1mm front (Y=0) for sliding clearance.
+    // A 1mm chamfer on the leading edge (Y=fp_h side = top when printed face-up) guides it in.
+    FP_CLR = 0.10;  // clearance per side
+    translate([FP_CLR, FP_CLR, 0])
+        difference() {{
+            cube([fp_w - 2*FP_CLR, fp_h - 0.8 - FP_CLR, pt]);
+            // Chamfer on leading edge (the end that slides into chassis first)
+            translate([0, fp_h - 0.8 - FP_CLR - 1.0, 0])
+                rotate([45, 0, 0])
+                    cube([fp_w - 2*FP_CLR, 1.5, 1.5]);
+        }}
 }}
 
 
@@ -244,9 +389,24 @@ module faceplate() {{
 """
     pad_x = (fp_w - pcb_width) / 2
     pad_y = (fp_h - pcb_height) / 2
+
+    # ── ENTER width: span exactly from ST's outer-left to RC's outer-right (mirrored view)
+    if _enter_btn is not None and _st_btn is not None and _rc_btn is not None:
+        ox_st = fp_w - (_st_btn['x'] + pad_x)
+        ox_rc = fp_w - (_rc_btn['x'] + pad_x)
+        st_half = _st_btn['w'] / 2
+        rc_half = _rc_btn['w'] / 2
+        enter_left  = min(ox_st, ox_rc) - st_half
+        enter_right = max(ox_st, ox_rc) + rc_half
+        _enter_btn['w']         = enter_right - enter_left
+        _enter_btn['_enter_cx'] = (enter_left + enter_right) / 2
+
     for row in rows:
         for b in row:
-            ox = b['x'] + pad_x
+            if b.get('label') == 'ENTER' and '_enter_cx' in b:
+                ox = b['_enter_cx']
+            else:
+                ox = fp_w - (b['x'] + pad_x)
             oy = b['y'] + pad_y
             faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_pocket({b['w']}, {b['h']});\n"
 
@@ -270,9 +430,13 @@ module faceplate_assembly() {
     pad_y = (fp_h - pcb_height) / 2
     for row in rows:
         for b in row:
-            ox = b['x'] + pad_x
+            if b.get('label') == 'ENTER' and '_enter_cx' in b:
+                ox = b['_enter_cx']
+            else:
+                ox = fp_w - (b['x'] + pad_x)
             oy = b['y'] + pad_y
-            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']});\n"
+            lbl = b.get('label', '').replace('"', '\\"')
+            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
             faceplate_mjf += btn_str
             faceplate_fdm += btn_str
 
@@ -313,9 +477,13 @@ translate([0, 0, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
     faceplate_tapered = fp_tapered
     for row in rows:
         for b in row:
-            ox = b['x'] + pad_x
+            if b.get('label') == 'ENTER' and '_enter_cx' in b:
+                ox = b['_enter_cx']
+            else:
+                ox = fp_w - (b['x'] + pad_x)
             oy = b['y'] + pad_y
-            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']});\n"
+            lbl = b.get('label', '').replace('"', '\\"')
+            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
             faceplate_tapered += btn_str
     faceplate_tapered += closing_str
     with open("designs/faceplate_mjf.scad", "w") as f:
@@ -367,9 +535,9 @@ module chassis_shell() {{
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        // Tier 1: Faceplate Cavity (Slides in from Z=ch, stopped by bottom lip at Z=wall)
-        translate([offset_x, {FRONT_LIP} - 0.1, wall])
-            cube([fp_w, pt + 0.1, ch + 0.1]);
+        // Tier 1: Faceplate Cavity — +0.2mm wider (0.1mm/side) to match faceplate's sliding clearance
+        translate([offset_x - 0.1, {FRONT_LIP} - 0.1, wall])
+            cube([fp_w + 0.2, pt + 0.1, ch + 0.1]);
             
         // Middle Cavity: Hollows out the center for the 65.4mm E-Ink Display to slide down!
         // We make this cavity 66.4mm wide, which leaves ~2.1mm solid rails on the left and right
@@ -378,15 +546,15 @@ module chassis_shell() {{
             cube([66.4, {TACTILE_H} + 0.2, ch + 0.1]);
             
         // Tier 2: PCB Cavity (Slides in from Z=ch)
-        // Shifted by 1.5mm to create a physical rail for the faceplate and clear the tactile switches
-        translate([(cw - pcb_w)/2, {FRONT_LIP} + pt + {TACTILE_H} - 0.1, wall])
-            cube([pcb_w, {PCB_T} + 0.2, ch + 0.1]);
+        // +0.2mm wider (0.1mm/side) so PCB slides in without rubbing on chassis walls.
+        // +0.1mm deeper to give 0.1mm top-face clearance.
+        translate([(cw - pcb_w)/2 - 0.1, {FRONT_LIP} + pt + {TACTILE_H} - 0.1, wall])
+            cube([pcb_w + 0.2, {PCB_T} + 0.2 + 0.1, ch + 0.1]);
             
         // Tier 2.5: PCB Trace Clearance
-        // Hollows out 0.5mm behind the PCB so traces/vias don't scratch against the solid wedge back when sliding in.
-        // We cannot hollow out more than 0.5mm here because the chassis is only 7.9mm thick at the bottom!
-        translate([(cw - pcb_w + 4.0)/2, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, wall])
-            cube([pcb_w - 4.0, 0.5 + 0.1, ch + 0.1]);
+        // Hollows out 0.5mm behind the PCB so traces/vias don't scratch the back wall.
+        translate([(cw - pcb_w + 4.0)/2 - 0.1, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, wall])
+            cube([pcb_w - 4.0 + 0.2, 0.5 + 0.1, ch + 0.1]);
             
         // Tier 3: Back Components Clearance (Deepest)
         // Starts at Z=90. Tapers to match the chassis back wall to avoid punching through!
@@ -463,17 +631,19 @@ chassis();
             translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
         }"""
     hull_new = """        hull() {
-            // Front edge (rounded)
+            // Front edge (rounded corners, full height)
             translate([3, 3, 0]) cylinder(r=3, h=ch);
             translate([cw-3, 3, 0]) cylinder(r=3, h=ch);
             
-            // Back edge (tapered)
-            // At Z=0 (keypad), minimum depth is 7.9mm to clear the back cutouts.
-            // (Center of r=3 cylinder is at Y=7.9 - 3.0 = 4.9)
-            translate([3, 4.9, 0]) cylinder(r=3, h=0.1);
-            translate([cw-3, 4.9, 0]) cylinder(r=3, h=0.1);
+            // Back edge (tapered — shallower at keypad end to save material)
+            // Minimum depth at Z=0 must clear all internal cuts:
+            //   Tier 2.5 ends at Y = FRONT_LIP + pt + TACTILE_H + PCB_T + 0.5
+            //                     = 1.5 + 3.0 + 1.6 + 1.6 + 0.5 = 8.2mm
+            // So back wall must be at least Y=9.5mm (center at Y=6.5, r=3)
+            translate([3, 6.5, 0]) cylinder(r=3, h=0.1);
+            translate([cw-3, 6.5, 0]) cylinder(r=3, h=0.1);
             
-            // At Z=ch (display), depth is D (14.2). (Center is at Y=D - 3.0)
+            // At Z=ch (display end), full depth D (center at Y=D-3)
             translate([3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
             translate([cw-3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
         }"""
