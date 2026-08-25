@@ -67,15 +67,13 @@ struct HapticNumpadView: View {
                         )
                         .position(x: lcdX + lcdWidth/2, y: lcdY + lcdHeight/2)
                         
-                    // X-center of the empty gap is 22.35mm
-                    let logoX = offsetX_retro + ((22.35 - 3.85) / physKeypadW) * (physKeypadW * uniformScale)
-                    let logoY = offsetY_retro + (94.0 * uniformScale) - (((28.0 - 7.0) / 94.0) * (94.0 * uniformScale))
+                    // Center of the gap between XEQ (y=46.0) and C (y=10.0) is y=28.0 in physical coordinates
+                    let logoNormX = (18.6 - 1.1) / physKeypadW
+                    let logoNormY = (28.0 - 7.0) / 94.0
+                    let logoX = offsetX_retro + (logoNormX * (physKeypadW * uniformScale))
+                    let logoY = offsetY_retro + (94.0 * uniformScale) - (logoNormY * (94.0 * uniformScale))
                     
-                    Text("STACK\nCALC 32")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.white.opacity(0.85))
-                        .multilineTextAlignment(.leading)
-                        .fixedSize()
+                    StackLogoView(uniformScale: uniformScale)
                         .position(x: logoX, y: logoY)
                 }
                 
@@ -85,15 +83,19 @@ struct HapticNumpadView: View {
                     
                     let colW = isVoyager ? voyagerW : (key.row < 4 ? topW : bottomW)
                     
-                    let w = phys != nil ? phys!.w * uniformScale : colW * CGFloat(key.colSpan)
-                    let buttonHeight = phys != nil ? phys!.h * uniformScale : h * CGFloat(key.rowSpan)
+                    let w = phys != nil ? (phys!.w + 0.5) * uniformScale : colW * CGFloat(key.colSpan)
+                    let buttonHeight = phys != nil ? (phys!.h + 1.5) * uniformScale : h * CGFloat(key.rowSpan)
                     
                     // In retro mode, X calculation must account for the centering offset
-                    let normX = phys != nil ? (phys!.x - 3.85) / physKeypadW : 0
-                    let normY = phys != nil ? (phys!.y - 7.0) / physKeypadH : 0
+                    // The keypad's logical layout height is 94.0.
+                    let keypadLogicalH: CGFloat = 94.0
+                    // The physical PCB is 70.2mm wide (keys centered at 35.1), while the LCD is centered at 34.0.
+                    // This creates a 1.1mm offset between the left edge of the keys and the LCD center.
+                    let normX = phys != nil ? (phys!.x - 1.1) / physKeypadW : 0
+                    let normY = phys != nil ? (phys!.y - 7.0) / keypadLogicalH : 0
                     
                     let xOffset = phys != nil ? (offsetX_retro + (normX * (physKeypadW * uniformScale)) - (w / 2)) : (CGFloat(key.col) * colW)
-                    let yOffset = phys != nil ? (offsetY_retro + (physKeypadH * uniformScale) - (normY * (physKeypadH * uniformScale)) - (buttonHeight / 2)) : (offsetY + (CGFloat(key.row) * h))
+                    let yOffset = phys != nil ? (offsetY_retro + (keypadLogicalH * uniformScale) - (normY * (keypadLogicalH * uniformScale)) - (buttonHeight / 2)) : (offsetY + (CGFloat(key.row) * h))
                     
                     let adjustedWidth = phys != nil ? w + (3.5 * uniformScale) : w
                     let adjustedHeight = phys != nil ? buttonHeight + (6.0 * uniformScale) : buttonHeight
@@ -200,7 +202,41 @@ struct HapticNumpadView: View {
         }
     }
     
+    private func getRetroKeyRect(for key: HP32Key, size: CGSize) -> CGRect? {
+        guard let phys = physicalKeyOffsets[physicalKeyFor(key: key)] else { return nil }
+        let physKeypadW: CGFloat = 68.0
+        let physKeypadH: CGFloat = 133.28
+        let keypadLogicalH: CGFloat = 94.0
+        let uniformScale = min(size.width / physKeypadW, size.height / physKeypadH)
+        
+        let emptySpaceY = size.height - (physKeypadH * uniformScale)
+        let offsetY_retro = emptySpaceY + 39.28 * uniformScale
+        let offsetX_retro = (size.width - (physKeypadW * uniformScale)) / 2
+        
+        let w = (phys.w + 0.5) * uniformScale
+        let buttonHeight = (phys.h + 1.5) * uniformScale
+        let adjustedWidth = w + (3.5 * uniformScale)
+        let adjustedHeight = buttonHeight + (6.0 * uniformScale)
+        
+        let normX = (phys.x - 1.1) / physKeypadW
+        let normY = (phys.y - 7.0) / keypadLogicalH
+        
+        let xOffset = offsetX_retro + (normX * (physKeypadW * uniformScale)) - (w / 2)
+        let yOffset = offsetY_retro + (keypadLogicalH * uniformScale) - (normY * (keypadLogicalH * uniformScale)) - (buttonHeight / 2)
+        
+        let minX = xOffset - (adjustedWidth - w) / 2
+        let minY = yOffset - (adjustedHeight - buttonHeight) / 2
+        
+        return CGRect(x: minX, y: minY, width: adjustedWidth, height: adjustedHeight)
+    }
+
     private func getCenterAndMaxDistance(for key: HP32Key, size: CGSize) -> (center: CGPoint, maxDistance: CGFloat) {
+        if themeManager.activeThemeType == .retro, let rect = getRetroKeyRect(for: key, size: size) {
+            let center = CGPoint(x: rect.midX, y: rect.midY)
+            let maxDistance = max(rect.width, rect.height) / 2
+            return (center, maxDistance)
+        }
+        
         let totalRows = (keys.map { $0.row }.max() ?? 0) + 1
         let isVoyager = totalRows == 4
         let totalCols: CGFloat = isVoyager ? 11 : 6
@@ -227,6 +263,31 @@ struct HapticNumpadView: View {
     }
 
     private func keyAt(location: CGPoint, size: CGSize) -> HP32Key? {
+        if themeManager.activeThemeType == .retro {
+            var bestKey: HP32Key? = nil
+            var minDistance: CGFloat = .infinity
+            
+            for key in keys {
+                if let rect = getRetroKeyRect(for: key, size: size) {
+                    if rect.contains(location) {
+                        return key
+                    }
+                    let center = CGPoint(x: rect.midX, y: rect.midY)
+                    let dist = hypot(location.x - center.x, location.y - center.y)
+                    if dist < minDistance {
+                        minDistance = dist
+                        bestKey = key
+                    }
+                }
+            }
+            
+            let scale = min(size.width / 68.0, size.height / 133.28)
+            if minDistance < 35.0 * scale {
+                return bestKey
+            }
+            return nil
+        }
+        
         let totalRows = (keys.map { $0.row }.max() ?? 0) + 1
         let isVoyager = totalRows == 4
         let totalCols: CGFloat = isVoyager ? 11 : 6
@@ -389,9 +450,6 @@ struct ButtonView: View {
             let slot = blue.rawValue - CalculatorOperation.lfu0.rawValue
             return uiLabel(for: engine.lfuManager.getFunction(for: slot))
         }
-#if os(iOS) || os(watchOS)
-        if key.blueLabel == "OFF" { return "" }
-#endif
         return key.blueLabel
     }
 
@@ -535,6 +593,12 @@ struct ButtonView: View {
                 } else {
                     Spacer().frame(width: 8)
                 }
+            }
+            if key.primaryAction == .c {
+                Text("On")
+                    .font(.system(size: shiftFontSize, weight: .bold))
+                    .foregroundColor(themeManager.theme.digitTextColor.opacity(0.8))
+                    .frame(height: 10)
             }
         }
         .frame(width: width - 4, height: height - 4)

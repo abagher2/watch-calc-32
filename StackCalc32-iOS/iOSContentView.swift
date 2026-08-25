@@ -133,16 +133,7 @@ struct iOSContentView: View {
         
         VStack(alignment: .trailing, spacing: 2) {
             HStack(alignment: .top) {
-                if themeManager.activeThemeType == .retro {
-                    RetroLCDView(engine: engine, pixelColor: (15, 20, 15, 255), backgroundColor: (0, 0, 0, 0))
-                        .frame(maxWidth: lcdMaxWidth, maxHeight: retroLcdHeight)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(themeManager.theme.lcdBackgroundColor)
-                        )
-                        .padding(.horizontal, numpadPadHoriz)
-                        .padding(.top, lcdPadTop)
-                } else {
+                if themeManager.activeThemeType != .retro {
                     VStack(alignment: .trailing, spacing: 2) {
                         LCDAnnunciatorsView(
                             engine: engine,

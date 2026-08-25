@@ -161,35 +161,39 @@ module squircle_centered(w, h, depth, r) {{
 }}
 
 module key_button(w, h) {{
-    // Base plunger (touches tactile switch)
-    squircle_centered(w, h, 1.0, 1.5);
-    // Taper Up (45-degree overhang transition)
-    // Taller shaft: 2.4mm tall instead of 2.0mm
-    translate([0, 0, 1.0]) hull() {{
-        squircle_centered(w, h, 0.01, 1.5);
-        translate([0, 0, 2.4]) rotate([0, 0, 90]) cylinder(d=min(w, h) - 1.5, h=0.01, $fn=3);
+    // 1. Cap section (touches bed, Z=0 to Z=0.6)
+    squircle_centered(w, h, 0.6, 1.5);
+    // 2. Upper Flange 45° Slope (expands from w x h to w+1.2 x h+1.2, Z=0.6 to Z=1.2)
+    hull() {{
+        translate([0, 0, 0.6]) squircle_centered(w, h, 0.01, 1.5);
+        translate([0, 0, 1.2]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
     }}
-    // Taper Out (45-degree overhang transition)
-    // Shifted up by 0.4mm
-    translate([0, 0, 3.4]) hull() {{
-        rotate([0, 0, 90]) cylinder(d=min(w, h) - 1.5, h=0.01, $fn=3);
-        translate([0, 0, 2.0]) squircle_centered(w, h, 0.01, 1.5);
+    // 3. Lower Flange 45° Slope (contracts from w+1.2 x h+1.2 back to w x h, Z=1.2 to Z=1.8)
+    hull() {{
+        translate([0, 0, 1.2]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+        translate([0, 0, 1.8]) squircle_centered(w, h, 0.01, 1.5);
     }}
-    // Top piston - Squircle
-    // Shifted up by 0.4mm
-    translate([0, 0, 5.4]) squircle_centered(w, h, 1.0, 1.5);
+    // 4. Shaft (Z=1.8 to Z=3.6, total height 3.6mm; extends 0.6mm past Z=3.0 faceplate back to press switch)
+    translate([0, 0, 1.8]) squircle_centered(w, h, 1.8, 1.5);
 }}
 
 module button_pocket(w, h) {{
-    // Front wide pocket (with 0.4mm vertical gap)
-    translate([0, 0, -0.1]) squircle_centered(w + 1.2, h + 1.2, 1.5, 1.5);
-    // Taper pocket (45-degree overhang transition)
-    translate([0, 0, 1.4]) hull() {{
-        squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
-        translate([0, 0, 2.0]) rotate([0, 0, 90]) cylinder(d=min(w, h) - 0.3, h=0.01, $fn=3);
+    // 1. Front Opening (Z=-0.1 to Z=0.6) -> Roof Z=0..0.6, tight 0.35mm clearance around cap (w+0.7 x h+0.7)
+    translate([0, 0, -0.1]) squircle_centered(w + 0.7, h + 0.7, 0.7, 1.5);
+    // 2. Upper 45° Lock Roof Slope (Z=0.6 to Z=1.2) -> Expands from w+0.7 x h+0.7 to w+1.9 x h+1.9
+    hull() {{
+        translate([0, 0, 0.6]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
+        translate([0, 0, 1.2]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
     }}
-    // Triangular Waist
-    translate([0, 0, 3.4]) rotate([0, 0, 90]) cylinder(d=min(w, h) - 0.3, h=0.01, $fn=3);
+    // 3. Middle Cavity Body (Z=1.2 to Z=1.8) -> Houses peak of flange (w+1.9 x h+1.9)
+    translate([0, 0, 1.2]) squircle_centered(w + 1.9, h + 1.9, 0.61, 1.5);
+    // 4. Lower 45° Lock Shelf Slope (Z=1.8 to Z=2.4) -> Contracts from w+1.9 x h+1.9 back to w+0.7 x h+0.7 (stops downward travel at 0.6mm)
+    hull() {{
+        translate([0, 0, 1.8]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
+        translate([0, 0, 2.4]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
+    }}
+    // 5. Back Opening Hole (Z=2.4 to Z=3.1) -> Guides shaft out the back of the 3.0mm faceplate (w+0.7 x h+0.7)
+    translate([0, 0, 2.4]) squircle_centered(w + 0.7, h + 0.7, pt - 2.4 + 0.1, 1.5);
 }}
 
 module faceplate_body() {{
