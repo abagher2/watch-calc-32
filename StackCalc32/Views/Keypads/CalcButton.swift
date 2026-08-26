@@ -40,11 +40,13 @@ struct CalcButton: View {
     
     var body: some View {
         Button {
+            #if os(watchOS)
             if hapticsMode == 0 {
                 WKInterfaceDevice.current().play(.click)
             } else if hapticsMode == 1 {
                 WKInterfaceDevice.current().play(.directionUp)
             }
+            #endif
             
             let opToExecute: String
             switch engine.shiftState {

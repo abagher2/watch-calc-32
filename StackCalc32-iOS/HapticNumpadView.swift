@@ -74,6 +74,118 @@ struct HapticNumpadView: View {
         }
     }
 
+    // MARK: - Helpers
+
+    private func identifier(for key: HP32Key) -> String {
+        if key.primaryAction == .shiftYellow { return "btn_yellow_shift" }
+        if key.primaryAction == .shiftBlue   { return "btn_blue_shift" }
+        if key.primaryAction == .enter       { return "invisible_ENTER" }
+        let actStr = key.primaryAction?.stringValue ?? ""
+        if Int(actStr) != nil || actStr == "." { return "btn_\(actStr)" }
+        return "func_\(actStr)"
+    }
+
+    private func handleDrag(location: CGPoint, size: CGSize) {
+        if let newKey = keyAt(location: location, size: size) {
+            let centerAndMax = getCenterAndMaxDistance(for: newKey, size: size)
+            let dist = hypot(location.x - centerAndMax.center.x, location.y - centerAndMax.center.y)
+            let normalizedDist = min(1.0, max(0.0, dist / centerAndMax.maxDistance))
+
+            if newKey != hoveredKey {
+                hoveredKey = newKey
+                hasPlayedCenterPopForCurrentKey = false
+                lastTextureLocation = location
+                if hapticsEnabled { HapticManager.shared.playBoundary() }
+            } else {
+                if !hapticsEnabled { return }
+                let dragDist = hypot(location.x - lastTextureLocation.x, location.y - lastTextureLocation.y)
+                if dragDist > 3.0 {
+                    lastTextureLocation = location
+                    if normalizedDist < 0.15 {
+                        if !hasPlayedCenterPopForCurrentKey {
+                            hasPlayedCenterPopForCurrentKey = true
+                            HapticManager.shared.playCenterPop()
+                        }
+                    } else {
+                        hasPlayedCenterPopForCurrentKey = false
+                        let totalRows = (keys.map { $0.row }.max() ?? 0) + 1
+                        let sharpness = 1.0 - (Float(newKey.row) / Float(max(1, totalRows - 1)))
+                        let textureIntensity = Float(1.0 - normalizedDist) * 0.8
+                        HapticManager.shared.playTexture(intensity: max(0.2, textureIntensity), sharpness: max(0.1, sharpness))
+                    }
+                }
+            }
+        } else {
+            if hoveredKey != nil {
+                if hapticsEnabled {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.warning)
+                }
+                hoveredKey = nil
+            }
+        }
+    }
+
+    private func getCenterAndMaxDistance(for key: HP32Key, size: CGSize) -> (center: CGPoint, maxDistance: CGFloat) {
+        let totalRows = (keys.map { $0.row }.max() ?? 0) + 1
+        let isVoyager = totalRows == 4
+        let totalCols: CGFloat = isVoyager ? 11 : 6
+        let maxH = size.width / totalCols * 0.85
+        let rawH = size.height / CGFloat(totalRows)
+        let h = UIDevice.current.userInterfaceIdiom == .pad ? min(rawH, maxH) : rawH
+        let gridHeight = h * CGFloat(totalRows)
+        let offsetY = size.height - gridHeight
+        let colW = isVoyager ? (size.width / 11) : (key.row < 4 ? (size.width / 6) : (size.width / 5))
+        let w = colW * CGFloat(key.colSpan)
+        let buttonHeight = h * CGFloat(key.rowSpan)
+        let xOffset = CGFloat(key.col) * colW
+        let yOffset = offsetY + (CGFloat(key.row) * h)
+        let center = CGPoint(x: xOffset + w / 2, y: yOffset + buttonHeight / 2)
+        let maxDistance = hypot(w / 2, buttonHeight / 2)
+        return (center, maxDistance)
+    }
+
+    private func keyAt(location: CGPoint, size: CGSize) -> HP32Key? {
+        let totalRows = (keys.map { $0.row }.max() ?? 0) + 1
+        let isVoyager = totalRows == 4
+        let totalCols: CGFloat = isVoyager ? 11 : 6
+        let maxH = size.width / totalCols * 0.85
+        let rawH = size.height / CGFloat(totalRows)
+        let h = UIDevice.current.userInterfaceIdiom == .pad ? min(rawH, maxH) : rawH
+        let gridHeight = h * CGFloat(totalRows)
+        let offsetY = size.height - gridHeight
+        let adjustedY = location.y - offsetY
+        if adjustedY < 0 { return nil }
+        let row = Int(adjustedY / h)
+        if row < 0 || row >= totalRows { return nil }
+        let colW = isVoyager ? (size.width / 11) : (row < 4 ? (size.width / 6) : (size.width / 5))
+        let col = Int(location.x / colW)
+        return keys.first { key in
+            col >= key.col && col < (key.col + key.colSpan) &&
+            row >= key.row && row < (key.row + key.rowSpan)
+        }
+    }
+
+    private func executeAction(for key: HP32Key) {
+        if Date().timeIntervalSince(lastActionTime) < 0.03 { return }
+        lastActionTime = Date()
+        let opToExecute: CalculatorOperation?
+        switch engine.shiftState {
+        case 1: opToExecute = key.yellowAction ?? key.primaryAction
+        case 2: opToExecute = key.blueAction  ?? key.primaryAction
+        default: opToExecute = key.primaryAction
+        }
+        guard let command = opToExecute else { return }
+        if command == .shiftYellow {
+            engine.shiftState = (engine.shiftState == 1) ? 0 : 1
+        } else if command == .shiftBlue {
+            engine.shiftState = (engine.shiftState == 2) ? 0 : 2
+        } else {
+            dispatchKey(command, engine: engine, onMenuAction: onMenuAction)
+            engine.shiftState = 0
+        }
+    }
+
 }
 
 // MARK: - Per-Key Button View

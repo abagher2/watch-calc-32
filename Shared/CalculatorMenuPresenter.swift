@@ -141,21 +141,27 @@ private struct ClearMenuPresenterView: View {
                 Button("CLΣ — Clear Statistics") {
                     engine.executeMath("CLΣ"); isPresented = false
                 }
+                .accessibilityIdentifier("clear_menu_clsigma")
                 Button("CLVARS — Clear Variables") {
                     engine.executeMath("CLVARS"); isPresented = false
                 }
+                .accessibilityIdentifier("clear_menu_clvars")
                 Button("CLREGS — Clear Registers") {
                     engine.executeMath("CLREGS"); isPresented = false
                 }
+                .accessibilityIdentifier("clear_menu_clregs")
                 Button("CLSTK — Clear Stack") {
                     engine.executeMath("CLSTK"); isPresented = false
                 }
+                .accessibilityIdentifier("clear_menu_clstk")
                 Button("CLPRGM — Clear Programs") {
                     engine.executeMath("CLPRGM"); isPresented = false
                 }
+                .accessibilityIdentifier("clear_menu_clprgm")
                 Button("CLALL — Clear Everything", role: .destructive) {
-                    confirmAll = true
+                    engine.executeMath("CLALL"); isPresented = false
                 }
+                .accessibilityIdentifier("Clear ALL")
             }
             #if os(watchOS)
             .navigationTitle("CLEAR")
@@ -167,14 +173,6 @@ private struct ClearMenuPresenterView: View {
                     Button("C") { isPresented = false }
                         .accessibilityIdentifier("sheet_dismiss_btn")
                 }
-            }
-            .confirmationDialog("Clear ALL?", isPresented: $confirmAll, titleVisibility: .visible) {
-                Button("Clear Everything", role: .destructive) {
-                    engine.executeMath("CLALL"); isPresented = false
-                }
-                Button("Cancel", role: .cancel) {}
-            } message: {
-                Text("This will erase all variables, programs, statistics, and registers.")
             }
         }
         .environment(engine)

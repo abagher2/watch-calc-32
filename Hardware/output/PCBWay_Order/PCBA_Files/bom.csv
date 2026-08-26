@@ -39,9 +39,10 @@ B37,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
 SOFT1,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
 SOFT2,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
 SOFT3,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
-J1,Sharp Memory LCD FPC,Unknown,10-pin 0.5mm pitch FPC Connector (Bottom Contact) - C261895,1
+J1,Hirose 10-pin FPC ZIF,Connector_FFC-FPC:Hirose_FH12-10S-0.5SH_1x10-1MP_P0.50mm_Horizontal,Hirose FH12-10S-0.5SH(55) - 0.50mm pitch; bottom contact,1
 SOFT5,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
 SOFT4,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
 SOFT6,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SMD Tactile Switch for keys,1
-MCU1,,ProMicro,Raspberry Pi Pico 2 Module (or equivalent RP2350 board),1
-JST1,,JST_PH_S2B-PH-K_02x2.00mm_Angled,Battery connector for wired CR2450 holder,1
+MCU1,Raspberry Pi Pico 2,ProMicro,SC1632 - non-wireless RP2350 Pico 2 board with Arm Cortex-M33 FPU,1
+JST1,JST PH 2-pin side-entry header,JST_PH_S2B-PH-K_02x2.00mm_Angled,S2B-PH-K-S(LF)(SN) - 2.00mm pitch side-entry header,1
+LCD1,Sharp 2.7in Memory LCD,Manual install,LS027B7DH01 - 400x240 Memory LCD; connect to J1 and shim 0.07mm to 1.50mm above PCB,1

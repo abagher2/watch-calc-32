@@ -674,6 +674,7 @@ $fn = 24;
 cw    = {cw:.3f};
 D     = {CHASSIS_D:.3f}; // 14.9
 wall  = {WALL:.3f};
+pt    = {pt:.3f};
 cap_t = {cap_t_val};
 ch    = {fp_h + WALL:.3f}; // 145.350
 
@@ -986,7 +987,7 @@ module keycap(w, h, label) {{
     dummy_scad = f"""
 // ── DUMMY PCB FOR ALIGNMENT TESTING ──────────────────────────────
 $fn=24;
-module dummy_pcb() {{
+module dummy_pcb_board_local() {{
     // Main FR4 Board
     color("DarkGreen") {{
         difference() {{
@@ -1039,19 +1040,23 @@ module dummy_pcb() {{
     
     color("White") {{
         // JST-PH 2-Pin SMD Right-Angle Connector (6x7.8x4.8mm) - MOVED TO TOP
-        translate([{35.0 + pad_x:.3f}, {140.0 + pad_y:.3f}, 0]) 
+        translate([{56.15:.3f}, {140.0 + pad_y:.3f}, 0]) 
             translate([-6.0/2, -7.8/2, -4.8])
             cube([6.0, 7.8, 4.8]);
     }}
 }}
-dummy_pcb();
+
+// Place the board-local model in the chassis coordinate system.
+translate([2, 7.7, 3])
+    rotate([90, 0, 0])
+        dummy_pcb_board_local();
 """
     with open("designs/dummy_pcb.scad", "w") as f:
         f.write(dummy_scad)
 
     print("SCAD files generated:")
-    print("  Faceplate (MJF): FACE-DOWN print (Z=3.0 on bed). ZERO overhangs.")
-    print("  Faceplate (FDM): FACE-DOWN print (Z=3.0 on bed). ZERO overhangs (no supports needed!).")
+    print("  Faceplate (MJF): FACE-UP print (front face on top). ZERO overhangs.")
+    print("  Faceplate (FDM): FACE-UP print (front face on top). Bezel chamfer visible from front.")
     print("  Chassis:        STANDING on keypad edge. Flat 10mm uniform depth. Side grooves for cover.")
     print(f"  Top Cap:        FLAT print. Seals display end. Incorporates battery holder.")
     print(f"  Sliding Cover:  FLAT on front wall face. Print in PLA (v1). TPU for v2.")
@@ -1072,18 +1077,16 @@ if __name__ == "__main__":
         ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),
     ]
 
+    import shutil
+    openscad_bin = shutil.which("openscad") or "/usr/local/bin/openscad"
+
     for label, src, dst in tasks:
         print(f"  Building {label} ...")
-        res = subprocess.run(["/usr/local/bin/openscad", "-o", dst, src], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run([openscad_bin, "-o", dst, src],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if res.returncode == 0:
             print(f"  ✓ {label}.stl")
         else:
             print(f"  ✗ {label} ERRORS:\n{res.stderr[-800:]}")
 
-    mfg_3d = "output/WatchCalc32_PCBWay_Manufacturing/3D_Printing_Files"
-    os.makedirs(mfg_3d, exist_ok=True)
-    for name, scad_file, stl_file in tasks:
-        # print(f"  Building {name} ...")
-        # print(["/usr/local/bin/openscad", "-o", stl_file, scad_file], check=True)
-        pass
     print("Done generating SCAD files!")

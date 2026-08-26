@@ -133,6 +133,12 @@
       "size": "1024x1024"
     },
     {
+      "filename": "AppIcon_1024x1024_1x_none.png",
+      "idiom": "ios-marketing",
+      "scale": "1x",
+      "size": "1024x1024"
+    },
+    {
       "filename": "AppIcon_54x54_2x_41mm.png",
       "idiom": "watch",
       "role": "appLauncher",

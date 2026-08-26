@@ -33,12 +33,12 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
                 desc = "SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface."
             elif "MCU1" in ref:
                 val = "RP2350 Pico 2"
-                sku = "SC0876"  # Raspberry Pi Pico 2 part number
-                desc = "Raspberry Pi Pico 2 Module (or equivalent RP2350 board)"
+                sku = "SC1632"
+                desc = "Raspberry Pi Pico 2 (non-wireless, RP2350 with dual Arm Cortex-M33 cores and FPU)"
             elif "JST1" in ref:
-                val = "JST-PH 2-Pin Male Header"
-                sku = "B2B-PH-K-S"
-                desc = "Battery connector for wired CR2450 holder"
+                val = "JST PH 2-pin side-entry header"
+                sku = "S2B-PH-K-S(LF)(SN)"
+                desc = "Battery connector for wired CR2450 holder; 2.00mm pitch, side entry"
             elif "J1" in ref and "FH12" in fpid:
                 val = "10-Pin FPC ZIF Connector (0.5mm Pitch)"
                 sku = "FH12-10S-0.5SH(55)"
@@ -51,7 +51,7 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
             writer.writerow([comp['ref'], comp['val'], comp['fpid'], comp['sku'], comp['desc'], 1])
             
         # We need to manually add the Sharp LCD Screen to the BOM as a sourced part (not PCBA soldered)
-        writer.writerow(['LCD1', 'Sharp 2.7" Memory LCD', 'Assembly', 'LS027B7DH01', 'Graphical Memory LCD 400x240 (To be connected to J1 during final assembly). **CRITICAL ASSEMBY NOTE:** Screen must be shimmed 0.07mm to EXACTLY 1.50mm height off PCB to perfectly match ALPS SKQGABE010 switch coplanarity for flush sliding clearance into chassis.', 1])
+        writer.writerow(['LCD1', 'Sharp 2.7" Memory LCD', 'Manual install', 'LS027B7DH01', 'Graphical Memory LCD 400x240. Connect to J1 during final assembly; shim 0.07mm to exactly 1.50mm above PCB.', 1])
             
     print(f"Rich BOM exported to {output_csv}")
 

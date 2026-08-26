@@ -75,7 +75,9 @@ struct ContentView: View {
                         .frame(height: totalHeight * 0.2864)
                         .focusable()
                         .focused($isFocused)
+                        #if os(watchOS)
                         .digitalCrownRotation($crownValue)
+                        #endif
                         .onChange(of: crownValue) { new in
                             let delta = new - engine.lastCrownValue
                             if abs(delta) > 0.5 {
@@ -284,7 +286,12 @@ struct ContentView: View {
                 )
         )
         .onTapGesture(coordinateSpace: .local) { location in
-            let isEnterZone = location.x < WKInterfaceDevice.current().screenBounds.width * 0.75
+            #if os(watchOS)
+            let screenWidth = WKInterfaceDevice.current().screenBounds.width
+            #else
+            let screenWidth = UIScreen.main.bounds.width
+            #endif
+            let isEnterZone = location.x < screenWidth * 0.75
             if isEnterZone {
                 hasSeenEnterTip = true
                 engine.enter()
