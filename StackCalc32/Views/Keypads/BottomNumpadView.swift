@@ -49,21 +49,9 @@ struct BottomNumpadView: View {
             return
         }
 
-        // Non-menu ops that require special sheet presentation (eqn, plot, solve, integrate, xeq, show)
-        var handledSpecial = false
-        switch op {
-        case .eqn, .fnEq, .solve, .integrate, .plot, .show, .xeq:
-            postMenuTrigger(op)
-            handledSpecial = true
-        default: break
-        }
-
-        if handledSpecial {
-            autoReturn()
-            return
-        }
-
-        // Regular key — execute directly
+        // All remaining ops (special-sheet ops like .eqn/.solve/.show as well as regular keys)
+        // go through executeOp. Special-sheet ops set engine request flags observed by
+        // WatchMenuModifier.onChange; regular ops execute directly.
         engine.executeOp(op)
 
         if horizontalPage == 0 && op == .enter {
@@ -100,13 +88,6 @@ struct BottomNumpadView: View {
         }
     }
 
-    private func postMenuTrigger(_ op: CalculatorOperation) {
-        NotificationCenter.default.post(
-            name: NSNotification.Name("WatchMenuTrigger"),
-            object: nil,
-            userInfo: ["command": op]
-        )
-    }
 
     private func autoReturn() {
         if engine.autoReturnToMainPad && horizontalPage == 1 && verticalPage != 0 {

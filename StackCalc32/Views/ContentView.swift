@@ -79,18 +79,12 @@ struct ContentView: View {
                         .onChange(of: crownValue) { new in
                             let delta = new - engine.lastCrownValue
                             if abs(delta) > 0.5 {
-                                if engine.isProgrammingMode {
-                                    NotificationCenter.default.post(
-                                        name: NSNotification.Name("WatchMenuTrigger"),
-                                        object: nil,
-                                        userInfo: ["command": CalculatorOperation.eqn]
-                                    )
-                                } else if engine.isEquationMode {
-                                    NotificationCenter.default.post(
-                                        name: NSNotification.Name("WatchMenuTrigger"),
-                                        object: nil,
-                                        userInfo: ["command": CalculatorOperation.eqn]
-                                    )
+                                if engine.isProgrammingMode || engine.isEquationMode {
+                                    if delta > 0 {
+                                        engine.scrollDown()
+                                    } else {
+                                        engine.scrollUp()
+                                    }
                                 }
                                 engine.lastCrownValue = new
                             }
@@ -402,6 +396,42 @@ struct WatchMenuModifier: ViewModifier {
                         showPlotPrompt = true
                         bindableEngine.requestPlotPrompt = false
                     }
+                }
+            }
+            .onChange(of: bindableEngine.requestEqn) { _, newValue in
+                if newValue {
+                    showEquations = true
+                    bindableEngine.requestEqn = false
+                }
+            }
+            .onChange(of: bindableEngine.requestFnEq) { _, newValue in
+                if newValue {
+                    showFN = true
+                    bindableEngine.requestFnEq = false
+                }
+            }
+            .onChange(of: bindableEngine.requestSolve) { _, newValue in
+                if newValue {
+                    showSolve = true
+                    bindableEngine.requestSolve = false
+                }
+            }
+            .onChange(of: bindableEngine.requestIntegrate) { _, newValue in
+                if newValue {
+                    showIntegrate = true
+                    bindableEngine.requestIntegrate = false
+                }
+            }
+            .onChange(of: bindableEngine.requestXEQ) { _, newValue in
+                if newValue {
+                    showXEQ = true
+                    bindableEngine.requestXEQ = false
+                }
+            }
+            .onChange(of: bindableEngine.requestShow) { _, newValue in
+                if newValue {
+                    showShow = true
+                    bindableEngine.requestShow = false
                 }
             }
     }

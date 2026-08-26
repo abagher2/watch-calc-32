@@ -250,6 +250,14 @@ public class CalculatorEngine {
     // UI Events
     public var requestPlot: Bool = false
     public var requestPlotPrompt: Bool = false
+    /// Sheet-triggering request flags (mirrors requestPlot pattern).
+    /// Set true by handleCommand; the UI observes via onChange and resets to false.
+    public var requestEqn: Bool = false
+    public var requestFnEq: Bool = false
+    public var requestSolve: Bool = false
+    public var requestIntegrate: Bool = false
+    public var requestXEQ: Bool = false
+    public var requestShow: Bool = false
     public var isPlotLoading: Bool = false
     public var plotData: [(Double, Double)] = []
     public var plotMarkers: [(Double, Double)] = []
@@ -1472,11 +1480,13 @@ public class CalculatorEngine {
                             startAlpha()
                             alphaAction = .solve
                             alphaPrompt = "SOLVE _"
+                            requestSolve = true
                         } else if operation == "∫" {
                             isWaitingForLabel = true
                             startAlpha()
                             alphaAction = .integrate
                             alphaPrompt = "∫ _"
+                            requestIntegrate = true
                         }
                     }
                 } else {
@@ -1489,6 +1499,7 @@ public class CalculatorEngine {
         
         if operation == "EQN" {
             isEquationMode = true
+            requestEqn = true
             updateDisplay()
             return
         }
@@ -1497,6 +1508,7 @@ public class CalculatorEngine {
             startAlpha()
             alphaAction = .fnEq
             alphaPrompt = "FN= _"
+            requestFnEq = true
             return
         }
         
@@ -1504,6 +1516,7 @@ public class CalculatorEngine {
             isWaitingForLabel = true
             startAlpha()
             alphaPrompt = "XEQ _"
+            requestXEQ = true
             return
         }
         
@@ -1514,6 +1527,7 @@ public class CalculatorEngine {
             return
         }
         
+        if operation == "SHOW" { requestShow = true; return }
         if operation == "." { decimal(); return }
         if operation == "E" || operation == "EEX" { startExponent(); return }
         if operation == "+/-" { toggleSign(); return }

@@ -97,6 +97,47 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         XCTAssertNil(controller.engine.activeMenu, "Backspace on empty query should exit menu")
     }
 
+    // MARK: - 2b. STAT Sub-Menu Navigation on RetroUI (regression for STATMEAN/STATSTDDEV/STATLR/STATSUMS)
+    func testStatSubMenuNavigationOnRetroUI() {
+        // Seed stat data so stat ops don't error
+        engine.executeMath("3"); engine.executeMath("ENTER")
+        engine.executeMath("4"); engine.executeMath("Σ+")
+        engine.executeMath("3"); engine.executeMath("ENTER")
+        engine.executeMath("4"); engine.executeMath("ENTER")
+        engine.executeMath("5"); engine.executeMath("ENTER")
+        engine.executeMath("2")
+
+        // Open the composite .stat menu (triggered by .statMean op)
+        controller.processAction(.statMean)
+        XCTAssertEqual(controller.engine.activeMenu, .statMean,
+                       ".statMean op must open the statMean menu")
+        controller.processAction(.c)
+
+        // Simulate: open .stat menu directly, then navigate to each sub-menu via LFU softkey
+        // The .stat menu items are: 𝑥̄,ȳ (STATMEAN), s,σ (STATSTDDEV), L.R. (STATLR), SUMS (STATSUMS)
+        let statMenu = CalculatorMenu.stat
+        let statItems = statMenu.items
+        let expectedSubMenus: [CalculatorMenu] = [.statMean, .statStdDev, .lr, .sums]
+
+        for (i, expectedMenu) in expectedSubMenus.enumerated() {
+            controller.engine.activeMenu = statMenu
+            controller.retroUI.menuOffset = 0
+            controller.menuItemsDisplayCache = statItems
+
+            // Verify the item at this position is a sub-menu navigation action
+            XCTAssertEqual(statItems[i].action, ["STATMEAN","STATSTDDEV","STATLR","STATSUMS"][i])
+
+            // Press the corresponding LFU softkey (0=slot0, 1=slot1, etc.)
+            // .stat has 4 items; RetroUI maps indices 0,1 to slots 0,1 and 4,5 to slots 4,5
+            let lfu: CalculatorOperation = [.lfu0, .lfu1, .lfu4, .lfu5][i]
+            controller.processAction(lfu)
+
+            XCTAssertEqual(controller.engine.activeMenu, expectedMenu,
+                           "Selecting '\(statItems[i].label)' from .stat must open .\(expectedMenu.rawValue), not execute STATMEAN as a math op")
+            controller.processAction(.c)
+        }
+    }
+
     // MARK: - 3. Exhaustive RPN Stack & Left-Justified Display Test
     func testExhaustiveStackOperationsAndLeftJustifiedDisplay() {
         // Enters 12.34 and pushes to stack

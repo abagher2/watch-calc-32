@@ -300,13 +300,10 @@ module key_button(w, h, label="") {{
                 translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
                 translate([0, 0, 1.2]) squircle_centered(w,       h,       0.01, 1.5);
             }}
-            // 4. Cruciform Shaft (Z=1.2..3.0)
-            arm_w = w * 0.40;
-            arm_h = h * 0.40;
-            translate([0, 0, 1.2]) union() {{
-                translate([-w/2, -arm_h/2, 0]) cube([w, arm_h, 1.8]);
-                translate([-arm_w/2, -h/2, 0]) cube([arm_w, h, 1.8]);
-            }}
+            // 4. Shaft — SOLID RECTANGLE (Z=1.2..3.0 = print Z=0..1.8 face-down)
+            // Solid shaft: first-layer on build plate is full w×h rectangle → maximum adhesion.
+            // Eliminates the 4 corner gaps of the old cruciform that caused flange bridging failure.
+            translate([0, 0, 1.2]) translate([-w/2, -h/2, 0]) cube([w, h, pt - 1.2]);
         }}
         // SUNKEN LABEL CUT — SD deep from cap top surface (Z=0).
         // seg_word renders Z=0..SD; after translate([0,0,-SD]) it cuts from Z=-SD to Z=0.
@@ -344,13 +341,11 @@ module button_pocket(w, h) {{
         translate([0, 0, 1.2]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
         translate([0, 0, 1.8]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
     }}
-    // 4. Back exit guide (Z=1.8 to Z=3.1): cross shape to perfectly constrain the shaft.
-    arm_w_hole = w * 0.40 + 0.7;
-    arm_h_hole = h * 0.40 + 0.7;
-    translate([0, 0, 1.8]) union() {{
-        translate([-(w + 0.7)/2, -arm_h_hole/2, 0]) cube([w + 0.7, arm_h_hole, pt - 1.8 + 0.1]);
-        translate([-arm_w_hole/2, -(h + 0.7)/2, 0]) cube([arm_w_hole, h + 0.7, pt - 1.8 + 0.1]);
-    }}
+    // 4. Back exit guide (Z=1.8 to Z=3.1): solid rectangle matched to the solid shaft.
+    // +0.4mm clearance (0.2mm/side) for print-in-place assembly without force.
+    // Solid rectangle: no bridging, no corner gaps, cleaner print than the old cruciform slot.
+    translate([0, 0, 1.8]) translate([-(w + 0.4)/2, -(h + 0.4)/2, 0])
+        cube([w + 0.4, h + 0.4, pt - 1.8 + 0.1]);
 }}
 
 module faceplate_body() {{
@@ -372,14 +367,18 @@ module faceplate() {{
     difference() {{
         faceplate_body();
 
-        // Bezel Window: Starts small (ACTIVE_W x ACTIVE_H) at the FRONT (Z=-0.1).
-        // Expands smoothly to the full screen bounds (DISP_W x DISP_H) at the BACK (Z=pt+0.1).
-        // Because it EXPANDS as it goes up (when printed Face Up at Z=0), it requires ZERO SUPPORTS!
+        // Bezel Window — chamfer visible from the front, LCD flush at the front face.
+        // FRONT face (Z=-0.1 assembly = top of face-up print): LARGE = DISP_W x DISP_H.
+        //   The full LCD module footprint is visible through the front opening.
+        //   Chamfer wall angles INWARD going toward the back — faces the viewer → visible from front.
+        // BACK face (Z=pt+0.1 assembly = build plate): SMALL = ACTIVE_W x ACTIVE_H.
+        //   Active-area ledge: positions the LCD and hides the PCB border behind the faceplate.
+        // Chamfer wall angle ≈ 33.7° — printable without supports.
         hull() {{
-            translate([{disp_x:.3f} - {ACTIVE_W:.3f}/2, {disp_y:.3f} - {ACTIVE_H:.3f}/2, -0.1])
-                cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.01]);
-            translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, pt + 0.1])
+            translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, -0.1])
                 cube([{DISP_W:.3f}, {DISP_H:.3f}, 0.01]);
+            translate([{disp_x:.3f} - {ACTIVE_W:.3f}/2, {disp_y:.3f} - {ACTIVE_H:.3f}/2, pt + 0.1])
+                cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.01]);
         }}
 
         // Button pockets

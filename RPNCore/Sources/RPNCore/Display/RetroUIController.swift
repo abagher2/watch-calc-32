@@ -310,15 +310,31 @@ public class RetroUIController {
                         engine.activeMenu = nil
                         retroUI.menuOffset = 0
                     } else {
+                        // Sub-menu navigation actions open a child menu rather than
+                        // executing a math op. Mirrors GenericMenuPresenterView.subMenuMap.
+                        let subMenuMap: [String: CalculatorMenu] = [
+                            "STATMEAN":   .statMean,
+                            "STATSTDDEV": .statStdDev,
+                            "STATLR":     .lr,
+                            "STATSUMS":   .sums,
+                        ]
                         if selected.action == "REGS" {
                             retroUI.isShowingRegisters = true
                             retroUI.regsOffset = 0
+                            engine.activeMenu = nil
+                            retroUI.menuOffset = 0
+                        } else if let subMenu = subMenuMap[selected.action] {
+                            // Transition to sub-menu — stays in menu state
+                            engine.activeMenu = subMenu
+                            retroUI.menuAlphaQuery = ""
+                            retroUI.menuOffset = 0
+                            menuItemsDisplayCache = subMenu.items
                         } else {
                             engine.executeMath(selected.action)
                             lfuManager.recordUsage(of: selected.action)
+                            engine.activeMenu = nil
+                            retroUI.menuOffset = 0
                         }
-                        engine.activeMenu = nil
-                        retroUI.menuOffset = 0
                     }
                 }
                 return
