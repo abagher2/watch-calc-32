@@ -65,7 +65,6 @@ saveBuffer(name: "parity_scientific")
 
 // 6. Math Symbols
 clear_all()
-c.engine.isEquationMode = true
-c.engine.currentEquation = "∫(√(X)+e^(Y)+1/X)"
+c.engine.promptString = "∫(√(X)+e^(Y)+1/X)"
 c.engine.updateDisplay()
 saveBuffer(name: "parity_math_symbols")

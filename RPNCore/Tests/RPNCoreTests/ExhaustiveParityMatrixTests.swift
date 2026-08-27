@@ -25,7 +25,7 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
             controller.render()
             XCTAssertFalse(controller.renderer.buffer.allSatisfy { $0 == 0 })
             
-            let items = menu.items
+            let items = menu.getItems(engine: CalculatorEngine())
             for (i, item) in items.enumerated() {
                 if i >= 6 { break } // Only test first page for simplicity in matrix
                 
@@ -58,8 +58,10 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
                     controller.processAction(.digit5)
                 }
                 
-                // Active menu should be closed after selection
-                XCTAssertNil(controller.engine.activeMenu, "Menu \(menu.rawValue) did not close after selecting \(item.label)")
+                // Active menu should be closed after selection (unless it's a submenu that opens another menu)
+                if !item.label.contains("▸") {
+                    XCTAssertNil(controller.engine.activeMenu, "Menu \(menu.rawValue) did not close after selecting \(item.label)")
+                }
                 
                 // Reset for next item
                 controller.processAction(.clear)

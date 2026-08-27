@@ -22,6 +22,8 @@ public class RetroUI {
     }
     
     public func render(engine: CalculatorEngine, renderer: Renderer) {
+
+
         renderer.clear()
         
         if engine.isTestMode {
@@ -46,7 +48,7 @@ public class RetroUI {
         if engine.isExamMode { indicators.append(FirmwareText("EXAM", font: .small)) }
         if !engine.autoReturnToMainPad { indicators.append(FirmwareText("STAY", font: .small)) }
         
-        if engine.isProgrammingMode || engine.isEquationMode {
+        if engine.isProgrammingMode {
             indicators.append(FirmwareText("EQN", font: .small))
         }
         
@@ -124,6 +126,44 @@ public class RetroUI {
                 mainContent = FirmwarePadding(leading: 6, child: textStack)
             }
             
+
+        } else if engine.isProgrammingMode {
+            var progLines: [FirmwareView] = []
+            let steps = engine.currentProgramSteps
+            let current = engine.currentProgramStepIndex
+            let label = engine.currentProgramLabel.isEmpty ? "PRGM" : engine.currentProgramLabel
+            
+            let startIndex = max(0, current - 3)
+            for i in startIndex..<startIndex+4 {
+                let prefix = (i == current) ? "▶" : " "
+                if i == 0 {
+                    progLines.append(FirmwareText("\(prefix) 00 LBL \(label)", font: .small))
+                } else if i <= steps.count {
+                    let stepText = steps[i - 1]
+                    progLines.append(FirmwareText("\(prefix) \(i < 10 ? "0" : "")\(i) \(stepText)", font: .small))
+                }
+            }
+            mainContent = FirmwarePadding(leading: 6, child: FirmwareVStack(alignment: .leading, spacing: 6, children: progLines))
+            
+        } else if engine.isEquationListMode {
+            if engine.programs.isEmpty {
+                mainContent = FirmwarePadding(leading: 6, child: FirmwareText("NO EQN", font: .display))
+            } else {
+                let idx = engine.currentEquationListIndex
+                let prog = engine.programs[idx]
+                let summary = prog.steps.map { $0.stringValue }.joined(separator: " ")
+                let textStr = "\(prog.label): \(summary)"
+                
+                let textW = renderer.getStringWidth(textStr, size: .display)
+                if textW > 396 {
+                    mainContent = FirmwareHStack(alignment: .bottom, spacing: 0, children: [
+                        FirmwareText("<", font: .display),
+                        FirmwareFrame(width: 396 - renderer.getStringWidth("<", size: .display), alignment: .trailing, child: FirmwareText(textStr, font: .display))
+                    ])
+                } else {
+                    mainContent = FirmwarePadding(leading: 6, child: FirmwareText(textStr, font: .display))
+                }
+            }
         } else if isShowingRegisters {
             let getRegVal: (Int) -> Double = { idx in
                 if idx < 4 { return engine.stack.count > idx ? engine.stack[idx].real : 0.0 }
@@ -158,25 +198,37 @@ public class RetroUI {
         } else {
             // HP-32SII Single Number Display (X register)
             var valStr = ""
+            let isTextMsg = (engine.statusMessage ?? engine.errorMessage ?? engine.transientMessage ?? engine.promptString) != nil
+            
             #if hasFeature(Embedded)
-            engine.displayXBuffer.withUnsafeBufferPointer { ptr in
-                let len = min(engine.displayXLength, 64)
-                let buf = UnsafeBufferPointer(start: ptr.baseAddress, count: len)
-                valStr = String(decoding: buf, as: UTF8.self)
+            if let status = engine.statusMessage {
+                valStr = status
+            } else if let error = engine.errorMessage {
+                valStr = error
+            } else if let transient = engine.transientMessage {
+                valStr = transient
+            } else if let prompt = engine.promptString {
+                valStr = prompt
+            } else {
+                engine.displayXBuffer.withUnsafeBufferPointer { ptr in
+                    let len = min(engine.displayXLength, 64)
+                    let buf = UnsafeBufferPointer(start: ptr.baseAddress, count: len)
+                    valStr = String(decoding: buf, as: UTF8.self)
+                }
             }
             #else
-            let xVal = engine.stack.first?.real ?? 0.0
-            valStr = doubleFormatter?(xVal, engine.displayMode) ?? "\(xVal)"
+            valStr = engine.statusMessage ?? engine.errorMessage ?? engine.transientMessage ?? engine.promptString ?? engine.displayX
             #endif
             
-            let textW = renderer.getStringWidth(valStr, size: .display)
+            let fontToUse: Renderer.FontSize = isTextMsg ? .medium : .display
+            let textW = renderer.getStringWidth(valStr, size: fontToUse)
             if textW > 390 {
                 mainContent = FirmwareHStack(alignment: .bottom, spacing: 0, children: [
-                    FirmwareText("<", font: .display),
-                    FirmwareFrame(width: 390 - renderer.getStringWidth("<", size: .display), alignment: .trailing, child: FirmwareText(valStr, font: .display))
+                    FirmwareText("<", font: fontToUse),
+                    FirmwareFrame(width: 390 - renderer.getStringWidth("<", size: fontToUse), alignment: .trailing, child: FirmwareText(valStr, font: fontToUse))
                 ])
             } else {
-                mainContent = FirmwarePadding(leading: 6, child: FirmwareText(valStr, font: .display))
+                mainContent = FirmwarePadding(leading: 6, child: FirmwareText(valStr, font: fontToUse))
             }
         }
         
@@ -188,14 +240,18 @@ public class RetroUI {
         let hideSoftkeys = isShowingRegisters || isShowingFullPrecision
         
         if !hideSoftkeys {
-            let menuActive = engine.activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq
+            let menuActive = engine.activeMenu != nil || waitingForMenuDigit != nil || softkeyMode != .none || engine.alphaAction == .fnEq || engine.isEquationListMode
             if menuActive {
                 if let menu = engine.activeMenu {
                     // Temporarily using renderer.renderMenu as it might still contain manual logic
                     // We'll wrap it in a custom FirmwareView or skip rewriting renderMenu for this pass
                     // wait, renderMenu draws directly to renderer!
                     // Let's implement the menu drawing here directly as a FirmwareView
-                    var items = MenuSystem.filter(menu: menu, query: menuAlphaQuery)
+                    #if !hasFeature(Embedded)
+                    var items = MenuSystem.filter(menu: menu, query: menuAlphaQuery, engine: engine).filter { !$0.isSoftwareOnly }
+                    #else
+                    var items = MenuSystem.filter(menu: menu, query: menuAlphaQuery, engine: engine)
+                    #endif
                     let visibleItems = Array(items.dropFirst(menuOffset))
                     
                     var softkeyNodes: [FirmwareView] = []
@@ -252,47 +308,127 @@ public class RetroUI {
                         softkeyNodes.append(btnBackground)
                     }
                     footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
+                } else if engine.isEquationListMode {
+                    var items: [MenuItem] = []
+                    items.append(MenuItem(label: "NEW", action: "EQN_NEW"))
+                    if !engine.programs.isEmpty {
+                        items.append(MenuItem(label: "EDIT", action: "EQN_EDIT"))
+                    }
+                    
+                    var softkeyNodes: [FirmwareView] = []
+                    for i in 0..<min(6, items.count) {
+                        let segment = renderer.menuSegments[i]
+                        let btnText = FirmwareText(items[i].label, font: .tiny, color: false)
+                        let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 36, child: btnText))
+                        softkeyNodes.append(btnBackground)
+                    }
+                    footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
                 }
+            } else if engine.requestPlot {
+#if !canImport(SwiftUI)
+                let dataPoints = engine.plotData.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.0, y: $0.element.1) }
+                let scatterPoints = engine.statPoints.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.x, y: $0.element.y) }
+                
+                var regressionPoints: [PlotDataPoint] = []
+                if engine.isStatPlot && engine.statN > 1 {
+                    let num = engine.statSumXY - (engine.statSumX * engine.statSumY / engine.statN)
+                    let den = engine.statSumX2 - (engine.statSumX * engine.statSumX / engine.statN)
+                    let m = den == 0 ? 0 : num / den
+                    let b = (engine.statSumY - m * engine.statSumX) / engine.statN
+                    
+                    if let first = scatterPoints.first, let last = scatterPoints.last {
+                        let startX = first.x - 10
+                        let endX = last.x + 10
+                        regressionPoints = [
+                            PlotDataPoint(id: 0, x: startX, y: m * startX + b),
+                            PlotDataPoint(id: 1, x: endX, y: m * endX + b)
+                        ]
+                    }
+                }
+                
+                var highlightedDataPoints: [PlotDataPoint] = []
+                if let limits = engine.integrationLimits {
+                    let minL = min(limits.0, limits.1)
+                    let maxL = max(limits.0, limits.1)
+                    highlightedDataPoints = dataPoints.filter { $0.x >= minL && $0.x <= maxL }
+                }
+                
+                // Automatically generate tangent for center of domain if requested by user implicitly via zoom
+                var tangentPoints: [PlotDataPoint]? = nil
+                if let first = dataPoints.first, let last = dataPoints.last, !engine.isStatPlot {
+                    let centerX = (first.x + last.x) / 2.0
+                    var closestP = dataPoints[0]
+                    var minDiff = Double.greatestFiniteMagnitude
+                    var closestIdx = 0
+                    for i in 0..<dataPoints.count {
+                        let diff = abs(dataPoints[i].x - centerX)
+                        if diff < minDiff {
+                            minDiff = diff
+                            closestP = dataPoints[i]
+                            closestIdx = i
+                        }
+                    }
+                    if closestIdx > 0 && closestIdx < dataPoints.count - 1 {
+                        let p1 = dataPoints[closestIdx - 1]
+                        let p2 = dataPoints[closestIdx + 1]
+                        let m = (p2.y - p1.y) / (p2.x - p1.x)
+                        
+                        let startX = first.x
+                        let startY = m * (startX - closestP.x) + closestP.y
+                        let endX = last.x
+                        let endY = m * (endX - closestP.x) + closestP.y
+                        tangentPoints = [
+                            PlotDataPoint(id: 0, x: startX, y: startY),
+                            PlotDataPoint(id: 1, x: endX, y: endY)
+                        ]
+                    }
+                }
+                
+                let plotContent: [ChartNode] = 
+                    SharedPlotBuilder.buildAxesContent().nodes +
+                    SharedPlotBuilder.buildMainPlotContent(isStatPlot: engine.isStatPlot, dataPoints: dataPoints, scatterPoints: scatterPoints, regressionPoints: regressionPoints).nodes +
+                    SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints).nodes +
+                    SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedDataPoints).nodes
+                
+                mainContent = FirmwareChart(
+                    content: plotContent,
+                    width: 400,
+                    height: 160
+                )
+#else
+                mainContent = FirmwareSpacer()
+#endif
+                
+                var softkeyNodes: [FirmwareView] = []
+                let labels = ["+", "+", "+", "+", "+", "+"]
+                for i in 0..<6 {
+                    let segment = renderer.menuSegments[i]
+                    let btnText = FirmwareText(labels[i], font: .tiny, color: false)
+                    let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 36, child: btnText))
+                    softkeyNodes.append(btnBackground)
+                }
+                footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
             } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
-                if engine.requestPlot {
-                    var softkeyNodes: [FirmwareView] = []
-                    for i in 0..<6 {
-                        let segment = renderer.menuSegments[i]
-                        let isSelected = engine.selectedPlotMarkerIndex == i
-                        let btnText = FirmwareText("R\(i + 1)", font: .tiny, color: isSelected)
-                        let btnBackground = FirmwareBackground(color: !isSelected, child: FirmwareFrame(width: segment.w, height: 36, child: btnText))
-                        softkeyNodes.append(btnBackground)
-                    }
-                    footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
-                } else {
-                    var softkeyNodes: [FirmwareView] = []
-                    for i in 0..<6 {
-                        let segment = renderer.menuSegments[i]
-                        let funcName = engine.lfuManager.slots[i] ?? ""
-                        let label = renderer.fitSoftkeyLabel(funcName)
-                        let btnText = FirmwareText(label, font: .tiny, color: false)
-                        let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 32, child: btnText))
-                        softkeyNodes.append(btnBackground)
-                    }
-                    footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
+                var softkeyNodes: [FirmwareView] = []
+                for i in 0..<6 {
+                    let segment = renderer.menuSegments[i]
+                    let funcName = engine.lfuManager.slots[i] ?? ""
+                    let label = renderer.fitSoftkeyLabel(funcName)
+                    let btnText = FirmwareText(label, font: .tiny, color: false)
+                    let btnBackground = FirmwareBackground(color: true, child: FirmwareFrame(width: segment.w, height: 32, child: btnText))
+                    softkeyNodes.append(btnBackground)
                 }
+                footer = FirmwareHStack(alignment: .bottom, spacing: 0, children: softkeyNodes)
             }
         }
         
         let screen = FirmwareVStack(alignment: .leading, spacing: 0, children: [
             FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .top, child: topBar),
-            body,
+            mainContent,
             FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .bottom, child: footer)
         ])
         
         screen.draw(in: renderer, x: 0, y: 0)
-        
-        // Handle custom rendering bypasses
-        if engine.isEquationMode && !(engine.isProgrammingMode || engine.isBuildingNumber || engine.isWaitingForAlpha) {
-            // Draw equation plotting logic on top (this should probably be refactored into the FirmwareView tree too)
-            // But we'll leave this untouched for parity correctness
-        }
     }
 }
-
 

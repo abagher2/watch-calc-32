@@ -61,7 +61,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             controller.render()
 
             
-            if !menuCase.items.isEmpty {
+            if !menuCase.getItems(engine: CalculatorEngine()).isEmpty {
                 // Verify softkey pixels in bottom region (Y: 200..239)
                 var softkeyPixels = 0
                 for y in 200...239 {
@@ -116,7 +116,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         // Simulate: open .stat menu directly, then navigate to each sub-menu via LFU softkey
         // The .stat menu items are: 𝑥̄,ȳ (STATMEAN), s,σ (STATSTDDEV), L.R. (STATLR), SUMS (STATSUMS)
         let statMenu = CalculatorMenu.stat
-        let statItems = statMenu.items
+        let statItems = statMenu.getItems(engine: CalculatorEngine())
         let expectedSubMenus: [CalculatorMenu] = [.statMean, .statStdDev, .lr, .sums]
 
         for (i, expectedMenu) in expectedSubMenus.enumerated() {
@@ -282,8 +282,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         XCTAssertFalse(engine.requestPlot, "Pressing C must dismiss plot view")
         
         // 2. Test Equation Rendering
-        engine.isEquationMode = true
-        engine.currentEquation = "SIN(X)+COS(Y)*2.5"
+        engine.promptString = "SIN(X)+COS(Y)*2.5"
         controller.render()
         
         var equationPixels = 0
@@ -293,7 +292,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             }
         }
         XCTAssertGreaterThan(equationPixels, 0, "Equation text must render pixels in main display region")
-        engine.isEquationMode = false
+        
         
         // 3. Test Text Clipping & Softkey Bounds Non-Overlap Audit across all 18 Menus
         for menuCase in CalculatorMenu.allCases {
@@ -301,7 +300,7 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
             controller.render()
             
             // Verify softkey items in menu stay bounded within 20px column widths
-            let items = MenuSystem.filter(menu: menuCase, query: "")
+            let items = MenuSystem.filter(menu: menuCase, query: "", engine: CalculatorEngine())
             let visibleCount = items.count
             XCTAssertLessThanOrEqual(min(visibleCount, 6), 6, "Maximum 6 softkeys rendered per page")
             

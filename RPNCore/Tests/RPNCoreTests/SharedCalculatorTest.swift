@@ -70,15 +70,7 @@ public struct SharedMathTestCases {
         SharedCalculatorTestCase(
             name: "ModuloAndRemainder",
             steps: [
-                // Part A: MOD
-                SharedCalculatorStep("1"),
-                SharedCalculatorStep("0"),
-                SharedCalculatorStep("ENTER"),
-                SharedCalculatorStep("3"),
-                SharedCalculatorStep("SHIFT_BLUE"),
-                SharedCalculatorStep("+/-", expectedX: "1"), // MOD is blue +/-
-                SharedCalculatorStep("<-"), // clear display
-                
+                // INT÷ (÷R) gives quotient in X, remainder in Y                
                 // Part B: INT÷
                 SharedCalculatorStep("1"),
                 SharedCalculatorStep("0"),

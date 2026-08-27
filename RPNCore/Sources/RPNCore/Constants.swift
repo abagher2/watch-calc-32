@@ -13,6 +13,7 @@ public struct PhysicalConstant: Identifiable, Hashable {
     }
 }
 
+#if !hasFeature(Embedded)
 public let builtInConstants: [PhysicalConstant] = [
     // Mathematics
     PhysicalConstant("π", "Pi", Double.pi),
@@ -64,3 +65,6 @@ public let builtInConstants: [PhysicalConstant] = [
     PhysicalConstant("deg → rad", "Degrees to Radians", Double.pi / 180.0),
     PhysicalConstant("rad → deg", "Radians to Degrees", 180.0 / Double.pi)
 ].sorted { $0.name < $1.name }
+#else
+public let builtInConstants: [PhysicalConstant] = []
+#endif

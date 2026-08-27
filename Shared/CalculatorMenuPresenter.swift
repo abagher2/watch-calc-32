@@ -36,9 +36,7 @@ public struct CalculatorMenuPresenter: View {
         case .clear:
             ClearMenuPresenterView(isPresented: $isPresented)
                 .environment(engine)
-        case .flags:
-            FlagsMenuPresenterView(isPresented: $isPresented)
-                .environment(engine)
+
         case .mem:
             MemMenuPresenterView(isPresented: $isPresented)
                 .environment(engine)
@@ -70,8 +68,26 @@ private struct GenericMenuPresenterView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(menu.items, id: \.label) { item in
-                    MenuItemRow(item: item, subMenuMap: Self.subMenuMap, isPresented: $isPresented)
+                if menu == .eqn {
+                    ForEach(menu.getItems(engine: engine).filter { !$0.isFirmwareOnly }, id: \.label) { item in
+                        MenuItemRow(item: item, subMenuMap: Self.subMenuMap, isPresented: $isPresented)
+                    }
+                    .onDelete { offsets in
+                        let items = menu.getItems(engine: engine).filter { !$0.isFirmwareOnly }
+                        for idx in offsets {
+                            let item = items[idx]
+                            if item.action.hasPrefix("EQN_EDIT_") {
+                                let lbl = String(item.action.dropFirst(9))
+                                engine.programs.removeAll(where: { $0.label == lbl })
+                            } else if item.action == item.label, engine.alphaAction == .fnEq {
+                                engine.programs.removeAll(where: { $0.label == item.action })
+                            }
+                        }
+                    }
+                } else {
+                    ForEach(menu.getItems(engine: engine).filter { !$0.isFirmwareOnly }, id: \.label) { item in
+                        MenuItemRow(item: item, subMenuMap: Self.subMenuMap, isPresented: $isPresented)
+                    }
                 }
             }
             .navigationTitle(menu.title)
@@ -79,6 +95,12 @@ private struct GenericMenuPresenterView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("C") { isPresented = false }
                         .accessibilityIdentifier("sheet_dismiss_btn")
+                }
+            }
+            .onDisappear {
+                if menu == .eqn {
+                    engine.isEquationListMode = false
+                    engine.updateDisplay()
                 }
             }
         }
@@ -91,10 +113,56 @@ private struct MenuItemRow: View {
     let subMenuMap: [String: CalculatorMenu]
     @Binding var isPresented: Bool
     @Environment(CalculatorEngine.self) var engine
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var digit: Int = 4
 
     var body: some View {
-        if item.requiresDigit {
+        if item.isBoolean, item.action.hasPrefix("FLAG ") {
+            let flagIndex = Int(item.action.dropFirst(5)) ?? 0
+            Toggle(isOn: Binding(
+                get: { engine.flags[flagIndex] },
+                set: { engine.executeMath($0 ? "SF \(flagIndex)" : "CF \(flagIndex)") }
+            )) {
+                Text(item.label)
+            }
+        } else if item.action == "STACK" {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Stack Size").font(.headline)
+                Picker("Stack Size", selection: Binding(
+                    get: { engine.stackSizeLimit },
+                    set: { newSize in
+                        if newSize == 4 { engine.executeMath("STK4") }
+                        else if newSize == 8 { engine.executeMath("STK8") }
+                        else { engine.executeMath("STKINF") }
+                    }
+                )) {
+                    Text("4-Level").tag(4)
+                    Text("8-Level").tag(8)
+                    Text("Infinite").tag(999)
+                }
+                #if os(watchOS)
+                .pickerStyle(.wheel)
+                #else
+                .pickerStyle(.segmented)
+                #endif
+            }
+            .padding(.vertical, 4)
+        } else if item.action == "THEME" {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Theme").font(.headline)
+                Picker("Theme", selection: $themeManager.activeThemeType) {
+                    ForEach(ThemeType.allCases) { theme in
+                        Text(theme.rawValue).tag(theme)
+                    }
+                }
+                #if os(watchOS)
+                .pickerStyle(.wheel)
+                #else
+                .pickerStyle(.menu)
+                #endif
+            }
+            .padding(.vertical, 4)
+        } else if item.requiresDigit {
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.label).font(.headline)
                 Picker("Digits", selection: $digit) {
@@ -116,13 +184,29 @@ private struct MenuItemRow: View {
             // Navigate to sub-menu without dismissing the sheet
             Button(item.label) { engine.activeMenu = subMenu }
         } else {
-            Button(item.label) {
-                engine.executeMath(item.action)
+            Button(action: {
+                if engine.alphaAction == .fnEq {
+                    engine.submitAlpha(item.action)
+                } else {
+                    engine.executeMath(item.action)
+                }
                 isPresented = false
+            }) {
+                HStack {
+                    Text(item.label)
+                    if let desc = item.description {
+                        Spacer()
+                        Text(desc)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
             }
         }
     }
 }
+
 
 // MARK: - Clear Menu (with CLALL confirmation)
 
@@ -179,82 +263,7 @@ private struct ClearMenuPresenterView: View {
     }
 }
 
-// MARK: - Flags Menu (toggle UI)
 
-private struct FlagsMenuPresenterView: View {
-    @Binding var isPresented: Bool
-    @Environment(CalculatorEngine.self) var engine
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("Flag Operations") {
-                    ForEach(CalculatorMenu.flags.items, id: \.label) { item in
-                        if item.requiresDigit {
-                            FlagDigitRow(item: item, isPresented: $isPresented)
-                        } else {
-                            Button(item.label) {
-                                engine.executeMath(item.action)
-                                isPresented = false
-                            }
-                        }
-                    }
-                }
-                Section("User Flags (0\u{2013}11)") {
-                    ForEach(0..<12, id: \.self) { i in
-                        Toggle(isOn: Binding(
-                            get: { engine.flags[i] },
-                            set: { engine.executeMath($0 ? "SF \(i)" : "CF \(i)") }
-                        )) {
-                            Text("Flag \(i)")
-                        }
-                    }
-                }
-                Section("Stack Size") {
-                    Stepper("Stack: \(engine.stackSizeLimit)", value: Binding(
-                        get: { engine.stackSizeLimit },
-                        set: { engine.stackSizeLimit = $0 }
-                    ), in: 4...100)
-                }
-            }
-            .navigationTitle("Flags")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { isPresented = false }
-                        .accessibilityIdentifier("sheet_dismiss_btn")
-                }
-            }
-        }
-        .environment(engine)
-    }
-}
-
-private struct FlagDigitRow: View {
-    let item: MenuItem
-    @Binding var isPresented: Bool
-    @Environment(CalculatorEngine.self) var engine
-    @State private var digit: Int = 0
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(item.label).font(.headline)
-            Picker("Flag", selection: $digit) {
-                ForEach(0...11, id: \.self) { n in Text("\(n)").tag(n) }
-            }
-            #if os(watchOS)
-            .pickerStyle(.wheel)
-            #else
-            .pickerStyle(.segmented)
-            #endif
-            Button("Apply \(item.label) \(digit)") {
-                engine.executeMath("\(item.action) \(digit)")
-                isPresented = false
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .padding(.vertical, 2)
-    }
-}
 
 // MARK: - Memory Menu (readout)
 

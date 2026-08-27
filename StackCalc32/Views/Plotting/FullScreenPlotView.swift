@@ -2,11 +2,7 @@ import SwiftUI
 import Charts
 import RPNCore
 
-struct DataPoint: Identifiable {
-    let id = UUID()
-    let x: Double
-    let y: Double
-}
+// DataPoint removed, using PlotDataPoint from RPNCore
 
 struct FullScreenPlotView: View {
     @Environment(CalculatorEngine.self) var engine
@@ -30,15 +26,15 @@ struct FullScreenPlotView: View {
     @State private var selectedX2: Double?
     @State private var pushedValueMessage: String?
     
-    var dataPoints: [DataPoint] {
-        engine.plotData.map { DataPoint(x: $0.0, y: $0.1) }
+    var dataPoints: [PlotDataPoint] {
+        engine.plotData.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.0, y: $0.element.1) }
     }
     
-    var scatterPoints: [DataPoint] {
-        engine.statPoints.map { DataPoint(x: $0.x, y: $0.y) }
+    var scatterPoints: [PlotDataPoint] {
+        engine.statPoints.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.x, y: $0.element.y) }
     }
     
-    var regressionPoints: [DataPoint] {
+    var regressionPoints: [PlotDataPoint] {
         guard engine.isStatPlot, engine.statN > 1 else { return [] }
         let num = engine.statSumXY - (engine.statSumX * engine.statSumY / engine.statN)
         let den = engine.statSumX2 - (engine.statSumX * engine.statSumX / engine.statN)
@@ -53,12 +49,12 @@ struct FullScreenPlotView: View {
         let endX = maxX + padding
         
         return [
-            DataPoint(x: startX, y: m * startX + b),
-            DataPoint(x: endX, y: m * endX + b)
+            PlotDataPoint(id: 0, x: startX, y: m * startX + b),
+            PlotDataPoint(id: 0, x: endX, y: m * endX + b)
         ]
     }
     
-    var highlightedDataPoints: [DataPoint] {
+    var highlightedDataPoints: [PlotDataPoint] {
         guard let limits = engine.integrationLimits else { return [] }
         let minL = min(limits.0, limits.1)
         let maxL = max(limits.0, limits.1)
@@ -67,83 +63,33 @@ struct FullScreenPlotView: View {
     
     @ChartContentBuilder
     var axesContent: some ChartContent {
-        RuleMark(x: .value("Y Axis", 0))
-            .lineStyle(StrokeStyle(lineWidth: 2))
-            .foregroundStyle(.gray.opacity(0.8))
-        RuleMark(y: .value("X Axis", 0))
-            .lineStyle(StrokeStyle(lineWidth: 2))
-            .foregroundStyle(.gray.opacity(0.8))
+        SharedPlotBuilder.buildAxesContent()
     }
     
     @ChartContentBuilder
     var mainPlotContent: some ChartContent {
-        if !engine.isStatPlot {
-            ForEach(dataPoints) { point in
-                LineMark(
-                    x: .value("X", point.x),
-                    y: .value("Y", point.y),
-                    series: .value("Curve", "Curve")
-                )
-                .interpolationMethod(.monotone)
-                .foregroundStyle(.blue)
-            }
-        } else {
-            ForEach(scatterPoints) { point in
-                PointMark(
-                    x: .value("X", point.x),
-                    y: .value("Y", point.y)
-                )
-                .foregroundStyle(.red)
-            }
-            ForEach(regressionPoints) { point in
-                LineMark(
-                    x: .value("X", point.x),
-                    y: .value("Y", point.y),
-                    series: .value("Regression", "Regression")
-                )
-                .foregroundStyle(.blue)
-            }
-        }
+        SharedPlotBuilder.buildMainPlotContent(
+            isStatPlot: engine.isStatPlot,
+            dataPoints: dataPoints,
+            scatterPoints: scatterPoints,
+            regressionPoints: regressionPoints
+        )
     }
     
     @ChartContentBuilder
     var overlayPointsContent: some ChartContent {
-        ForEach(scatterPoints) { point in
-            PointMark(
-                x: .value("X", point.x),
-                y: .value("Y", point.y)
-            )
-            .foregroundStyle(.red)
-            .symbolSize(100)
-        }
-        
-        if let tp = tangentPoints {
-            ForEach(tp) { p in
-                LineMark(
-                    x: .value("X", p.x),
-                    y: .value("Y", p.y),
-                    series: .value("Tangent", "Tangent")
-                )
-            }
-            .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
-            .foregroundStyle(.gray)
-        }
+        SharedPlotBuilder.buildOverlayContent(
+            scatterPoints: scatterPoints,
+            tangentPoints: tangentPoints
+        )
     }
     
     @ChartContentBuilder
     var areaAndSelectedContent: some ChartContent {
-        if engine.integrationLimits != nil {
-            // Only shade the integration window (between the limits), with the x-axis as the baseline
-            ForEach(highlightedDataPoints) { point in
-                AreaMark(
-                    x: .value("X", point.x),
-                    yStart: .value("Y Start", 0),
-                    yEnd: .value("Y End", point.y)
-                )
-                .interpolationMethod(.monotone)
-                .foregroundStyle(.green.opacity(0.5))
-            }
-        }
+        SharedPlotBuilder.buildAreaContent(
+            hasIntegrationLimits: engine.integrationLimits != nil,
+            highlightedDataPoints: highlightedDataPoints
+        )
         
         if let x1 = selectedX1 {
             RuleMark(x: .value("Selected X1", x1))
@@ -440,7 +386,7 @@ struct FullScreenPlotView: View {
         return nil
     }
     
-    var tangentPoints: [DataPoint]? {
+    var tangentPoints: [PlotDataPoint]? {
         guard let x1 = selectedX1, selectedX2 == nil,
               let y1 = findY(for: x1),
               let m = tangentSlope(at: x1),
@@ -450,7 +396,7 @@ struct FullScreenPlotView: View {
         let startY = m * (startX - x1) + y1
         let endX = last.x
         let endY = m * (endX - x1) + y1
-        return [DataPoint(x: startX, y: startY), DataPoint(x: endX, y: endY)]
+        return [PlotDataPoint(id: 0, x: startX, y: startY), PlotDataPoint(id: 1, x: endX, y: endY)]
     }
     
     @ViewBuilder

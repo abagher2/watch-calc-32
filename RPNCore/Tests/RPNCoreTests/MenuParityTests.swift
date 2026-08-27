@@ -31,7 +31,7 @@ final class MenuParityTests: XCTestCase {
         var failures: [String] = []
 
         for menu in CalculatorMenu.allCases {
-            for item in menu.items {
+            for item in menu.getItems(engine: CalculatorEngine()) {
                 if subMenuNavigationActions.contains(item.action) { continue }
 
                 let action = item.requiresDigit ? item.action + " 4" : item.action
@@ -131,12 +131,12 @@ final class MenuParityTests: XCTestCase {
     }
 
     func testClearMenuHasCLx() {
-        let items = CalculatorMenu.clear.items
+        let items = CalculatorMenu.clear.getItems(engine: CalculatorEngine())
         XCTAssertTrue(items.contains(where: { $0.label == "CLx" }))
     }
 
     func testProbMenuHas4Items() {
-        let items = CalculatorMenu.prob.items
+        let items = CalculatorMenu.prob.getItems(engine: CalculatorEngine())
         XCTAssertEqual(items.count, 4)
         XCTAssertTrue(items.contains(where: { $0.label == "Cn,r" }))
         XCTAssertTrue(items.contains(where: { $0.label == "Pn,r" }))
@@ -145,7 +145,7 @@ final class MenuParityTests: XCTestCase {
     }
 
     func testLRMenuHas5Items() {
-        let items = CalculatorMenu.lr.items
+        let items = CalculatorMenu.lr.getItems(engine: CalculatorEngine())
         XCTAssertEqual(items.count, 5)
         XCTAssertTrue(items.contains(where: { $0.label == "ŷ" }))
         XCTAssertTrue(items.contains(where: { $0.label == "x̂" }))
@@ -155,7 +155,7 @@ final class MenuParityTests: XCTestCase {
     }
 
     func testStatCompositeHasSubMenuNavigationActions() {
-        let actions = CalculatorMenu.stat.items.map(\.action)
+        let actions = CalculatorMenu.stat.getItems(engine: CalculatorEngine()).map(\.action)
         XCTAssertTrue(actions.contains("STATMEAN"))
         XCTAssertTrue(actions.contains("STATSTDDEV"))
         XCTAssertTrue(actions.contains("STATLR"))
@@ -163,7 +163,7 @@ final class MenuParityTests: XCTestCase {
     }
 
     func testFlagsDigitItems() {
-        let flags = CalculatorMenu.flags.items
+        let flags = CalculatorMenu.flags.getItems(engine: CalculatorEngine())
         for item in flags where ["SF","CF","FS?","FC?"].contains(item.label) {
             XCTAssertTrue(item.requiresDigit, "\(item.label) must requiresDigit")
         }

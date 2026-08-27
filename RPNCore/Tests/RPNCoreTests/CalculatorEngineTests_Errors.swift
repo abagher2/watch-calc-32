@@ -60,7 +60,7 @@ final class CalculatorEngineTests_Errors: XCTestCase {
         
         // Start equation evaluation
         engine.executeMath("EQN")
-        XCTAssertTrue(engine.isEquationMode)
+        XCTAssertTrue(engine.requestEqn)
         
         // Hit ENTER to evaluate equation "A"
         engine.alphaAction = .evalEquation
@@ -79,6 +79,6 @@ final class CalculatorEngineTests_Errors: XCTestCase {
         
         // Engine should have evaluated 15 * 2 = 30 and pushed to stack
         XCTAssertEqual(engine.stack[0].real, 30.0)
-        XCTAssertFalse(engine.isEquationMode)
+        XCTAssertFalse(engine.requestEqn)
     }
 }

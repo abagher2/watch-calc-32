@@ -165,6 +165,22 @@ final class RetroUIParityTests: XCTestCase {
         }
         XCTAssertGreaterThan(leftSidePixels, 0, "Error message must be left-justified starting near left edge")
     }
+
+
+    func testStackMenuSoftkeys() {
+        controller.processAction(.flags)
+        XCTAssertEqual(controller.engine.activeMenu?.rawValue, "FLAGS")
+        
+        // "STACK ▸" is the 5th item in the firmware FLAGS menu.
+        // Due to 5-item spacing layout, it appears on the 6th softkey (.lfu5).
+        controller.processAction(.lfu5)
+        
+        XCTAssertEqual(controller.engine.activeMenu?.rawValue, "STACK")
+        
+        XCTAssertEqual(controller.menuItemsDisplayCache[0].label, "4-LVL")
+        controller.processAction(.lfu0)
+        
+        XCTAssertEqual(controller.engine.stackSizeLimit, 4)
+        XCTAssertNil(controller.engine.activeMenu)
+    }
 }
-
-

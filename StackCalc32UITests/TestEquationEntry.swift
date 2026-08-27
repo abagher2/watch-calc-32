@@ -21,37 +21,25 @@ import XCTest
   }
 
   private func navigateToNumericPad(app: XCUIApplication) {
-    if app.buttons["btn_5"].exists { return }
-    app.buttons["sim_swipe_right"].tap()
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
-    app.buttons["sim_swipe_left"].tap()
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
-    app.buttons["sim_swipe_left"].tap()
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
-    app.buttons["sim_swipe_up"].tap()
-    if app.buttons["btn_5"].waitForExistence(timeout: 1.5) { return }
+    app.buttons["sim_reset_pads"].tap()
+    XCTAssertTrue(app.buttons["btn_5"].waitForExistence(timeout: 2.0))
   }
 
   private func navigateToArithmeticPad(app: XCUIApplication) {
-    if app.buttons["func_×"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_left"].tap()
-    Thread.sleep(forTimeInterval: 0.5)
     XCTAssertTrue(app.buttons["func_×"].waitForExistence(timeout: 2.0))
   }
 
   private func navigateToUpperMatrixPad(app: XCUIApplication) {
-    if app.buttons["func_STO"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_down"].tap()
     XCTAssertTrue(app.buttons["func_STO"].waitForExistence(timeout: 2.0))
   }
 
   private func navigateToLFUPad(app: XCUIApplication) {
-    if app.buttons["func_A"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_right"].tap()
-    Thread.sleep(forTimeInterval: 0.5)
     XCTAssertTrue(app.buttons["func_A"].waitForExistence(timeout: 2.0))
   }
 

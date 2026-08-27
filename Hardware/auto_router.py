@@ -1,6 +1,4 @@
 import sys
-import wx
-app = wx.App(False)
 import pcbnew
 
 def auto_route_and_fill(kicad_pcb_path, ses_path):

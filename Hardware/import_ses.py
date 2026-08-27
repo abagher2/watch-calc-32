@@ -8,8 +8,27 @@ def parse_ses_and_apply(board_path, ses_path):
     with open(ses_path, 'r') as f:
         ses_data = f.read()
 
-    # We will extract each net section
-    net_pattern = re.compile(r'\(net\s+"?([^"\s]+)"?\s+((?:(?:\(wire\s+\(path[^)]+\)\s*\))|(?:\(via\s+"[^"]+"\s+[\d\-]+\s+[\d\-]+\s*\))|\s+)+)\)', re.DOTALL)
+    # Simple parser to avoid regex catastrophic backtracking
+    net_blocks = []
+    current_net = None
+    current_content = []
+    
+    lines = ses_data.split('\n')
+    for line in lines:
+        line_stripped = line.strip()
+        if line_stripped.startswith('(net '):
+            if current_net:
+                net_blocks.append((current_net, "\n".join(current_content)))
+            # Extract net name: (net "NetName" OR (net NetName
+            match = re.search(r'\(net\s+"?([^"\s]+)"?', line_stripped)
+            current_net = match.group(1) if match else "UNKNOWN"
+            current_content = []
+        elif current_net:
+            current_content.append(line_stripped)
+            
+    if current_net:
+        net_blocks.append((current_net, "\n".join(current_content)))
+
     wire_pattern = re.compile(r'\(wire\s+\(path\s+([^\s]+)\s+(\d+)\s+(.*?)\)\s*\)', re.DOTALL)
     via_pattern = re.compile(r'\(via\s+"([^"]+)"\s+([\d\-]+)\s+([\d\-]+)\s*\)')
 
@@ -22,9 +41,7 @@ def parse_ses_and_apply(board_path, ses_path):
         'B.Cu': pcbnew.B_Cu
     }
     
-    for net_match in net_pattern.finditer(ses_data):
-        netname = net_match.group(1)
-        content = net_match.group(2)
+    for netname, content in net_blocks:
         
         netcode = board.GetNetcodeFromNetname(netname)
         if netcode <= 0:
@@ -42,7 +59,10 @@ def parse_ses_and_apply(board_path, ses_path):
             if width < 100000:
                 width = 100000
                 
-            coords = list(map(int, coords_str.strip().split()))
+            import re as _re
+            coords_str = coords_str.split('(type')[0]
+            coords_str = coords_str.replace(')', '').replace('(', '')
+            coords = [int(v) for v in _re.findall(r'-?\d+', coords_str)]
             for i in range(0, len(coords)-2, 2):
                 x1 = coords[i] * UNIT_TO_NM
                 y1 = -(coords[i+1] * UNIT_TO_NM)

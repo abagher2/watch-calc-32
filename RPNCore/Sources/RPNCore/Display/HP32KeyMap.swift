@@ -43,6 +43,12 @@ public struct HP32Key: Identifiable, Equatable {
 }
 
 public struct HP32KeyMap {
+    #if hasFeature(Embedded)
+    static let offLabel = "OFF"
+    #else
+    static let offLabel = ""
+    #endif
+    
         private static let standardGrid_chunk0: [HP32Key] = [
         // Top Section (Functions)
         // Row 0 (6 cols) - LFU Pad (Dynamic)
@@ -106,7 +112,7 @@ public struct HP32KeyMap {
         HP32Key(row: 6, col: 4, rowSpan: 1, label: "-", yellowLabel: "▸l", blueLabel: "▸gal", alphaLabel: "", yellowAction: .toLiters, blueAction: .toGal, primaryAction: .subtract),
         
         // Row 7 (5 cols),
-        HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: .c)
+        HP32Key(row: 7, col: 0, rowSpan: 1, label: "C", yellowLabel: "", blueLabel: offLabel, alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: .c)
     ]
     private static let standardGrid_chunk4: [HP32Key] = [
         HP32Key(row: 7, col: 1, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
@@ -152,7 +158,7 @@ public struct HP32KeyMap {
         HP32Key(row: 2, col: 2, rowSpan: 1, label: "R↓", yellowLabel: "O", blueLabel: "R↑", alphaLabel: "", yellowAction: nil, blueAction: .rollUp, primaryAction: .rollDown),
         HP32Key(row: 2, col: 3, rowSpan: 1, label: "𝑥≷𝑦", yellowLabel: "P", blueLabel: "𝑥≷?", alphaLabel: "", yellowAction: nil, blueAction: .swapXYPrompt, primaryAction: .swapXY),
         HP32Key(row: 2, col: 4, rowSpan: 1, label: "<-", yellowLabel: "Q", blueLabel: "TEST", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .backspace),
-        HP32Key(row: 2, col: 5, rowSpan: 1, label: "ON", yellowLabel: "", blueLabel: "OFF", alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: nil),
+        HP32Key(row: 2, col: 5, rowSpan: 1, label: "ON", yellowLabel: "", blueLabel: offLabel, alphaLabel: "", yellowAction: nil, blueAction: .off, primaryAction: nil),
         HP32Key(row: 2, col: 7, rowSpan: 1, label: "1", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit1),
         HP32Key(row: 2, col: 8, rowSpan: 1, label: "2", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit2),
         HP32Key(row: 2, col: 9, rowSpan: 1, label: "3", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .digit3),

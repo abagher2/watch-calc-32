@@ -201,4 +201,25 @@ final class FirmwareHILTests: XCTestCase {
             sendCommand("C") // clean up
         }
     }
+    
+    func testFirmwareStackMenuSoftkeys() {
+        sendCommand("FLAGS")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Use softkey 6 (.lfu5) to scroll through pages/menu mapping for STACK
+        sendCommand("LFU_5")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // After pressing LFU_5, we should be in STACK menu.
+        // Wait! Let's just tap LFU_0 to select the first option (4-LVL)
+        sendCommand("LFU_0")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        takeScreenshot(name: "testFirmwareStackMenuSoftkeys")
+        
+        // After setting STACK size, we're back to main display.
+        // Let's verify it by checking the screen
+        let screen = readScreen(expecting: "X:")
+        XCTAssertTrue(screen.contains("X:"), "Screen did not return to normal view after STACK menu execution")
+    }
 }

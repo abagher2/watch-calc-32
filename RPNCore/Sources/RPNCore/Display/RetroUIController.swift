@@ -34,17 +34,41 @@ public class RetroUIController {
         }
         
         if engine.requestPlot {
-            if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+            if finalOp == .c || finalOp == .clear {
                 engine.requestPlot = false
                 engine.selectedPlotMarkerIndex = nil
                 return
             }
-            if finalOp == .lfu0 || finalOp.stringValue == "LFU_0" { engine.selectedPlotMarkerIndex = 0; return }
-            if finalOp == .lfu1 || finalOp.stringValue == "LFU_1" { engine.selectedPlotMarkerIndex = 1; return }
-            if finalOp == .lfu2 || finalOp.stringValue == "LFU_2" { engine.selectedPlotMarkerIndex = 2; return }
-            if finalOp == .lfu3 || finalOp.stringValue == "LFU_3" { engine.selectedPlotMarkerIndex = 3; return }
-            if finalOp == .lfu4 || finalOp.stringValue == "LFU_4" { engine.selectedPlotMarkerIndex = 4; return }
-            if finalOp == .lfu5 || finalOp.stringValue == "LFU_5" { engine.selectedPlotMarkerIndex = 5; return }
+            
+            guard let first = engine.plotData.first, let last = engine.plotData.last else { return }
+            let currentMin = first.0
+            let currentMax = last.0
+            
+            if finalOp == .backspace { // Zoom Out
+                let width = currentMax - currentMin
+                let center = (currentMin + currentMax) / 2.0
+                let newWidth = width * 6.0
+                engine.generatePlot(variable: nil, explicitMin: center - newWidth / 2.0, explicitMax: center + newWidth / 2.0)
+                return
+            }
+            
+            // 6-region Zoom In
+            var selectedRegion: Int? = nil
+            if finalOp == .lfu0 || finalOp.stringValue == "LFU_0" { selectedRegion = 0 }
+            if finalOp == .lfu1 || finalOp.stringValue == "LFU_1" { selectedRegion = 1 }
+            if finalOp == .lfu2 || finalOp.stringValue == "LFU_2" { selectedRegion = 2 }
+            if finalOp == .lfu3 || finalOp.stringValue == "LFU_3" { selectedRegion = 3 }
+            if finalOp == .lfu4 || finalOp.stringValue == "LFU_4" { selectedRegion = 4 }
+            if finalOp == .lfu5 || finalOp.stringValue == "LFU_5" { selectedRegion = 5 }
+            
+            if let region = selectedRegion {
+                let width = currentMax - currentMin
+                let step = width / 6.0
+                let newMin = currentMin + Double(region) * step
+                let newMax = currentMin + Double(region + 1) * step
+                engine.generatePlot(variable: nil, explicitMin: newMin, explicitMax: newMax)
+            }
+            return
         }
         
         if finalOp == .show {
@@ -171,7 +195,10 @@ public class RetroUIController {
                     engine.requestPlot = true
                 } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
                     engine.currentProgramLabel = prog.label
-                    _ = engine.evaluateProgram(prog, variables: engine.variables)
+                    if let result = engine.evaluateProgram(prog, variables: engine.variables) {
+                        engine.pushToStack(result)
+                        engine.updateDisplay()
+                    }
                 }
                 retroUI.softkeyMode = .none
                 retroUI.softkeyProgram = nil
@@ -206,15 +233,30 @@ public class RetroUIController {
         }
 
         
-        if (engine.isEquationMode || engine.alphaAction == .fnEq), finalOp.stringValue.hasPrefix("LFU_") {
+        if engine.isEquationListMode, finalOp.stringValue.hasPrefix("LFU_") {
             let suffix = String(finalOp.stringValue.dropFirst(4))
             let index = parseInteger(suffix) ?? 0
             
-            var items: [MenuItem] = [
-                MenuItem(label: "NEW", action: "EQN_NEW")
-            ]
+            var items: [MenuItem] = []
+            items.append(MenuItem(label: "NEW", action: "EQN_NEW"))
+            if !engine.programs.isEmpty {
+                items.append(MenuItem(label: "EDIT", action: "EQN_EDIT"))
+            }
+            
+            if index < items.count {
+                let selected = items[index]
+                engine.executeMath(selected.action)
+            }
+            return
+        }
+        
+        if engine.alphaAction == .fnEq, finalOp.stringValue.hasPrefix("LFU_") {
+            let suffix = String(finalOp.stringValue.dropFirst(4))
+            let index = parseInteger(suffix) ?? 0
+            
+            var items: [MenuItem] = []
             for prog in engine.programs {
-                items.append(MenuItem(label: prog.label.isEmpty ? "EQN" : prog.label, action: "EQN_EDIT_\(prog.label)"))
+                items.append(MenuItem(label: prog.label.isEmpty ? "EQN" : prog.label, action: prog.label))
             }
             
             if index == 5 && items.count - retroUI.menuOffset > 6 {
@@ -224,20 +266,7 @@ public class RetroUIController {
             
             let visibleItems = Array(items.dropFirst(retroUI.menuOffset))
             if index < visibleItems.count {
-                let selected = visibleItems[index]
-                if selected.action == "EQN_NEW" {
-                    engine.isWaitingForLabel = true
-                    engine.startAlpha()
-                    engine.alphaPrompt = "LBL _"
-                    engine.promptString = "LBL "
-                } else if selected.action.hasPrefix("EQN_EDIT_") {
-                    let lbl = String(selected.action.dropFirst(9))
-                    if let existing = engine.programs.first(where: { $0.label == lbl }) {
-                        engine.editEquation(existing)
-                    }
-                } else {
-                    engine.submitAlpha(selected.label)
-                }
+                engine.submitAlpha(visibleItems[index].label)
                 retroUI.menuOffset = 0
             }
             return
@@ -252,7 +281,11 @@ public class RetroUIController {
             } else if let alpha = finalOp.alphaLabel ?? (finalOp.stringValue.count == 1 ? finalOp.stringValue : nil) {
                 if let menu = engine.activeMenu {
                     retroUI.menuAlphaQuery.append(alpha)
-                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
+                    #if !hasFeature(Embedded)
+                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine).filter { !$0.isSoftwareOnly }
+                    #else
+                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine)
+                    #endif
                 } else {
                     engine.submitAlpha(alpha)
                     lfuManager.recordUsage(of: alpha)
@@ -271,7 +304,11 @@ public class RetroUIController {
         }
         
         if let menu = engine.activeMenu {
-            let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
+            #if !hasFeature(Embedded)
+            let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine).filter { !$0.isSoftwareOnly }
+            #else
+            let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine)
+            #endif
             
             if finalOp.stringValue.hasPrefix("LFU_") {
                 let suffix = String(finalOp.stringValue.dropFirst(4))
@@ -317,6 +354,7 @@ public class RetroUIController {
                             "STATSTDDEV": .statStdDev,
                             "STATLR":     .lr,
                             "STATSUMS":   .sums,
+                            "STACK":      .stack,
                         ]
                         if selected.action == "REGS" {
                             retroUI.isShowingRegisters = true
@@ -328,7 +366,11 @@ public class RetroUIController {
                             engine.activeMenu = subMenu
                             retroUI.menuAlphaQuery = ""
                             retroUI.menuOffset = 0
-                            menuItemsDisplayCache = subMenu.items
+                            #if !hasFeature(Embedded)
+                            menuItemsDisplayCache = subMenu.getItems(engine: engine).filter { !$0.isSoftwareOnly }
+                            #else
+                            menuItemsDisplayCache = subMenu.getItems(engine: engine)
+                            #endif
                         } else {
                             engine.executeMath(selected.action)
                             lfuManager.recordUsage(of: selected.action)
@@ -343,7 +385,11 @@ public class RetroUIController {
             if finalOp == .backspace || finalOp == .clear || finalOp == .c {
                 if !retroUI.menuAlphaQuery.isEmpty {
                     retroUI.menuAlphaQuery.removeLast()
-                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery)
+                    #if !hasFeature(Embedded)
+                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine).filter { !$0.isSoftwareOnly }
+                    #else
+                    menuItemsDisplayCache = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine)
+                    #endif
                 } else {
                     engine.activeMenu = nil
                     retroUI.menuOffset = 0
@@ -357,7 +403,11 @@ public class RetroUIController {
             engine.activeMenu = newMenu
             retroUI.menuAlphaQuery = ""
             retroUI.menuOffset = 0
-            menuItemsDisplayCache = newMenu.items
+            #if !hasFeature(Embedded)
+            menuItemsDisplayCache = newMenu.getItems(engine: engine).filter { !$0.isSoftwareOnly }
+            #else
+            menuItemsDisplayCache = newMenu.getItems(engine: engine)
+            #endif
         }
         else if finalOp.stringValue.hasPrefix("LFU_") {
             let suffix = String(finalOp.stringValue.dropFirst(4))

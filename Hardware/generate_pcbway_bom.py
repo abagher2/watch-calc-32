@@ -38,11 +38,11 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
             elif "JST1" in ref:
                 val = "JST PH 2-pin side-entry header"
                 sku = "S2B-PH-K-S(LF)(SN)"
-                desc = "Battery connector for wired CR2450 holder; 2.00mm pitch, side entry"
-            elif "J1" in ref and "FH12" in fpid:
-                val = "10-Pin FPC ZIF Connector (0.5mm Pitch)"
-                sku = "FH12-10S-0.5SH(55)"
-                desc = "For Sharp LS027B7DH01 Memory LCD. **CRITICAL PCBA NOTE:** Connects directly to Pico SPI pins."
+                desc = "Battery connector for wired CR2450 battery; 2.00mm pitch, side entry"
+            elif ref == "J1":
+                val = "LS027B7DH01 - 400x240 Memory LCD"
+                sku = "LS027B7DH01"
+                desc = "connect through the existing J1 FPC connection and shim 0.07mm to 1.50mm above PCB"
                 
             components.append({'ref': ref, 'val': val, 'fpid': fpid, 'sku': sku, 'desc': desc})
             
@@ -50,10 +50,9 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
         for comp in components:
             writer.writerow([comp['ref'], comp['val'], comp['fpid'], comp['sku'], comp['desc'], 1])
             
-        # We need to manually add the Sharp LCD Screen to the BOM as a sourced part (not PCBA soldered)
-        writer.writerow(['LCD1', 'Sharp 2.7" Memory LCD', 'Manual install', 'LS027B7DH01', 'Graphical Memory LCD 400x240. Connect to J1 during final assembly; shim 0.07mm to exactly 1.50mm above PCB.', 1])
-            
     print(f"Rich BOM exported to {output_csv}")
 
 if __name__ == "__main__":
-    generate_rich_bom('Hardware/calculator.kicad_pcb', 'output/WatchCalc32_PCBWay_Manufacturing/PCBA_Files/bom.csv')
+    import sys
+    out_csv = sys.argv[2] if len(sys.argv) > 2 else 'bom.csv'
+    generate_rich_bom(sys.argv[1] if len(sys.argv) > 1 else 'output/pcbs/calculator.kicad_pcb', out_csv)

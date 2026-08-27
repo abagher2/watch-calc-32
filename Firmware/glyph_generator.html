@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Print Calculator Glyph Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; }
+    /* Mimic the lighting of a physical plastic keycap */
+    .key-bg { 
+      background: linear-gradient(145deg, #334155, #1e293b); 
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.4), -1px -1px 2px rgba(255,255,255,0.05);
+    }
+    .key-inner { 
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.1); 
+      background-color: #0f172a;
+    }
+    /* Custom scrollbar for aesthetics */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  </style>
+</head>
+<body class="p-4 md:p-8 font-sans min-h-screen">
+
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-8 p-6 bg-slate-800 rounded-xl shadow-2xl border border-slate-700">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-2">
+        <h1 class="text-3xl font-bold text-sky-400">Calculator Glyph Generator</h1>
+        <span class="text-xs bg-sky-900 text-sky-200 py-1 px-3 rounded-full mt-2 md:mt-0 font-mono tracking-widest border border-sky-700">HP-32SII EDITION</span>
+      </div>
+      <p class="text-slate-400 mb-8 max-w-2xl">
+        Parametric SVG paths optimized for 3D printing with a 0.4mm nozzle. 
+        Designed for 6x3mm keys. The engine generates continuous unbroken lines to prevent print failure on tiny text.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-6 bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
+        <!-- Scale -->
+        <div>
+          <label class="block text-sm mb-1 text-slate-300 font-medium">Glyph Scale (1.0 = Full Button)</label>
+          <div class="flex items-center space-x-3">
+            <input type="range" id="scale" min="0.5" max="1.2" step="0.05" value="0.9" class="w-full accent-sky-500">
+            <span id="scale-val" class="text-sm text-sky-400 font-mono w-12 text-right">0.90</span>
+          </div>
+        </div>
+        
+        <!-- Stroke Width -->
+        <div>
+          <label class="block text-sm mb-1 text-slate-300 font-medium">Nozzle Width (mm)</label>
+          <div class="flex items-center space-x-3">
+            <!-- value 4 corresponds to 0.4mm physically -->
+            <input type="range" id="strokeWidth" min="1" max="8" step="0.5" value="4" class="w-full accent-sky-500">
+            <span id="strokeWidth-val" class="text-sm text-sky-400 font-mono w-12 text-right">0.40</span>
+          </div>
+        </div>
+
+        <!-- Join Options -->
+        <div>
+          <label class="block text-sm mb-1 text-slate-300 font-medium">Corner Join</label>
+          <select id="linejoin" class="w-full bg-slate-800 rounded p-1.5 text-white border border-slate-600 focus:border-sky-500 focus:outline-none text-sm">
+            <option value="round" selected>Round (Best for FDM)</option>
+            <option value="miter">Miter (Sharp)</option>
+            <option value="bevel">Bevel (Chamfered)</option>
+          </select>
+        </div>
+
+        <!-- Print Mode -->
+        <div>
+          <label class="block text-sm mb-1 text-slate-300 font-medium">Print Mode</label>
+          <select id="printMode" class="w-full bg-slate-800 rounded p-1.5 text-white border border-slate-600 focus:border-sky-500 focus:outline-none text-sm">
+            <option value="sunken" selected>Sunken (Clean Spaces)</option>
+            <option value="embossed">Embossed (Continuous Path)</option>
+          </select>
+        </div>
+
+        <!-- Bulk Export -->
+        <div class="flex items-end">
+          <button onclick="downloadSpriteSheet()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded transition shadow-lg flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Download Layout SVG</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Custom Label Tool -->
+      <div class="mt-6 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+        <div class="flex-1">
+           <label class="block text-xs mb-1 text-slate-400 uppercase tracking-wider">Generate Custom Key Label</label>
+           <div class="flex">
+             <input type="text" id="custom-label" placeholder="e.g. SHIFT" maxlength="7" class="flex-1 bg-slate-800 rounded-l p-2 text-white border border-slate-600 focus:outline-none focus:border-sky-500 uppercase font-mono tracking-widest">
+             <button onclick="addCustomKey()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-6 rounded-r border border-emerald-600 transition">
+               Add
+             </button>
+           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keys Grid Area -->
+    <div id="keys-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-4 mb-12">
+      <!-- Generated Key Cards Will Inject Here -->
+    </div>
+
+    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl mb-8">
+      <div class="flex items-center space-x-3 mb-4">
+        <svg class="w-6 h-6 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+        <h2 class="text-xl font-bold text-white">How to use in OpenSCAD</h2>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <ol class="list-decimal list-inside text-sm text-slate-300 space-y-3">
+            <li>Download a key's SVG by hovering over it and clicking the blue arrow.</li>
+            <li>Place the `<span class="text-sky-300 font-mono">.svg</span>` file in the same directory as your `<span class="text-sky-300 font-mono">.scad</span>` script.</li>
+            <li>The SVG internal canvas is 60x30mm to ensure high precision line data.</li>
+            <li>Scale the import by <code class="bg-slate-900 px-1 py-0.5 rounded text-pink-300">[0.1, 0.1, 1]</code> to shrink it exactly to your physical 6x3mm keycap dimensions.</li>
+            <li>Use <code class="bg-slate-900 px-1 py-0.5 rounded text-pink-300">difference()</code> to engrave the text, or union to emboss.</li>
+          </ol>
+        </div>
+        <div class="bg-slate-950 rounded-lg p-4 border border-slate-700 relative group overflow-hidden">
+          <div class="absolute top-0 right-0 bg-slate-800 px-2 py-1 rounded-bl text-xs text-slate-400 font-mono">example.scad</div>
+<pre class="text-xs font-mono overflow-x-auto text-slate-300">
+<span class="text-slate-500">// Example: Sinking the text into a 6x3mm keycap</span>
+difference() {
+    <span class="text-blue-400">cube</span>([<span class="text-yellow-300">6</span>, <span class="text-yellow-300">3</span>, <span class="text-yellow-300">2</span>], center = <span class="text-purple-400">true</span>); <span class="text-slate-500">// Physical Keycap</span>
+    
+    <span class="text-slate-500">// Offset to top surface, center it, and shrink</span>
+    <span class="text-blue-400">translate</span>([<span class="text-yellow-300">-3</span>, <span class="text-yellow-300">-1.5</span>, <span class="text-yellow-300">0.5</span>])
+    <span class="text-blue-400">scale</span>([<span class="text-yellow-300">0.1</span>, <span class="text-yellow-300">0.1</span>, <span class="text-yellow-300">1</span>])
+    <span class="text-blue-400">linear_extrude</span>(height = <span class="text-yellow-300">1</span>)
+    <span class="text-blue-400">import</span>(<span class="text-green-300">"key_LN.svg"</span>);
+}
+</pre>
+          <button onclick="copyCode(this)" class="absolute bottom-2 right-2 bg-slate-800 hover:bg-slate-700 p-1.5 rounded opacity-0 group-hover:opacity-100 transition shadow" title="Copy Code">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 10x10 continuous-stroke block font. 
+    // CRITICAL: Every character MUST start at bottom-left (0, 10) and end at bottom-right (10, 10).
+    // This allows the engine to chain them together without lifting the nozzle (Z-hops).
+    const font = {
+      'A': 'M 0 10 V 0 H 10 V 10 L 10 5 H 0 L 0 10 H 10',
+      'B': 'M 0 10 V 0 H 8 V 5 H 0 L 8 5 V 10 H 0 L 0 10 H 10',
+      'C': 'M 10 10 H 0 V 0 H 10 L 0 0 L 0 10 H 10',
+      'D': 'M 0 10 V 0 H 8 L 10 2 V 8 L 8 10 H 0 L 0 10 H 10',
+      'E': 'M 10 10 H 0 V 5 H 8 L 0 5 V 0 H 10 L 0 0 L 0 10 H 10',
+      'F': 'M 0 10 V 5 H 8 L 0 5 V 0 H 10 L 0 0 L 0 10 H 10',
+      'G': 'M 10 10 H 0 V 0 H 10 L 0 0 L 0 10 H 10 V 5 H 5 L 10 5 V 10',
+      'H': 'M 0 10 V 0 L 0 5 H 10 V 0 V 10',
+      'I': 'M 0 10 H 10 L 5 10 V 0 L 0 0 H 10 L 5 0 V 10 H 10',
+      'J': 'M 0 10 H 10 V 0 L 10 10',
+      'K': 'M 0 10 V 0 L 0 5 L 10 0 L 0 5 L 10 10',
+      'L': 'M 0 10 V 0 L 0 10 H 10',
+      'M': 'M 0 10 V 0 L 5 5 L 10 0 V 10',
+      'N': 'M 0 10 V 0 H 10 V 10', // 3-sided box N as requested
+      'O': 'M 0 10 V 0 H 10 V 10 H 0 L 0 10 H 10',
+      'P': 'M 0 10 V 0 H 10 V 6 H 0 L 0 10 H 10',
+      'Q': 'M 0 10 V 0 H 10 V 10 H 0 L 5 5 L 10 10',
+      'R': 'M 0 10 V 0 H 10 V 6 H 0 L 5 6 L 10 10',
+      'S': 'M 0 10 H 10 V 5 H 0 V 0 H 10 L 0 0 V 5 H 10 V 10',
+      'T': 'M 0 10 H 5 V 0 L 0 0 H 10 L 5 0 V 10 H 10',
+      'U': 'M 0 10 V 0 L 0 10 H 10 V 0 L 10 10',
+      'V': 'M 0 10 L 5 10 L 0 0 L 5 10 L 10 0 L 10 10',
+      'W': 'M 0 10 V 0 L 0 10 L 5 5 L 10 10 V 0 L 10 10',
+      'X': 'M 0 10 L 10 0 L 5 5 L 0 0 L 10 10',
+      'Y': 'M 0 10 H 5 V 5 L 0 0 L 5 5 L 10 0 L 5 5 V 10 H 10',
+      'Z': 'M 0 10 H 10 L 0 0 H 10 L 0 0 L 0 10 H 10',
+      ' ': 'M 0 10 H 10',
+      '-': 'M 0 10 H 5 V 5 H 10 L 5 5 V 10 H 10',
+      '+': 'M 0 10 H 5 V 0 L 5 10 L 0 5 H 10 L 5 5 L 5 10 H 10',
+      '/': 'M 0 10 L 10 0'
+    };
+
+    // Full-button hardcoded paths optimized for EMBOSSED (Raised) printing.
+    // Characters run together, overlap, and share strokes to prevent nozzle retractions.
+    const customEmbossed = {
+      // Numbers exactly matching the blocky "Stack Calc Numbers" aesthetic
+      '0': 'M 15 5 H 45 V 25 H 15 Z',
+      '1': 'M 20 10 L 30 5 V 25 H 15 H 45',
+      '2': 'M 15 5 H 45 V 15 H 15 V 25 H 45',
+      '3': 'M 15 5 H 45 V 15 H 25 L 45 15 V 25 H 15',
+      '4': 'M 15 5 V 17 H 45 V 5 V 25',
+      '5': 'M 45 5 H 15 V 15 H 45 V 25 H 15',
+      '6': 'M 45 5 H 15 V 25 H 45 V 15 H 15',
+      '7': 'M 15 5 H 45 L 25 25',
+      '8': 'M 25 15 H 45 V 5 H 15 V 25 H 45 V 15 H 15',
+      '9': 'M 45 25 V 5 H 15 V 15 H 45',
+      '.': 'M 25 25 V 20 H 35 V 25 H 25 Z',
+      
+      // Continuous-stroke complex functions
+      '1/x': 'M 10 10 L 15 5 V 25 L 32 5 L 52 25 H 38 L 58 5',
+      'e^x': 'M 30 25 H 10 V 15 H 25 L 10 15 V 5 H 30 L 50 25 H 35 L 55 5',
+      'y^x': 'M 10 5 L 20 15 L 30 5 L 20 25 L 35 5 L 55 25 H 40 L 60 5',
+      '10^x': 'M 8 10 L 12 5 V 25 H 20 V 5 H 32 V 25 H 20 H 32 L 42 5 L 56 25 H 48 L 60 5',
+      'x^2': 'M 5 5 L 20 25 H 10 L 25 5 H 35 H 50 V 15 H 35 V 25 H 50',
+      'x<>y': 'M 5 5 L 15 25 H 8 L 18 5 L 22 15 L 26 10 L 22 15 L 26 20 L 22 15 H 34 L 30 10 L 34 15 L 30 20 L 34 15 L 38 5 L 44 15 L 50 5 L 44 25',
+      'SQRT': 'M 5 15 L 12 25 L 25 5 H 45 L 30 25 H 38 L 53 5',
+      
+      // Conjoined textual math
+      'LN': 'M 15 5 V 25 H 30 V 5 H 50 V 25',
+      'LOG': 'M 5 5 V 25 H 20 V 5 H 35 V 25 H 20 H 35 H 50 V 5 H 40 V 25 H 50 V 15 H 45',
+      '+/-': 'M 15 5 V 15 H 5 L 15 15 V 25 L 15 15 H 25 L 30 25 L 40 5 L 45 15 H 55',
+      'Σ+': 'M 25 5 H 5 L 15 15 L 5 25 H 25 H 40 V 5 L 40 15 H 30 H 50',
+      
+      // Main unshifted functions (Unbroken words)
+      'R/S': 'M 5 25 V 5 H 20 V 15 H 5 L 20 25 L 25 25 L 35 5 H 50 V 15 H 40 V 25 H 50',
+      'SST': 'M 5 25 H 20 V 15 H 5 V 5 H 20 H 35 V 15 H 25 V 25 H 35 H 45 V 5 H 40 H 55',
+      'PRGM': 'M 2 25 V 5 H 12 V 15 H 2 V 25 H 16 V 5 H 26 V 15 H 16 L 26 25 H 38 V 5 H 30 V 25 H 38 V 15 H 34 V 25 H 44 V 5 L 51 15 L 58 5 V 25',
+      'SIN': 'M 5 25 H 15 V 15 H 5 V 5 H 15 H 25 V 25 H 35 V 5 H 45 V 25',
+      'COS': 'M 15 5 H 5 V 25 H 15 H 25 V 5 H 35 V 25 H 25 H 35 H 45 V 15 H 35 V 5 H 45',
+      'TAN': 'M 5 5 H 15 L 10 5 V 25 H 25 V 5 H 35 V 25 L 35 15 H 25 L 35 15 L 35 25 H 45 V 5 H 55 V 25',
+      'RCL': 'M 5 25 V 5 H 15 V 15 H 5 L 15 25 H 25 V 5 H 35 L 25 5 L 25 25 H 45 V 5 L 45 25 H 55',
+      'STO': 'M 5 25 H 15 V 15 H 5 V 5 H 15 H 30 V 25 L 25 25 L 25 5 H 35 L 25 5 L 25 25 H 35 V 5 H 45 V 25 H 35',
+      'MEM': 'M 5 25 V 5 L 12 15 L 19 5 V 25 H 25 V 15 H 32 L 25 15 V 5 H 35 L 25 5 L 25 25 H 41 V 5 L 48 15 L 55 5 V 25',
+      'DISP': 'M 5 5 V 25 H 15 V 5 H 5 L 5 25 H 20 V 5 L 20 25 H 30 V 15 H 20 V 5 H 30 L 30 25 H 40 V 15 H 50 V 5 H 40 L 40 25',
+      
+      'Rv': 'M 15 25 V 5 H 25 V 15 H 15 L 25 25 H 35 V 5 H 45 V 15 H 50 L 40 25 L 30 15 H 35',
+      'E': 'M 45 5 H 15 V 15 H 35 H 15 V 25 H 45',
+      'C': 'M 45 5 H 15 V 25 H 45',
+      '<-': 'M 45 13 H 25 V 7 L 10 15 L 25 23 V 17 H 45 Z',
+      'L.SHIFT': 'M 40 25 V 15 H 30 V 20 L 15 10 L 30 5 V 10 H 45 V 25 Z',
+      'R.SHIFT': 'M 20 25 V 15 H 30 V 20 L 45 10 L 30 5 V 10 H 15 V 25 Z',
+
+      '+': 'M 15 15 H 45 L 30 15 V 5 L 30 25',
+      '-': 'M 15 15 H 45',
+      'x': 'M 15 5 L 45 25 H 30 L 15 5 H 45 L 15 25 H 30 L 45 25',
+      '÷': 'M 15 15 H 45 M 28 5 H 32 V 9 H 28 Z M 28 21 H 32 V 25 H 28 Z',
+      '=': 'M 15 10 H 45 L 15 10 V 20 H 45'
+    };
+
+    // Full-button hardcoded paths optimized for SUNKEN (Engraved) printing.
+    // Removes arbitrary baseline connections, enforces clean negative space, 
+    // and uses F: prefix to generate solid filled blocks to prevent fragile islands.
+    const customSunken = {
+      '0': 'F: M 22 5 H 38 L 45 12 V 18 L 38 25 H 22 L 15 18 V 12 Z',
+      '1': 'F: M 20 25 H 40 V 19 H 35 V 5 H 25 L 15 15 V 20 L 25 10 V 19 H 20 Z',
+      '2': 'F: M 15 5 H 45 V 15 H 25 V 19 H 45 V 25 H 15 V 15 H 35 V 11 H 15 Z',
+      '3': 'F: M 15 5 H 45 V 25 H 15 V 19 H 35 V 17 H 25 V 13 H 35 V 11 H 15 Z',
+      '4': 'F: M 30 5 H 40 V 25 H 30 V 17 H 15 V 5 H 23 V 11 H 30 Z',
+      '5': 'F: M 45 5 H 15 V 15 H 35 V 19 H 15 V 25 H 45 V 15 H 25 V 11 H 45 Z',
+      '6': 'F: M 15 5 H 45 V 11 H 25 V 15 H 45 V 25 H 15 Z',
+      '7': 'F: M 15 5 H 45 V 11 L 30 25 H 20 L 35 11 H 15 Z',
+      '8': 'F: M 15 5 H 45 V 11 H 33 V 19 H 45 V 25 H 15 V 19 H 27 V 11 H 15 Z',
+      '9': 'F: M 45 25 H 15 V 19 H 35 V 15 H 15 V 5 H 45 Z',
+      '.': 'F: M 25 25 V 20 H 35 V 25 Z',
+      
+      '1/x': 'F: M 6 25 H 14 V 19 H 10 V 5 H 6 Z M 20 25 H 28 L 38 5 H 30 Z M 42 5 H 47 L 49 12 L 51 5 H 56 L 52 15 L 56 25 H 51 L 49 18 L 47 25 H 42 L 46 15 Z',
+      'e^x': 'F: M 5 10 L 8 5 H 14 L 17 10 V 15 H 11 V 20 H 17 V 25 H 8 L 5 20 Z M 23 15 L 30 5 L 37 15 L 33 15 L 30 10 L 27 15 Z M 42 5 H 47 L 49 12 L 51 5 H 56 L 52 15 L 56 25 H 51 L 49 18 L 47 25 H 42 L 46 15 Z',
+      'y^x': 'F: M 2 5 H 8 L 10 12 L 12 5 H 18 L 13 18 V 25 H 7 V 18 Z M 23 15 L 30 5 L 37 15 L 33 15 L 30 10 L 27 15 Z M 42 5 H 47 L 49 12 L 51 5 H 56 L 52 15 L 56 25 H 51 L 49 18 L 47 25 H 42 L 46 15 Z',
+      '10^x': 'F: M 2 25 H 10 V 19 H 6 V 5 H 2 Z M 14 10 L 18 5 H 24 L 28 10 V 20 L 24 25 H 18 L 14 20 Z M 32 15 L 37 5 L 42 15 L 39 15 L 37 10 L 35 15 Z M 46 5 H 51 L 53 12 L 55 5 H 60 L 56 15 L 60 25 H 55 L 53 18 L 51 25 H 46 L 50 15 Z',
+      'x^2': 'F: M 5 5 H 10 L 12 12 L 14 5 H 19 L 15 15 L 19 25 H 14 L 12 18 L 10 25 H 5 L 9 15 Z M 25 5 H 45 V 12 H 32 V 15 H 45 V 25 H 25 V 18 H 38 V 15 H 25 Z',
+      'x<>y': 'F: M 2 5 H 7 L 9 12 L 11 5 H 16 L 12 15 L 16 25 H 11 L 9 18 L 7 25 H 2 L 6 15 Z M 26 15 L 32 10 V 13 L 28 15 L 32 17 V 20 Z M 34 15 L 28 10 V 13 L 32 15 L 28 17 V 20 Z M 44 5 H 50 L 52 12 L 54 5 H 60 L 55 18 V 25 H 49 V 18 Z',
+      'SQRT': 'F: M 2 15 L 8 18 L 15 25 L 30 5 H 38 L 18 30 L 6 18 Z M 42 5 H 47 L 49 12 L 51 5 H 56 L 52 15 L 56 25 H 51 L 49 18 L 47 25 H 42 L 46 15 Z', 
+      
+      'LN': 'F: M 5 5 H 13 V 19 H 25 V 25 H 5 Z M 30 25 V 5 H 38 L 44 15 V 5 H 52 V 25 H 44 L 38 15 V 25 Z',
+      'LOG': 'F: M 2 5 H 10 V 19 H 18 V 25 H 2 Z M 22 10 L 26 5 H 34 L 38 10 V 20 L 34 25 H 26 L 22 20 Z M 42 5 H 58 V 11 H 50 V 19 H 54 V 15 H 58 V 25 H 42 Z',
+      '+/-': 'F: M 5 12 H 12 V 5 H 18 V 12 H 25 V 18 H 18 V 25 H 12 V 18 H 5 Z M 40 5 H 47 L 35 25 H 28 Z M 45 18 H 60 V 24 H 45 Z',
+      'Σ+': 'F: M 25 5 H 5 V 9 L 12 15 L 5 21 V 25 H 25 V 19 H 13 L 18 15 L 13 11 H 25 Z M 38 12 H 44 V 5 H 50 V 12 H 56 V 18 H 50 V 25 H 44 V 18 H 38 Z',
+      
+      'Rv': 'F: M 5 5 H 19 V 15 H 13 V 19 H 19 V 25 H 11 V 15 H 5 Z M 25 5 H 33 V 15 H 37 L 29 25 L 21 15 H 25 Z',
+      'E': 'F: M 45 5 H 15 V 25 H 45 V 19 H 25 V 17 H 35 V 13 H 25 V 11 H 45 Z',
+      'C': 'F: M 45 5 H 15 V 25 H 45 V 19 H 25 V 11 H 45 Z',
+      '<-': 'F: M 45 13 H 25 V 7 L 10 15 L 25 23 V 17 H 45 Z',
+      'L.SHIFT': 'F: M 40 25 V 15 H 30 V 20 L 15 10 L 30 5 V 10 H 45 V 25 Z',
+      'R.SHIFT': 'F: M 20 25 V 15 H 30 V 20 L 45 10 L 30 5 V 10 H 15 V 25 Z',
+
+      '+': 'F: M 26 5 H 34 V 11 H 40 V 19 H 34 V 25 H 26 V 19 H 20 V 11 H 26 Z',
+      '-': 'F: M 15 12 H 45 V 18 H 15 Z',
+      'x': 'F: M 15 5 H 25 L 30 13 L 35 5 H 45 L 35 15 L 45 25 H 35 L 30 17 L 25 25 H 15 L 25 15 Z',
+      '÷': 'F: M 15 13 H 45 V 17 H 15 Z M 26 4 H 34 V 10 H 26 Z M 26 20 H 34 V 26 H 26 Z',
+      '=': 'F: M 15 8 H 45 V 14 H 15 Z M 15 18 H 45 V 24 H 15 Z'
+    };
+
+    let KEY_LABELS = [
+      "PLOT", "SQRT", "e^x", "1/x", "y^x", "x<>y", 
+      "LN", "LOG", "10^x", "x^2", "+/-", 
+      "RCL", "STO", "MEM", "DISP", "C", 
+      "SIN", "COS", "TAN", "PRGM", "Rv",
+      "ENTER", "R/S", "SST", "Σ+", "E",
+      "<-", "L.SHIFT", "R.SHIFT",
+      "+", "-", "x", "÷", "=", 
+      "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."
+    ];
+
+    // Maps string text dynamically into the safe zone. Returns {stroke, fill}
+    function generateSVGPath(text, isDouble = false, mode = 'sunken') {
+      let isSunken = (mode === 'sunken');
+      
+      if (isSunken && customSunken[text]) {
+          let parts = customSunken[text].split('F:');
+          return { stroke: parts[0] ? parts[0].trim() : "", fill: parts[1] ? parts[1].trim() : "" };
+      }
+      if (!isSunken && customEmbossed[text]) {
+          let parts = customEmbossed[text].split('F:');
+          return { stroke: parts[0] ? parts[0].trim() : "", fill: parts[1] ? parts[1].trim() : "" };
+      }
+
+      // New clean font for Sunken mode. Loops use F: for solid island-free cutouts
+      const cleanFontOverrides = {
+        'A': 'F: M 0 10 L 3 10 L 5 2 L 7 10 L 10 10 L 5 0 Z',
+        'B': 'F: M 0 10 V 0 H 9 V 4 H 6 V 6 H 9 V 10 Z',
+        'C': 'F: M 10 0 H 0 V 10 H 10 V 8 H 2 V 2 H 10 Z',
+        'D': 'F: M 0 10 V 0 H 7 L 10 3 V 7 L 7 10 Z',
+        'E': 'F: M 10 0 H 0 V 10 H 10 V 8 H 2 V 6 H 8 V 4 H 2 V 2 H 10 Z',
+        'F': 'F: M 10 0 H 0 V 10 H 2 V 6 H 8 V 4 H 2 V 2 H 10 Z',
+        'G': 'F: M 10 0 H 0 V 10 H 10 V 4 H 4 V 6 H 8 V 8 H 2 V 2 H 10 Z',
+        'H': 'F: M 0 0 H 2 V 4 H 8 V 0 H 10 V 10 H 8 V 6 H 2 V 10 H 0 Z',
+        'I': 'F: M 3 0 H 7 V 10 H 3 Z',
+        'J': 'F: M 5 0 H 9 V 10 H 0 V 6 H 3 V 8 H 5 Z',
+        'K': 'F: M 0 0 H 2 V 4 L 7 0 H 10 L 5.5 5 L 10 10 H 7 L 2 6 V 10 H 0 Z',
+        'L': 'F: M 0 0 H 2 V 8 H 10 V 10 H 0 Z',
+        'M': 'F: M 0 0 H 3 L 5 3 L 7 0 H 10 V 10 H 8 V 4 L 5 7 L 2 4 V 10 H 0 Z',
+        'N': 'F: M 0 0 H 3 L 7 6 V 0 H 10 V 10 H 7 L 3 4 V 10 H 0 Z', 
+        'O': 'F: M 0 0 H 10 V 10 H 0 Z',
+        'P': 'F: M 0 10 V 0 H 10 V 6 H 3 V 10 Z',
+        'Q': 'F: M 0 0 H 10 V 8 H 7 L 10 10 L 7 10 L 5 8 H 0 Z',
+        'R': 'F: M 0 10 V 0 H 10 V 5 H 5 L 10 10 H 7 L 3 5 V 10 Z',
+        'S': 'F: M 10 0 H 0 V 6 H 8 V 8 H 0 V 10 H 10 V 4 H 2 V 2 H 10 Z',
+        'T': 'F: M 0 0 H 10 V 2 H 6 V 10 H 4 V 2 H 0 Z',
+        'U': 'F: M 0 0 H 2 V 8 H 8 V 0 H 10 V 10 H 0 Z',
+        'V': 'F: M 0 0 H 3 L 5 7 L 7 0 H 10 L 6 10 H 4 Z',
+        'W': 'F: M 0 0 H 2 L 3 7 L 5 3 L 7 7 L 8 0 H 10 L 8 10 H 6 L 5 5 L 4 10 H 2 Z',
+        'X': 'F: M 0 0 H 3 L 5 3 L 7 0 H 10 L 6.5 5 L 10 10 H 7 L 5 7 L 3 10 H 0 L 3.5 5 Z',
+        'Y': 'F: M 0 0 H 3 L 5 4 L 7 0 H 10 L 6 5 V 10 H 4 V 5 Z',
+        'Z': 'F: M 0 0 H 10 V 3 L 4 7 H 10 V 10 H 0 V 7 L 6 3 H 0 Z',
+        ' ': '',
+        '-': 'F: M 0 4 H 10 V 6 H 0 Z',
+        '+': 'F: M 4 0 H 6 V 4 H 10 V 6 H 6 V 10 H 4 V 6 H 0 V 4 H 4 Z',
+        '/': 'F: M 0 10 L 8 0 H 10 L 2 10 Z'
+      };
+      
+      let strokePath = "";
+      let fillPath = "";
+      let safeWidth = isDouble ? 110 : 50;
+      let safeHeight = 20;
+      let startX = 5;
+      let startY = 5;
+      
+      let spacing = isSunken ? 8 : 4; 
+      let totalSpacing = (text.length - 1) * spacing;
+      let charWidth = (safeWidth - totalSpacing) / text.length;
+      
+      for (let i = 0; i < text.length; i++) {
+        let char = text[i].toUpperCase();
+        let charPath = (isSunken && cleanFontOverrides[char]) ? cleanFontOverrides[char] : (font[char] || font[' ']);
+        if (charPath) {
+          let dx = startX + (i * (charWidth + spacing));
+          let parts = charPath.split('F:');
+          let sPath = parts[0] ? parts[0].trim() : "";
+          let fPath = parts[1] ? parts[1].trim() : "";
+          
+          if (sPath) {
+            let transformed = transformFontPath(sPath, dx, startY, charWidth, safeHeight);
+            if (!isSunken && i > 0) transformed = transformed.replace(/^M/, 'L'); // Cursive connect
+            strokePath += transformed + " ";
+          }
+          if (fPath) {
+            let transformed = transformFontPath(fPath, dx, startY, charWidth, safeHeight);
+            fillPath += transformed + " ";
+          }
+        }
+      }
+      return { stroke: strokePath.trim(), fill: fillPath.trim() };
+    }
+
+    // Transforms the 10x10 base font to fill the specific width and height
+    function transformFontPath(pathStr, dx, dy, w, h) {
+      return pathStr.replace(/([MLHV])([^MLHVZ]+)/g, (match, cmd, args) => {
+        let numsStr = args.trim().match(/-?\d+(\.\d+)?/g);
+        if (!numsStr) return cmd + ' ';
+        
+        let numsParsed = numsStr.map(Number);
+        let out = cmd + ' ';
+        for (let i = 0; i < numsParsed.length; i++) {
+          if (cmd === 'H') {
+            out += ((numsParsed[i] / 10) * w + dx).toFixed(2) + ' ';
+          } else if (cmd === 'V') {
+            out += ((numsParsed[i] / 10) * h + dy).toFixed(2) + ' ';
+          } else { 
+            if (i % 2 === 0) out += ((numsParsed[i] / 10) * w + dx).toFixed(2) + ' ';
+            else out += ((numsParsed[i] / 10) * h + dy).toFixed(2) + ' ';
+          }
+        }
+        return out;
+      });
+    }
+
+    // Scales an already positioned path around a specified center point
+    function scalePathFromCenter(pathStr, scale, cx = 30, cy = 15) {
+      if (scale === 1) return pathStr;
+      return pathStr.replace(/([MLHV])([^MLHVZ]+)/g, (match, cmd, args) => {
+        let numsStr = args.trim().match(/-?\d+(\.\d+)?/g);
+        if (!numsStr) return cmd + ' ';
+        
+        let numsParsed = numsStr.map(Number);
+        let out = cmd + ' ';
+        for (let i = 0; i < numsParsed.length; i++) {
+          if (cmd === 'H') {
+            let x = numsParsed[i];
+            out += ((x - cx) * scale + cx).toFixed(2) + ' ';
+          } else if (cmd === 'V') {
+            let y = numsParsed[i];
+            out += ((y - cy) * scale + cy).toFixed(2) + ' ';
+          } else { 
+            if (i % 2 === 0) {
+              let x = numsParsed[i];
+              out += ((x - cx) * scale + cx).toFixed(2) + ' ';
+            } else {
+              let y = numsParsed[i];
+              out += ((y - cy) * scale + cy).toFixed(2) + ' ';
+            }
+          }
+        }
+        return out;
+      });
+    }
+
+    function getSVGMarkup(text, config, forDownload=false) {
+      let isDouble = (text === 'ENTER');
+      let cx = isDouble ? 60 : 30;
+      let viewBoxWidth = isDouble ? 120 : 60;
+
+      let paths = generateSVGPath(text, isDouble, config.printMode);
+      let scaledStroke = scalePathFromCenter(paths.stroke, config.scale, cx, 15);
+      let scaledFill = scalePathFromCenter(paths.fill, config.scale, cx, 15);
+      
+      let strokeColor = forDownload ? "black" : "currentColor";
+      
+      let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewBoxWidth} 30" width="100%" height="100%">`;
+      if (scaledStroke) {
+        svg += `\n<path d="${scaledStroke}" fill="none" stroke="${strokeColor}" stroke-width="${config.strokeWidth}" stroke-linejoin="${config.linejoin}" stroke-linecap="round" />`;
+      }
+      if (scaledFill) {
+        // Filled items also get the stroke applied so their edges expand outwards accurately!
+        svg += `\n<path d="${scaledFill}" fill="${strokeColor}" stroke="${strokeColor}" stroke-width="${config.strokeWidth}" stroke-linejoin="${config.linejoin}" stroke-linecap="round" />`;
+      }
+      svg += `\n</svg>`;
+      return svg;
+    }
+
+    function getFilename(label) {
+      return "key_" + label.replace(/[^a-zA-Z0-9\+\-\=\.\^<>]/g, '_') + ".svg";
+    }
+
+    function renderKeys() {
+      const container = document.getElementById('keys-container');
+      container.innerHTML = '';
+      
+      const scale = parseFloat(document.getElementById('scale').value);
+      const strokeWidth = parseFloat(document.getElementById('strokeWidth').value);
+      const linejoin = document.getElementById('linejoin').value;
+      const printMode = document.getElementById('printMode').value;
+      
+      const config = { scale, strokeWidth, linejoin, printMode };
+      
+      KEY_LABELS.forEach(label => {
+        let isDouble = (label === 'ENTER');
+        let svgMarkup = getSVGMarkup(label, config, false);
+        
+        let cardSpan = isDouble ? 'col-span-2' : '';
+        let aspectClass = isDouble ? 'aspect-[4/1]' : 'aspect-[2/1]';
+        let physicalTitle = isDouble ? "12mm x 3mm physical area" : "6mm x 3mm physical area";
+
+        let card = document.createElement('div');
+        card.className = `key-bg border border-slate-700 rounded-lg p-2 flex flex-col items-center justify-between group hover:border-sky-500 transition relative cursor-default ${cardSpan}`;
+        
+        card.innerHTML = `
+          <div class="w-full ${aspectClass} rounded key-inner flex items-center justify-center mb-3 overflow-hidden relative" title="${physicalTitle}">
+             ${svgMarkup}
+          </div>
+          <div class="text-[11px] font-mono text-slate-400 font-bold tracking-wider uppercase mb-1">${label}</div>
+          <button onclick="downloadSVG('${label}')" class="absolute bottom-1 right-1 bg-sky-600 hover:bg-sky-500 text-white p-1.5 rounded opacity-0 group-hover:opacity-100 transition shadow-lg border border-sky-400" title="Download ${label}.svg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function triggerDownload(filename, content) {
+      const blob = new Blob([content], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadSVG(label) {
+      const scale = parseFloat(document.getElementById('scale').value);
+      const strokeWidth = parseFloat(document.getElementById('strokeWidth').value);
+      const linejoin = document.getElementById('linejoin').value;
+      const printMode = document.getElementById('printMode').value;
+      const config = { scale, strokeWidth, linejoin, printMode };
+      
+      let svgMarkup = getSVGMarkup(label, config, true);
+      triggerDownload(getFilename(label), svgMarkup);
+    }
+
+    function downloadSpriteSheet() {
+      const scale = parseFloat(document.getElementById('scale').value);
+      const strokeWidth = parseFloat(document.getElementById('strokeWidth').value);
+      const linejoin = document.getElementById('linejoin').value;
+      const printMode = document.getElementById('printMode').value;
+      
+      let colWidth = 60;
+      let rowHeight = 30;
+      let allPaths = "";
+      
+      // HP-32SII inspired physical layout map with the new PLOT function integrated
+      const keyboardLayout = [
+        ['L.SHIFT', 'R.SHIFT', 'PRGM', 'Rv', 'x<>y', '<-'],
+        ['LN', 'LOG', 'e^x', '10^x', '1/x', 'PLOT'],
+        ['SIN', 'COS', 'TAN', 'y^x', 'SQRT', 'x^2'],
+        ['RCL', 'STO', 'MEM', 'DISP', 'E', 'C'],
+        ['ENTER', null, '7', '8', '9', '÷'],
+        ['+/-', 'R/S', '4', '5', '6', 'x'],
+        ['SST', 'Σ+', '1', '2', '3', '-'],
+        ['0', '.', null, '=', '+', null] 
+      ];
+      
+      keyboardLayout.forEach((row, rowIndex) => {
+        let currentX = 0;
+        let currentY = rowIndex * rowHeight;
+        
+        row.forEach((label) => {
+          if (!label) {
+             // Handle empty spaces and the right-half of double-wide keys
+             currentX += colWidth;
+             return;
+          }
+          
+          let isDouble = label === 'ENTER';
+          let cellWidth = isDouble ? 120 : 60;
+          let cx = isDouble ? 60 : 30;
+          
+          let paths = generateSVGPath(label, isDouble, printMode);
+          
+          // Helper to shift bounds dynamically flowing to the sprite grid
+          let shiftPath = (pStr) => {
+            if (!pStr) return "";
+            let scaled = scalePathFromCenter(pStr, scale, cx, 15);
+            return scaled.replace(/([MLHV])([^MLHVZ]+)/g, (match, cmd, args) => {
+              let numsStr = args.trim().match(/-?\d+(\.\d+)?/g);
+              if (!numsStr) return cmd + ' ';
+              
+              let numsParsed = numsStr.map(Number);
+              let out = cmd + ' ';
+              for (let j = 0; j < numsParsed.length; j++) {
+                if (cmd === 'H') out += (numsParsed[j] + currentX).toFixed(2) + ' ';
+                else if (cmd === 'V') out += (numsParsed[j] + currentY).toFixed(2) + ' ';
+                else { 
+                  if (j % 2 === 0) out += (numsParsed[j] + currentX).toFixed(2) + ' ';
+                  else out += (numsParsed[j] + currentY).toFixed(2) + ' ';
+                }
+              }
+              return out;
+            });
+          };
+
+          let shiftedStroke = shiftPath(paths.stroke);
+          let shiftedFill = shiftPath(paths.fill);
+
+          allPaths += `\n    <!-- Key: ${label} -->`;
+          if (shiftedStroke) {
+             allPaths += `\n    <path d="${shiftedStroke}" fill="none" />`;
+          }
+          if (shiftedFill) {
+             allPaths += `\n    <path d="${shiftedFill}" fill="black" />`;
+          }
+          
+          currentX += cellWidth;
+        });
+      });
+      
+      let sheetWidth = 6 * colWidth; // 6 columns
+      let sheetHeight = keyboardLayout.length * rowHeight;
+      
+      let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${sheetWidth} ${sheetHeight}" width="${sheetWidth}mm" height="${sheetHeight}mm">
+    <g stroke="black" stroke-width="${strokeWidth}" stroke-linejoin="${linejoin}" stroke-linecap="round">
+        ${allPaths}
+    </g>
+</svg>`;
+      
+      triggerDownload("HP32SII_Layout_Sheet.svg", svg);
+    }
+
+    function addCustomKey() {
+      const val = document.getElementById('custom-label').value.toUpperCase().trim();
+      if (val && !KEY_LABELS.includes(val)) {
+        KEY_LABELS.unshift(val);
+        document.getElementById('custom-label').value = "";
+        renderKeys();
+      }
+    }
+
+    function copyCode(btn) {
+      const pre = btn.parentElement.querySelector('pre').innerText;
+      navigator.clipboard.writeText(pre).then(() => {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = `<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+        setTimeout(() => btn.innerHTML = originalHtml, 1500);
+      }).catch(() => {
+        document.execCommand('copy');
+      });
+    }
+
+    // Attach Event Listeners
+    document.getElementById('scale').addEventListener('input', (e) => {
+      document.getElementById('scale-val').textContent = parseFloat(e.target.value).toFixed(1);
+      renderKeys();
+    });
+    
+    document.getElementById('strokeWidth').addEventListener('input', (e) => {
+      document.getElementById('strokeWidth-val').textContent = (e.target.value / 10).toFixed(2);
+      renderKeys();
+    });
+    
+    document.getElementById('linejoin').addEventListener('change', renderKeys);
+    document.getElementById('printMode').addEventListener('change', renderKeys);
+    document.getElementById('custom-label').addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') addCustomKey();
+    });
+
+    // Initialize 
+    window.onload = () => {
+      renderKeys();
+    };
+  </script>
+</body>
+</html>

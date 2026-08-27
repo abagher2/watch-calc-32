@@ -170,7 +170,7 @@ public struct LCDAnnunciatorsView: View {
                 Text("STAY").foregroundColor(foregroundColor)
             }
             
-            if engine.isEquationMode {
+            if engine.isProgrammingMode {
                 Text("EQN").foregroundColor(foregroundColor)
             }
             

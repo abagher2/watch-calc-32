@@ -81,7 +81,7 @@ struct ContentView: View {
                         .onChange(of: crownValue) { new in
                             let delta = new - engine.lastCrownValue
                             if abs(delta) > 0.5 {
-                                if engine.isProgrammingMode || engine.isEquationMode {
+                                if engine.isProgrammingMode {
                                     if delta > 0 {
                                         engine.scrollDown()
                                     } else {
@@ -130,6 +130,10 @@ struct ContentView: View {
                             Button("R") { simulateSwipe(width: 20, height: 0) }.accessibilityIdentifier("sim_swipe_right").frame(width: 15, height: 15).foregroundColor(.clear).background(Color.clear)
                             Button("U") { simulateSwipe(width: 0, height: -20) }.accessibilityIdentifier("sim_swipe_up").frame(width: 15, height: 15).foregroundColor(.clear).background(Color.clear)
                             Button("D") { simulateSwipe(width: 0, height: 20) }.accessibilityIdentifier("sim_swipe_down").frame(width: 15, height: 15).foregroundColor(.clear).background(Color.clear)
+                            Button("RST") { 
+                                horizontalPage = 1
+                                verticalPage = 0
+                            }.accessibilityIdentifier("sim_reset_pads").frame(width: 15, height: 15).foregroundColor(.clear).background(Color.clear)
                         }
                         .padding(.top, 40)
                         Spacer()
@@ -152,6 +156,13 @@ struct ContentView: View {
             }
         )
         .modifier(WatchMenuModifier())
+        .onChange(of: bindableEngine.isWaitingForAlpha) { _, newValue in
+            if newValue {
+                withAnimation { horizontalPage = 0 }
+            } else {
+                withAnimation { horizontalPage = 1 }
+            }
+        }
     }
 
     var stickyToolbar: some View {
@@ -314,57 +325,18 @@ struct WatchMenuModifier: ViewModifier {
 
     @State private var showingPlot = false
     @State private var showPlotPrompt = false
-    @State private var showEquations = false
-    @State private var showFN = false
+
     @State private var showSolve = false
     @State private var showXEQ = false
     @State private var showIntegrate = false
     @State private var showShow = false
     @State private var showProgramEditor = false
-    @State private var alphaInput = ""
 
     func body(content: Content) -> some View {
         @Bindable var bindableEngine = engine
         content
-            .sheet(isPresented: Binding(
-                get: { bindableEngine.isWaitingForAlpha && !bindableEngine.usesContextualAlphaPad && !bindableEngine.isProgrammingMode },
-                set: { if !$0 { bindableEngine.cancelAlpha() } }
-            )) {
-                NavigationStack {
-                    Form {
-                        Section {
-                            TextField(bindableEngine.alphaPrompt ?? "Alpha", text: $alphaInput)
-                                .accessibilityIdentifier("tf_alpha_input")
-                                .autocorrectionDisabled()
-                                .textInputAutocapitalization(.characters)
-                                .onAppear { alphaInput = "" }
-                        }
-                        Section("Existing") {
-                            let existingKeys = bindableEngine.alphaAction == .evalEquation
-                                ? bindableEngine.programs.map(\.label).sorted()
-                                : Array(bindableEngine.variables.keys).sorted()
-                            ForEach(existingKeys, id: \.self) { key in
-                                Button(key) { bindableEngine.submitAlpha(key) }
-                                    .foregroundColor(.primary)
-                            }
-                        }
-                    }
-                    .navigationTitle(bindableEngine.alphaPrompt ?? "Alpha")
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") { bindableEngine.cancelAlpha() }
-                        }
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Submit") { bindableEngine.submitAlpha(alphaInput) }
-                                .accessibilityIdentifier("btn_alpha_submit")
-                        }
-                    }
-                }
-            }
             .sheet(isPresented: $showingPlot) { FullScreenPlotView() }
             .sheet(isPresented: $showPlotPrompt) { PlotPromptView().environment(engine) }
-            .sheet(isPresented: $showEquations) { EquationListView(isFNMode: false).environment(engine) }
-            .sheet(isPresented: $showFN) { EquationListView(isFNMode: true).environment(engine) }
             .sheet(isPresented: $showSolve) { SolvePromptView().environment(engine) }
             .sheet(isPresented: $showXEQ) { XEQPromptView().environment(engine) }
             .sheet(isPresented: $showIntegrate) { IntegratePromptView().environment(engine) }
@@ -405,15 +377,25 @@ struct WatchMenuModifier: ViewModifier {
                     }
                 }
             }
+            .onChange(of: bindableEngine.requestThemeChange) { _, newValue in
+                if newValue {
+                    let allThemes = ThemeType.allCases
+                    if let currentIndex = allThemes.firstIndex(of: themeManager.activeThemeType) {
+                        let nextIndex = (currentIndex + 1) % allThemes.count
+                        themeManager.activeThemeType = allThemes[nextIndex]
+                    }
+                    bindableEngine.requestThemeChange = false
+                }
+            }
             .onChange(of: bindableEngine.requestEqn) { _, newValue in
                 if newValue {
-                    showEquations = true
+                    engine.activeMenu = .eqn
                     bindableEngine.requestEqn = false
                 }
             }
             .onChange(of: bindableEngine.requestFnEq) { _, newValue in
                 if newValue {
-                    showFN = true
+                    engine.activeMenu = .eqn
                     bindableEngine.requestFnEq = false
                 }
             }
@@ -444,3 +426,22 @@ struct WatchMenuModifier: ViewModifier {
     }
 }
 
+
+#if DEBUG
+struct WatchContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        let engine = CalculatorEngine()
+        engine.isProgrammingMode = true
+        engine.currentProgramLabel = "NPDF"
+        if let p = engine.programs.first(where: { $0.label == "NPDF" }) {
+            engine.currentProgramSteps = p.steps.map { $0.stringValue }
+        }
+        engine.currentProgramStepIndex = 5
+        
+        return ContentView()
+            .environment(engine)
+            .previewDisplayName("Watch Multi-Line Editor")
+            .previewDevice("Apple Watch Ultra 2 (49mm)")
+    }
+}
+#endif

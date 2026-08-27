@@ -55,14 +55,14 @@ struct BottomNumpadView: View {
         engine.executeOp(op)
 
         if horizontalPage == 0 && op == .enter {
-            if engine.autoReturnToMainPad && !engine.isEquationMode {
+            if engine.autoReturnToMainPad {
                 withAnimation { horizontalPage = 1 }
             }
         }
-        if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isEquationMode && !engine.isProgrammingMode {
+        if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isProgrammingMode {
             withAnimation { verticalPage = 0 }
         }
-        if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isEquationMode && !engine.isProgrammingMode {
+        if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isProgrammingMode {
             withAnimation { horizontalPage = 1 }
         }
     }

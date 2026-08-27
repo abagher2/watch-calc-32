@@ -154,10 +154,9 @@ public class Renderer {
     }
 
     public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
-        let processed = applyGlyphReplacements(to: str, size: size)
         var total = 0
         let shouldBold = boldFonts && size != .tiny
-        for scalar in processed.unicodeScalars {
+        for scalar in str.unicodeScalars {
             var charWidth = 0
             switch size {
             case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar.value) { charWidth = result.width }
@@ -166,10 +165,9 @@ public class Renderer {
             case .medium: if let result = FontData.Medium.glyph(forScalar: scalar.value) { charWidth = result.width }
             case .large: if let result = FontData.Large.glyph(forScalar: scalar.value) { charWidth = result.width }
             }
-            if shouldBold && charWidth > 0 { charWidth += 1 }
-            total += charWidth
+            total += charWidth + (shouldBold ? 1 : 0)
         }
-        return total
+        return total + max(0, str.count - 1)
     }
     
     public func getStringWidth(_ buffer: UnsafePointer<UInt8>, length: Int, size: FontSize = .small) -> Int {
@@ -201,7 +199,7 @@ public class Renderer {
     }
 
     public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) {
-        let processed = applyGlyphReplacements(to: str, size: size)
+        let processed = str
         var cursorX = x
         for scalar in processed.unicodeScalars {
             let width = drawChar(scalar.value, x: cursorX, y: y, size: size, color: color, scale: scale)
@@ -228,6 +226,40 @@ public class Renderer {
         }
     }
     
+    public func drawLine(x0: Int, y0: Int, x1: Int, y1: Int, color: Bool = true) {
+        var x = x0
+        var y = y0
+        let dx = abs(x1 - x0)
+        let sx = x0 < x1 ? 1 : -1
+        let dy = -abs(y1 - y0)
+        let sy = y0 < y1 ? 1 : -1
+        var err = dx + dy
+        
+        while true {
+            setPixel(x: x, y: y, color: color)
+            if x == x1 && y == y1 { break }
+            let e2 = 2 * err
+            if e2 >= dy {
+                err += dy
+                x += sx
+            }
+            if e2 <= dx {
+                err += dx
+                y += sy
+            }
+        }
+    }
+    
+    public func fillCircle(cx: Int, cy: Int, r: Int, color: Bool = true) {
+        for y in -r...r {
+            for x in -r...r {
+                if x*x + y*y <= r*r {
+                    setPixel(x: cx + x, y: cy + y, color: color)
+                }
+            }
+        }
+    }
+
     public func drawSoftkeyArrow(x: Int, y: Int) {
         // Draw a small downward pointing triangle (▼)
         // x, y is the top-left of a 5x3 box
@@ -254,7 +286,7 @@ public class Renderer {
         if !query.isEmpty {
             drawString("Search: \(query)_", x: 2, y: 38, size: .small, color: true)
         }
-        let items = MenuSystem.filter(menu: menu, query: query)
+        let items = MenuSystem.filter(menu: menu, query: query, engine: nil)
         let visibleCount = items.count - offset
         let isMore = visibleCount > 6
         

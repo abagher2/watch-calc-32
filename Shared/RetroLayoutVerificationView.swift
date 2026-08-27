@@ -190,8 +190,7 @@ public struct RetroLayoutVerificationView: View {
             newEngine.requestPlot = true
 
         case .equationMode:
-            newEngine.isEquationMode = true
-            newEngine.currentEquation = "SIN(X)+COS(Y)"
+            newEngine.promptString = "SIN(X)+COS(Y)"
 
         case .c47Solve:
             newController.processAction(.solve)

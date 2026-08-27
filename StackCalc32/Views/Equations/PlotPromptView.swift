@@ -132,6 +132,7 @@ struct PlotPromptView: View {
                         actionToExecute = "plot"
                         dismiss()
                     }
+                    .accessibilityIdentifier("btn_plot_execute")
                 }
             }
             .onAppear {
@@ -157,34 +158,26 @@ struct PlotPromptView: View {
             }
             .onDisappear {
                 if actionToExecute == "plot" {
-                    engine.statusMessage = "CALCULATING"
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        if plotSource == "Statistics Data" {
+                    if plotSource == "Statistics Data" {
+                        engine.statusMessage = "CALCULATING"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             engine.generatePlot()
-                        } else {
-                            if !selectedProgramLabel.isEmpty {
-                                engine.currentProgramLabel = selectedProgramLabel
-                            }
-                            if let low = Double(lowerLimit), let up = Double(upperLimit) {
-                                engine.generatePlot(variable: selectedVar, explicitMin: low, explicitMax: up)
-                            }
+                            engine.statusMessage = nil
                         }
-                        engine.statusMessage = nil
-                    }
-                } else if actionToExecute == "integrate" {
-                    engine.statusMessage = "INTEGRATING"
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    } else {
                         if !selectedProgramLabel.isEmpty {
                             engine.currentProgramLabel = selectedProgramLabel
                         }
                         if let low = Double(lowerLimit), let up = Double(upperLimit) {
-                            if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
-                                _ = engine.integrate(variable: selectedVar, lower: low, upper: up, program: program)
-                                engine.isPlotSRequested = false
-                                engine.requestPlot = true
-                            }
+                            engine.startPlot(variable: selectedVar, lower: low, upper: up)
                         }
-                        engine.statusMessage = nil
+                    }
+                } else if actionToExecute == "integrate" {
+                    if !selectedProgramLabel.isEmpty {
+                        engine.currentProgramLabel = selectedProgramLabel
+                    }
+                    if let low = Double(lowerLimit), let up = Double(upperLimit) {
+                        engine.startIntegrate(variable: selectedVar, lower: low, upper: up, requestPlotAfter: true)
                     }
                 }
             }

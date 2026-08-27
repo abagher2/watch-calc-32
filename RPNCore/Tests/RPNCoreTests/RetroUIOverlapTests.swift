@@ -39,9 +39,7 @@ final class RetroUIOverlapTests: XCTestCase {
     }
     
     func testNoOverlapInEquationMode() {
-        engine.isEquationMode = true
-        engine.currentEquation = "X+1"
-        
+        engine.promptString = "EQN"
         renderer.clear()
         retroUI.render(engine: engine, renderer: renderer)
         XCTAssertFalse(renderer.hasOverlap, "Pixels should not overlap in equation mode")

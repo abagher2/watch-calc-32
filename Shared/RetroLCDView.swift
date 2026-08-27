@@ -60,3 +60,28 @@ public struct RetroLCDView: View {
     }
 }
 #endif
+
+#if DEBUG
+struct RetroLCDMultiLinePreview: PreviewProvider {
+    static var previews: some View {
+        let engine = CalculatorEngine()
+        engine.isProgrammingMode = true
+        engine.currentProgramLabel = "NPDF"
+        if let p = engine.programs.first(where: { $0.label == "NPDF" }) {
+            engine.currentProgramSteps = p.steps.map { $0.stringValue }
+        }
+        engine.currentProgramStepIndex = 5 // Focus on e^x step
+        
+        return ZStack {
+            Color.black.edgesIgnoringSafeArea(.all)
+            VStack {
+                Text("Multi-Line LCD Editor with NPDF").foregroundColor(.white)
+                RetroLCDView(engine: engine)
+                    .frame(height: 120)
+                    .padding()
+            }
+        }
+        .previewLayout(.sizeThatFits)
+    }
+}
+#endif

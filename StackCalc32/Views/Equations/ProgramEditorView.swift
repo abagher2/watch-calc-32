@@ -45,7 +45,7 @@ struct ProgramEditorView: View {
                         .id(index + 1)
                     }
                 }
-                .navigationTitle(engine.isEquationMode ? "EQN" : "Program Editor")
+                .navigationTitle("Program Editor")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") { dismiss() }
@@ -58,3 +58,32 @@ struct ProgramEditorView: View {
         }
     }
 }
+
+#if DEBUG
+struct ProgramEditorView_Previews: PreviewProvider {
+    static var previews: some View {
+        let engine = CalculatorEngine()
+        engine.isProgrammingMode = true
+        engine.currentProgramLabel = "NPDF"
+        // Load the NPDF program from default engine
+        if let p = engine.programs.first(where: { $0.label == "NPDF" }) {
+            engine.currentProgramSteps = p.steps.map { $0.stringValue }
+        }
+        engine.currentProgramStepIndex = 5 // Focus on "𝑒ˣ"
+        
+        return Group {
+            // iOS Preview
+            ProgramEditorView()
+                .environment(engine)
+                .previewDisplayName("iOS Equation Editor")
+                .previewDevice("iPhone 15 Pro")
+            
+            // WatchOS Preview
+            ProgramEditorView()
+                .environment(engine)
+                .previewDisplayName("Watch Equation Editor")
+                .previewDevice("Apple Watch Ultra 2 (49mm)")
+        }
+    }
+}
+#endif

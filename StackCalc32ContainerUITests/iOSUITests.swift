@@ -62,12 +62,12 @@ import RPNCore
 
     func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting"]
+        app.launchArguments = ["-UITesting", "-useRetroUI"]
         setupSnapshot(app)
         app.launch()
         
         Thread.sleep(forTimeInterval: 1.0)
-        clearAll(app: app)
+        // clearAll(app: app)
         
         for step in testCase.steps {
             let op = step.op
@@ -96,9 +96,19 @@ import RPNCore
                 }
                 #endif
             } else if op == "LFU_0" {
-                app.buttons["IP (Integer Part)"].tap()
+                if app.buttons["func_LFU_0"].exists {
+                    app.buttons["func_LFU_0"].tap()
+                } else {
+                    app.buttons["INT"].tap()
+                }
+            } else if op == "<-" || op == "←" {
+                app.buttons["func_←"].tap()
             } else if op == "LFU_1" {
-                app.buttons["FP (Fractional Part)"].tap()
+                if app.buttons["func_LFU_1"].exists {
+                    app.buttons["func_LFU_1"].tap()
+                } else {
+                    app.buttons["FRAC"].tap()
+                }
             } else {
                 let buttonId = "func_\(op)"
                 if app.buttons[buttonId].exists {
@@ -139,7 +149,7 @@ import RPNCore
         app.launch()
 
         Thread.sleep(forTimeInterval: 1.0)
-        clearAll(app: app)
+        // clearAll(app: app)
 
         // Yellow shift + 7 = SOLVE
         app.buttons["btn_yellow_shift"].tap()
@@ -156,25 +166,58 @@ import RPNCore
         
         Thread.sleep(forTimeInterval: 1.0)
         
-        // Open MATH Menu (Yellow Shift + 4)
-        app.buttons["btn_yellow_shift"].tap()
-        app.buttons["btn_4"].tap()
-        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        let display = app.staticTexts["lcd_display"]
+        XCTAssertTrue(display.waitForExistence(timeout: 5.0))
+        
+        // Test PARTS menu (Blue Shift + func_√𝑥)
+        // Push 1.5
+        app.buttons["btn_1"].tap()
+        app.buttons["btn_."].tap()
+        app.buttons["btn_5"].tap()
+        
+        app.buttons["btn_blue_shift"].tap()
+        app.buttons["func_√𝑥"].tap() // PARTS
+        Thread.sleep(forTimeInterval: 1.0) // Wait for menu
+        
+        // Tap INT (LFU_0)
+        app.buttons["func_LFU_0"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Verify output is 1 (Default is ALL mode)
+        XCTAssertTrue(display.label.contains("1"), "Expected 1 but got \(display.label)")
         
         // Open MODES Menu (Yellow Shift + .)
         app.buttons["btn_yellow_shift"].tap()
         app.buttons["btn_."].tap()
-        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        Thread.sleep(forTimeInterval: 1.0) 
         
-        // Open DISP Menu (Yellow Shift + 0)
+        // Tap RAD (LFU_1)
+        app.buttons["func_LFU_1"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Open DISP Menu (Yellow Shift + E)
         app.buttons["btn_yellow_shift"].tap()
-        app.buttons["btn_0"].tap()
-        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        app.buttons["func_E"].tap()
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Tap SCI (LFU_1) then 2
+        app.buttons["func_LFU_1"].tap()
+        app.buttons["btn_2"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Screen should say 1.00E0
+        XCTAssertTrue(display.label.contains("1.00E0"), "Expected 1.00E0 but got \(display.label)")
         
         // Open CLEAR Menu (Yellow Shift + <-)
         app.buttons["btn_yellow_shift"].tap()
         app.buttons["func_←"].tap()
-        Thread.sleep(forTimeInterval: 1.5) // Pause to visually inspect
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Tap CLx (LFU_0)
+        app.buttons["func_LFU_0"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        XCTAssertTrue(display.label.contains("0.00E0"), "Expected 0.00E0 but got \(display.label)")
         
         XCTAssertTrue(app.exists)
     }
@@ -368,7 +411,7 @@ import XCTest
     let display = app.staticTexts["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
-    clearAll(app: app)  // yellow shift
+    // clearAll(app: app)  // yellow shift
 
     navigateToNumericPad(app: app)
     _ = app.buttons["btn_7"].waitForExistence(timeout: 1.0)
@@ -396,7 +439,7 @@ import XCTest
     app.buttons["func_STO"].tap()
     
     Thread.sleep(forTimeInterval: 1.0)
-    app.buttons["btn_add_eqn"].tap()
+    app.buttons["NEW"].tap()
     Thread.sleep(forTimeInterval: 1.5)
 
     // RPN sequence: X 2 y^x
@@ -413,7 +456,7 @@ import XCTest
     app.staticTexts["lcd_display"].tap()
 
     // Plot it
-    clearAll(app: app)
+    // clearAll(app: app)
     navigateToNumericPad(app: app)
     app.buttons["func_PLOT"].tap()
     if app.buttons["Plot"].waitForExistence(timeout: 5.0) {
@@ -443,7 +486,7 @@ import XCTest
     app.buttons["btn_blue_shift"].tap()
     app.buttons["func_STO"].tap()
     Thread.sleep(forTimeInterval: 1.0)
-    app.buttons["btn_add_eqn"].tap()
+    app.buttons["NEW"].tap()
     Thread.sleep(forTimeInterval: 1.5)
 
     // Sequence: X x^2 0.5 +/- × e^x 2 π × √x ÷
@@ -453,7 +496,7 @@ import XCTest
     // x^2 is yellow shift of √𝑥 in Matrix3View
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    clearAll(app: app)
+    // clearAll(app: app)
     app.buttons["func_√𝑥"].tap()
 
     navigateToNumericPad(app: app)
@@ -524,7 +567,7 @@ import XCTest
     app.buttons["btn_blue_shift"].tap()
     app.buttons["func_STO"].tap()
     Thread.sleep(forTimeInterval: 1.0)
-    app.buttons["btn_add_eqn"].tap()
+    app.buttons["NEW"].tap()
     Thread.sleep(forTimeInterval: 1.5)
 
     // Sequence: X +/- e^x 1 + 1/x
@@ -784,7 +827,7 @@ import XCTest
     app.buttons["func_STO"].tap()
     
     Thread.sleep(forTimeInterval: 1.0)
-    app.buttons["btn_add_eqn"].tap()
+    app.buttons["NEW"].tap()
     Thread.sleep(forTimeInterval: 1.5)
 
     // Equation mode left justifies and shows EQN in display
@@ -856,7 +899,7 @@ import XCTest
     // Clear all to empty the stack
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    clearAll(app: app)
+    // clearAll(app: app)
     #if os(watchOS)
     app.swipeUp()
     #endif
@@ -946,7 +989,7 @@ import XCTest
     slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
     slowTap(app.buttons["func_STO"], name: "EQN Mode")
     Thread.sleep(forTimeInterval: 1.0)
-    slowTap(app.buttons["btn_add_eqn"], name: "New Equation")
+    slowTap(app.buttons["NEW"], name: "New Equation")
     Thread.sleep(forTimeInterval: 1.5)
     
     // Type Normal PDF: (X - M)² ÷ S² ÷ -2 eˣ ÷ (S × √(2π))
@@ -1115,7 +1158,7 @@ import XCTest
     slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
     slowTap(app.buttons["func_STO"], name: "EQN Mode")
     Thread.sleep(forTimeInterval: 1.0)
-    slowTap(app.buttons["btn_add_eqn"], name: "New Equation")
+    slowTap(app.buttons["NEW"], name: "New Equation")
     Thread.sleep(forTimeInterval: 1.5)
     
     // Type Normal PDF: (X - M)² ÷ S² ÷ -2 eˣ ÷ (S × √(2π))
@@ -1275,9 +1318,8 @@ import XCTest
         meanButton.tap()
     }
 
-    
-    // Assert display is 2
-    XCTAssertEqual(display.label, "3")
+    // Assert display is 2 (Mean of X for 1 and 3 is 2)
+    XCTAssertEqual(display.label, "2")
     
     // Trigger STAT PLOT
     navigateToNumericPad(app: app)
@@ -1318,7 +1360,7 @@ import XCTest
     app.buttons["func_STO"].tap() // EQN
     Thread.sleep(forTimeInterval: 1.0)
 
-    app.buttons["btn_add_eqn"].tap()
+    app.buttons["NEW"].tap()
     Thread.sleep(forTimeInterval: 2.0)
 
     navigateToLFUPad(app: app)
@@ -1491,7 +1533,9 @@ import XCTest
                 XCTAssertTrue(display.label.contains("3.1415"))
                 app.buttons["func_←"].tap() // Clear for next
             } else {
-                if app.buttons["Close"].exists {
+                if app.buttons["sheet_dismiss_btn"].exists {
+                    app.buttons["sheet_dismiss_btn"].tap()
+                } else if app.buttons["Close"].exists {
                     app.buttons["Close"].tap()
                 } else {
                     app.buttons["Cancel"].firstMatch.tap()
@@ -1499,7 +1543,9 @@ import XCTest
             }
         } else {
             // Dismiss menu
-            if app.buttons["Close"].exists {
+            if app.buttons["sheet_dismiss_btn"].exists {
+                app.buttons["sheet_dismiss_btn"].tap()
+            } else if app.buttons["Close"].exists {
                 app.buttons["Close"].tap()
             } else {
                 app.buttons["Cancel"].firstMatch.tap()
@@ -1732,8 +1778,46 @@ import XCTest
         
         snapshot("01_RetroUI_Simulator_State")
     }
-}
 
+    func testPlottingRetroUISnapshot() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-UITesting", "-useRetroUI"]
+        app.launch()
+        
+        let predicate = NSPredicate(format: "existsNoRetry == 1")
+        expectation(for: predicate, evaluatedWith: app.buttons["btn_yellow_shift"], handler: nil)
+        waitForExpectations(timeout: 5.0, handler: nil)
+        
+        // Enter 1, ENTER, 2, SUMS
+        app.buttons["btn_1"].tap()
+        app.buttons["btn_ENTER"].tap()
+        app.buttons["btn_2"].tap()
+        app.buttons["func_Σ+"].tap()
+        
+        // Enter 2, ENTER, 4, SUMS
+        app.buttons["btn_2"].tap()
+        app.buttons["btn_ENTER"].tap()
+        app.buttons["btn_4"].tap()
+        app.buttons["func_Σ+"].tap()
+        
+        // Enter 3, ENTER, 9, SUMS
+        app.buttons["btn_3"].tap()
+        app.buttons["btn_ENTER"].tap()
+        app.buttons["btn_9"].tap()
+        app.buttons["func_Σ+"].tap()
+        
+        // Press PLOT (yellow shift + CONST)
+        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["func_PLOT"].tap()
+        
+        Thread.sleep(forTimeInterval: 2.0)
+        
+        let screenshot = XCUIScreen.main.screenshot()
+        let path = "/Users/abagher/Documents/GitHub/watch-calc-32/scratch/retro_ui_plot.png"
+        try? screenshot.pngRepresentation.write(to: URL(fileURLWithPath: path))
+        print("SAVED RETROUI PLOT TO \(path)")
+    }
+}
 
 
 @MainActor final class iOSParityUITests: XCTestCase {
@@ -1751,11 +1835,15 @@ import XCTest
         app.buttons["func_←"].tap()
         
         let predicate = NSPredicate(format: "existsNoRetry == 1")
-        expectation(for: predicate, evaluatedWith: app.buttons["Clear ALL"], handler: nil)
+        expectation(for: predicate, evaluatedWith: app.buttons["func_LFU_5"], handler: nil)
         waitForExpectations(timeout: 2.0, handler: nil)
         
+        // Hit MORE to show CLALL
+        app.buttons["func_LFU_5"].tap()
+        Thread.sleep(forTimeInterval: 0.5)
+        
         // Ensure starting state is empty
-        app.buttons["Clear ALL"].tap()
+        app.buttons["func_LFU_1"].tap()
         return app
     }
     
@@ -1848,5 +1936,41 @@ import XCTest
         app.buttons["invisible_ENTER"].tap()
         Thread.sleep(forTimeInterval: 0.5)
         saveParityScreenshot(app: app, name: "parity_scientific")
+    }
+
+    func testStatisticalPDFMultilineEditor() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-UITesting"]
+        app.launch()
+        
+        let display = app.staticTexts["lcd_display"]
+        XCTAssertTrue(display.waitForExistence(timeout: 5.0))
+        
+        // Go into Equation Mode
+        app.buttons["btn_blue_shift"].tap()
+        app.buttons["func_STO"].tap()
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Tap "NEW"
+        app.buttons["NEW"].tap()
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Tapping the display should bring up the Program Editor
+        display.tap()
+        Thread.sleep(forTimeInterval: 2.0)
+        
+        // In the editor, there should be text fields
+        let textField = app.textFields.firstMatch
+        if textField.waitForExistence(timeout: 2.0) {
+            textField.tap()
+            textField.typeText("NPDF\n")
+        }
+        
+        if app.buttons["Done"].exists {
+            app.buttons["Done"].tap()
+        } else if app.buttons["sheet_dismiss_btn"].exists {
+            app.buttons["sheet_dismiss_btn"].tap()
+        }
+        Thread.sleep(forTimeInterval: 1.0)
     }
 }

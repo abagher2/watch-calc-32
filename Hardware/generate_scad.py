@@ -37,11 +37,12 @@ for fp in board.GetFootprints():
     sx  = pos.x / 1e6 - x_min
     sy  = y_max - pos.y / 1e6
 
+    sy = y_max - (fp.GetPosition().y / 1e6)
     if ref.startswith("SOFT"):
         soft_keys.append({'ref': ref, 'x': sx, 'y': sy})
     elif ref.startswith("B") and len(ref) <= 3 and ref[1:].isdigit():
         buttons.append({'ref': ref, 'x': sx, 'y': sy})
-    elif "Disp" in ref:
+    elif "Disp" in ref or "OLED" in ref or ref == "J1":
         disp = {'ref': ref, 'x': sx, 'y': sy}
 
 all_buttons = soft_keys + buttons
@@ -99,15 +100,22 @@ if len(rows) >= 3 and len(rows[2]) >= 2:
 # Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
 WALL   = 1.8   # Base wall thickness (slimmed down for premium look)
-fp_w   = pcb_width + 4.0             # faceplate width (expanded by 4mm to create a 2mm inner rail!)
-fp_h   = pcb_height + 4.0            # faceplate height (expanded by 4mm to create a 2mm inner rail!)
+# We reduce the padding to tighten the chassis closer to HP32SII size
+pad_bottom = 3.15
+pad_left = 3.5
+pad_right = 3.5
+fp_w = pcb_width + pad_left + pad_right
+fp_h = 148.0 # HP32SII exact height
+
+J1_Y_OFFSET = 0
+
 cw     = fp_w + 2*WALL + 0.4         # chassis outer width
 corner = 6.0
 
 # Internal Component Heights (mm)
 TACTILE_H = 1.6   # 1.5mm switches + 0.1mm gap for sliding clearance
 PCB_T     = 1.6   # PCB thickness
-BATT_H    = 6.0   # Clearance for wired CR2450 battery holder — reduced 7→6mm to hit 15.5mm total depth
+BATT_H    = 4.5   # Clearance for CR2032 battery holder
 plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
 FRONT_LIP = 1.5   # Structural retaining bezel — increased 0.8→1.5mm to stop top-corner bending
 
@@ -120,10 +128,17 @@ DISP_T = 1.50 # Shimmed to exactly match tactile switches for coplanarity and sl
 ACTIVE_W = 58.80
 ACTIVE_H = 35.28
 
-pad_x = (fp_w - pcb_width) / 2
-pad_y = (fp_h - pcb_height) / 2
-disp_x = fp_w / 2
-disp_y = 121.575 # Vertically centered between Top edge (143.15) and Soft Keys (100.0)
+pad_x = pad_left
+pad_y = pad_bottom
+# The J1 footprint is at X=35.075 on the PCB.
+# Because the faceplate's front face points toward -Z, +X points LEFT when viewed from the front.
+# To place the display correctly from the left edge, we must mirror it: fp_w - distance_from_left.
+disp_x = fp_w - (pad_left + 35.075)
+# Plan faceplate display window perfectly from the PCB Display/J1 header
+if disp:
+    disp_y = disp['y'] + J1_Y_OFFSET + pad_bottom + 5.35 # J1 is 5.35mm below the center of the OLED screen window
+else:
+    disp_y = 123.50
 PCB_SCREW_INSET = 7.0
 chassis_screws = [
     # Top screws (display end, used by Top Cap)
@@ -140,10 +155,10 @@ def generate_scad():
     os.makedirs("../scratch/stl", exist_ok=True)
 
     # Calculate dimensions needed in python
-    py_fp_w = 74.650
-    py_fp_h = 147.150
-    py_WALL = 1.800
-    py_ch = py_fp_h + 0.85    # Trimmed from fp_h+WALL (148.95) → 148.0mm to match HP32SII height limit
+    py_fp_w = fp_w
+    py_fp_h = fp_h
+    py_WALL = WALL
+    py_ch = py_fp_h + 0.85
     py_cw = py_fp_w + 2*py_WALL
     py_offset_x = (py_cw - py_fp_w) / 2
     py_offset_z = (py_ch - py_fp_h) / 2
@@ -177,6 +192,11 @@ module squircle_centered(w, h, depth, r) {{
         translate([r, h-r, 0]) cylinder(r=r, h=depth, $fn=24);
         translate([w-r, h-r, 0]) cylinder(r=r, h=depth, $fn=24);
     }}
+}}
+
+module cross_profile(w, h, depth, r) {{
+    translate([-w/2, -3.2/2, 0]) cube([w, 3.2, depth]);
+    translate([-3.2/2, -h/2, 0]) cube([3.2, h, depth]);
 }}
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -250,13 +270,11 @@ module seg_char(c) {{
     else if (c=="9") g_9();  else if (c=="A") g_A();  else if (c=="C") g_C();
     else if (c=="E") g_E();  else if (c=="F") g_F();  else if (c=="G") g_G();
     else if (c=="H") g_H();  else if (c=="I") g_I();  else if (c=="J") g_J();
-    else if (c=="L") g_L();  else if (c=="N") g_N();  else if (c=="O") g_O();
-    else if (c=="P") g_P();  else if (c=="Q") g_Q();  else if (c=="R") g_R();
-    else if (c=="S") g_S();  else if (c=="T") g_T();  else if (c=="U") g_U();
-    else if (c=="V") g_V();  else if (c=="X") g_X();  else if (c=="Y") g_Y();
-    else if (c=="+") g_plus();  else if (c=="-") g_minus();
-    else if (c=="/") g_slash(); else if (c==".") g_dot();
-    else if (c=="<") g_lt();    else if (c=="\u00b1") g_pm();
+    else if (c=="L") g_L();  else if (c=="O") g_O();  else if (c=="P") g_P();
+    else if (c=="Q") g_Q();  else if (c=="R") g_R();  else if (c=="S") g_S();
+    else if (c=="U") g_U();  else if (c=="T") g_T();
+    else if (c=="+") g_plus(); else if (c=="-") g_minus(); else if (c=="/") g_slash();
+    else if (c==".") g_dot();  else if (c=="<") g_lt();    else if (c=="±") g_pm();
     // lowercase aliases (same shape at this scale)
     else if (c=="v") g_V();     else if (c=="x") g_X();
     else if (c=="f") g_F();     else if (c=="g") g_9();
@@ -285,67 +303,65 @@ module seg_word(word, avail_w=7.0) {{
 }}
 
 // ── Button cap with sunken 7-segment label ───────────────────────────────────
+// Local Z mapping to Final Print Z: Final_Z = 2.0 - Local_Z
 module key_button(w, h, label="") {{
     difference() {{
         union() {{
-            // 1. Cap (Z=-0.8..0.0): protrudes 0.8mm above the faceplate top surface at rest
-            translate([0, 0, -0.8]) squircle_centered(w, h, 0.8, 1.5);
-            // 2. Upper Flange (Z=0.0..0.6)
+            // Cap (Local Z=-0.6..0.0 -> Final Z=2.0..2.6)
+            translate([0, 0, -0.6]) squircle_centered(w, h, 0.6, 1.5);
+            
+            // Taper 2 (Local Z=0.0..0.6 -> Final Z=1.4..2.0)
             hull() {{
-                translate([0, 0, 0.0]) squircle_centered(w,       h,       0.01, 1.5);
-                translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+                translate([0, 0, 0.0]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
+                translate([0, 0, 0.6]) cross_profile(w + 1.2, h + 1.2, 0.01, 1.5);
             }}
-            // 3. Lower Flange (Z=0.6..1.2)
+
+            // Shaft (Local Z=0.6..1.0 -> Final Z=1.0..1.4)
+            translate([0, 0, 0.6]) cross_profile(w + 1.2, h + 1.2, 0.4, 1.5);
+            
+            // Taper 1 (Local Z=1.0..1.6 -> Final Z=0.4..1.0)
             hull() {{
-                translate([0, 0, 0.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
-                translate([0, 0, 1.2]) squircle_centered(w,       h,       0.01, 1.5);
+                translate([0, 0, 1.0]) cross_profile(w + 1.2, h + 1.2, 0.01, 1.5);
+                translate([0, 0, 1.6]) squircle_centered(w + 1.2, h + 1.2, 0.01, 1.5);
             }}
-            // 4. Shaft — SOLID RECTANGLE (Z=1.2..3.0 = print Z=0..1.8 face-down)
-            // Solid shaft: first-layer on build plate is full w×h rectangle → maximum adhesion.
-            // Eliminates the 4 corner gaps of the old cruciform that caused flange bridging failure.
-            translate([0, 0, 1.2]) translate([-w/2, -h/2, 0]) cube([w, h, pt - 1.2]);
+            
+            // Base Squircle (Local Z=1.6..2.0 -> Final Z=0.0..0.4)
+            translate([0, 0, 1.6]) squircle_centered(w + 1.2, h + 1.2, 0.4, 1.5);
         }}
-        // SUNKEN LABEL CUT — SD deep from cap top surface (Z=0).
-        // seg_word renders Z=0..SD; after translate([0,0,-SD]) it cuts from Z=-SD to Z=0.
-        // mirror([1,0,0]) corrects text orientation when viewed from front.
+        // Sunken label on top of cap (Local Z=-0.6 to -0.6+SD)
+        // Since it's rotated 180 over X, we MUST mirror the text in Local space
         if (label != "") {{
-            translate([0, 0, -SD])
+            translate([0, 0, -0.6 - 0.01])
                 mirror([1, 0, 0])
                     seg_word(label, w - 1.5);
         }}
+        
+        // Chamfered guide hole at the bottom (Local Z=2.0 down to 0.5)
+        // 3.0mm diameter at Local Z=2.0 (Final Z=0.0), tapering to 0 at Local Z=0.5 (Final Z=1.5)
+        translate([0, 0, 0.5])
+            cylinder(d1=0, d2=3.0, h=1.5 + 0.01, $fn=16);
     }}
 }}
 
-
-
 module button_pocket(w, h) {{
-    // Designed for TWO distinct travel ranges:
-    //   Upward (spring): 0.8mm — switch spring pushes button out; cap protrudes 0.8mm above front face.
-    //   Downward (press): 0.6mm — user presses down; flange peak hits lower slope exit at Z=2.0.
-    //
-    // In the PRINTED position: cap sits at Z=0..0.8 (inside faceplate, flush with front face).
-    // When ASSEMBLED: switch spring pushes button UP 0.8mm → cap protrudes Z=-0.8..0 (0.8mm above face).
-    // When PRESSED 0.6mm: cap at Z=-0.2..0.6, shaft presses tactile switch 0.6mm past back face.
-    //
-    // 1. Roof Lock / Cap Guide (Z=-0.1 to Z=0.6)
-    //    Extends 0.1mm past Z=0 to prevent CGAL Z-fighting on the faceplate surface!
-    //    The rim precisely wraps around the cap (0.35mm gap) providing continuous centering!
+    // We add 0.4mm clearance per side -> width + 0.8mm
+    // Base cavity (Local Z=1.59..2.01 -> Final Z=-0.01..0.41)
+    translate([0, 0, 1.59]) squircle_centered(w + 2.0, h + 2.0, 0.42, 1.7);
+    
+    // Taper 1 cavity (Local Z=1.0..1.6)
     hull() {{
-        translate([0, 0, -0.1]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
-        translate([0, 0, 0.6]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
+        translate([0, 0, 1.0]) cross_profile(w + 1.2, h + 1.2, 0.01, 1.7);
+        translate([0, 0, 1.6]) squircle_centered(w + 2.0, h + 2.0, 0.01, 1.7);
     }}
-    // 2. Middle Cavity (Z=0.6 to Z=1.2)
-    translate([0, 0, 0.6]) squircle_centered(w + 1.9, h + 1.9, 0.6, 1.5);
-    // 3. Lower Shelf Lock (Z=1.2 to Z=1.8): Hard-stops the flange peak at Z=1.2.
+
+    // Shaft cavity (Local Z=0.6..1.0)
+    translate([0, 0, 0.6]) cross_profile(w + 1.2, h + 1.2, 0.4, 1.7);
+    
+    // Taper 2 cavity (Local Z=-0.01..0.6)
     hull() {{
-        translate([0, 0, 1.2]) squircle_centered(w + 1.9, h + 1.9, 0.01, 1.5);
-        translate([0, 0, 1.8]) squircle_centered(w + 0.7, h + 0.7, 0.01, 1.5);
+        translate([0, 0, -0.01]) squircle_centered(w + 0.8, h + 0.8, 0.01, 1.7);
+        translate([0, 0, 0.6]) cross_profile(w + 1.2, h + 1.2, 0.01, 1.7);
     }}
-    // 4. Back exit guide (Z=1.8 to Z=3.1): solid rectangle matched to the solid shaft.
-    // +0.4mm clearance (0.2mm/side) for print-in-place assembly without force.
-    // Solid rectangle: no bridging, no corner gaps, cleaner print than the old cruciform slot.
-    translate([0, 0, 1.8]) translate([-(w + 0.4)/2, -(h + 0.4)/2, 0])
-        cube([w + 0.4, h + 0.4, pt - 1.8 + 0.1]);
 }}
 
 module faceplate_body() {{
@@ -354,9 +370,9 @@ module faceplate_body() {{
     FP_CLR = 0.20;  // clearance per side — increased 0.1→0.2mm for easier faceplate removal
     translate([FP_CLR, FP_CLR, 0])
         difference() {{
-            cube([fp_w - 2*FP_CLR, fp_h - 0.8 - FP_CLR, pt]);
+            cube([fp_w - 2*FP_CLR, {fp_h + 0.85:.3f} - FP_CLR, pt]);
             // Chamfer on leading edge (the end that slides into chassis first)
-            translate([0, fp_h - 0.8 - FP_CLR - 1.0, 0])
+            translate([0, {fp_h + 0.85:.3f} - FP_CLR - 1.0, 0])
                 rotate([45, 0, 0])
                     cube([fp_w - 2*FP_CLR, 1.5, 1.5]);
         }}
@@ -383,28 +399,26 @@ module faceplate() {{
 
         // Button pockets
 """
-    pad_x = (fp_w - pcb_width) / 2
-    pad_y = (fp_h - pcb_height) / 2
+    fp_pad_x = (fp_w - pcb_width) / 2
+    fp_pad_y = (fp_h - pcb_height) / 2
 
-    # ── ENTER width: span exactly from ST's outer-left to RC's outer-right (mirrored view)
+    # ── ENTER width: span exactly from ST's outer-left to RC's outer-right
     if _enter_btn is not None and _st_btn is not None and _rc_btn is not None:
-        ox_st = fp_w - (_st_btn['x'] + pad_x)
-        ox_rc = fp_w - (_rc_btn['x'] + pad_x)
+        cx_st = _st_btn['x']
+        cx_rc = _rc_btn['x']
         st_half = _st_btn['w'] / 2
         rc_half = _rc_btn['w'] / 2
-        enter_left  = min(ox_st, ox_rc) - st_half
-        enter_right = max(ox_st, ox_rc) + rc_half
-        _enter_btn['w']         = enter_right - enter_left
-        _enter_btn['_enter_cx'] = (enter_left + enter_right) / 2
+        enter_left  = min(cx_st, cx_rc) - st_half
+        enter_right = max(cx_st, cx_rc) + rc_half
+        _enter_btn['w'] = enter_right - enter_left
+        # We do NOT set _enter_cx. We just use b['x'] which is already perfectly centered at 13.10.
 
     for row in rows:
         for b in row:
-            if b.get('label') == 'ENTER' and '_enter_cx' in b:
-                ox = b['_enter_cx']
-            else:
-                ox = fp_w - (b['x'] + pad_x)
-            oy = b['y'] + pad_y
+            ox = fp_w - (pad_left + b['x'])
+            oy = pad_bottom + b['y']
             faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_pocket({b['w']}, {b['h']});\n"
+
 
     # Only generate faceplate holes for bottom screws to avoid hitting the LCD
     for sx, sy in []: # No screws in faceplate or dummy PCB!
@@ -422,15 +436,10 @@ module faceplate_assembly() {
     faceplate_mjf = faceplate
     faceplate_fdm = faceplate
 
-    pad_x = (fp_w - pcb_width) / 2
-    pad_y = (fp_h - pcb_height) / 2
     for row in rows:
         for b in row:
-            if b.get('label') == 'ENTER' and '_enter_cx' in b:
-                ox = b['_enter_cx']
-            else:
-                ox = fp_w - (b['x'] + pad_x)
-            oy = b['y'] + pad_y
+            ox = fp_w - (pad_left + b['x'])
+            oy = pad_bottom + b['y']
             lbl = b.get('label', '').replace('"', '\\"')
             btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
             faceplate_mjf += btn_str
@@ -438,9 +447,11 @@ module faceplate_assembly() {
 
     closing_str = f"""    }}
 }}
-// Render faceplate face-UP on the bed. translate([0,fp_h,pt]) cancels the Y-flip from
-// rotate([180,0,0]) so the model lands at Y=0..fp_h, Z=0..pt (all positive coords).
-translate([0, {fp_h:.3f}, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
+// Render faceplate face-UP on the bed. translate([fp_w,0,pt]) cancels the X-flip from
+// rotate([0, 180, 0]) so the model lands at X=0..fp_w, Z=0..pt (all positive coords).
+// This specific rotation keeps Y upright so it opens in the slicer with the Display at the top,
+// ENTER on the left, and Text completely readable and upright!
+translate([{fp_w:.3f}, 0, {pt:.3f}]) rotate([0, 180, 0]) faceplate_assembly();
 """
     faceplate_mjf += closing_str
     faceplate_fdm += closing_str
@@ -474,11 +485,8 @@ translate([0, {fp_h:.3f}, {pt:.3f}]) rotate([180, 0, 0]) faceplate_assembly();
     faceplate_tapered = fp_tapered
     for row in rows:
         for b in row:
-            if b.get('label') == 'ENTER' and '_enter_cx' in b:
-                ox = b['_enter_cx']
-            else:
-                ox = fp_w - (b['x'] + pad_x)
-            oy = b['y'] + pad_y
+            ox = pad_left + b['x']
+            oy = pad_bottom + b['y']
             lbl = b.get('label', '').replace('"', '\\"')
             btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
             faceplate_tapered += btn_str
@@ -573,10 +581,19 @@ module chassis() {{
         
         // ── BEZEL WINDOW (Exposes keypad and screen) ────────────────────
         // Cuts a window in the front to expose the faceplate.
-        // Leaves a 4.0mm wide frame on left, right, and bottom.
-        // Leaves left, right, and bottom frames. Top is completely open for Faceplate slide-in.
-        translate([wall + 4.0, -0.1, wall + 4.0])
-            cube([cw - 2*wall - 8.0, {FRONT_LIP} + 0.2, ch + 0.1]);
+        // Uses a hull() of two cutouts to create a 45-degree chamfered slope on the inner edge of the bezel rails
+        // This eliminates the sharp 90-degree cliff, allowing fingers to smoothly slide off the rails.
+        hull() {{
+            // Inner cutout (narrower, at the faceplate surface)
+            // Leaves a 1.0mm wide bezel overhang holding the faceplate in
+            translate([offset_x + 1.0, {FRONT_LIP} - 0.1, wall + 1.0])
+                cube([fp_w - 2.0, 0.4, ch + 0.1]);
+            
+            // Outer cutout (wider, at the top surface of the chassis)
+            // By expanding it by FRONT_LIP on each side, it creates a precise 45-degree chamfer
+            translate([offset_x + 1.0 - {FRONT_LIP}, -0.1, wall + 1.0 - {FRONT_LIP}])
+                cube([fp_w - 2.0 + 2*{FRONT_LIP}, 0.2, ch + 0.1]);
+        }}
             
         // ── CHASSIS SCREW CLEARANCE HOLES ────────────────────────────────
 """
@@ -672,11 +689,11 @@ chassis();
 // Secured by lateral M3 screws at Z=138.550.
 $fn = 24;
 cw    = {cw:.3f};
-D     = {CHASSIS_D:.3f}; // 14.9
+D     = {CHASSIS_D:.3f};
 wall  = {WALL:.3f};
 pt    = {pt:.3f};
 cap_t = {cap_t_val};
-ch    = {fp_h + WALL:.3f}; // 145.350
+ch    = {py_ch:.3f}; // Exact physical height of the chassis!
 
 module top_cap_profile(h_val) {{
     hull() {{
@@ -708,9 +725,18 @@ module top_cap() {{
             cube([{pcb_width - 4.0:.3f}, D - wall - (0.8 + {pt:.3f} + 3.2), cap_t]);
 
         // ── FRONT LIP ROOF (Bridges across Faceplate to create the upper lip) ──────
-        // Drops down to Z=ch-0.8 at the front to cover the faceplate
-        translate([wall + 4.0, 0, ch - 0.8])
-            cube([cw - 2*wall - 8.0, {FRONT_LIP} + pt, 0.8 + cap_t]);
+        // The main roof sits flush on top of the chassis bezel and faceplate.
+        translate([wall + 4.0, 0, ch])
+            cube([cw - 2*wall - 8.0, {FRONT_LIP} + pt, cap_t]);
+            
+        // Uses a hull to create a 45-degree wedge that perfectly mates with the Faceplate's chamfer!
+        // This female wedge locks into the faceplate's male chamfer, holding it firmly in place against the bezel.
+        hull() {{
+            translate([wall + 4.0, {FRONT_LIP}, ch])
+                cube([cw - 2*wall - 8.0, 1.0, 0.01]);
+            translate([wall + 4.0, {FRONT_LIP}, ch - 1.0])
+                cube([cw - 2*wall - 8.0, 0.01, 0.01]);
+        }}
 
         // ── SCREW BOSSES (Drop down into chassis Tier 3) ─────────────────
         // Left Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
@@ -747,8 +773,8 @@ module top_cap() {{
         // Restored to CR2450 coin cell (24.5mm diameter x 5.0mm thick) + wire clearance.
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
-        // Aligned with JST1 connector at X=68.0 (KiCad) -> X=56.15 (PCB relative)
-        translate([{(cw - pcb_width)/2 + jst_x - 14.0:.3f}, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 26]) {{
+        // CENTERED between the left and right screw bosses to avoid any collisions!
+        translate([45.0, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 36.35]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{
@@ -762,9 +788,9 @@ module top_cap() {{
                         translate([0, 0, 26 + 0.2]) cube([28 - 2.4, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5) - 1.2, 0.1]);
                     }}
                     
-                // Wire exit channel cutting through the front lip to reach the JST connector!
-                translate([28 - 2.4 - 5.0, -10.0, 26 - cap_t])
-                    cube([5.0, 10.0, cap_t + 1.0]);
+                // Wire exit channel on the RIGHT side to route to the JST connector!
+                translate([28 - 2.4, -0.1, 26 - cap_t - 5.0])
+                    cube([5.0, 10.0, cap_t + 5.0]);
             }}
         }}
     }}
@@ -950,36 +976,13 @@ tpu_stretch_cover();
     # ═══════════════════════════════════════════════════════
     # STANDALONE KEYCAPS 
     # ═══════════════════════════════════════════════════════
-    buttons_scad = f"""
-// Standalone Keycaps
-$fn = 24;
-module keycap(w, h, label) {{
-    // Plunger (Z=-1 to 0)
-    translate([0, 0, -0.5]) cube([w - 1.0, h - 1.0, 1.0], center=true);
-
-    // Flange (Z=0 to 1.0)
-    translate([0, 0, 0.5]) cube([w + 1.5, h + 1.5, 1.0], center=true);
-
-    // Keycap (Z=1.0 to 6.7)
-    hull() {{
-        translate([-w/2+1.0, -h/2+1.0, 1.0])   cylinder(r=1.0, h=0.01);
-        translate([ w/2-1.0, -h/2+1.0, 1.0])   cylinder(r=1.0, h=0.01);
-        translate([-w/2+1.0,  h/2-1.0, 1.0])   cylinder(r=1.0, h=0.01);
-        translate([ w/2-1.0,  h/2-1.0, 1.0])   cylinder(r=1.0, h=0.01);
-        
-        translate([-w/2+1.0, -h/2+1.0, 6.7]) cylinder(r=0.8, h=0.01);
-        translate([ w/2-1.0, -h/2+1.0, 6.7]) cylinder(r=0.8, h=0.01);
-        translate([-w/2+1.0,  h/2-1.0, 6.7]) cylinder(r=0.8, h=0.01);
-        translate([ w/2-1.0,  h/2-1.0, 6.7]) cylinder(r=0.8, h=0.01);
-    }}
-}}
-"""
+    buttons_scad = ""
     for row in rows:
         for b in row:
-            buttons_scad += f"translate([{b['x']:.1f}, {b['y']:.1f}, 0]) keycap({b['w']}, {b['h']}, \"{b['label']}\");\n"
+            buttons_scad += f"translate([{b['x']:.1f}, {b['y']:.1f}, 2.0]) rotate([0, 180, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
 
-    with open("designs/buttons.scad", "w") as f:
-        f.write(buttons_scad)
+    if False:
+        pass
 
     # ---------------------------------------------------------
     # DUMMY PCB FOR ALIGNMENT
