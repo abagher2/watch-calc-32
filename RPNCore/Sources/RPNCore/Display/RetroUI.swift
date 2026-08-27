@@ -1,186 +1,248 @@
 
+
+#if canImport(SwiftUI) && canImport(Charts)
+import SwiftUI
+import Charts
+#endif
+
 public class RetroUI {
-    public var isShowingRegisters: Bool = false
+    public var lfuManager: LFUManager
+    public var waitingForMenuDigit: MenuItem?
+    public var menuAlphaQuery: String = ""
+    public var menuOffset: Int = 0
     public var isShowingFullPrecision: Bool = false
+    public var isShowingRegisters: Bool = false
     public var regsOffset: Int = 0
-    public var softkeySelectedVar: String = "X"
     
-    public enum SoftkeyMode {
-        case none, integrate, solve, plot, xeq
-    }
+    public enum SoftkeyMode { case none, solve, integrate, plot, xeq }
     public var softkeyMode: SoftkeyMode = .none
     public var softkeyProgram: CalculatorEngine.Program? = nil
+    public var softkeySelectedVar: String = "X"
     
-    public var waitingForMenuDigit: MenuItem? = nil
-    public var menuOffset: Int = 0
-    public var menuAlphaQuery: String = ""
-    
-    private var lfuManager: LFUManager
+    public var doubleFormatter: ((Double, CalculatorEngine.DisplayMode) -> String)?
     
     public init(lfuManager: LFUManager) {
         self.lfuManager = lfuManager
     }
     
-    public var doubleFormatter: ((Double, CalculatorEngine.DisplayMode) -> String)? = nil
-    
     public func render(engine: CalculatorEngine, renderer: Renderer) {
-        // --- 1. Top Bar Area ---
-        var indX = 6
-        let indY = 6
-        if engine.shiftState == 1 {
-            let w = renderer.drawChar(8624, x: indX, y: indY, size: .display, color: true, scale: 1)
-            indX += w + 2
-        }
-        if engine.shiftState == 2 {
-            let w = renderer.drawChar(8625, x: indX, y: indY, size: .display, color: true, scale: 1)
-            indX += w + 2
-        }
-        if engine.alphaAction == .evalEquation {
-            let w = renderer.getStringWidth("=", size: .display)
-            renderer.drawString("=", x: indX, y: indY, size: .display, color: true, scale: 1)
-            indX += w + 2
-        } else if engine.isWaitingForAlpha {
-            let w = renderer.getStringWidth("A..Z", size: .display)
-            renderer.drawString("A..Z", x: indX, y: indY, size: .display, color: true, scale: 1)
-            indX += w + 2
-        }
-        if engine.isHypPending {
-            let w = renderer.getStringWidth("HYP", size: .display)
-            renderer.drawString("HYP", x: indX, y: indY, size: .display, color: true, scale: 1)
-            indX += w + 2
-        }
-        if engine.isStatPlot {
-            let w = renderer.getStringWidth("STAT", size: .display)
-            renderer.drawString("STAT", x: indX, y: indY, size: .display, color: true, scale: 1)
-            indX += w + 2
+        // Evaluate the body content
+        let screen = FirmwareVStack(alignment: .leading, spacing: 0) {
+            FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .top) {
+                TopBarIndicatorsView()
+            }
+            
+            RetroUIBodyView(retroUI: self)
+            
+            FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .bottom) {
+                RetroUIFooterView(retroUI: self)
+            }
         }
         
-        var rightX = 400 - 6
-        if true {
-            let w = renderer.getStringWidth("BAT", size: .display)
-            renderer.drawString("BAT", x: rightX - w, y: indY, size: .display, color: true, scale: 1)
-            rightX -= w + 4
-        }
-        if engine.angleMode == .rad {
-            let w = renderer.getStringWidth("RAD", size: .display)
-            renderer.drawString("RAD", x: rightX - w, y: indY, size: .display, color: true, scale: 1)
-            rightX -= w + 4
-        } else if false {
-            // grad
-        }
-        if engine.complexMode {
-            let w = renderer.getStringWidth("C", size: .display)
-            renderer.drawString("C", x: rightX - w, y: indY, size: .display, color: true, scale: 1)
-            rightX -= w + 4
-        }
-        if engine.isProgrammingMode {
-            let w = renderer.getStringWidth("PRGM", size: .display)
-            renderer.drawString("PRGM", x: rightX - w, y: indY, size: .display, color: true, scale: 1)
-            rightX -= w + 4
-        }
-        
-        // --- 2. Main Content Area ---
-        if engine.isTestMode {
-            renderer.fillRect(x: 30, y: 80, w: 340, h: 80, color: false)
-            let txtW = renderer.getStringWidth("HP-32SII TEST OK", size: .display)
-            renderer.drawString("HP-32SII TEST OK", x: 30 + (340 - txtW) / 2, y: 80 + (80 - FontData.Display.charHeight) / 2, size: .display, color: true, scale: 1)
-        } else if isShowingRegisters {
-            let regNames = ["X", "Y", "Z", "T"]
-            for i in 0..<4 {
-                let regIdx = regsOffset + (3 - i)
-                var name = "?"
-                if regIdx < 4 { name = regNames[regIdx] }
-                else if regIdx - 4 < 26 {
-                    let ascii = 65 + regIdx - 4
-                    name = String(Character(UnicodeScalar(ascii)!))
-                }
-                let val = engine.stack.count > regIdx ? engine.stack[regIdx].real : 0.0
-                let valStr = doubleFormatter?(val, engine.displayMode) ?? "\(val)"
-                let txt = "\(name): \(valStr)"
-                renderer.drawString(txt, x: 6, y: 40 + i * 22, size: .small, color: true, scale: 1)
+        screen.draw(in: renderer, x: 0, y: 0, engine: engine)
+    }
+}
+
+public struct RetroUIBodyView: FirmwareView {
+    public let retroUI: RetroUI
+    
+    public func size(in renderer: Renderer) -> (width: Int, height: Int) {
+        return (400, 160)
+    }
+    
+    public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
+        if let msg = engine.errorMessage ?? engine.transientMessage {
+            let view = FirmwarePadding(leading: 6) {
+                FirmwareText(msg, font: .medium, color: true)
             }
-        } else if isShowingFullPrecision {
-            let valStr = "\(engine.stack.first?.real ?? 0.0)"
-            var i = 0
-            let maxChars = 12
-            var lineY = 40
-            while i < valStr.count {
-                let start = valStr.index(valStr.startIndex, offsetBy: i)
-                let end = valStr.index(start, offsetBy: min(maxChars, valStr.count - i))
-                renderer.drawString(String(valStr[start..<end]), x: 6, y: lineY, size: .medium, color: true, scale: 1)
-                lineY += FontData.Medium.charHeight - 12
-                i += maxChars
-            }
-        } else {
-            var textW = 0
-            #if hasFeature(Embedded)
-            if let status = engine.statusMessage {
-                textW = renderer.getStringWidth(status, size: .medium)
-                renderer.drawString(status, x: 6, y: 40, size: .medium, color: true, scale: 1)
-            } else if let error = engine.errorMessage {
-                textW = renderer.getStringWidth(error, size: .medium)
-                renderer.drawString(error, x: 6, y: 40, size: .medium, color: true, scale: 1)
-            } else if let transient = engine.transientMessage {
-                textW = renderer.getStringWidth(transient, size: .medium)
-                renderer.drawString(transient, x: 6, y: 40, size: .medium, color: true, scale: 1)
-            } else if let prompt = engine.promptString {
-                textW = renderer.getStringWidth(prompt, size: .display)
-                renderer.drawString(prompt, x: 6, y: 40, size: .display, color: true, scale: 1)
-            } else {
-                if engine.isBuildingNumber || engine.isWaitingForAlpha {
-                    var curX = 6
-                    let len = min(engine.displayXLength, 64)
-                    engine.displayXBuffer.withUnsafeBufferPointer { ptr in
-                        for i in 0..<len {
-                            let cw = renderer.drawChar(UInt32(ptr[i]), x: curX, y: 40, size: .display, color: true, scale: 1)
-                            curX += cw + 1
+            view.draw(in: renderer, x: x, y: y, engine: engine)
+            
+        } else if retroUI.isShowingRegisters {
+            let regs: [(String, Double)] = [
+                ("T", engine.stack.count > 3 ? engine.stack[3].real : 0),
+                ("Z", engine.stack.count > 2 ? engine.stack[2].real : 0),
+                ("Y", engine.stack.count > 1 ? engine.stack[1].real : 0),
+                ("X", engine.stack.count > 0 ? engine.stack[0].real : 0)
+            ]
+            let maxChars = 64
+            var startY = y
+            for (name, val) in regs {
+                let valStr = retroUI.doubleFormatter?(val, engine.displayMode) ?? "\(val)"
+                var i = 0
+                while i < valStr.count {
+                    let start = valStr.index(valStr.startIndex, offsetBy: i)
+                    let end = valStr.index(start, offsetBy: min(maxChars, valStr.count - i))
+                    let chunk = String(valStr[start..<end])
+                    
+                    let view = FirmwarePadding(leading: 6) {
+                        FirmwareHStack(alignment: .bottom, spacing: 6) {
+                            FirmwareText("\(name):", font: .medium, color: true)
+                            FirmwareText(chunk, font: .medium, color: true)
                         }
                     }
-                    if engine.isWaitingForAlpha {
-                        renderer.drawString("?", x: curX, y: 40 + FontData.Tiny.charHeight, size: .display, color: true, scale: 1)
+                    view.draw(in: renderer, x: x, y: startY, engine: engine)
+                    startY += 24
+                    i += maxChars
+                }
+            }
+            
+        } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
+            MainDisplayNumberView().draw(in: renderer, x: x, y: y, engine: engine)
+            
+        } else if engine.isEquationListMode {
+            var startY = y
+            for i in 0..<engine.programs.count {
+                let prog = engine.programs[i]
+                let summary = prog.steps.map { $0.stringValue }.joined(separator: " ")
+                
+                let view = FirmwarePadding(leading: 6) {
+                    FirmwareHStack(alignment: .bottom, spacing: 6) {
+                        FirmwareText(prog.label, font: .medium, color: true)
+                        FirmwareText(summary.prefix(32).description, font: .small, color: true)
                     }
-                    textW = curX - 6
-                    renderer.fillRect(x: 6, y: 40 + FontData.Display.charHeight + 2, w: textW, h: 4, color: true)
+                }
+                view.draw(in: renderer, x: x, y: startY, engine: engine)
+                startY += 24
+            }
+            
+        } else if engine.requestPlot {
+#if !canImport(SwiftUI)
+            let dataPoints = engine.plotData.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.0, y: $0.element.1) }
+            let scatterPoints = engine.statPoints.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.x, y: $0.element.y) }
+            
+            var regressionPoints: [PlotDataPoint] = []
+            if engine.isStatPlot && engine.statN > 1 {
+                let num = engine.statSumXY - (engine.statSumX * engine.statSumY / engine.statN)
+                let den = engine.statSumX2 - (engine.statSumX * engine.statSumX / engine.statN)
+                let m = den == 0 ? 0 : num / den
+                let b = (engine.statSumY - m * engine.statSumX) / engine.statN
+                
+                if let first = scatterPoints.first, let last = scatterPoints.last {
+                    let startX = first.x - 10
+                    let endX = last.x + 10
+                    regressionPoints = [
+                        PlotDataPoint(id: 0, x: startX, y: m * startX + b),
+                        PlotDataPoint(id: 1, x: endX, y: m * endX + b)
+                    ]
+                }
+            }
+            
+            var highlightedDataPoints: [PlotDataPoint] = []
+            if let limits = engine.integrationLimits {
+                let minL = min(limits.0, limits.1)
+                let maxL = max(limits.0, limits.1)
+                highlightedDataPoints = dataPoints.filter { $0.x >= minL && $0.x <= maxL }
+            }
+            
+            var tangentPoints: [PlotDataPoint]? = nil
+            if let first = dataPoints.first, let last = dataPoints.last, !engine.isStatPlot {
+                let centerX = (first.x + last.x) / 2.0
+                var closestP = dataPoints[0]
+                var minDiff = Double.greatestFiniteMagnitude
+                var closestIdx = 0
+                for i in 0..<dataPoints.count {
+                    let diff = abs(dataPoints[i].x - centerX)
+                    if diff < minDiff {
+                        minDiff = diff
+                        closestP = dataPoints[i]
+                        closestIdx = i
+                    }
+                }
+                if closestIdx > 0 && closestIdx < dataPoints.count - 1 {
+                    let p1 = dataPoints[closestIdx - 1]
+                    let p2 = dataPoints[closestIdx + 1]
+                    let m = (p2.y - p1.y) / (p2.x - p1.x)
+                    
+                    let startX = first.x
+                    let startY = m * (startX - closestP.x) + closestP.y
+                    let endX = last.x
+                    let endY = m * (endX - closestP.x) + closestP.y
+                    tangentPoints = [
+                        PlotDataPoint(id: 0, x: startX, y: startY),
+                        PlotDataPoint(id: 1, x: endX, y: endY)
+                    ]
+                }
+            }
+            
+            let plotContent: [ChartNode] = 
+                SharedPlotBuilder.buildAxesContent().nodes +
+                SharedPlotBuilder.buildMainPlotContent(isStatPlot: engine.isStatPlot, dataPoints: dataPoints, scatterPoints: scatterPoints, regressionPoints: regressionPoints).nodes +
+                SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints).nodes +
+                SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedDataPoints).nodes
+            
+            FirmwareChart(content: plotContent, width: 400, height: 160).draw(in: renderer, x: x, y: y, engine: engine)
+#endif
+        } else {
+            MainDisplayNumberView().draw(in: renderer, x: x, y: y, engine: engine)
+        }
+    }
+}
+
+public struct RetroUIFooterView: FirmwareView {
+    public let retroUI: RetroUI
+    
+    public func size(in renderer: Renderer) -> (width: Int, height: Int) {
+        return (400, 40)
+    }
+    
+    public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
+        if engine.errorMessage != nil || engine.transientMessage != nil || retroUI.isShowingRegisters || retroUI.isShowingFullPrecision {
+            return
+        }
+        
+        let menuActive = engine.activeMenu != nil || retroUI.waitingForMenuDigit != nil || retroUI.softkeyMode != .none || engine.alphaAction == .fnEq || engine.isEquationListMode
+        if menuActive {
+            if let menu = engine.activeMenu {
+                #if !hasFeature(Embedded)
+                let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine).filter { !$0.isSoftwareOnly }
+                #else
+                let items = MenuSystem.filter(menu: menu, query: retroUI.menuAlphaQuery, engine: engine)
+                #endif
+                MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
+                
+            } else if retroUI.softkeyMode != .none {
+                var items: [MenuItem] = []
+                if retroUI.softkeyProgram == nil {
+                    for prog in engine.programs {
+                        items.append(MenuItem(label: prog.label, action: "SOFTKEY_PRG_\(prog.label)"))
+                    }
                 } else {
-                    engine.displayXBuffer.withUnsafeBufferPointer { ptr in
-                        let len = min(engine.displayXLength, 64)
-                        var curX = 6
-                        for i in 0..<len {
-                            let cw = renderer.drawChar(UInt32(ptr[i]), x: curX, y: 40, size: .display, color: true, scale: 1)
-                            curX += cw + 1
-                        }
+                    let vars = retroUI.softkeyProgram!.extractVariables()
+                    for v in vars.sorted() {
+                        let hasVal = (engine.variables[v]?.real ?? 0.0) != 0.0
+                        let label = hasVal ? "@\(v)" : " \(v)"
+                        items.append(MenuItem(label: label, action: "SOFTKEY_VAR_\(v)"))
+                    }
+                    if retroUI.softkeyMode == .plot || retroUI.softkeyMode == .xeq {
+                        items.append(MenuItem(label: "EXEC", action: "SOFTKEY_EXEC"))
                     }
                 }
+                MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
+                
+            } else if engine.alphaAction == .fnEq {
+                var items: [MenuItem] = []
+                for prog in engine.programs {
+                    items.append(MenuItem(label: prog.label, action: prog.label))
+                }
+                MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
+                
+            } else if engine.isEquationListMode {
+                var items: [MenuItem] = []
+                items.append(MenuItem(label: "NEW", action: "EQN_NEW"))
+                if !engine.programs.isEmpty {
+                    items.append(MenuItem(label: "EDIT", action: "EQN_EDIT"))
+                }
+                MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
             }
-            #else
-            let valStr = engine.statusMessage ?? engine.errorMessage ?? engine.transientMessage ?? engine.promptString ?? engine.displayX
-            let isTextMsg = (engine.statusMessage ?? engine.errorMessage ?? engine.transientMessage ?? engine.promptString) != nil
-            let fontToUse: Renderer.FontSize = isTextMsg ? .medium : .display
-            textW = renderer.getStringWidth(valStr, size: fontToUse)
-            if textW > 390 {
-                renderer.drawString("<", x: 6, y: 40, size: fontToUse, color: true, scale: 1)
-                renderer.drawString(valStr, x: 400 - textW, y: 40, size: fontToUse, color: true, scale: 1)
-            } else {
-                renderer.drawString(valStr, x: 400 - 6 - textW, y: 40, size: fontToUse, color: true, scale: 1)
-            }
-            #endif
-        }
-        
-        let footerY = 240 - 40
-        if engine.isTestMode || engine.isProgrammingMode || engine.requestPlot || engine.isEquationListMode || engine.activeMenu != nil || engine.isGeneratingPlot || engine.isPlotLoading {
+        } else if engine.requestPlot {
             for i in 0..<6 {
                 let segment = renderer.menuSegments[i]
-                renderer.fillRect(x: segment.x, y: footerY, w: segment.w, h: 36, color: true)
+                renderer.fillRect(x: segment.x, y: y + 4, w: segment.w, h: 32, color: true)
+                let lw = renderer.getStringWidth("+", size: .tiny)
+                renderer.drawString("+", x: segment.x + (segment.w - lw) / 2, y: y + 4 + (32 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
             }
-        } else {
-            for i in 0..<6 {
-                let segment = renderer.menuSegments[i]
-                let funcName = engine.lfuManager.slots[i] ?? ""
-                let label = renderer.fitSoftkeyLabel(funcName)
-                renderer.fillRect(x: segment.x, y: footerY + 4, w: segment.w, h: 32, color: true)
-                let lw = renderer.getStringWidth(label, size: .tiny)
-                renderer.drawString(label, x: segment.x + (segment.w - lw) / 2, y: footerY + 4 + (32 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
-            }
+        } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
+            SoftkeyRowView().draw(in: renderer, x: x, y: y, engine: engine)
         }
     }
 }

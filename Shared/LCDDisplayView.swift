@@ -151,50 +151,26 @@ public struct LCDAnnunciatorsView: View {
             }
             .frame(width: 16, alignment: .leading)
             
-            if engine.angleMode == .rad {
-                Text("RAD").foregroundColor(foregroundColor)
-            } else if engine.angleMode == .grd {
-                Text("GRD").foregroundColor(foregroundColor)
+            ForEach(engine.activeAnnunciators, id: \.self) { ann in
+                if ann == .exam {
+                    Text(ann.rawValue)
+                        .foregroundColor(.yellow)
+                        .accessibilityIdentifier("exam_indicator")
+                } else if ann == .stack {
+                    Text(ann.rawValue)
+                        .foregroundColor(foregroundColor)
+                        .accessibilityIdentifier("stack_indicator")
+                } else {
+                    Text(ann.rawValue)
+                        .foregroundColor(foregroundColor)
+                }
             }
             
-            if engine.complexMode {
-                Text("CMPLX").foregroundColor(foregroundColor)
-            }
-            
-            if engine.isExamMode {
-                Text("🔒 EXAM").foregroundColor(.yellow)
-                    .accessibilityIdentifier("exam_indicator")
-            }
-            
-            if !engine.autoReturnToMainPad {
-                Text("STAY").foregroundColor(foregroundColor)
-            }
-            
-            if engine.isProgrammingMode {
-                Text("EQN").foregroundColor(foregroundColor)
-            }
-            
-            if engine.isHypPending {
-                Text("HYP").foregroundColor(foregroundColor)
-            }
-            
-            if engine.hasStackData {
-                Text("↑").foregroundColor(foregroundColor)
-                    .accessibilityIdentifier("stack_indicator")
-            } else {
+            // Stack always takes up space if needed, so we maintain layout parity?
+            // Actually, in the old layout `Text(" ").foregroundColor(.clear)` was only output for `.stack`.
+            // Wait, old layout did: `if engine.hasStackData { Text("↑") } else { Text(" ").foregroundColor(.clear) }`
+            if !engine.activeAnnunciators.contains(.stack) {
                 Text(" ").foregroundColor(.clear)
-            }
-            
-            if engine.isProgrammingMode {
-                Text("EQN").foregroundColor(foregroundColor)
-            }
-            
-            if engine.baseMode == .hex {
-                Text("HEX").foregroundColor(foregroundColor)
-            } else if engine.baseMode == .oct {
-                Text("OCT").foregroundColor(foregroundColor)
-            } else if engine.baseMode == .bin {
-                Text("BIN").foregroundColor(foregroundColor)
             }
             
             Spacer()

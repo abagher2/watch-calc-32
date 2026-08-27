@@ -79,8 +79,12 @@ for r_idx, row in enumerate(rows):
         lbl = (labels[r_idx][c_idx]
                if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
         b['label'] = lbl
-        b['w']     = 7.5 if r_idx == 0 else (8.0 if lbl in ("f","g","C") else 7.5)
-        b['h']     = 6.0
+        if r_idx < 4:
+            b['w'] = 7.5
+            b['h'] = 6.0
+        else:
+            b['w'] = 8.5
+            b['h'] = 6.5
 
 # --- Compute ENTER width to span ST (row2[0]) + RC (row2[1]) ---
 # After X-mirror: ox = fp_w - (b['x'] + pad_x). The mirrored positions of
@@ -101,7 +105,7 @@ if len(rows) >= 3 and len(rows[2]) >= 2:
 # ─────────────────────────────────────────────────────────
 WALL   = 1.4   # Base wall thickness (slimmed down for premium look)
 # Target Assembled Width = 80.0mm. TPU cover adds 2.4mm, so bare chassis must be 77.6mm.
-cw = 77.6
+cw = 74.4
 fp_w = cw - 2*WALL - 0.4
 
 # The PCB should have a 5mm border from the outer chassis wall.
@@ -132,14 +136,12 @@ FRONT_LIP = 1.0   # Structural retaining bezel
 # Calculate required chassis depth to securely fit all components
 CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
 
-# Display Geometry: EastRising 2.7" ST7567 (ERC12864FSF-6)
-ACTIVE_W = 60.77
-ACTIVE_H = 32.94
-DISP_W   = 71.20
-DISP_H   = 48.20
-# Assuming "No Backlight" version which is typically ~2.0mm to 2.8mm thick. 
-# If they use the 5.1mm backlit version, this will need to be 5.10!
-DISP_T = 2.00
+# Display Geometry: EastRising 2.5" ERC13265FS-1
+ACTIVE_W = 56.73
+ACTIVE_H = 27.92
+DISP_W   = 69.00
+DISP_H   = 41.50
+DISP_T = 5.20
 
 pad_x = pad_left
 pad_y = pad_bottom
@@ -785,8 +787,8 @@ module top_cap() {{
         // Restored to CR2032 coin cell (20.0mm diameter x 3.2mm thick) + wire clearance.
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
-        // CENTERED behind the LCD, moved down by 10mm
-        translate([35.0, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 28.5]) {{
+        // Attached to the Right Screw Boss to print as one solid piece and clear the Pico MCU
+        translate([{rx:.3f} - 3.0 - 24.0, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 28.5]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{

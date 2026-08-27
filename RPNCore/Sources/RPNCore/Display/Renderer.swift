@@ -11,7 +11,7 @@ public class Renderer {
     public var boldFonts: Bool = false
     
     public init() {
-        buffer = [UInt8](repeating: 0, count: 12000) // 400x240 memory LCD (50 bytes * 240 rows)
+        buffer = [UInt8](repeating: 0, count: 12000) // 128x64 ST7567 (128 cols * 8 pages)
         previousBuffer = nil
     }
     
@@ -363,8 +363,8 @@ public extension Renderer {
         backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (160, 180, 150, 255),
         scale: Int = 1
     ) -> CGImage? {
-        let baseW = 400
-        let baseH = 240
+        let baseW = 128
+        let baseH = 64
         let s = max(1, scale)
         let width = baseW * s
         let height = baseH * s
