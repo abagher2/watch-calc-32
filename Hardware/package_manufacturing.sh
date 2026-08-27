@@ -20,6 +20,11 @@ zip -r ../WatchCalc32_Manufacturing/WatchCalc32_Gerbers.zip *
 cd ../..
 rm -rf output/gerbers
 
+echo "Packaging STLs..."
+cd ../scratch/stl
+zip -r ../../Hardware/output/WatchCalc32_Manufacturing/WatchCalc32_3D_Models.zip faceplate_mjf.stl faceplate_fdm.stl chassis_tapered.stl top_cap.stl tpu_stretch_cover.stl buttons.stl dummy_pcb.stl
+cd ../../Hardware
+
 echo "Generating BOM..."
 /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 generate_pcbway_bom.py output/pcbs/calculator.kicad_pcb "$OUTDIR/bom.csv"
 
@@ -42,6 +47,7 @@ cat << 'EOF' > "$OUTDIR/PCBWay_Order_Guide.md"
 1. **Gerbers:** `WatchCalc32_Gerbers.zip`
 2. **BOM:** `bom.csv`
 3. **Pick & Place:** `centroid.csv`
+4. **3D Printed Parts:** `WatchCalc32_3D_Models.zip` (for CNC/3D printing service)
 
 ## Critical Assembly Notes:
 - **J1 (LCD FPC):** The LCD must be shimmed exactly 0.07mm to achieve a 1.5mm coplanarity with the tactile switches.

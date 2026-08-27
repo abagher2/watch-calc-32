@@ -28,13 +28,13 @@ public class RetroUI {
     public func render(engine: CalculatorEngine, renderer: Renderer) {
         // Evaluate the body content
         let screen = FirmwareVStack(alignment: .leading, spacing: 0) {
-            FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .top) {
+            FirmwareFrame(width: 132, height: 11, alignment: .leading, vAlignment: .top) {
                 TopBarIndicatorsView()
             }
             
             RetroUIBodyView(retroUI: self)
             
-            FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .bottom) {
+            FirmwareFrame(width: 132, height: 11, alignment: .leading, vAlignment: .bottom) {
                 RetroUIFooterView(retroUI: self)
             }
         }
@@ -47,7 +47,7 @@ public struct RetroUIBodyView: FirmwareView {
     public let retroUI: RetroUI
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (400, 160)
+        return (132, 43)
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
@@ -87,7 +87,7 @@ public struct RetroUIBodyView: FirmwareView {
             }
             
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
-            MainDisplayNumberView().draw(in: renderer, x: x, y: y, engine: engine)
+            MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
             
         } else if engine.isEquationListMode {
             var startY = y
@@ -170,10 +170,10 @@ public struct RetroUIBodyView: FirmwareView {
                 SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints).nodes +
                 SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedDataPoints).nodes
             
-            FirmwareChart(content: plotContent, width: 400, height: 160).draw(in: renderer, x: x, y: y, engine: engine)
+            FirmwareChart(content: plotContent, width: 132, height: 43).draw(in: renderer, x: x, y: y, engine: engine)
 #endif
         } else {
-            MainDisplayNumberView().draw(in: renderer, x: x, y: y, engine: engine)
+            MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
         }
     }
 }
@@ -182,7 +182,7 @@ public struct RetroUIFooterView: FirmwareView {
     public let retroUI: RetroUI
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (400, 40)
+        return (132, 11)
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
@@ -237,9 +237,9 @@ public struct RetroUIFooterView: FirmwareView {
         } else if engine.requestPlot {
             for i in 0..<6 {
                 let segment = renderer.menuSegments[i]
-                renderer.fillRect(x: segment.x, y: y + 4, w: segment.w, h: 32, color: true)
+                renderer.fillRect(x: segment.x, y: y, w: segment.w, h: 11, color: true)
                 let lw = renderer.getStringWidth("+", size: .tiny)
-                renderer.drawString("+", x: segment.x + (segment.w - lw) / 2, y: y + 4 + (32 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
+                renderer.drawString("+", x: segment.x + (segment.w - lw) / 2, y: y + (11 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
             }
         } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
             SoftkeyRowView().draw(in: renderer, x: x, y: y, engine: engine)

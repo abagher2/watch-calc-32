@@ -33,8 +33,8 @@ final class RetroUIParityTests: XCTestCase {
         
         let cgImage = controller.renderer.toCGImage()
         XCTAssertNotNil(cgImage, "Renderer.toCGImage() should produce a valid CGImage")
-        XCTAssertEqual(cgImage?.width, 400, "CGImage width should be 400")
-        XCTAssertEqual(cgImage?.height, 240, "CGImage height should be 240")
+        XCTAssertEqual(cgImage?.width, 132, "CGImage width should be 132")
+        XCTAssertEqual(cgImage?.height, 65, "CGImage height should be 65")
     }
     #endif
     
@@ -100,10 +100,10 @@ final class RetroUIParityTests: XCTestCase {
         controller.render()
         
         var softkeyPixelsDrawn = false
-        for y in 200..<240 {
-            for x in 0..<400 {
-                let byteIdx = y * 50 + (x / 8)
-                let bitIdx = x % 8
+        for y in 54..<65 {
+            for x in 0..<132 {
+                let byteIdx = (y / 8) * 132 + x
+                let bitIdx = y % 8
                 if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
                     softkeyPixelsDrawn = true
                     break
@@ -118,17 +118,57 @@ final class RetroUIParityTests: XCTestCase {
         controller.render()
         
         var annunciatorPixelsDrawn = false
-        for y in 0..<40 {
-            for x in 0..<400 {
-                let byteIdx = y * 50 + (x / 8)
-                let bitIdx = x % 8
+        for y in 0..<11 {
+            for x in 0..<132 {
+                let byteIdx = (y / 8) * 132 + x
+                let bitIdx = y % 8
                 if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
                     annunciatorPixelsDrawn = true
                     break
                 }
             }
         }
-        XCTAssertTrue(annunciatorPixelsDrawn, "Annunciator must render pixels in top region Y: 0-40")
+        XCTAssertTrue(annunciatorPixelsDrawn, "Annunciator must render pixels in top region Y: 0-11")
+    }
+    
+    func testAllAnnunciatorsRendering() {
+        let states: [(setup: (CalculatorEngine) -> Void, name: String)] = [
+            ({ $0.shiftState = 1 }, "↰"),
+            ({ $0.shiftState = 2 }, "↱"),
+            ({ $0.angleMode = .rad }, "RAD"),
+            ({ $0.angleMode = .grd }, "GRD"),
+            ({ $0.complexMode = true }, "CMPLX"),
+            ({ $0.isExamMode = true }, "🔒 EXAM"),
+            ({ $0.autoReturnToMainPad = false }, "STAY"),
+            ({ $0.isHypPending = true }, "HYP"),
+            ({ $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)) }, "↑"),
+            ({ $0.isProgrammingMode = true }, "EQN"),
+            ({ $0.baseMode = .hex }, "HEX"),
+            ({ $0.baseMode = .oct }, "OCT"),
+            ({ $0.baseMode = .bin }, "BIN"),
+            ({ $0.isStatPlot = true }, "STAT"),
+            ({ $0.isWaitingForAlpha = true }, "A..Z")
+        ]
+        
+        for state in states {
+            engine = CalculatorEngine() // Fresh engine
+            controller = RetroUIController(engine: engine, lfuManager: lfuManager)
+            
+            state.setup(engine)
+            controller.render()
+            
+            var pixels = 0
+            for y in 0..<11 {
+                for x in 0..<132 {
+                    let byteIdx = (y / 8) * 132 + x
+                    let bitIdx = y % 8
+                    if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
+                        pixels += 1
+                    }
+                }
+            }
+            XCTAssertGreaterThan(pixels, 0, "Annunciator '\(state.name)' failed to render any pixels in top region Y: 0-11")
+        }
     }
     
     func testHP32SIIDisplayJustification() {
@@ -138,10 +178,10 @@ final class RetroUIParityTests: XCTestCase {
         controller.render()
         
         var leftSideDigitPixels = 0
-        for y in 50..<180 {
+        for y in 11..<54 {
             for x in 0..<100 {
-                let byteIdx = y * 50 + (x / 8)
-                let bitIdx = x % 8
+                let byteIdx = (y / 8) * 132 + x
+                let bitIdx = y % 8
                 if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
                     leftSideDigitPixels += 1
                 }
@@ -154,10 +194,10 @@ final class RetroUIParityTests: XCTestCase {
         controller.render()
         
         var leftSidePixels = 0
-        for y in 50..<180 {
+        for y in 11..<54 {
             for x in 0..<100 {
-                let byteIdx = y * 50 + (x / 8)
-                let bitIdx = x % 8
+                let byteIdx = (y / 8) * 132 + x
+                let bitIdx = y % 8
                 if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
                     leftSidePixels += 1
                 }
@@ -171,11 +211,15 @@ final class RetroUIParityTests: XCTestCase {
         controller.processAction(.flags)
         XCTAssertEqual(controller.engine.activeMenu?.rawValue, "FLAGS")
         
-        // "STACK ▸" is the 5th item in the firmware FLAGS menu.
-        // Due to 5-item spacing layout, it appears on the 6th softkey (.lfu5).
-        controller.processAction(.lfu5)
+        controller.render() // Must render to populate LFU manager slots
+        
+        // "STACK ▸" is the 1st item in the firmware FLAGS menu.
+        // It appears on the 1st softkey (.lfu0).
+        controller.processAction(.lfu0)
         
         XCTAssertEqual(controller.engine.activeMenu?.rawValue, "STACK")
+        
+        controller.render() // Must render to populate LFU manager slots
         
         XCTAssertEqual(controller.menuItemsDisplayCache[0].label, "4-LVL")
         controller.processAction(.lfu0)
@@ -202,10 +246,10 @@ final class RetroUIParityTests: XCTestCase {
         controller.render()
         
         var plotPixels = 0
-        for y in 0..<200 { // above softkeys
-            for x in 0..<400 {
-                let byteIdx = y * 50 + (x / 8)
-                let bitIdx = x % 8
+        for y in 0..<54 { // above softkeys
+            for x in 0..<132 {
+                let byteIdx = (y / 8) * 132 + x
+                let bitIdx = y % 8
                 if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
                     plotPixels += 1
                 }

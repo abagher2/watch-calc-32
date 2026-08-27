@@ -39,10 +39,14 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
                 val = "JST PH 2-pin side-entry header"
                 sku = "S2B-PH-K-S(LF)(SN)"
                 desc = "Battery connector for wired CR2450 battery; 2.00mm pitch, side entry"
+            elif "C" in ref:
+                val = "1uF 10V X5R"
+                sku = "CL05A105KQ5NNNC"
+                desc = "0402 LCD charge pump / decoupling capacitor"
             elif ref == "J1":
-                val = "LS027B7DH01 - 400x240 Memory LCD"
-                sku = "LS027B7DH01"
-                desc = "connect through the existing J1 FPC connection and shim 0.07mm to 1.50mm above PCB"
+                val = "ERC13265FS-1 (2.5\" LCD)"
+                sku = "ERC13265FS-1"
+                desc = "SPLC502 IC LCD. Connect through the existing J1 FPC connection and shim 0.07mm to 1.50mm above PCB"
                 
             components.append({'ref': ref, 'val': val, 'fpid': fpid, 'sku': sku, 'desc': desc})
             

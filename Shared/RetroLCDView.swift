@@ -33,7 +33,7 @@ public struct RetroLCDView: View {
                 Image(decorative: cgImage, scale: 1.0, orientation: .up)
                     .resizable()
                     .interpolation(.none)
-                    .aspectRatio(400.0 / 240.0, contentMode: .fit)
+                    .aspectRatio(132.0 / 65.0, contentMode: .fit)
                     .accessibilityValue(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
                     .background(
                         Text(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())

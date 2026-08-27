@@ -19,7 +19,7 @@ const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 12};
 
 struct EmuDisplay {
     uint32_t magic[4];
-    uint8_t buffer[1024];
+    uint8_t buffer[1188];
 };
 
 volatile struct EmuDisplay emu_display = {
@@ -75,17 +75,15 @@ void hw_init(void) {
     gpio_put(PIN_DC, 0); // Command mode
     uint8_t init_cmds[] = {
         0xE2, // Soft reset
-        0x2C, 0x2E, 0x2F, // Power ON
-        0xF8, 0x00, // Booster 4X
-        0x22, // Resistor ratio
-        0x81, 0x20, // Contrast
-        0xA2, // 1/9 bias
-        0xC8, // COM direction
-        0xA0, // SEG direction
-        0xA4, // Normal display
-        0xA6, // Non-inverted
-        0x40, // Start line 0
-        0xAF  // Display ON
+        0xA0, // CLEAR_ADC (s1-s132)
+        0xC8, // SET_SHL (c1-c65)
+        0xA2, // CLEAR_BIAS (1/9)
+        0x2F, // Power Control (0x28 | 0x07)
+        0x25, // Regulator resistor select (0x20 | 0x05)
+        0x81, 0x1F, // Contrast
+        0x40, // Start line
+        0xAF,  // Display ON
+        0xDC
     };
     spi_write_blocking(SPI_PORT, init_cmds, sizeof(init_cmds));
     gpio_put(PIN_CS, 1);
@@ -109,19 +107,19 @@ void display_send_buffer(const uint8_t* buffer) {
 #ifndef EMULATOR
     gpio_put(PIN_CS, 0);
     
-    for (int p = 0; p < 8; p++) {
+    for (int p = 0; p < 9; p++) {
         gpio_put(PIN_DC, 0); // Command
         uint8_t page_cmd[] = { (uint8_t)(0xB0 | p), 0x10, 0x00 };
         spi_write_blocking(SPI_PORT, page_cmd, 3);
         
         gpio_put(PIN_DC, 1); // Data
-        spi_write_blocking(SPI_PORT, buffer + (p * 128), 128);
+        spi_write_blocking(SPI_PORT, buffer + (p * 132), 132);
     }
     
     gpio_put(PIN_CS, 1);
 #else
     int nonZero = 0;
-    for (int i = 0; i < 1024; i++) {
+    for (int i = 0; i < 1188; i++) {
         emu_display.buffer[i] = buffer[i];
         if (buffer[i] != 0) nonZero++;
     }

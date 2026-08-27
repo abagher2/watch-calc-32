@@ -11,7 +11,7 @@ public class Renderer {
     public var boldFonts: Bool = false
     
     public init() {
-        buffer = [UInt8](repeating: 0, count: 12000) // 128x64 ST7567 (128 cols * 8 pages)
+        buffer = [UInt8](repeating: 0, count: 1188) // 132x65 ST7565 (132 cols * 9 pages)
         previousBuffer = nil
     }
     
@@ -24,17 +24,17 @@ public class Renderer {
     }
     
     public func clear() {
-        for i in 0..<12000 {
+        for i in 0..<1188 {
             buffer[i] = 0
         }
         hasOverlap = false
     }
     
     public func setPixel(x: Int, y: Int, color: Bool) {
-        if x < 0 || x >= 400 || y < 0 || y >= 240 { return }
+        if x < 0 || x >= 132 || y < 0 || y >= 65 { return }
         
-        let byteIndex = y * 50 + (x / 8)
-        let bitIndex = x % 8
+        let byteIndex = (y / 8) * 132 + x
+        let bitIndex = y % 8
         let mask = UInt8(1 << bitIndex)
         
         if color {
@@ -289,12 +289,12 @@ public class Renderer {
     // Perfectly symmetrically balanced segments mapping the 400 pixel display 
     // to exactly 6 hardware columns
     public let menuSegments: [(x: Int, w: Int)] = [
-        (0, 66),
-        (67, 66),
-        (134, 66),
-        (201, 66),
-        (268, 66),
-        (335, 65)
+        (0, 22),
+        (22, 22),
+        (44, 22),
+        (66, 22),
+        (88, 22),
+        (110, 22)
     ]
     
     public func renderMenu(menu: CalculatorMenu, query: String = "", offset: Int = 0) {
@@ -363,8 +363,8 @@ public extension Renderer {
         backgroundColor: (r: UInt8, g: UInt8, b: UInt8, a: UInt8) = (160, 180, 150, 255),
         scale: Int = 1
     ) -> CGImage? {
-        let baseW = 128
-        let baseH = 64
+        let baseW = 132
+        let baseH = 65
         let s = max(1, scale)
         let width = baseW * s
         let height = baseH * s
@@ -372,8 +372,8 @@ public extension Renderer {
         
         for y in 0..<baseH {
             for x in 0..<baseW {
-                let byteIndex = y * 50 + (x / 8)
-                let bitIndex = x % 8
+                let byteIndex = (y / 8) * 132 + x
+                let bitIndex = y % 8
                 let isPixelOn = (buffer[byteIndex] & UInt8(1 << bitIndex)) != 0
                 let color = isPixelOn ? pixelColor : backgroundColor
                 

@@ -629,10 +629,10 @@ public struct FirmwareChart: FirmwareView {
 public struct TopBarIndicatorsView: FirmwareView {
     public init() {}
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (400, 40)
+        return (132, 11)
     }
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
-        let indY = y + 6
+        let indY = y + 1 // Changed from y + 6 to fit within 11px height
         var leftX = x + 6
         
         let drawInd = { (label: String) in
@@ -653,7 +653,7 @@ public struct TopBarIndicatorsView: FirmwareView {
 public struct MainDisplayNumberView: FirmwareView {
     public init() {}
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (400, 40)
+        return (132, 16) // Changed from 11 to 16 since .display font is 16px tall
     }
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
         engine.displayXBuffer.withUnsafeBufferPointer { ptr in
@@ -666,23 +666,18 @@ public struct MainDisplayNumberView: FirmwareView {
                 textW += renderer.getCharWidth(UInt32(ptr[i]), size: .display)
             }
             
-            if textW > 396 {
-                let lw = renderer.getStringWidth("<", size: .display)
-                renderer.drawString("<", x: currentX, y: y, size: .display, color: true, scale: 1)
-                currentX += lw
-                currentX = x + 400 - textW // Right align overflow
-            } else {
-                currentX = x + 400 - 6 - textW // Standard right align
-            }
+            let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
+            
+            // HP-32S II is always left-justified
+            currentX = x + 2
             
             for i in 0..<len {
                 let cw = renderer.drawChar(UInt32(ptr[i]), x: currentX, y: y, size: .display, color: true, scale: 1)
                 currentX += cw
             }
             
-            let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
             if hasCursor {
-                renderer.fillRect(x: currentX + 4, y: y + FontData.Display.charHeight - 6, w: 18, h: 6, color: true)
+                renderer.fillRect(x: currentX, y: y + FontData.Display.charHeight - 2, w: 6, h: 2, color: true)
             }
         }
     }
@@ -691,7 +686,7 @@ public struct MainDisplayNumberView: FirmwareView {
 public struct SoftkeyRowView: FirmwareView {
     public init() {}
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (400, 36)
+        return (132, 11)
     }
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
         for i in 0..<6 {
@@ -699,9 +694,9 @@ public struct SoftkeyRowView: FirmwareView {
             let funcName = engine.lfuManager.slots[i] ?? ""
             let label = renderer.fitSoftkeyLabel(funcName)
             
-            renderer.fillRect(x: segment.x, y: y + 4, w: segment.w, h: 32, color: true)
+            renderer.fillRect(x: segment.x, y: y, w: segment.w, h: 11, color: true)
             let lw = renderer.getStringWidth(label, size: .tiny)
-            renderer.drawString(label, x: segment.x + (segment.w - lw) / 2, y: y + 4 + (32 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
+            renderer.drawString(label, x: segment.x + (segment.w - lw) / 2, y: y + (11 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
         }
     }
 }
@@ -711,7 +706,7 @@ public struct MenuSoftkeyRowView: FirmwareView {
     let offset: Int
     public init(items: [MenuItem], offset: Int) { self.items = items; self.offset = offset }
     
-    public func size(in renderer: Renderer) -> (width: Int, height: Int) { return (400, 36) }
+    public func size(in renderer: Renderer) -> (width: Int, height: Int) { return (132, 11) }
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
         let visibleItems = Array(items.dropFirst(offset))
         for i in 0..<min(6, visibleItems.count) {
@@ -719,9 +714,11 @@ public struct MenuSoftkeyRowView: FirmwareView {
             let item = visibleItems[i]
             let label = (i == 5 && visibleItems.count > 6) ? "..." : item.label
             
-            renderer.fillRect(x: segment.x, y: y, w: segment.w, h: 36, color: true)
-            let lw = renderer.getStringWidth(label, size: .tiny)
-            renderer.drawString(label, x: segment.x + (segment.w - lw) / 2, y: y + (36 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
+            renderer.fillRect(x: segment.x, y: y, w: segment.w, h: 11, color: true)
+            
+            let fitted = renderer.fitSoftkeyLabel(label)
+            let lw = renderer.getStringWidth(fitted, size: .tiny)
+            renderer.drawString(fitted, x: segment.x + (segment.w - lw) / 2, y: y + (11 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
         }
     }
 }

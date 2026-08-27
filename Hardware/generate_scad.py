@@ -133,15 +133,14 @@ BATT_H    = 4.0   # Clearance for CR2032 battery holder
 plate_t   = 2.0   # Faceplate base thickness (Reduced for slim profile)
 FRONT_LIP = 1.0   # Structural retaining bezel
 
-# Calculate required chassis depth to securely fit all components
-CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
+CHASSIS_D = 15.0  # Set explicitly to 15.0mm (matches HP-32SII limit) for extra internal room
 
 # Display Geometry: EastRising 2.5" ERC13265FS-1
 ACTIVE_W = 56.73
 ACTIVE_H = 27.92
 DISP_W   = 69.00
 DISP_H   = 41.50
-DISP_T = 5.20
+DISP_T   = 2.80     # Reduced from 5.20 to 2.80 for bare COG display without backlight
 
 pad_x = pad_left
 pad_y = pad_bottom

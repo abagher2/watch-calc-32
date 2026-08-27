@@ -38,7 +38,11 @@ let specialChars: [String: UInt32] = [
     "x": 119909,
     "²": 178,
     "y": 119910,
-    "↔": 8596
+    "↔": 8596,
+    "↰": 8624,
+    "↱": 8625,
+    "🔒": 128274,
+    "↑": 8593
 ]
 
 var allChars: [String: UInt32] = [:]
@@ -102,8 +106,7 @@ for config in sizes {
                     for bitIdx in 0..<8 {
                         let x = byteIdx * 8 + bitIdx
                         if x < bitmapWidth {
-                            let flippedY = bitmapHeight - 1 - y
-                            let pixelVal = rawData[flippedY * bitmapWidth + x]
+                            let pixelVal = rawData[y * bitmapWidth + x]
                             if pixelVal > 127 {
                                 byteVal |= (1 << (7 - bitIdx))
                             }
