@@ -46,6 +46,7 @@ bool vcom_timer_callback(struct repeating_timer *t) {
 
 void hw_init(void) {
     stdio_init_all();
+    void test_sub(); test_sub();
 #ifndef EMULATOR
     watchdog_enable(2000, 1);
 #endif
@@ -145,6 +146,16 @@ uint64_t hw_time_us(void) {
 }
 
 void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int places) {
+    if (val < 0.0) {
+        *buffer = '-';
+        buffer++;
+        max_len--;
+        union { double d; uint64_t i; } u;
+        u.d = val;
+        u.i &= 0x7FFFFFFFFFFFFFFFULL;
+        val = u.d;
+    }
+    
     if (mode == 1) { // FIX
         snprintf((char*)buffer, max_len, "%.*f", places, val);
     } else if (mode == 2) { // SCI
@@ -164,11 +175,18 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
         snprintf((char*)buffer, max_len, "%.*G", places, val);
     } else { // ALL
         int max_chars = max_len - 1;
-        for (int p = 14; p >= 0; p--) {
-            int needed = snprintf(NULL, 0, "%.*G", p, val);
-            if (needed <= max_chars) {
-                snprintf((char*)buffer, max_len, "%.*G", p, val);
-                break;
+        // Pico SDK's %G drops precision and defaults to 6 decimal places for scientific.
+        // For large integers, just format as integer to keep precision!
+        double abs_val = val < 0 ? -val : val;
+        if (abs_val >= 1.0 && abs_val < 1e11 && (abs_val - (int64_t)abs_val) < 1e-9) {
+            snprintf((char*)buffer, max_len, "%lld", (long long)val);
+        } else {
+            for (int p = 11; p >= 0; p--) {
+                int needed = snprintf(NULL, 0, "%.*G", p, val);
+                if (needed <= max_chars) {
+                    snprintf((char*)buffer, max_len, "%.*G", p, val);
+                    break;
+                }
             }
         }
     }

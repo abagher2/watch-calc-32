@@ -139,6 +139,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         let trimmedLen = e - s
         let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
         engine.executeMath(str)
+        engine.updateDisplay()
     }
 }
 
@@ -181,14 +182,15 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         }
         
 #if EMULATOR
-        let ch = get_uart_char_c()
-        if ch >= 0 {
+        var ch = get_uart_char_c()
+        while ch >= 0 {
             lastActivityTime = now
             let next = (rxHead + 1) % 256
             if next != rxTail {
                 rxRingBuf[rxHead] = UInt8(ch)
                 rxHead = next
             }
+            ch = get_uart_char_c()
         }
         
         while rxTail != rxHead {
@@ -214,9 +216,15 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 
                 // Dump Screen Data to UART
                 pushTx(88); pushTx(58); pushTx(32) // "X: "
-                engine.displayXBuffer.withUnsafeBufferPointer { ptr in
-                    for i in 0..<engine.displayXLength {
-                        pushTx(ptr[i])
+                if let err = engine.errorMessage {
+                    for b in err.utf8 { pushTx(b) }
+                } else if let tr = engine.transientMessage {
+                    for b in tr.utf8 { pushTx(b) }
+                } else {
+                    engine.displayXBuffer.withUnsafeBufferPointer { ptr in
+                        for i in 0..<engine.displayXLength {
+                            pushTx(ptr[i])
+                        }
                     }
                 }
                 pushTx(10) // \n

@@ -444,7 +444,7 @@ public class RetroUIController {
     
     public func render() {
         let captureEngine = self.engine
-        retroUI.doubleFormatter = { val, mode in
+        retroUI.doubleFormatter = { (val: Double, mode: CalculatorEngine.DisplayMode) in
             return captureEngine.formatNumber(val)
         }
         renderer.clear()

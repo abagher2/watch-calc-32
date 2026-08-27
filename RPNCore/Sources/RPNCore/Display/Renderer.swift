@@ -153,6 +153,21 @@ public class Renderer {
         return processed
     }
 
+
+    public func getCharWidth(_ scalar: UInt32, size: FontSize = .small) -> Int {
+        var charWidth = 0
+        let shouldBold = boldFonts && size != .tiny
+        switch size {
+        case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar) { charWidth = result.width }
+        case .small: if let result = FontData.Small.glyph(forScalar: scalar) { charWidth = result.width }
+        case .display: if let result = FontData.Display.glyph(forScalar: scalar) { charWidth = result.width }
+        case .medium: if let result = FontData.Medium.glyph(forScalar: scalar) { charWidth = result.width }
+        case .large: if let result = FontData.Large.glyph(forScalar: scalar) { charWidth = result.width }
+        }
+        if shouldBold && charWidth > 0 { charWidth += 1 }
+        return charWidth
+    }
+    
     public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
         var total = 0
         let shouldBold = boldFonts && size != .tiny

@@ -28,7 +28,7 @@ list(FILTER RATIONAL_SOURCES EXCLUDE REGEX "Rational\\+AlgebraicField\\.swift$")
 file(GLOB FIRMWARE_SOURCES "*.swift" "core/*.swift" "display/*.swift")
 
 add_executable(WatchCalcFirmware
-    hardware_wrapper.c
+    hardware_wrapper.c test_sub.c
     font_bitmaps.c
     missing_stubs.c
     ${FIRMWARE_SOURCES}
@@ -114,6 +114,8 @@ target_compile_options(WatchCalcFirmware PUBLIC
     "$<$<COMPILE_LANGUAGE:C>:-mno-unaligned-access>"
 )
 
+pico_set_float_implementation(WatchCalcFirmware compiler)
+pico_set_double_implementation(WatchCalcFirmware compiler)
 pico_add_extra_outputs(WatchCalcFirmware)
 
 if (TARGET pico_float_pico_vfp)

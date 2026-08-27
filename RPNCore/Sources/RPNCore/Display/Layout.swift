@@ -5,14 +5,15 @@ import SwiftUI
 import Charts
 #endif
 
-public indirect enum FirmwareView {
-    case textNode(String, Renderer.FontSize, Bool, Int) // text, font, color, scale
+public enum FirmwareView {
+    case textNode(String, Renderer.FontSize, Bool, Int)
+    case charNode(UInt8, Renderer.FontSize, Bool, Int) // text, font, color, scale
     case spacerNode(Int, Int) // minWidth, minHeight
     case hstackNode(HStackAlignment, Int, [FirmwareView]) // alignment, spacing, children
     case vstackNode(VStackAlignment, Int, [FirmwareView]) // alignment, spacing, children
-    case paddingNode(Int, Int, Int, Int, FirmwareView) // top, bottom, leading, trailing, child
-    case backgroundNode(Bool, FirmwareView) // color, child
-    case frameNode(Int?, Int?, VStackAlignment, HStackAlignment, FirmwareView) // width, height, alignment, valignment, child
+    case paddingNode(Int, Int, Int, Int, [FirmwareView]) // top, bottom, leading, trailing, child
+    case backgroundNode(Bool, [FirmwareView]) // color, child
+    case frameNode(Int?, Int?, VStackAlignment, HStackAlignment, [FirmwareView]) // width, height, alignment, valignment, child
     case chartNode([ChartNode], Int, Int) // content, width, height
     
     public enum HStackAlignment { case top, center, bottom }
@@ -22,6 +23,10 @@ public indirect enum FirmwareView {
         switch self {
         case .textNode(let text, let font, _, let scale):
             let w = renderer.getStringWidth(text, size: font) * scale
+            let h = (font == .small ? 8 : (font == .display ? 32 : 12)) * scale
+            return (w, h)
+        case .charNode(let ch, let font, _, let scale):
+            let w = renderer.getCharWidth(UInt32(ch), size: font) * scale
             let h = (font == .small ? 8 : (font == .display ? 32 : 12)) * scale
             return (w, h)
         case .spacerNode(let w, let h):
@@ -45,22 +50,24 @@ public indirect enum FirmwareView {
             if children.count > 1 { h += spacing * (children.count - 1) }
             return (w, h)
         case .paddingNode(let top, let bottom, let leading, let trailing, let child):
-            let s = child.size(in: renderer)
+            let s = child[0].size(in: renderer)
             return (s.width + leading + trailing, s.height + top + bottom)
         case .backgroundNode(_, let child):
-            return child.size(in: renderer)
+            return child[0].size(in: renderer)
         case .frameNode(let width, let height, _, _, let child):
-            let s = child.size(in: renderer)
+            let s = child[0].size(in: renderer)
             return (width ?? s.width, height ?? s.height)
         case .chartNode(_, let cw, let ch):
             return (cw, ch)
         }
     }
     
-    public func draw(in renderer: Renderer, x: Int, y: Int) {
+    public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine? = nil) {
         switch self {
         case .textNode(let text, let font, let color, let scale):
             renderer.drawString(text, x: x, y: y, size: font, color: color, scale: scale)
+        case .charNode(let ch, let font, let color, let scale):
+            _ = renderer.drawChar(UInt32(ch), x: x, y: y, size: font, color: color, scale: scale)
         case .spacerNode:
             break
         case .hstackNode(let align, let spacing, let children):
@@ -70,7 +77,7 @@ public indirect enum FirmwareView {
                 var dy = y
                 if align == .center { dy += (self.size(in: renderer).height - s.height) / 2 }
                 else if align == .bottom { dy += (self.size(in: renderer).height - s.height) }
-                child.draw(in: renderer, x: dx, y: dy)
+                child.draw(in: renderer, x: dx, y: dy, engine: engine)
                 dx += s.width + spacing
             }
         case .vstackNode(let align, let spacing, let children):
@@ -80,17 +87,17 @@ public indirect enum FirmwareView {
                 var dx = x
                 if align == .center { dx += (self.size(in: renderer).width - s.width) / 2 }
                 else if align == .trailing { dx += (self.size(in: renderer).width - s.width) }
-                child.draw(in: renderer, x: dx, y: dy)
+                child.draw(in: renderer, x: dx, y: dy, engine: engine)
                 dy += s.height + spacing
             }
         case .paddingNode(let top, _, let leading, _, let child):
-            child.draw(in: renderer, x: x + leading, y: y + top)
+            child[0].draw(in: renderer, x: x + leading, y: y + top, engine: engine)
         case .backgroundNode(let color, let child):
             let s = self.size(in: renderer)
             renderer.fillRect(x: x, y: y, w: s.width, h: s.height, color: color)
-            child.draw(in: renderer, x: x, y: y)
+            child[0].draw(in: renderer, x: x, y: y, engine: engine)
         case .frameNode(let targetW, let targetH, let hAlign, let vAlign, let child):
-            let s = child.size(in: renderer)
+            let s = child[0].size(in: renderer)
             let finalW = targetW ?? s.width
             let finalH = targetH ?? s.height
             var drawX = x
@@ -105,7 +112,7 @@ public indirect enum FirmwareView {
             case .center: drawY = y + (finalH - s.height) / 2
             case .bottom: drawY = y + finalH - s.height
             }
-            child.draw(in: renderer, x: drawX, y: drawY)
+            child[0].draw(in: renderer, x: drawX, y: drawY, engine: engine)
             
         case .chartNode(let content, let width, let height):
 #if !canImport(SwiftUI)
@@ -233,6 +240,10 @@ public func FirmwareText(_ text: String, font: Renderer.FontSize = .small, color
     return .textNode(text, font, color, scale)
 }
 
+public func FirmwareChar(_ ch: UInt8, font: Renderer.FontSize = .small, color: Bool = true, scale: Int = 1) -> FirmwareView {
+    return .charNode(ch, font, color, scale)
+}
+
 public func FirmwareSpacer(minWidth: Int = 0, minHeight: Int = 0) -> FirmwareView {
     return .spacerNode(minWidth, minHeight)
 }
@@ -246,19 +257,19 @@ public func FirmwareVStack(alignment: FirmwareView.VStackAlignment = .leading, s
 }
 
 public func FirmwarePadding(top: Int = 0, bottom: Int = 0, leading: Int = 0, trailing: Int = 0, child: FirmwareView) -> FirmwareView {
-    return .paddingNode(top, bottom, leading, trailing, child)
+    return .paddingNode(top, bottom, leading, trailing, [child])
 }
 
 public func FirmwareBackground(color: Bool, child: FirmwareView) -> FirmwareView {
-    return .backgroundNode(color, child)
+    return .backgroundNode(color, [child])
 }
 
 public func FirmwareRect(width: Int, height: Int, color: Bool = true) -> FirmwareView {
-    return .backgroundNode(color, .spacerNode(width, height))
+    return .backgroundNode(color, [.spacerNode(width, height)])
 }
 
 public func FirmwareFrame(width: Int? = nil, height: Int? = nil, alignment: FirmwareView.VStackAlignment = .center, vAlignment: FirmwareView.HStackAlignment = .center, child: FirmwareView) -> FirmwareView {
-    return .frameNode(width, height, alignment, vAlignment, child)
+    return .frameNode(width, height, alignment, vAlignment, [child])
 }
 
 public func FirmwareChart(content: [ChartNode], width: Int, height: Int) -> FirmwareView {

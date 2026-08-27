@@ -132,11 +132,14 @@ FRONT_LIP = 1.0   # Structural retaining bezel
 # Calculate required chassis depth to securely fit all components
 CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
 
-DISP_W = 62.8
-DISP_H = 42.82
-DISP_T = 1.50 # Shimmed to exactly match tactile switches for coplanarity and sliding clearance
-ACTIVE_W = 58.80
-ACTIVE_H = 35.28
+# Display Geometry: EastRising 2.7" ST7567 (ERC12864FSF-6)
+ACTIVE_W = 60.77
+ACTIVE_H = 32.94
+DISP_W   = 71.20
+DISP_H   = 48.20
+# Assuming "No Backlight" version which is typically ~2.0mm to 2.8mm thick. 
+# If they use the 5.1mm backlit version, this will need to be 5.10!
+DISP_T = 2.00
 
 pad_x = pad_left
 pad_y = pad_bottom
@@ -554,11 +557,10 @@ module chassis_shell() {{
         translate([offset_x - 0.2, {FRONT_LIP} - 0.2, wall])
             cube([fp_w + 0.4, pt + 0.2, ch + 0.1]);
             
-        // Middle Cavity: Hollows out the center for the 65.4mm E-Ink Display to slide down!
-        // We make this cavity 66.4mm wide, which leaves ~2.1mm solid rails on the left and right
-        // to securely hold the Faceplate in place!
-        translate([(cw - 66.4)/2, {FRONT_LIP} + pt - 0.1, wall])
-            cube([66.4, {TACTILE_H} + 0.2, ch + 0.1]);
+        // Middle Cavity: Hollows out the center for the Display to slide down!
+        // The display glass is 71.2mm wide, so we need a 72.0mm cavity!
+        translate([(cw - 72.0)/2, {FRONT_LIP} + pt - 0.1, wall])
+            cube([72.0, {TACTILE_H} + 0.2, ch + 0.1]);
             
         // Tier 2: PCB Cavity — +0.4mm wider (0.2mm/side) so PCB slides in without sanding.
         // +0.2mm deeper for top-face clearance.
