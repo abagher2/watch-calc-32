@@ -183,4 +183,34 @@ final class RetroUIParityTests: XCTestCase {
         XCTAssertEqual(controller.engine.stackSizeLimit, 4)
         XCTAssertNil(controller.engine.activeMenu)
     }
+
+    func testPlotRendering() {
+        engine.programs = [] // clear programs
+        let p = CalculatorEngine.Program(label: "A", steps: [Instruction(fromString: "𝑥²")!])
+        engine.programs.append(p)
+        engine.currentProgramLabel = "A"
+        
+        engine.digit(1)
+        engine.enter()
+        engine.digit(2)
+        engine.enter()
+        engine.digit(3)
+        engine.enter()
+        engine.digit(4)
+        
+        controller.processAction(.plot)
+        controller.render()
+        
+        var plotPixels = 0
+        for y in 0..<200 { // above softkeys
+            for x in 0..<400 {
+                let byteIdx = y * 50 + (x / 8)
+                let bitIdx = x % 8
+                if (controller.renderer.buffer[byteIdx] & (1 << bitIdx)) != 0 {
+                    plotPixels += 1
+                }
+            }
+        }
+        XCTAssertGreaterThan(plotPixels, 0, "Plot should render some pixels on the screen")
+    }
 }

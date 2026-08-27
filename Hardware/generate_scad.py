@@ -99,25 +99,35 @@ if len(rows) >= 3 and len(rows[2]) >= 2:
 # ─────────────────────────────────────────────────────────
 # Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
-WALL   = 1.8   # Base wall thickness (slimmed down for premium look)
-# We reduce the padding to tighten the chassis closer to HP32SII size
-pad_bottom = 3.15
-pad_left = 3.5
-pad_right = 3.5
-fp_w = pcb_width + pad_left + pad_right
-fp_h = 148.0 # HP32SII exact height
+WALL   = 1.4   # Base wall thickness (slimmed down for premium look)
+# Target Assembled Width = 80.0mm. TPU cover adds 2.4mm, so bare chassis must be 77.6mm.
+cw = 77.6
+fp_w = cw - 2*WALL - 0.4
+
+# The PCB should have a 5mm border from the outer chassis wall.
+# That means pcb_width should ideally be 70.0mm (80.0 - 10.0).
+# pad_left is the distance from fp_w to pcb_width.
+pad_left = (fp_w - pcb_width) / 2
+pad_right = pad_left
+
+# Target Assembled Length = 148.0mm. TPU bottom adds 1.2mm. Bare chassis = 146.8mm.
+# Bare chassis = ch + cap_t_val = (fp_h + WALL) + 2.0 = fp_h + 1.4 + 2.0 = fp_h + 3.4.
+# 146.8 = fp_h + 3.4 -> fp_h = 143.4mm.
+fp_h = 143.4
+
+# pcb_height is 137.0mm. Total padding = 143.4 - 137.0 = 6.4mm.
+pad_bottom = 3.2
 
 J1_Y_OFFSET = 0
 
-cw     = fp_w + 2*WALL + 0.4         # chassis outer width
 corner = 6.0
 
 # Internal Component Heights (mm)
 TACTILE_H = 1.6   # 1.5mm switches + 0.1mm gap for sliding clearance
 PCB_T     = 1.6   # PCB thickness
-BATT_H    = 4.5   # Clearance for CR2032 battery holder
-plate_t   = 3.0   # Faceplate base thickness (Reduced for DM32 matching)
-FRONT_LIP = 1.5   # Structural retaining bezel — increased 0.8→1.5mm to stop top-corner bending
+BATT_H    = 4.0   # Clearance for CR2032 battery holder
+plate_t   = 2.0   # Faceplate base thickness (Reduced for slim profile)
+FRONT_LIP = 1.0   # Structural retaining bezel
 
 # Calculate required chassis depth to securely fit all components
 CHASSIS_D = FRONT_LIP + plate_t + TACTILE_H + PCB_T + BATT_H + WALL
@@ -169,7 +179,7 @@ def generate_scad():
     # Keys face DOWN. 
     # ═══════════════════════════════════════════════════════
     gap         = 0.60   # print-in-place clearance
-    pt          = 3.0    # Faceplate overall thickness
+    pt          = 2.0    # Faceplate overall thickness
     
     # Plunger dimensions (Base of the button)
     pw = 6.0
@@ -536,8 +546,8 @@ module chassis_shell() {{
         hull() {{
             translate([3, 3, 0]) cylinder(r=3, h=ch);
             translate([cw-3, 3, 0]) cylinder(r=3, h=ch);
-            translate([3, D-3, 0]) cylinder(r=3, h=ch);
-            translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
+            translate([8, D-3, 0]) cylinder(r=3, h=ch);
+            translate([cw-8, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
         // Tier 1: Faceplate Cavity — +0.4mm wider (0.2mm/side) for removable faceplate clearance
@@ -640,8 +650,8 @@ chassis();
     hull_orig = """        hull() {
             translate([3, 3, 0]) cylinder(r=3, h=ch);
             translate([cw-3, 3, 0]) cylinder(r=3, h=ch);
-            translate([3, D-3, 0]) cylinder(r=3, h=ch);
-            translate([cw-3, D-3, 0]) cylinder(r=3, h=ch);
+            translate([8, D-3, 0]) cylinder(r=3, h=ch);
+            translate([cw-8, D-3, 0]) cylinder(r=3, h=ch);
         }"""
     hull_new = """        hull() {
             // Front edge (rounded corners, full height)
@@ -651,7 +661,7 @@ chassis();
             // Back edge (tapered — shallower at keypad end to save material)
             // Minimum depth at Z=0 must clear all internal cuts:
             //   Tier 2.5 ends at Y = FRONT_LIP + pt + TACTILE_H + PCB_T + 0.5
-            //                     = 1.5 + 3.0 + 1.6 + 1.6 + 0.5 = 8.2mm
+            //                     = 1.0 + 2.0 + 1.6 + 1.6 + 0.5 = 6.7mm
             // So back wall must be at least Y=9.5mm (center at Y=6.5, r=3)
             translate([3, 6.5, 0]) cylinder(r=3, h=0.1);
             translate([cw-3, 6.5, 0]) cylinder(r=3, h=0.1);
@@ -680,7 +690,7 @@ chassis();
     # Retention lips on front (Y=0) and back (Y=D) edges grip the edges
     # of the faceplate and PCB to prevent them sliding back out.
 
-    cap_t_val = 3.0      # end cap plate thickness
+    cap_t_val = 2.0      # end cap plate thickness (thinned down to save length)
     bezel_lip = plate_t   # front lip extends 4mm forward to match bezel
 
     top_cap = f"""
@@ -770,26 +780,26 @@ module top_cap() {{
         }}
         
         // ── BATTERY BUCKET (hangs down into Tier 3 cavity) ─────
-        // Restored to CR2450 coin cell (24.5mm diameter x 5.0mm thick) + wire clearance.
+        // Restored to CR2032 coin cell (20.0mm diameter x 3.2mm thick) + wire clearance.
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
-        // CENTERED between the left and right screw bosses to avoid any collisions!
-        translate([45.0, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 36.35]) {{
+        // CENTERED behind the LCD, moved down by 10mm
+        translate([35.0, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 28.5]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{
-                    cube([28, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
-                    translate([0, 0, 26 + 0.1]) cube([28, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]); // Goes ALL THE WAY UP through the cap to let wires out!
+                    cube([24, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
+                    translate([0, 0, 26 + 0.1]) cube([24, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]); // Goes ALL THE WAY UP through the cap to let wires out!
                 }}
                 // Inner hollow (1.2mm walls on sides, back, and bottom. OPEN on front to PCB and OPEN on top for wires!)
                 translate([1.2, -0.1, 1.2])
                     hull() {{
-                        cube([28 - 2.4, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
-                        translate([0, 0, 26 + 0.2]) cube([28 - 2.4, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5) - 1.2, 0.1]);
+                        cube([24 - 2.4, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
+                        translate([0, 0, 26 + 0.2]) cube([24 - 2.4, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5) - 1.2, 0.1]);
                     }}
                     
                 // Wire exit channel on the RIGHT side to route to the JST connector!
-                translate([28 - 2.4, -0.1, 26 - cap_t - 5.0])
+                translate([24 - 2.4, -0.1, 26 - cap_t - 5.0])
                     cube([5.0, 10.0, cap_t + 5.0]);
             }}
         }}
@@ -923,8 +933,8 @@ $fn = 32;
 cw   = {cw:.3f};
 D    = {CHASSIS_D:.3f};
 ch   = {fp_h + WALL:.3f};
-cover_t = 2.0;
-btn_clearance = 3.2; // Buttons stick out ~3.0mm, give 0.2mm extra
+cover_t = 1.2;
+btn_clearance = 1.2; // Buttons stick out 1.0mm past the lip, so 1.2mm bumper protects them
 
 module tpu_stretch_cover() {{
     difference() {{

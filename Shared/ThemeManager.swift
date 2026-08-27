@@ -144,7 +144,12 @@ struct RetroTheme: AppTheme {
 }
 
 class ThemeManager: ObservableObject {
-    @Published var activeThemeType: ThemeType = .beta
+    @Published var activeThemeType: ThemeType = {
+        if let themeString = UserDefaults.standard.string(forKey: "ForceTheme"), let theme = ThemeType(rawValue: themeString) {
+            return theme
+        }
+        return .beta
+    }()
     
     var theme: AppTheme {
         switch activeThemeType {

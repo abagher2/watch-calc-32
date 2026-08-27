@@ -51,7 +51,6 @@ void hw_init(void) {
 #endif
     printf("C Booted! Magic check: %lx\n", emu_display.magic[0]);
     void* ptr = malloc(32);
-    printf("Malloc: %p\n", ptr);
     free(ptr);
 
 #ifndef EMULATOR

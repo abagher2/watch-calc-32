@@ -144,13 +144,13 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
 
     static let uartBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
     static let formatBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-    static let txBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+    static let txBuf = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
     static var txHead = 0
     static var txTail = 0
     
     @inline(__always)
     static func pushTx(_ val: UInt8) {
-        let next = (txHead + 1) % 1024
+        let next = (txHead + 1) % 4096
         if next != txTail {
             txBuf[txHead] = val
             txHead = next
@@ -279,9 +279,9 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             debounceCounter = 0
         }
         
-        if txHead != txTail {
+        while txHead != txTail {
             putchar_c(Int32(txBuf[txTail]))
-            txTail = (txTail + 1) % 1024
+            txTail = (txTail + 1) % 4096
         }
         if needsDisplay {
             renderer.clear()
@@ -338,8 +338,6 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         hw_init()
         
         uiController.retroUI.doubleFormatter = { (val, mode) in
-            let yBuffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-            defer { yBuffer.deallocate() }
             var cMode: Int32 = 0
             var cPlaces: Int32 = 0
             switch mode {
@@ -348,10 +346,10 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             case .eng(let p): cMode = 3; cPlaces = Int32(p)
             case .all: cMode = 0; cPlaces = 0
             }
-            format_double_c(val, yBuffer, 64, cMode, cPlaces)
+            format_double_c(val, WatchCalcFirmware.formatBuf, 64, cMode, cPlaces)
             var len = 0
-            while len < 64 && yBuffer[len] != 0 { len += 1 }
-            return String(decoding: UnsafeBufferPointer(start: yBuffer, count: len), as: UTF8.self)
+            while len < 64 && WatchCalcFirmware.formatBuf[len] != 0 { len += 1 }
+            return String(decoding: UnsafeBufferPointer(start: WatchCalcFirmware.formatBuf, count: len), as: UTF8.self)
         }
         
         while true {

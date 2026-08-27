@@ -35,22 +35,22 @@ public struct RetroLCDView: View {
                     .interpolation(.none)
                     .aspectRatio(400.0 / 240.0, contentMode: .fit)
                     .accessibilityValue(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
+                    .background(
+                        Text(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
+                            .accessibilityIdentifier("lcd_buffer_hex")
+                            .frame(width: 0, height: 0)
+                    )
             } else {
                 Color.black
             }
         }
-        .accessibilityAddTraits(.isStaticText)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("lcd_display")
         .accessibilityLabel(
             engine.statusMessage ?? 
             engine.errorMessage ?? 
             engine.transientMessage ?? 
             (engine.promptString != nil ? engine.promptString! : engine.displayX)
-        )
-        .background(
-            Text(controller.renderer.buffer.map { String(format: "%02x", $0) }.joined())
-                .accessibilityIdentifier("lcd_buffer_hex")
-                .frame(width: 0, height: 0)
         )
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("iOSMenuTrigger"))) { notification in
             if let command = notification.userInfo?["command"] as? CalculatorOperation {

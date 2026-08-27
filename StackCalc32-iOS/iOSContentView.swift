@@ -35,9 +35,9 @@ struct iOSContentView: View {
             
             // In Retro mode, the LCD is strictly 400x240 (5:3 aspect ratio).
             // We use the exact 5:3 aspect ratio to ensure no letterboxing padding occurs.
-            let retroLcdHeight: CGFloat = (geo.size.width - (numpadPadHoriz * 2)) * (240.0 / 400.0)
+            let retroLcdHeight: CGFloat = min((geo.size.width - (numpadPadHoriz * 2)) * (240.0 / 400.0), geo.size.height * 0.35)
             
-            let lcdHeight: CGFloat = isRetro ? 0 : standardLcdHeight
+            let lcdHeight: CGFloat = isRetro ? retroLcdHeight : standardLcdHeight
             
             let extraPadding: CGFloat = isRetro ? 16 : (landscape ? (isPad ? 132 : 40) : (isPad ? 160 : 125))
             let availableHForNumpad = geo.size.height - lcdHeight - extraPadding
@@ -133,7 +133,16 @@ struct iOSContentView: View {
         
         VStack(alignment: .trailing, spacing: 2) {
             HStack(alignment: .top) {
-                if themeManager.activeThemeType != .retro {
+                if themeManager.activeThemeType == .retro {
+                    RetroLCDView(engine: engine)
+                        .frame(maxWidth: lcdMaxWidth, maxHeight: retroLcdHeight)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(themeManager.theme.lcdBackgroundColor)
+                        )
+                        .padding(.horizontal, numpadPadHoriz)
+                        .padding(.top, lcdPadTop)
+                } else {
                     VStack(alignment: .trailing, spacing: 2) {
                         LCDAnnunciatorsView(
                             engine: engine,
@@ -230,7 +239,16 @@ struct iOSContentView: View {
         let numpadPadHoriz: CGFloat = (themeManager.activeThemeType == .retro) ? (geo.size.width * 0.08) : baseNumpadPadHoriz
         let numpadPadBottom: CGFloat = isPad ? 48 : 32
         
-        if themeManager.activeThemeType != .retro {
+        if themeManager.activeThemeType == .retro {
+            RetroLCDView(engine: engine)
+                .frame(maxWidth: .infinity, maxHeight: retroLcdHeight)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(themeManager.theme.lcdBackgroundColor)
+                )
+                .padding(.horizontal, numpadPadHoriz)
+                .padding(.top, lcdPadTop)
+        } else {
             VStack(alignment: .trailing, spacing: 2) {
                 LCDAnnunciatorsView(
                     engine: engine,
@@ -509,7 +527,7 @@ struct iOSMenuModifier: ViewModifier {
             return AnyView(NavigationStack { RegsMenuView() }.environment(engine).presentationDetents([.medium, .large]))
         case .eqn:
             return AnyView(NavigationStack {
-                EquationListView(isPresented: Binding(
+                EquationEditorView(isPresented: Binding(
                     get: { activeMenu == .eqn },
                     set: { if !$0 { activeMenu = nil } }
                 ))

@@ -50,6 +50,12 @@ final class FirmwareHILTests: XCTestCase {
     }
     
     func sendCommand(_ cmd: String) {
+        // Drain any pending bytes first to prevent TCP backpressure
+        var junk = [UInt8](repeating: 0, count: 4096)
+        while inputStream.hasBytesAvailable {
+            _ = inputStream.read(&junk, maxLength: junk.count)
+        }
+        
         let command = cmd + "\n"
         let data = [UInt8](command.utf8)
         outputStream.write(data, maxLength: data.count)

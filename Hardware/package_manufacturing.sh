@@ -33,7 +33,7 @@ rm -f bom.csv
 echo "Cleaning up redundant guides..."
 rm -f PCBWAY_ORDERING_GUIDE.md
 rm -f PCBWay_Order_Guide.md
-rm -f WatchCalc32_PCBWay_Order
+rm -rf WatchCalc32_PCBWay_Order
 
 cat << 'EOF' > "$OUTDIR/PCBWay_Order_Guide.md"
 # WatchCalc32 PCBWay Ordering Guide

@@ -43,6 +43,9 @@ public struct CalculatorMenuPresenter: View {
         case .const:
             ConstMenuPresenterView(isPresented: $isPresented)
                 .environment(engine)
+        case .eqn:
+            NavigationStack { EquationEditorView(isPresented: $isPresented) }
+                .environment(engine)
         default:
             GenericMenuPresenterView(menu: menu, isPresented: $isPresented)
                 .environment(engine)

@@ -125,5 +125,5 @@ if (TARGET pico_float_pico_vfp)
 endif()
 
 target_compile_definitions(WatchCalcFirmware PRIVATE
-    PICO_DEBUG_MALLOC=1
+    PICO_DEBUG_MALLOC=0
 )

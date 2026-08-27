@@ -424,7 +424,7 @@ public class RetroUI {
         
         let screen = FirmwareVStack(alignment: .leading, spacing: 0, children: [
             FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .top, child: topBar),
-            mainContent,
+            body,
             FirmwareFrame(width: 400, height: 40, alignment: .leading, vAlignment: .bottom, child: footer)
         ])
         

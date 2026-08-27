@@ -254,12 +254,18 @@ struct ContentView: View {
             .padding(.leading, 16)
             
             // Number DisplayRow
-            LCDDisplayView(
-                engine: engine,
-                font: .system(size: fontSize, weight: .regular).monospacedDigit(),
-                foregroundColor: themeManager.theme.lcdTextColor
-            )
-            .padding(.bottom, 2) // small padding so descenders don't touch the absolute bottom edge
+            if themeManager.activeThemeType == .retro {
+                RetroLCDView(engine: engine)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 2)
+            } else {
+                LCDDisplayView(
+                    engine: engine,
+                    font: .system(size: fontSize, weight: .regular).monospacedDigit(),
+                    foregroundColor: themeManager.theme.lcdTextColor
+                )
+                .padding(.bottom, 2) // small padding so descenders don't touch the absolute bottom edge
+            }
             
             if engine.isBuildingNumber && !hasSeenEnterTip && engine.promptString == nil {
                 Text("Tap for ENTER, Swipe for ops")
@@ -341,7 +347,7 @@ struct WatchMenuModifier: ViewModifier {
             .sheet(isPresented: $showXEQ) { XEQPromptView().environment(engine) }
             .sheet(isPresented: $showIntegrate) { IntegratePromptView().environment(engine) }
             .sheet(isPresented: $showShow) { ShowView(rawValue: engine.stack.first?.real ?? 0) }
-            .sheet(isPresented: $showProgramEditor) { ProgramEditorView() }
+            .sheet(isPresented: $showProgramEditor) { EquationEditorView() }
             .sheet(isPresented: Binding(
                 get: { bindableEngine.currentEvaluatingProgram != nil },
                 set: { if !$0 { bindableEngine.currentEvaluatingProgram = nil } }

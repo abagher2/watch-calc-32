@@ -83,8 +83,8 @@ final class CalculatorEngineTests_Equation: XCTestCase {
     }
 
     func testEquationModeBlacklist() {
-        engine.executeMath("EQN")
-        XCTAssertTrue(engine.isEquationMode)
+        engine.executeMath("PRGM")
+        XCTAssertTrue(engine.isProgrammingMode)
         
         // Allowed commands
         engine.digit(5)
@@ -112,7 +112,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         XCTAssertEqual(engine.errorMessage, "INVALID DATA")
         engine.errorMessage = nil
         
-        XCTAssertEqual(engine.currentEquation, "5 ENTER +")
+        XCTAssertEqual(engine.currentProgramSteps.joined(separator: " "), "5 ENTER +")
     }
     
     func testEquationDeltaFunctions() {
