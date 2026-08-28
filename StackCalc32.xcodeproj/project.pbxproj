@@ -11,50 +11,45 @@
 		0888C367CD4A07F744E0D96B /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */; };
 		0C0F889D1E5F33F579166FDA /* TestEquationEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D5B60BFBAAA2705EB80849 /* TestEquationEntry.swift */; };
 		0F99DE1984389A7419231CE0 /* KeyActionDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DEDBBAF63A2C6EAC6AB81D1 /* KeyActionDispatcher.swift */; };
-		11AA22BB33CC44DD55EE66FF /* CalculatorMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */; };
 		19D643C81EA700823B4AB98A /* UpperMatrixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520FEB4464451FEE27302C17 /* UpperMatrixView.swift */; };
 		1E97E7E75F450938EF041273 /* ConstantsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B2824215229CBB87845FB3 /* ConstantsMenuView.swift */; };
 		2042F1A1DF5C6B14EBF72E42 /* CalcButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8506526603110A266289A4E2 /* CalcButton.swift */; };
 		23F34F5B17CD6BFD86CD732B /* SnapshotHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497D9F087E7A97B44ADA3898 /* SnapshotHelper.swift */; };
 		241EC476F1A92B21CBF8F3BA /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A75546566D53661DBECAB6 /* iOSApp.swift */; };
 		255877EC64F087A18F149DF8 /* MathLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354335B39A637693BBC2FB3F /* MathLabel.swift */; };
-		2BBBAF3A69144D288FA3D5E2 /* EquationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8ECE50DC8B879057CADC60 /* EquationEditorView.swift */; };
 		3587A5B5DDC2E42BE06F9FC2 /* iOSContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68F8FC3AEDDF00C3949286E5 /* iOSContentView.swift */; };
 		38398546BC0A3AC3FE5CDBB3 /* SolvePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA501192C5B4F36A59DE4A73 /* SolvePromptView.swift */; };
 		3BA3B085D748B38A164EF9BC /* BottomNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17629A8693F8F771F62F569E /* BottomNumpadView.swift */; };
 		40006F49418CA6A1B18B7EA1 /* RetroLayoutVerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF995AB41C039F300255ABC /* RetroLayoutVerificationView.swift */; };
 		40ECC6058E6BA57DB8DFB526 /* StackCalc32MenusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 979FB9A09EE76B03AD229F11 /* StackCalc32MenusTests.swift */; };
+		47147708ABE002C686BE5EE6 /* CalculatorMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7155B8CDFEA6161B1A830F52 /* CalculatorMenuPresenter.swift */; };
 		47609D6CB36FA3DC9082802C /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7F8B900D5FF1DFD60990CA96 /* RPNCore */; };
 		48269512DC8303EE2C420989 /* StackCalc32UXTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B62FE413A89BFC071508E8 /* StackCalc32UXTests.swift */; };
 		486B559596F81FA5469E3734 /* RegsMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E8CF2ED0E61B9996B5D6AB /* RegsMenuView.swift */; };
-		4A36F668EE43AE7CCFFD8DC3 /* EquationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7366981F619926C776342EC8 /* EquationEditorView.swift */; };
 		4E159211C4D5B9AC9A2D94C5 /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BCF319542E7552AACD65B9 /* MemMenuView.swift */; };
 		4FEDF1CBFBFE2055B3FFDA17 /* PioneerButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EADDF1F6EA82FFD270B403 /* PioneerButtonStyle.swift */; };
 		50F3561737A713F6E54AAF53 /* RetroLCDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5FF932005D901141851A10E /* RetroLCDView.swift */; };
+		54D8AA80F8031A6E23FAA88B /* EquationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFF52EC596135DA149D2483 /* EquationEditorView.swift */; };
 		557C12CDF899D0D4437A8DE7 /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8E389B957D6122784C1BA759 /* RPNCore */; };
 		564A856B750D5CABF62B9459 /* IntegratePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8E529A160D5BC4C1496CD8 /* IntegratePromptView.swift */; };
 		58F28A184C1A9E523281AA68 /* BezelButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */; };
 		5D743E950F2FC3AAB6617887 /* TestMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C7C283D0CEAB022295E7B1D /* TestMath.swift */; };
-		5FCE3BF8E9966A7F901A57C4 /* TestRetroUIDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783CE26783FC4BB326C4D0F5 /* TestRetroUIDisplay.swift */; };
 		60328FD87215F85105CEF251 /* IntegratePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8E529A160D5BC4C1496CD8 /* IntegratePromptView.swift */; };
-		6703F841B9488C6755F1B4EE /* EquationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7366981F619926C776342EC8 /* EquationEditorView.swift */; };
+		6521E5D2A5AD87316C092123 /* EquationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFF52EC596135DA149D2483 /* EquationEditorView.swift */; };
 		6B475E3F41252CCE89317492 /* RPNCore in Frameworks */ = {isa = PBXBuildFile; productRef = E02B12723C67535A5BCC971B /* RPNCore */; };
 		6B61C3C58F4CD02167207FB0 /* StackCalc32.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 40D2D0EE34113D65F5F1B1D2 /* StackCalc32.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6BBBF3A5814E9D1790DB7C48 /* SharedCalculatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 821A0A21D3AEAC4738B67E9F /* SharedCalculatorTest.swift */; };
-		6FA0387FEA00D133FFD70E6B /* EquationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8ECE50DC8B879057CADC60 /* EquationEditorView.swift */; };
 		7004274447FC3D008108160E /* TopNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFDA00D894200186BDC2DFD /* TopNumpadView.swift */; };
 		70A3499860D01048706DD078 /* SharedCalculatorThoroughTestCases.swift in Sources */ = {isa = PBXBuildFile; fileRef = E620A30EEC7D5D98934BFC3B /* SharedCalculatorThoroughTestCases.swift */; };
 		74493B9A5A711C559DB17BEC /* FullScreenPlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB60ADDA01A5617FEBE3A8B /* FullScreenPlotView.swift */; };
 		766A50250E73EDFA8C2285A1 /* LCDDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002FF637DAD5F31759348EDE /* LCDDisplayView.swift */; };
 		77164E31A3687033BE610F74 /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D86D63CCF736E0CBDC908C /* VariablePromptView.swift */; };
-		77AA88BB99CC00DD11EE22FF /* CalculatorMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */; };
 		785FB9E266A5B027815B2256 /* KeyActionDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DEDBBAF63A2C6EAC6AB81D1 /* KeyActionDispatcher.swift */; };
 		7A06F92C644CC43546E0503B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F47A156D519E5CD7B324B986 /* Assets.xcassets */; };
 		7A3313512AB45EAB46463B35 /* MemMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BCF319542E7552AACD65B9 /* MemMenuView.swift */; };
 		7A5BD6D1D54854D0759F85A2 /* RetroLCDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5FF932005D901141851A10E /* RetroLCDView.swift */; };
 		7BBE0D33444587D0C2FCD853 /* ClearMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBC21B712EDFACA7BD5413B /* ClearMenuView.swift */; };
 		8026EF4091B6E3F7549CFEAB /* LCDDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 002FF637DAD5F31759348EDE /* LCDDisplayView.swift */; };
-		81066DEF71C44CCE09BEC31B /* TestRetroUIDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783CE26783FC4BB326C4D0F5 /* TestRetroUIDisplay.swift */; };
 		849448FE65B2EFCA87935460 /* UILBenchmarkData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05BBAA723C113CB74CC0CA78 /* UILBenchmarkData.swift */; };
 		9830D38C81D879E22E86BEFC /* PioneerButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EADDF1F6EA82FFD270B403 /* PioneerButtonStyle.swift */; };
 		9EF2805D211342202203509E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A59967A5C5ECDEC366BEA8 /* ContentView.swift */; };
@@ -63,6 +58,7 @@
 		A53B17107550F7237A661F19 /* PlotPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60D548A53A0143A282DA711 /* PlotPromptView.swift */; };
 		A7268FD733FA372EA2C99B9E /* StackLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA7AEDB370F73268FB74D88 /* StackLogoView.swift */; };
 		ACE73E5DF321CB49060CE5B3 /* SolvePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA501192C5B4F36A59DE4A73 /* SolvePromptView.swift */; };
+		ACF1A567E3AAF2DCCBA8816E /* CalculatorMenuPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7155B8CDFEA6161B1A830F52 /* CalculatorMenuPresenter.swift */; };
 		B3AA976C23F45FB4D2E5B339 /* VariablePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D86D63CCF736E0CBDC908C /* VariablePromptView.swift */; };
 		B7487DF8371A4148E1EB662B /* TestTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3165DB6603B8CB899FE106 /* TestTap.swift */; };
 		B8ED1650BA3AA84075A38875 /* StackCalc32UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33991CEEE3881C86E8B242A0 /* StackCalc32UITests.swift */; };
@@ -70,6 +66,8 @@
 		BA8276F2E388DCF4C43EAD31 /* StackLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA7AEDB370F73268FB74D88 /* StackLogoView.swift */; };
 		BC09E79710CDB2A1603D7F8C /* HP32KeyMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */; };
 		BC0EB6F339B61915EF683409 /* SharedCalculatorTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 821A0A21D3AEAC4738B67E9F /* SharedCalculatorTest.swift */; };
+		BFC6B0579271262949B08E18 /* TestRetroUIDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3457C4EFD14DB616F9E806EF /* TestRetroUIDisplay.swift */; };
+		CA3F48C8FCDD61BF5B80DDF2 /* RotationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C86106B4CD771A69B4E64DFA /* RotationUITests.swift */; };
 		CC5777F99FA708E2BB4C5692 /* TestBasicEnter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C04B69DB5D370F5005699EE /* TestBasicEnter.swift */; };
 		CD4B4A0AEBA30ED6194EAFA6 /* MathLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 354335B39A637693BBC2FB3F /* MathLabel.swift */; };
 		CDADABE8100D140FD3BC3ECF /* HapticNumpadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8EAFAE50B65BD0D63BBABB /* HapticNumpadView.swift */; };
@@ -137,6 +135,7 @@
 		1F3165DB6603B8CB899FE106 /* TestTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTap.swift; sourceTree = "<group>"; };
 		33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BezelButtonStyle.swift; sourceTree = "<group>"; };
 		33991CEEE3881C86E8B242A0 /* StackCalc32UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackCalc32UITests.swift; sourceTree = "<group>"; };
+		3457C4EFD14DB616F9E806EF /* TestRetroUIDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestRetroUIDisplay.swift; sourceTree = "<group>"; };
 		34A59967A5C5ECDEC366BEA8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		354335B39A637693BBC2FB3F /* MathLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathLabel.swift; sourceTree = "<group>"; };
 		37BCF319542E7552AACD65B9 /* MemMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemMenuView.swift; sourceTree = "<group>"; };
@@ -147,6 +146,7 @@
 		4C04B69DB5D370F5005699EE /* TestBasicEnter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestBasicEnter.swift; sourceTree = "<group>"; };
 		4DB60ADDA01A5617FEBE3A8B /* FullScreenPlotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenPlotView.swift; sourceTree = "<group>"; };
 		4EBC21B712EDFACA7BD5413B /* ClearMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearMenuView.swift; sourceTree = "<group>"; };
+		4EFF52EC596135DA149D2483 /* EquationEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquationEditorView.swift; sourceTree = "<group>"; };
 		50B2824215229CBB87845FB3 /* ConstantsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstantsMenuView.swift; sourceTree = "<group>"; };
 		520FEB4464451FEE27302C17 /* UpperMatrixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpperMatrixView.swift; sourceTree = "<group>"; };
 		5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HP32KeyMap.swift; sourceTree = "<group>"; };
@@ -158,20 +158,18 @@
 		6A8EAFAE50B65BD0D63BBABB /* HapticNumpadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticNumpadView.swift; sourceTree = "<group>"; };
 		6C8E529A160D5BC4C1496CD8 /* IntegratePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegratePromptView.swift; sourceTree = "<group>"; };
 		6DEDBBAF63A2C6EAC6AB81D1 /* KeyActionDispatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyActionDispatcher.swift; sourceTree = "<group>"; };
-		7366981F619926C776342EC8 /* EquationEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquationEditorView.swift; sourceTree = "<group>"; };
+		7155B8CDFEA6161B1A830F52 /* CalculatorMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorMenuPresenter.swift; sourceTree = "<group>"; };
 		7462880D8B9F366053F6FCC1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		783CE26783FC4BB326C4D0F5 /* TestRetroUIDisplay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TestRetroUIDisplay.swift; path = TestRetroUIDisplay.swift; sourceTree = "<group>"; };
 		821A0A21D3AEAC4738B67E9F /* SharedCalculatorTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCalculatorTest.swift; sourceTree = "<group>"; };
 		8506526603110A266289A4E2 /* CalcButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcButton.swift; sourceTree = "<group>"; };
 		91EADDF1F6EA82FFD270B403 /* PioneerButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PioneerButtonStyle.swift; sourceTree = "<group>"; };
 		979FB9A09EE76B03AD229F11 /* StackCalc32MenusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StackCalc32MenusTests.swift; sourceTree = "<group>"; };
-		9D8ECE50DC8B879057CADC60 /* EquationEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquationEditorView.swift; sourceTree = "<group>"; };
 		A47F68DDEC96C84898415978 /* ShiftedLayoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftedLayoutView.swift; sourceTree = "<group>"; };
 		A60D548A53A0143A282DA711 /* PlotPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlotPromptView.swift; sourceTree = "<group>"; };
-		AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorMenuPresenter.swift; sourceTree = "<group>"; };
 		B5E8CF2ED0E61B9996B5D6AB /* RegsMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegsMenuView.swift; sourceTree = "<group>"; };
 		BA7E6F9C2CE4691B506A6EC9 /* StackCalc32ContainerUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = StackCalc32ContainerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C5FF932005D901141851A10E /* RetroLCDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetroLCDView.swift; sourceTree = "<group>"; };
+		C86106B4CD771A69B4E64DFA /* RotationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotationUITests.swift; sourceTree = "<group>"; };
 		CA9AF1A03B02EB91EA1F82E8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		DC8B5D6C7BB8883F3011000F /* StackCalc32Container.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = StackCalc32Container.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEF9F3C351B685B2FD45CD98 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
@@ -245,6 +243,7 @@
 			isa = PBXGroup;
 			children = (
 				F78F8FBFD7746B6965AB581D /* iOSUITests.swift */,
+				C86106B4CD771A69B4E64DFA /* RotationUITests.swift */,
 			);
 			path = StackCalc32ContainerUITests;
 			sourceTree = "<group>";
@@ -320,8 +319,8 @@
 				4C04B69DB5D370F5005699EE /* TestBasicEnter.swift */,
 				12D5B60BFBAAA2705EB80849 /* TestEquationEntry.swift */,
 				3C7C283D0CEAB022295E7B1D /* TestMath.swift */,
+				3457C4EFD14DB616F9E806EF /* TestRetroUIDisplay.swift */,
 				05BBAA723C113CB74CC0CA78 /* UILBenchmarkData.swift */,
-				783CE26783FC4BB326C4D0F5 /* TestRetroUIDisplay.swift */,
 			);
 			path = StackCalc32UITests;
 			sourceTree = "<group>";
@@ -341,7 +340,7 @@
 			isa = PBXGroup;
 			children = (
 				33260FB26C35D75AD3B88013 /* BezelButtonStyle.swift */,
-				AA01BB02CC03DD04EE05FF06 /* CalculatorMenuPresenter.swift */,
+				7155B8CDFEA6161B1A830F52 /* CalculatorMenuPresenter.swift */,
 				5A6353305B5E28EA6A72989F /* HP32KeyMap.swift */,
 				6DEDBBAF63A2C6EAC6AB81D1 /* KeyActionDispatcher.swift */,
 				002FF637DAD5F31759348EDE /* LCDDisplayView.swift */,
@@ -367,9 +366,8 @@
 		835D252101379B4DEFFFCF2D /* Equations */ = {
 			isa = PBXGroup;
 			children = (
-				7366981F619926C776342EC8 /* EquationEditorView.swift */,
+				4EFF52EC596135DA149D2483 /* EquationEditorView.swift */,
 				A60D548A53A0143A282DA711 /* PlotPromptView.swift */,
-				9D8ECE50DC8B879057CADC60 /* EquationEditorView.swift */,
 				E5D86D63CCF736E0CBDC908C /* VariablePromptView.swift */,
 			);
 			path = Equations;
@@ -573,13 +571,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				EBEE1C5B5484AA09EDE6E96D /* BezelButtonStyle.swift in Sources */,
-				11AA22BB33CC44DD55EE66FF /* CalculatorMenuPresenter.swift in Sources */,
 				3BA3B085D748B38A164EF9BC /* BottomNumpadView.swift in Sources */,
 				2042F1A1DF5C6B14EBF72E42 /* CalcButton.swift in Sources */,
+				ACF1A567E3AAF2DCCBA8816E /* CalculatorMenuPresenter.swift in Sources */,
 				7BBE0D33444587D0C2FCD853 /* ClearMenuView.swift in Sources */,
 				1E97E7E75F450938EF041273 /* ConstantsMenuView.swift in Sources */,
 				9EF2805D211342202203509E /* ContentView.swift in Sources */,
-				6703F841B9488C6755F1B4EE /* EquationEditorView.swift in Sources */,
+				6521E5D2A5AD87316C092123 /* EquationEditorView.swift in Sources */,
 				A459FEC0F56550A5A1155A04 /* FullScreenPlotView.swift in Sources */,
 				BC09E79710CDB2A1603D7F8C /* HP32KeyMap.swift in Sources */,
 				564A856B750D5CABF62B9459 /* IntegratePromptView.swift in Sources */,
@@ -589,7 +587,6 @@
 				7A3313512AB45EAB46463B35 /* MemMenuView.swift in Sources */,
 				9830D38C81D879E22E86BEFC /* PioneerButtonStyle.swift in Sources */,
 				A53B17107550F7237A661F19 /* PlotPromptView.swift in Sources */,
-				2BBBAF3A69144D288FA3D5E2 /* EquationEditorView.swift in Sources */,
 				486B559596F81FA5469E3734 /* RegsMenuView.swift in Sources */,
 				50F3561737A713F6E54AAF53 /* RetroLCDView.swift in Sources */,
 				40006F49418CA6A1B18B7EA1 /* RetroLayoutVerificationView.swift in Sources */,
@@ -619,8 +616,8 @@
 				CC5777F99FA708E2BB4C5692 /* TestBasicEnter.swift in Sources */,
 				0C0F889D1E5F33F579166FDA /* TestEquationEntry.swift in Sources */,
 				5D743E950F2FC3AAB6617887 /* TestMath.swift in Sources */,
+				BFC6B0579271262949B08E18 /* TestRetroUIDisplay.swift in Sources */,
 				849448FE65B2EFCA87935460 /* UILBenchmarkData.swift in Sources */,
-				81066DEF71C44CCE09BEC31B /* TestRetroUIDisplay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -628,11 +625,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CA3F48C8FCDD61BF5B80DDF2 /* RotationUITests.swift in Sources */,
 				6BBBF3A5814E9D1790DB7C48 /* SharedCalculatorTest.swift in Sources */,
 				70A3499860D01048706DD078 /* SharedCalculatorThoroughTestCases.swift in Sources */,
 				D076D636363DCA4F487FD430 /* SnapshotHelper.swift in Sources */,
 				E8206902247932D96BAF6D4B /* iOSUITests.swift in Sources */,
-				5FCE3BF8E9966A7F901A57C4 /* TestRetroUIDisplay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -642,10 +639,10 @@
 			files = (
 				0477C536F67CD3E9B9719732 /* AppDelegate.swift in Sources */,
 				58F28A184C1A9E523281AA68 /* BezelButtonStyle.swift in Sources */,
-				77AA88BB99CC00DD11EE22FF /* CalculatorMenuPresenter.swift in Sources */,
+				47147708ABE002C686BE5EE6 /* CalculatorMenuPresenter.swift in Sources */,
 				D04AA9592412BDD0A8BD4003 /* ClearMenuView.swift in Sources */,
 				F676D4B28518720C8B6C44AF /* ConstantsMenuView.swift in Sources */,
-				4A36F668EE43AE7CCFFD8DC3 /* EquationEditorView.swift in Sources */,
+				54D8AA80F8031A6E23FAA88B /* EquationEditorView.swift in Sources */,
 				74493B9A5A711C559DB17BEC /* FullScreenPlotView.swift in Sources */,
 				0888C367CD4A07F744E0D96B /* HP32KeyMap.swift in Sources */,
 				CDADABE8100D140FD3BC3ECF /* HapticNumpadView.swift in Sources */,
@@ -656,7 +653,6 @@
 				4E159211C4D5B9AC9A2D94C5 /* MemMenuView.swift in Sources */,
 				4FEDF1CBFBFE2055B3FFDA17 /* PioneerButtonStyle.swift in Sources */,
 				D1585529D8621614941AC37C /* PlotPromptView.swift in Sources */,
-				6FA0387FEA00D133FFD70E6B /* EquationEditorView.swift in Sources */,
 				FAAE6C1057EFA30D242CA508 /* RegsMenuView.swift in Sources */,
 				7A5BD6D1D54854D0759F85A2 /* RetroLCDView.swift in Sources */,
 				9F66473A96E8612574704901 /* RetroLayoutVerificationView.swift in Sources */,

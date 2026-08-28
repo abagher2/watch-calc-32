@@ -120,11 +120,18 @@ struct iOSContentView: View {
                 .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                     let orientation = UIDevice.current.orientation
                     if UIDevice.current.userInterfaceIdiom == .phone {
+                        // Force OS to re-evaluate AppDelegate's supportedInterfaceOrientations
                         if let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                            for window in windowScene.windows {
+                                window.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+                            }
+                            UIViewController.attemptRotationToDeviceOrientation()
+                            
+                            // Fallback to requestGeometryUpdate just in case
                             if orientation == .portraitUpsideDown {
-                                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+                                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) { _ in }
                             } else if orientation.isLandscape || orientation == .portrait {
-                                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .allButUpsideDown))
+                                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .allButUpsideDown)) { _ in }
                             }
                         }
                     }
