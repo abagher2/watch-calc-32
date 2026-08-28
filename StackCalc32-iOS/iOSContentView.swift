@@ -23,7 +23,7 @@ struct iOSContentView: View {
             // Calculate exact height for keypad to prevent GeometryReader from ballooning empty space
             let totalCols: CGFloat = landscape ? 11 : 6
             let totalRows: CGFloat = landscape ? 4 : 8
-            let standardLcdHeight: CGFloat = landscape ? (isPad ? 130 : 90) : (isPad ? 160 : 120)
+            let standardLcdHeight: CGFloat = landscape ? (isPad ? 130 : 110) : (isPad ? 160 : 120)
             let isRetro = themeManager.activeThemeType == .retro
             
             // In Retro mode, the LCD is strictly 400x240 (5:3 aspect ratio). To align the 6 menu columns 
@@ -167,7 +167,7 @@ struct iOSContentView: View {
                         )
                     }
                     .padding()
-                    .frame(maxWidth: lcdMaxWidth, maxHeight: 90, alignment: .bottomLeading)
+                    .frame(maxWidth: lcdMaxWidth, maxHeight: isPad ? 130 : 110, alignment: .bottomLeading)
                     .layoutPriority(1)
                     .background(
                         AnyView(
