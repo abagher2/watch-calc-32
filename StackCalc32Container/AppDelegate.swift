@@ -4,6 +4,15 @@ import UIKit
 // @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
-        return .all
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            return .all
+        }
+        
+        let orientation = UIDevice.current.orientation
+        if orientation == .portraitUpsideDown {
+            return .portrait
+        }
+        
+        return .allButUpsideDown
     }
 }

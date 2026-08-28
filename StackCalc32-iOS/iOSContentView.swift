@@ -2,6 +2,7 @@ import SwiftUI
 import RPNCore
 
 struct iOSContentView: View {
+    @State private var deviceOrientation: UIDeviceOrientation = UIDevice.current.orientation
     @Environment(CalculatorEngine.self) var engine
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.horizontalSizeClass) var hSizeClass
@@ -113,7 +114,25 @@ struct iOSContentView: View {
             }
         }
         
-        return AnyView(content.background(bgView))
+        return AnyView(
+            content.background(bgView)
+                .rotationEffect((deviceOrientation == .portraitUpsideDown && UIDevice.current.userInterfaceIdiom == .phone) ? .degrees(180) : .zero)
+                .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                    let orientation = UIDevice.current.orientation
+                    if orientation == .portraitUpsideDown && UIDevice.current.userInterfaceIdiom == .phone {
+                        if let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+                        }
+                    }
+                    withAnimation {
+                        deviceOrientation = orientation
+                    }
+                }
+                .onAppear {
+                    UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+                    deviceOrientation = UIDevice.current.orientation
+                }
+        )
     }
     
     @ViewBuilder
