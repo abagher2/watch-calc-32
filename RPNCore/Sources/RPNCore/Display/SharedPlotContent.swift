@@ -4,7 +4,6 @@ import SwiftUI
 import Charts
 #endif
 
-// A cross-platform DataPoint that does not depend on Foundation (UUID)
 public struct PlotDataPoint: Identifiable {
     public let id: Int
     public let x: Double
@@ -17,7 +16,7 @@ public struct PlotDataPoint: Identifiable {
 }
 
 public struct SharedPlotBuilder {
-    
+#if canImport(SwiftUI) && canImport(Charts)
     @ChartContentBuilder
     public static func buildMainPlotContent(
         isStatPlot: Bool,
@@ -49,7 +48,8 @@ public struct SharedPlotBuilder {
                     y: .value("Y", point.y),
                     series: .value("Regression", "Regression")
                 )
-                .foregroundStyle(.blue)
+                .interpolationMethod(.linear)
+                .foregroundStyle(.green)
             }
         }
     }
@@ -108,4 +108,51 @@ public struct SharedPlotBuilder {
             .foregroundStyle(.gray)
         }
     }
+#endif
+    public static func buildMainPlotContent(
+        isStatPlot: Bool,
+        dataPoints: [PlotDataPoint],
+        scatterPoints: [PlotDataPoint],
+        regressionPoints: [PlotDataPoint],
+        into nodes: inout [ChartNode]
+    ) {
+        if !isStatPlot {
+            for pt in dataPoints { nodes.append(.line(x: pt.x, y: pt.y, dash: [], series: "Curve")) }
+        } else {
+            for pt in scatterPoints { nodes.append(.point(x: pt.x, y: pt.y)) }
+            for pt in regressionPoints { nodes.append(.line(x: pt.x, y: pt.y, dash: [], series: "Regression")) }
+        }
+    }
+
+    public static func buildAxesContent(into nodes: inout [ChartNode]) {
+        nodes.append(.rule(x: 0, y: 0))
+    }
+
+    public static func buildAreaContent(
+        hasIntegrationLimits: Bool,
+        highlightedDataPoints: [PlotDataPoint],
+        into nodes: inout [ChartNode]
+    ) {
+        if hasIntegrationLimits {
+            for pt in highlightedDataPoints {
+                nodes.append(.area(x: pt.x, yStart: 0, yEnd: pt.y))
+            }
+        }
+    }
+
+    public static func buildOverlayContent(
+        scatterPoints: [PlotDataPoint],
+        tangentPoints: [PlotDataPoint]?,
+        into nodes: inout [ChartNode]
+    ) {
+        for pt in scatterPoints {
+            nodes.append(.point(x: pt.x, y: pt.y))
+        }
+        if let tp = tangentPoints {
+            for pt in tp {
+                nodes.append(.line(x: pt.x, y: pt.y, dash: [5], series: "Tangent"))
+            }
+        }
+    }
+// End of SharedPlotBuilder
 }

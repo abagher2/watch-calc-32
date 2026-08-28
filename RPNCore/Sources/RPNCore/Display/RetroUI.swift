@@ -116,55 +116,16 @@ public struct RetroUIBodyView: FirmwareView {
             }
             
         } else if engine.requestPlot {
-#if !canImport(SwiftUI)
+// Start FirmwarePlot drawing
             let isStatPlot = engine.isStatPlot
-            var dataPoints: [PlotDataPoint] = []
-            dataPoints.reserveCapacity(engine.plotData.count)
-            if !isStatPlot {
-                for (i, pt) in engine.plotData.enumerated() {
-                    dataPoints.append(PlotDataPoint(id: i, x: pt.0, y: pt.1))
-                }
-            }
-            var scatterPoints: [PlotDataPoint] = []
-            if isStatPlot {
-                for (i, pt) in engine.statPoints.enumerated() {
-                    scatterPoints.append(PlotDataPoint(id: i, x: pt.x, y: pt.y))
-                }
-            }
-            var highlightedPoints: [PlotDataPoint] = []
-            if let lim = engine.integrationLimits {
-                for pt in engine.plotData {
-                    if pt.0 >= lim.0 && pt.0 <= lim.1 {
-                        highlightedPoints.append(PlotDataPoint(id: highlightedPoints.count, x: pt.0, y: pt.1))
-                    }
-                }
-            }
+            let dataPoints = engine.plotDataPoints
+            let scatterPoints = engine.scatterPlotDataPoints
+            let highlightedPoints = engine.highlightedPlotDataPoints
+            let regressionPoints = engine.regressionPlotDataPoints
             
             var tangentPoints: [PlotDataPoint]? = nil
             if let rootX = engine.selectedPlotX {
-                var rootY = 0.0
-                var m = 0.0
-                if dataPoints.count > 1 {
-                    for i in 0..<dataPoints.count-1 {
-                        let p1 = dataPoints[i]
-                        let p2 = dataPoints[i+1]
-                        if rootX >= p1.x && rootX <= p2.x {
-                            m = (p2.y - p1.y) / (p2.x - p1.x)
-                            let t = (rootX - p1.x) / (p2.x - p1.x)
-                            rootY = p1.y + t * (p2.y - p1.y)
-                            break
-                        }
-                    }
-                }
-                
-                if let first = dataPoints.first, let last = dataPoints.last {
-                    let startY = m * (first.x - rootX) + rootY
-                    let endY = m * (last.x - rootX) + rootY
-                    tangentPoints = [
-                        PlotDataPoint(id: 0, x: first.x, y: startY),
-                        PlotDataPoint(id: 1, x: last.x, y: endY)
-                    ]
-                }
+                tangentPoints = engine.tangentPlotDataPoints(at: rootX)
             }
             
             engine.firmwarePlotNodes.removeAll(keepingCapacity: true)
@@ -241,7 +202,7 @@ public struct RetroUIBodyView: FirmwareView {
                 renderer.fillRect(x: sx - 2, y: sy - 1, w: w + 4, h: 9, color: false)
                 renderer.drawString(status, x: sx, y: sy, size: .small, color: true)
             }
-#endif
+// End FirmwarePlot drawing
         } else {
             print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
