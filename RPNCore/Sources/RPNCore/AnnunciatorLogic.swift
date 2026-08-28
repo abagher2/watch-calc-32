@@ -12,6 +12,10 @@ public enum Annunciator: String {
     case bin = "BIN"
     case stat = "STAT"
     case alpha = "A..Z"
+    case f0 = "F0"
+    case f1 = "F1"
+    case f2 = "F2"
+    case f3 = "F3"
 }
 
 public extension CalculatorEngine {
@@ -30,6 +34,10 @@ public extension CalculatorEngine {
         else if baseMode == .bin { list.append(.bin) }
         if isStatPlot { list.append(.stat) }
         if isWaitingForAlpha { list.append(.alpha) }
+        if flags[0] { list.append(.f0) }
+        if flags[1] { list.append(.f1) }
+        if flags[2] { list.append(.f2) }
+        if flags[3] { list.append(.f3) }
         return list
     }
 }

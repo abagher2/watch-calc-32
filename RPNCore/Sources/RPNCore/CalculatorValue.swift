@@ -6,12 +6,35 @@ import Foundation
 public struct CalculatorValue: Equatable, CustomStringConvertible {
     public var real: Double
     public var imag: Double
+    public var sigFigs: Int?
+    public var decimalPlaces: Int?
     
-    public init(real: Double = 0.0, imag: Double = 0.0) {
+    public init(real: Double = 0.0, imag: Double = 0.0, sigFigs: Int? = nil, decimalPlaces: Int? = nil) {
         self.real = real
         self.imag = imag
+        self.sigFigs = sigFigs
+        self.decimalPlaces = decimalPlaces
     }
     
+    
+    public var effectiveSigFigs: Int {
+        if let sf = sigFigs { return sf }
+        if let dp = decimalPlaces {
+            let mag = (real == 0.0 && imag == 0.0) ? 0 : Int(_floor(_log10(_abs(real))))
+            return max(1, mag + 1 + dp)
+        }
+        return 12
+    }
+    
+    public var effectiveDecimalPlaces: Int {
+        if let dp = decimalPlaces { return dp }
+        if let sf = sigFigs {
+            let mag = (real == 0.0 && imag == 0.0) ? 0 : Int(_floor(_log10(_abs(real))))
+            return max(0, sf - mag - 1)
+        }
+        return 11
+    }
+
     public var isComplex: Bool {
         return imag != 0.0
     }
@@ -26,17 +49,30 @@ public struct CalculatorValue: Equatable, CustomStringConvertible {
     
     // Basic Arithmetic
     public static func +(lhs: CalculatorValue, rhs: CalculatorValue) -> CalculatorValue {
-        return CalculatorValue(real: lhs.real + rhs.real, imag: lhs.imag + rhs.imag)
+        var dp: Int? = nil
+        if lhs.decimalPlaces != nil || rhs.decimalPlaces != nil || lhs.sigFigs != nil || rhs.sigFigs != nil {
+            dp = min(lhs.effectiveDecimalPlaces, rhs.effectiveDecimalPlaces)
+        }
+        return CalculatorValue(real: lhs.real + rhs.real, imag: lhs.imag + rhs.imag, decimalPlaces: dp)
     }
     
     public static func -(lhs: CalculatorValue, rhs: CalculatorValue) -> CalculatorValue {
-        return CalculatorValue(real: lhs.real - rhs.real, imag: lhs.imag - rhs.imag)
+        var dp: Int? = nil
+        if lhs.decimalPlaces != nil || rhs.decimalPlaces != nil || lhs.sigFigs != nil || rhs.sigFigs != nil {
+            dp = min(lhs.effectiveDecimalPlaces, rhs.effectiveDecimalPlaces)
+        }
+        return CalculatorValue(real: lhs.real - rhs.real, imag: lhs.imag - rhs.imag, decimalPlaces: dp)
     }
     
     public static func *(lhs: CalculatorValue, rhs: CalculatorValue) -> CalculatorValue {
+        var sf: Int? = nil
+        if lhs.sigFigs != nil || rhs.sigFigs != nil || lhs.decimalPlaces != nil || rhs.decimalPlaces != nil {
+            sf = min(lhs.effectiveSigFigs, rhs.effectiveSigFigs)
+        }
         return CalculatorValue(
             real: lhs.real * rhs.real - lhs.imag * rhs.imag,
-            imag: lhs.real * rhs.imag + lhs.imag * rhs.real
+            imag: lhs.real * rhs.imag + lhs.imag * rhs.real,
+            sigFigs: sf
         )
     }
     

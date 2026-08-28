@@ -32,18 +32,20 @@ public class FoundationValueFormatter: ValueFormatter {
             return result.count > maxLength ? formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places) : result
         case .sci(let places), .eng(let places):
             return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
+        case .sig(let places):
+            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
         case .all:
             formatter.numberStyle = .decimal
             formatter.maximumFractionDigits = maxLength - 1
             formatter.minimumFractionDigits = 0
             var result = formatter.string(from: NSNumber(value: val)) ?? "0"
             
-            if result.count <= maxLength && (abs(val) >= 1e-4 || val == 0) {
+            if result.count <= maxLength && (_abs(val) >= 1e-4 || val == 0) {
                 return result
             }
             
-            if abs(val) >= 1e-4 && abs(val) < pow(10.0, Double(maxLength - 1)) {
-                let intPartLen = String(Int64(abs(val))).count
+            if _abs(val) >= 1e-4 && _abs(val) < pow(10.0, Double(maxLength - 1)) {
+                let intPartLen = String(Int64(_abs(val))).count
                 let signLen = val < 0 ? 1 : 0
                 let allowedFraction = max(0, maxLength - intPartLen - signLen - 1)
                 formatter.maximumFractionDigits = allowedFraction
@@ -99,17 +101,19 @@ public class BasicValueFormatter: ValueFormatter {
             return formatSci(val, places: places)
         case .eng(let places):
             return formatEng(val, places: places)
+        case .sig(let places):
+            return formatSci(val, places: places)
         case .all:
             return formatAll(val)
         }
     }
     
     private func formatFix(_ val: Double, places: Int) -> String {
-        if abs(val) >= 1e12 || (val != 0 && abs(val) < 1e-11) {
+        if _abs(val) >= 1e12 || (val != 0 && _abs(val) < 1e-11) {
             return formatSci(val, places: places)
         }
         let sign = val < 0 ? "-" : ""
-        let absVal = abs(val)
+        let absVal = _abs(val)
         
         var multiplier = 1.0
         for _ in 0..<places { multiplier *= 10.0 }
@@ -134,8 +138,8 @@ public class BasicValueFormatter: ValueFormatter {
             return places > 0 ? "0.\(fracStr)E0" : "0E0"
         }
         let sign = val < 0 ? "-" : ""
-        let absVal = abs(val)
-        var exp = Int(floor(log10(absVal)))
+        let absVal = _abs(val)
+        var exp = Int(_floor(_log10(absVal)))
         var mantissa = absVal / pow(10.0, Double(exp))
         if mantissa >= 10.0 {
             mantissa /= 10.0
@@ -168,8 +172,8 @@ public class BasicValueFormatter: ValueFormatter {
             return places > 0 ? "0.\(fracStr)E0" : "0E0"
         }
         let sign = val < 0 ? "-" : ""
-        let absVal = abs(val)
-        var exp = Int(floor(log10(absVal)))
+        let absVal = _abs(val)
+        var exp = Int(_floor(_log10(absVal)))
         let rem = ((exp % 3) + 3) % 3
         exp -= rem
         let mantissa = absVal / pow(10.0, Double(exp))

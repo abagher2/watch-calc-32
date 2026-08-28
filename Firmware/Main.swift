@@ -377,6 +377,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             case .sci(let p): cMode = 2; cPlaces = Int32(p)
             case .eng(let p): cMode = 3; cPlaces = Int32(p)
             case .all: cMode = 0; cPlaces = 0
+            case .sig(let p): cMode = 4; cPlaces = Int32(p)
             }
             format_double_c(val, WatchCalcFirmware.formatBuf, 64, cMode, cPlaces, engine.useCommaForDecimal ? 1 : 0)
             var len = 0

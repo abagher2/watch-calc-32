@@ -83,6 +83,7 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         MenuItem(label: "FIX", requiresDigit: true),
         MenuItem(label: "SCI", requiresDigit: true),
         MenuItem(label: "ENG", requiresDigit: true),
+        MenuItem(label: "SIG", requiresDigit: true),
         MenuItem(label: "ALL")
     ]
     public static let baseItems: [MenuItem] = [
@@ -152,7 +153,8 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         MenuItem(label: "Cn,r", action: "nCr"),
         MenuItem(label: "Pn,r", action: "nPr"),
         MenuItem(label: "n!",   action: "𝑥!"),
-        MenuItem(label: "RAND")
+        MenuItem(label: "RAND"),
+        MenuItem(label: "SD")
     ]
     public static let sumsItems: [MenuItem] = [
         MenuItem(label: "Σx"), MenuItem(label: "Σy"), MenuItem(label: "Σx²"), MenuItem(label: "Σy²"), MenuItem(label: "Σxy"), MenuItem(label: "n")

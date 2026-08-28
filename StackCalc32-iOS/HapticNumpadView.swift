@@ -267,9 +267,9 @@ private struct ButtonView: View {
                       key.primaryAction == .decimal
         let baseColor = isDigit ? themeManager.theme.digitKeyColor : themeManager.theme.functionKeyColor
 
-        let mainFontSize: CGFloat = 14
-        let shiftFontSize: CGFloat = themeManager.activeThemeType == .retro ? 9 : 10
-        let alphaFontSize: CGFloat = themeManager.activeThemeType == .retro ? 10 : 11
+        let mainFontSize: CGFloat = min(width * 0.25, height * 0.3)
+        let shiftFontSize: CGFloat = min(width * 0.13, height * 0.16)
+        let alphaFontSize: CGFloat = min(width * 0.16, height * 0.18)
 
         let bgColor = isYellowShift ? themeManager.theme.yellowShiftColor :
                       isBlueShift   ? themeManager.theme.blueShiftColor :

@@ -212,7 +212,7 @@ struct AlphaLFUPadView: View {
                 CalcButton("Y", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 3)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 4)), isAlpha: true) { op in
                     onAction(op)
                 }
-                CalcButton("Z", yellow: uiLabel(for: engine.lfuManager.getFunction(for: 5)), blue: uiLabel(for: engine.lfuManager.getFunction(for: 6)), isAlpha: true) { op in
+                CalcButton("Z", yellow: "i", blue: "(i)", isAlpha: true) { op in
                     onAction(op)
                 }
             }

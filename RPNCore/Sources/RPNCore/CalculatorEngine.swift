@@ -1,3 +1,15 @@
+
+internal func engineGcd(_ a: Int64, _ b: Int64) -> Int64 {
+    var a = abs(a)
+    var b = abs(b)
+    while b != 0 {
+        let t = b
+        b = a % b
+        a = t
+    }
+    return a == 0 ? 1 : a
+}
+
 #if hasFeature(Embedded)
 @_silgen_name("strtod")
 func strtod(_ nptr: UnsafePointer<CChar>, _ endptr: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Double
@@ -10,6 +22,8 @@ import Foundation
 import Observation
 import RationalModule
 #endif
+
+
 
 public func parseDoubleSlice(_ slice: ArraySlice<UInt8>, exponent: String? = nil) -> Double {
     var val = 0.0
@@ -67,10 +81,20 @@ internal func _asinh(_ x: Double) -> Double { return asinh(x) }
 internal func _acosh(_ x: Double) -> Double { return acosh(x) }
 internal func _atan2(_ y: Double, _ x: Double) -> Double { return atan2(y, x) }
 internal func _sqrt(_ x: Double) -> Double { return x.squareRoot() }
+@_silgen_name("c_floor")
+func c_floor(_ x: Double) -> Double
+@_silgen_name("c_abs")
+func c_abs(_ x: Double) -> Double
+
+internal func _floor(_ x: Double) -> Double { return c_floor(x) }
+internal func _abs(_ x: Double) -> Double { return c_abs(x) }
+
 
 public typealias IndexSet = [Int]
 
 #if hasFeature(Embedded)
+
+
 internal func parseInt(_ text: String) -> Int? {
     var val = 0
     var sign = 1
@@ -196,6 +220,13 @@ internal func _asinh(_ x: Double) -> Double { return Foundation.asinh(x) }
 internal func _acosh(_ x: Double) -> Double { return Foundation.acosh(x) }
 internal func _atan2(_ y: Double, _ x: Double) -> Double { return Foundation.atan2(y, x) }
 internal func _sqrt(_ x: Double) -> Double { return Foundation.sqrt(x) }
+internal func _floor(_ x: Double) -> Double { return floor(x) }
+internal func _abs(_ x: Double) -> Double { return Swift.abs(x) }
+
+
+
+
+
 
 internal func parseInt(_ text: String) -> Int? { return Int(text) }
 internal func _substringToString(_ substring: Substring) -> String { return String(substring) }
@@ -211,9 +242,7 @@ internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32, _ mode: Int32, _ places: Int32, _ use_comma: Int32)
 #endif
 
-#if !hasFeature(Embedded)
-@Observable
-#endif
+
 public class CalculatorEngine {
 
 
@@ -244,6 +273,9 @@ public class CalculatorEngine {
     
     public var errorMessage: String? = nil
     public var transientMessage: String? = nil
+    public var isWaitingForFlag: Bool = false
+    public var flagAction: String = ""
+    public var flagDotPressed: Bool = false
     public var flags: [Bool] = Array(repeating: false, count: 12)
     public var useCommaForDecimal: Bool = false
     public var skipNextInstruction: Bool = false
@@ -537,7 +569,7 @@ public class CalculatorEngine {
     
     public enum Theme { case pioneer, modern }
     public var baseMode: BaseMode = .dec
-    public var isFractionMode: Bool = false
+    public var isFractionMode: Bool = false { didSet { flags[7] = isFractionMode } }
     public var maxDenominator: Double = 4095.0
     public var stackSizeLimit: Int = 4
     
@@ -548,6 +580,7 @@ public class CalculatorEngine {
         case sci(Int)
         case eng(Int)
         case all
+        case sig(Int)
     }
 
     public enum BaseMode: Equatable { case dec, hex, oct, bin }
@@ -1234,6 +1267,11 @@ public class CalculatorEngine {
             return
         }
         
+        if isWaitingForFlag {
+            handleCommand(operation)
+            return
+        }
+        
         if operation.count == 1 {
             let char = operation.first!
             if char >= "0" && char <= "9" {
@@ -1249,9 +1287,63 @@ public class CalculatorEngine {
     }
     
     public func handleCommand(_ operation: String) {
+        if operation == "SF" || operation == "CF" || operation == "FS?" {
+            if isBuildingNumber { commitInput() }
+            isWaitingForFlag = true
+            flagAction = operation
+            flagDotPressed = false
+            promptString = "\(operation) _"
+            updateDisplay()
+            return
+        }
+
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
+            }
+            return
+        }
+        
+        if isWaitingForFlag {
+            if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
+                isWaitingForFlag = false
+                promptString = nil
+                updateDisplay()
+                return
+            }
+            if operation == "." {
+                flagDotPressed = true
+                promptString = "\(flagAction) ._"
+                updateDisplay()
+                return
+            }
+            if operation.count == 1, let char = operation.first, char >= "0" && char <= "9" {
+                var flagNum = Int(char.asciiValue! - 48)
+                if flagDotPressed {
+                    if flagNum == 0 { flagNum = 10 }
+                    else if flagNum == 1 { flagNum = 11 }
+                    else { flagNum = -1 }
+                }
+                if flagNum >= 0 && flagNum <= 11 {
+                    if flagAction == "SF" {
+                        flags[flagNum] = true
+                        if flagNum == 7 { isFractionMode = true }
+                    } else if flagAction == "CF" {
+                        flags[flagNum] = false
+                        if flagNum == 7 { isFractionMode = false }
+                    } else if flagAction == "FS?" {
+                        errorMessage = flags[flagNum] ? "YES" : "NO"
+                        isWaitingForFlag = false
+                        promptString = nil
+                        updateDisplay()
+                        return
+                    }
+                    
+                }
+                isWaitingForFlag = false
+                promptString = nil
+                updateDisplay()
+                return
             }
             return
         }
@@ -2208,6 +2300,24 @@ public class CalculatorEngine {
         print("DEBUG: requestPlot SET TO TRUE by generatePlot")
     }
     
+    private func resolveTargetName(_ name: String) -> String {
+        if name == "(i)" {
+            let idxVal = self.variables["i"]?.real ?? 0.0
+            let idx = Int(idxVal)
+            if idx >= 1 && idx <= 26 {
+                let ascii = UInt8(64 + idx)
+                return String(Character(UnicodeScalar(ascii)))
+            } else if idx == 27 {
+                return "i"
+            } else if idx >= 28 && idx <= 33 {
+                let stats = ["Σn", "Σx", "Σy", "Σx²", "Σy²", "Σxy"]
+                return stats[idx - 28]
+            }
+            return ""
+        }
+        return name
+    }
+
     public func evaluateProgram(_ program: Program, variables: [String: CalculatorValue], clearStack: Bool = true) -> CalculatorValue? {
         // Save state
         var savedStack = self.stack
@@ -2304,7 +2414,8 @@ public class CalculatorEngine {
                 }
                 
             case .rcl(let varName):
-                if let val = variables[varName] {
+                let targetName = resolveTargetName(varName)
+                if let val = variables[targetName] {
                     self.push(val)
                     self.stackLiftEnabled = true
                 }
@@ -2320,7 +2431,8 @@ public class CalculatorEngine {
                     }
                 }
             case .sto(let varName):
-                self.variables[varName] = self.stack.first ?? CalculatorValue()
+                let targetName = resolveTargetName(varName)
+                if !targetName.isEmpty { self.variables[targetName] = self.stack.first ?? CalculatorValue() }
             case .custom(let str):
                 if let val = variables[str] {
                     self.push(val)
@@ -2954,11 +3066,31 @@ public class CalculatorEngine {
             let sign = val < 0 ? -1 : 1
             
             if remainder > 1e-6 {
-                let num = Int64(round(remainder * 1_000_000))
-                let den = Int64(1_000_000)
-                let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
-                let fnum = frac.numerator
-                let fden = frac.denominator
+                var fnum: Int64 = 0
+                var fden: Int64 = 1
+                
+                if flags[8] {
+                    // Denominator = /c
+                    let targetDen = Int64(maxDenominator)
+                    let targetNum = Int64(round(remainder * Double(targetDen)))
+                    if flags[9] {
+                        // Denominator is always = /c
+                        fnum = targetNum
+                        fden = targetDen
+                    } else {
+                        // Fraction is reduced
+                        let d = engineGcd(targetNum, targetDen)
+                        fnum = targetNum / d
+                        fden = targetDen / d
+                    }
+                } else {
+                    // Optimal denominator <= /c
+                    let num = Int64(round(remainder * 1_000_000))
+                    let den = Int64(1_000_000)
+                    let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
+                    fnum = frac.numerator
+                    fden = frac.denominator
+                }
                 
                 if whole == 0 {
                     return sign < 0 ? "-\(fnum)/\(fden)" : "\(fnum)/\(fden)"
@@ -2986,6 +3118,8 @@ public class CalculatorEngine {
         case .sci(let places):
             return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
         case .eng(let places):
+            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
+        case .sig(let places):
             return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
         case .all:
             formatter.numberStyle = .decimal

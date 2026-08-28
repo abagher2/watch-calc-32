@@ -116,8 +116,8 @@ public struct HP32KeyMap {
     ]
     private static let standardGrid_chunk4: [HP32Key] = [
         HP32Key(row: 7, col: 1, rowSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
-        HP32Key(row: 7, col: 2, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
-        HP32Key(row: 7, col: 3, rowSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "", yellowAction: .const, blueAction: nil, primaryAction: .plot),
+        HP32Key(row: 7, col: 2, rowSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "i", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
+        HP32Key(row: 7, col: 3, rowSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "(i)", yellowAction: .const, blueAction: nil, primaryAction: .plot),
         HP32Key(row: 7, col: 4, rowSpan: 1, label: "+", yellowLabel: "LBL", blueLabel: "RTN", alphaLabel: "", yellowAction: .lbl, blueAction: .rtn, primaryAction: .add)
     ]
     public static let standardGrid: [HP32Key] = standardGrid_chunk0 + standardGrid_chunk1 + standardGrid_chunk2 + standardGrid_chunk3 + standardGrid_chunk4
@@ -163,8 +163,8 @@ public struct HP32KeyMap {
         HP32Key(row: 2, col: 9, rowSpan: 1, colSpan: 1, label: "3", yellowLabel: "▸cm", blueLabel: "▸in", alphaLabel: "Y", yellowAction: .toCm, blueAction: .toIn, primaryAction: .digit3),
         HP32Key(row: 2, col: 10, rowSpan: 1, colSpan: 1, label: "-", yellowLabel: "▸l", blueLabel: "▸gal", alphaLabel: "", yellowAction: .toLiters, blueAction: .toGal, primaryAction: .subtract),
         HP32Key(row: 3, col: 7, rowSpan: 1, colSpan: 1, label: "0", yellowLabel: "REGS", blueLabel: "VIEW", alphaLabel: "Z", yellowAction: .regs, blueAction: .view, primaryAction: .digit0),
-        HP32Key(row: 3, col: 8, rowSpan: 1, colSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
-        HP32Key(row: 3, col: 9, rowSpan: 1, colSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "", yellowAction: .const, blueAction: nil, primaryAction: .plot),
+        HP32Key(row: 3, col: 8, rowSpan: 1, colSpan: 1, label: ".", yellowLabel: "FDISP", blueLabel: "/c", alphaLabel: "i", yellowAction: .fdisp, blueAction: .slashc, primaryAction: .decimal),
+        HP32Key(row: 3, col: 9, rowSpan: 1, colSpan: 1, label: "PLOT", yellowLabel: "CNST", blueLabel: "", alphaLabel: "(i)", yellowAction: .const, blueAction: nil, primaryAction: .plot),
         HP32Key(row: 3, col: 10, rowSpan: 1, colSpan: 1, label: "+", yellowLabel: "LBL", blueLabel: "RTN", alphaLabel: "", yellowAction: .lbl, blueAction: .rtn, primaryAction: .add)
     ]
 
