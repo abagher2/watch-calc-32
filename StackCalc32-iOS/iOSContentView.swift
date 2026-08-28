@@ -168,6 +168,7 @@ struct iOSContentView: View {
                     }
                     .padding()
                     .frame(maxWidth: lcdMaxWidth, maxHeight: 90, alignment: .bottomLeading)
+                    .layoutPriority(1)
                     .background(
                         AnyView(
                             Group {

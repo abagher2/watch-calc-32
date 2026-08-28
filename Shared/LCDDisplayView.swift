@@ -91,14 +91,19 @@ public struct LCDDisplayView: View {
                     .font(font)
                     .foregroundColor(foregroundColor)
                 } else {
-                    HStack(spacing: 0) {
-                        Text(engine.displayX)
-                            .accessibilityIdentifier("lcd_display")
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                        Spacer(minLength: 0)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        ScrollViewReader { proxy in
+                            HStack(spacing: 0) {
+                                Text(engine.displayX)
+                                    .accessibilityIdentifier("lcd_display")
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                            .id("lcd_content")
+                            .onChange(of: engine.displayX) { _, _ in proxy.scrollTo("lcd_content", anchor: .trailing) }
+                            .onAppear { proxy.scrollTo("lcd_content", anchor: .trailing) }
+                        }
                     }
-                    .id("lcd_content")
                     .font(font)
                     .foregroundColor(foregroundColor)
                 }
