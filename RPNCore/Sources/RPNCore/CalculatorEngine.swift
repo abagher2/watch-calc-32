@@ -208,7 +208,7 @@ internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 
 #if hasFeature(Embedded)
 @_silgen_name("format_double_c")
-func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32, _ mode: Int32, _ places: Int32)
+func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32, _ mode: Int32, _ places: Int32, _ use_comma: Int32)
 #endif
 
 #if !hasFeature(Embedded)
@@ -245,6 +245,7 @@ public class CalculatorEngine {
     public var errorMessage: String? = nil
     public var transientMessage: String? = nil
     public var flags: [Bool] = Array(repeating: false, count: 12)
+    public var useCommaForDecimal: Bool = false
     public var skipNextInstruction: Bool = false
     
     // UI Events
@@ -1935,6 +1936,8 @@ public class CalculatorEngine {
         case "RAD": angleMode = .rad
         case "DEG": angleMode = .deg
         case "GRD", "GRAD": angleMode = .grd
+        case ".": useCommaForDecimal = false; updateDisplay()
+        case ",": useCommaForDecimal = true; updateDisplay()
         case "FIX": // Handled by prefix check above if has argument
             break
         case "SCI", "ENG", "ALL":
@@ -2967,7 +2970,7 @@ public class CalculatorEngine {
         
         let formatter = NumberFormatter()
         formatter.usesGroupingSeparator = false
-        formatter.decimalSeparator = "."
+        formatter.decimalSeparator = useCommaForDecimal ? "," : "."
         let maxLength = 12
         
         switch displayMode {
@@ -3013,7 +3016,7 @@ public class CalculatorEngine {
         let formatter = NumberFormatter()
         formatter.usesGroupingSeparator = false
         formatter.numberStyle = .scientific
-        formatter.decimalSeparator = "."
+        formatter.decimalSeparator = useCommaForDecimal ? "," : "."
         formatter.exponentSymbol = "E"
         formatter.usesSignificantDigits = true
         
@@ -3102,7 +3105,7 @@ public class CalculatorEngine {
                     case .all: cMode = 0; cPlaces = 0
                     }
                     displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                        format_double_c(stack[0].real, ptr.baseAddress!, 13, cMode, cPlaces)
+                        format_double_c(stack[0].real, ptr.baseAddress!, 13, cMode, cPlaces, useCommaForDecimal ? 1 : 0)
                     }
                     var len = 0
                     while len < 64 && displayXBuffer[len] != 0 { len += 1 }

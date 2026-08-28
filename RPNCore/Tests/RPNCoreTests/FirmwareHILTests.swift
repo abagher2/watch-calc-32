@@ -259,6 +259,8 @@ final class FirmwareHILTests: XCTestCase {
     func testFirmwareNormalPDFPlots() {
         sendCommand("C")
         sendCommand("C")
+        sendCommand("CLALL") // Clear all programs from previous tests to prevent OOM
+        Thread.sleep(forTimeInterval: 0.5)
         
         // Set M=0, S=1
         sendCommand("0")
@@ -267,11 +269,6 @@ final class FirmwareHILTests: XCTestCase {
         sendCommand("1")
         sendCommand("STO")
         sendCommand("S")
-        
-        // Enter PRGM mode
-        sendCommand("PRGM")
-        sendCommand("CLEAR") // clear memory to ensure N and D can be added
-        Thread.sleep(forTimeInterval: 0.5)
         
         // LBL N
         for s in ["LBL", "N", "RCL", "X", "RCL", "M", "-", "RCL", "S", "÷", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "RCL", "S", "÷", "2", "π", "×", "√𝑥", "÷", "RTN"] {
@@ -291,7 +288,7 @@ final class FirmwareHILTests: XCTestCase {
         // 1. Plot Normal PDF
         sendCommand("PLOT")
         Thread.sleep(forTimeInterval: 0.5)
-        sendCommand("LFU_1") // Select program N (P is LFU_0)
+        sendCommand("LFU_0") // Select program N
         Thread.sleep(forTimeInterval: 0.5)
         sendCommand("LFU_2") // Select variable X (M, S, X) -> sorted is M(0), S(1), X(2)
         Thread.sleep(forTimeInterval: 0.5)
@@ -299,6 +296,11 @@ final class FirmwareHILTests: XCTestCase {
         
         // Wait for plot to finish
         Thread.sleep(forTimeInterval: 4.0)
+        
+        // Select point and show tangent
+        sendCommand("PLOTX -0.25")
+        Thread.sleep(forTimeInterval: 1.0)
+        
         takeScreenshot(name: "NormalPDF_Plot")
         Thread.sleep(forTimeInterval: 1.0)
         sendCommand("C")
@@ -313,34 +315,62 @@ final class FirmwareHILTests: XCTestCase {
         Thread.sleep(forTimeInterval: 0.5)
         sendCommand("LFU_3") // EXEC!
         
-        Thread.sleep(forTimeInterval: 4.0)
+        Thread.sleep(forTimeInterval: 12.0)
         takeScreenshot(name: "NormalPDF_Derivative")
         Thread.sleep(forTimeInterval: 1.0)
         sendCommand("C")
         Thread.sleep(forTimeInterval: 0.5)
         
-        // 3. Integrate (Shaded Area)
-        sendCommand("3")
+        // 3. Integrate (-11 to 0) using Plot Menus
+        sendCommand("C") // ensure out of plot
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        sendCommand("1")
+        sendCommand("1")
         sendCommand("+/-")
         sendCommand("ENTER")
-        sendCommand("3")
-        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("1")
+        sendCommand("1")
         
-        sendCommand("SHIFT_BLUE")
-        sendCommand("8") // Integrate
+        sendCommand("PLOT")
         Thread.sleep(forTimeInterval: 0.5)
-        
         sendCommand("LFU_0") // Select program N
         Thread.sleep(forTimeInterval: 0.5)
-        sendCommand("LFU_2") // Select variable X (triggers integration)
+        sendCommand("LFU_2") // Select variable X
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_3") // EXEC!
         
-        // Wait for integrate to finish (shading)
         Thread.sleep(forTimeInterval: 6.0)
-        takeScreenshot(name: "NormalPDF_Shaded")
+        takeScreenshot(name: "NormalPDF_FullPlot")
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Open options menu
+        sendCommand("PLOT")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // STORE center (0) and f(0)
+        sendCommand("LFU_2") 
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Zoom left half ([-11, 0])
+        sendCommand("LFU_1")
+        Thread.sleep(forTimeInterval: 6.0)
+        takeScreenshot(name: "NormalPDF_LeftHalf")
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Open options menu
+        sendCommand("PLOT")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Integrate
+        sendCommand("LFU_3")
+        Thread.sleep(forTimeInterval: 45.0) // Integration takes a while
+        takeScreenshot(name: "NormalPDF_Integrated")
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        // Exit plot to view stack
         sendCommand("C")
+        Thread.sleep(forTimeInterval: 0.5)
+        takeScreenshot(name: "NormalPDF_StackValues")
     }
-
 }
-
-
-

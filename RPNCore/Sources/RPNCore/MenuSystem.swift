@@ -77,7 +77,7 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
     
     // Static arrays to prevent re-allocating [MenuItem] on every access.
     public static let modesItems: [MenuItem] = [
-        MenuItem(label: "DEG"), MenuItem(label: "RAD"), MenuItem(label: "GRAD")
+        MenuItem(label: "DEG"), MenuItem(label: "RAD"), MenuItem(label: "GRAD"), MenuItem(label: "."), MenuItem(label: ",")
     ]
     public static let dispItems: [MenuItem] = [
         MenuItem(label: "FIX", requiresDigit: true),

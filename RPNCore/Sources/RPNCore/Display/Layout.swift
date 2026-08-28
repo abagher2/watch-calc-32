@@ -501,11 +501,15 @@ public struct FirmwareChart: FirmwareView {
     let content: [ChartNode]
     let width: Int
     let height: Int
+    let minXString: String?
+    let maxXString: String?
     
-    public init(content: [ChartNode], width: Int, height: Int) {
+    public init(content: [ChartNode], width: Int, height: Int, minXString: String? = nil, maxXString: String? = nil) {
         self.content = content
         self.width = width
         self.height = height
+        self.minXString = minXString
+        self.maxXString = maxXString
     }
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
@@ -514,116 +518,99 @@ public struct FirmwareChart: FirmwareView {
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
 #if !canImport(SwiftUI)
-        print("DEBUG: FirmwareChart.draw called! requestPlot=\(engine.requestPlot)")
+        print("DEBUG: FirmwareChart.draw using ChartNodes! req=\(engine.requestPlot)")
         var minX = Double.greatestFiniteMagnitude
         var maxX = -Double.greatestFiniteMagnitude
         var minY = Double.greatestFiniteMagnitude
         var maxY = -Double.greatestFiniteMagnitude
         
-        var lineMarks: [(x: Double, y: Double, dash: [Int])] = []
-        var areaMarks: [(x: Double, yStart: Double, yEnd: Double)] = []
-        var ruleMarks: [(x: Double?, y: Double?)] = []
-        var pointMarks: [(x: Double, y: Double)] = []
+        func updateBounds(_ cx: Double, _ cy: Double) {
+            if cx < minX { minX = cx }
+            if cx > maxX { maxX = cx }
+            if cy < minY { minY = cy }
+            if cy > maxY { maxY = cy }
+        }
         
-        for item in content {
-            switch item {
-            case .line(let cx, let cy, let dash):
-                lineMarks.append((x: cx, y: cy, dash: dash))
-                if cx < minX { minX = cx }
-                if cx > maxX { maxX = cx }
-                if cy < minY { minY = cy }
-                if cy > maxY { maxY = cy }
-            case .area(let cx, let cyStart, let cyEnd):
-                areaMarks.append((x: cx, yStart: cyStart, yEnd: cyEnd))
-                if cx < minX { minX = cx }
-                if cx > maxX { maxX = cx }
-                if cyStart < minY { minY = cyStart }
-                if cyStart > maxY { maxY = cyStart }
-                if cyEnd < minY { minY = cyEnd }
-                if cyEnd > maxY { maxY = cyEnd }
-            case .point(let cx, let cy):
-                pointMarks.append((x: cx, y: cy))
-                if cx < minX { minX = cx }
-                if cx > maxX { maxX = cx }
-                if cy < minY { minY = cy }
-                if cy > maxY { maxY = cy }
+        // Compute bounds from nodes
+        for node in content {
+            switch node {
+            case .line(let cx, let cy, _, _): updateBounds(cx, cy)
+            case .area(let cx, let cyStart, let cyEnd): updateBounds(cx, cyStart); updateBounds(cx, cyEnd)
+            case .point(let cx, let cy): updateBounds(cx, cy)
             case .rule(let cx, let cy):
-                ruleMarks.append((x: cx, y: cy))
-            }
-        }
-        guard minX != Double.greatestFiniteMagnitude else { return }
-        
-        if minX == maxX { minX -= 1; maxX += 1 }
-        if minY == maxY { minY -= 1; maxY += 1 }
-        
-        let padX = (maxX - minX) * 0.05
-        let padY = (maxY - minY) * 0.05
-        minX -= padX; maxX += padX
-        minY -= padY; maxY += padY
-        
-        func toScreen(_ px: Double, _ py: Double) -> (Int, Int) {
-            let sx = Int(((px - minX) / (maxX - minX)) * Double(width))
-            let sy = Int(Double(height) - ((py - minY) / (maxY - minY)) * Double(height))
-            return (x + sx, y + sy)
-        }
-        
-        let numGridLines = 6
-        for i in 1..<numGridLines {
-            let gy = y + (height * i) / numGridLines
-            for gx in stride(from: x, to: x + width, by: 4) { renderer.setPixel(x: gx, y: gy, color: true) }
-            let gx = x + (width * i) / numGridLines
-            for gy2 in stride(from: y, to: y + height, by: 4) { renderer.setPixel(x: gx, y: gy2, color: true) }
-        }
-        
-        for rule in ruleMarks {
-            if let rx = rule.x {
-                let sc = toScreen(rx, 0)
-                if sc.0 >= x && sc.0 <= x + width { renderer.drawRect(x: sc.0, y: y, w: 1, h: height, color: true) }
-            }
-            if let ry = rule.y {
-                let sc = toScreen(0, ry)
-                if sc.1 >= y && sc.1 <= y + height { renderer.drawRect(x: x, y: sc.1, w: width, h: 1, color: true) }
+                // Rules shouldn't expand bounds usually, but we could if needed
+                break
             }
         }
         
-        for area in areaMarks {
-            let sc = toScreen(area.x, area.yEnd)
-            let zeroSc = toScreen(area.x, area.yStart)
-            let startY = min(sc.1, zeroSc.1)
-            let endY = max(sc.1, zeroSc.1)
-            for fillY in startY...endY {
-                if (sc.0 + fillY) % 2 == 0 {
-                    renderer.setPixel(x: sc.0, y: fillY, color: true)
+        if minX > 1e100 { minX = -10; maxX = 10; minY = -10; maxY = 10 }
+        
+        let padX = (maxX - minX) * 0.1
+        let padY = (maxY - minY) * 0.1
+        minX -= padX
+        maxX += padX
+        minY -= padY
+        maxY += padY
+        
+        let rangeX = (maxX - minX == 0) ? 1.0 : (maxX - minX)
+        let rangeY = (maxY - minY == 0) ? 1.0 : (maxY - minY)
+        
+        func toScreen(_ cx: Double, _ cy: Double) -> (Int, Int) {
+            let sx = x + Int((cx - minX) / rangeX * Double(width))
+            let sy = y + height - Int((cy - minY) / rangeY * Double(height))
+            return (sx, sy)
+        }
+        
+        var prevLine: (String, Int, Int)? = nil
+        
+        for node in content {
+            switch node {
+            case .rule(let cx, let cy):
+                if let cy = cy {
+                    let sc = toScreen(0, cy)
+                    if sc.1 >= y && sc.1 <= y + height {
+                        renderer.drawRect(x: x, y: sc.1, w: width, h: 1, color: true)
+                        let numTicks = 10
+                        for i in 1..<numTicks {
+                            let tx = x + (width * i) / numTicks
+                            renderer.drawRect(x: tx, y: sc.1 - 1, w: 1, h: 3, color: true)
+                        }
+                    }
                 }
+                if let cx = cx {
+                    let sc = toScreen(cx, 0)
+                    if sc.0 >= x && sc.0 <= x + width {
+                        renderer.drawRect(x: sc.0, y: y, w: 1, h: height, color: true)
+                        let numTicks = 6
+                        for i in 1..<numTicks {
+                            let ty = y + (height * i) / numTicks
+                            renderer.drawRect(x: sc.0 - 1, y: ty, w: 3, h: 1, color: true)
+                        }
+                    }
+                }
+            case .area(let cx, let cyStart, let cyEnd):
+                let sc = toScreen(cx, cyStart)
+                let endSc = toScreen(cx, cyEnd)
+                let startY = min(sc.1, endSc.1)
+                let endY = max(sc.1, endSc.1)
+                for fillY in startY...endY {
+                    if (sc.0 + fillY) % 2 == 0 {
+                        renderer.setPixel(x: sc.0, y: fillY, color: true)
+                    }
+                }
+            case .point(let cx, let cy):
+                let sc = toScreen(cx, cy)
+                renderer.drawRect(x: sc.0 - 1, y: sc.1 - 1, w: 3, h: 3, color: true)
+            case .line(let cx, let cy, _, let series):
+                let sc = toScreen(cx, cy)
+                if let prev = prevLine, prev.0 == (series ?? "line") {
+                    renderer.drawLine(x0: prev.1, y0: prev.2, x1: sc.0, y1: sc.1, color: true)
+                }
+                prevLine = (series ?? "line", sc.0, sc.1)
             }
         }
         
-        var prevCurve: (Int, Int)? = nil
-        var prevTangent: (Int, Int)? = nil
-        for line in lineMarks {
-            let sc = toScreen(line.x, line.y)
-            let isTangent = line.dash.count > 0
-            if isTangent {
-                if let prev = prevTangent { renderer.drawLine(x0: prev.0, y0: prev.1, x1: sc.0, y1: sc.1, color: true) }
-                prevTangent = sc
-            } else {
-                if let prev = prevCurve { renderer.drawLine(x0: prev.0, y0: prev.1, x1: sc.0, y1: sc.1, color: true) }
-                prevCurve = sc
-            }
-        }
-        
-        for point in pointMarks {
-            let sc = toScreen(point.x, point.y)
-            renderer.drawRect(x: sc.0 - 1, y: sc.1 - 1, w: 3, h: 3, color: true)
-        }
-        
-        // Bounds Label avoiding String formatting dynamically if possible
-        // We'll leave it as is for now since Chart only runs in specific modes, not general math
-        var minStr = "\(minX + padX)"
-        var maxStr = "\(maxX - padX)"
-        if minStr.count > 6 { minStr = String(minStr.prefix(6)) }
-        if maxStr.count > 6 { maxStr = String(maxStr.prefix(6)) }
-        renderer.drawString("[\(minStr), \(maxStr)]", x: x + 2, y: y + 2, size: .small, color: true)
+        // Coordinate labels have been moved to softkeys
 #endif
     }
 }

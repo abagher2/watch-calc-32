@@ -1,7 +1,7 @@
 
 
 public enum ChartNode {
-    case line(x: Double, y: Double, dash: [Int])
+    case line(x: Double, y: Double, dash: [Int], series: String?)
     case area(x: Double, yStart: Double, yEnd: Double)
     case point(x: Double, y: Double)
     case rule(x: Double?, y: Double?)
@@ -62,7 +62,7 @@ public struct LineMark: ChartContent {
     public var series: String? = nil
     
     public var nodes: [ChartNode] {
-        [.line(x: x, y: y, dash: dash)]
+        [.line(x: x, y: y, dash: dash, series: series)]
     }
     
     public init(x: PlottableValue<Double>, y: PlottableValue<Double>, series: PlottableValue<String>? = nil) {
@@ -126,6 +126,7 @@ public struct ForEach<Data: RandomAccessCollection, ID: Hashable>: ChartContent 
     
     public init(_ data: Data, @ChartContentBuilder content: (Data.Element) -> AnyChartContent) {
         var n: [ChartNode] = []
+        n.reserveCapacity(data.count)
         for item in data {
             let ac = content(item)
             for node in ac.nodes {

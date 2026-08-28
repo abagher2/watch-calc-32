@@ -1,60 +1,54 @@
 Designator,Value,Footprint,Part Number / SKU,Description,Quantity
-B12,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B29,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B4,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B30,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B31,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B10,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B37,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B7,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B25,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B32,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B26,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B18,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B23,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B36,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B5,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B14,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B35,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B33,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B13,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B6,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B29,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B37,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B17,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B2,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B12,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B27,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B19,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B21,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B1,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B8,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B9,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B4,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B3,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B24,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B16,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B11,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B20,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B34,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B18,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B2,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B26,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B13,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B14,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B24,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B17,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B25,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B1,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B3,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B33,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B9,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B21,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B32,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B27,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B16,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B22,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B30,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B11,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B36,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B35,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B15,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B19,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
+B22,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 B28,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B6,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B5,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-B8,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 C10,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
-C11,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
 C11,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
 FID3,Fiducial_1mm_Mask2mm,Fiducial_1mm_Mask2mm,,,1
 SOFT2,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 FID1,Fiducial_1mm_Mask2mm,Fiducial_1mm_Mask2mm,,,1
-J1,10-pin 0.5mm FPC Connector,Hirose_FH12-10S-0.5SH_1x10-1MP_P0.50mm_Horizontal,FH12-10S-0.5SH(55),Bottom-contact ZIF FPC connector for LCD. (Placed at J1),1
 SOFT6,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 C12,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
-C10,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
 SOFT4,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-C12,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
 SOFT3,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
-C10,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
-C12,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
-C11,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
 SOFT1,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 FID2,Fiducial_1mm_Mask2mm,Fiducial_1mm_Mask2mm,,,1
 SOFT5,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 JST1,JST PH 2-pin side-entry header,JST_PH_S2B-PH-K_02x2.00mm_Angled,S2B-PH-K-S(LF)(SN),"Battery connector for wired CR2450 battery; 2.00mm pitch, side entry",1
 MCU1,RP2350 Pico 2,ProMicro,SC1632,"Raspberry Pi Pico 2 (non-wireless, RP2350 with dual Arm Cortex-M33 cores and FPU)",1
+J1,10-pin 0.5mm FPC Connector,Hirose_FH12-28S-0.5SH_1x28-1MP_P0.50mm_Horizontal,FH12-10S-0.5SH(55),Bottom-contact ZIF FPC connector for LCD. (Placed at J1),1
 DISP1,ERC13265FS-1 (2.5-inch LCD),Mechanical,ERC13265FS-1,ST7565R/ST7567 Controller 132x65 FSTN LCD.,1

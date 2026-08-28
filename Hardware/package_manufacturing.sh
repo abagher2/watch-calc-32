@@ -12,8 +12,8 @@ mkdir -p "$OUTDIR"
 
 echo "Generating Gerbers and Drill Files..."
 mkdir -p output/gerbers
-/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli pcb export gerbers -o output/gerbers/ output/pcbs/calculator.kicad_pcb
-/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli pcb export drill -o output/gerbers/ output/pcbs/calculator.kicad_pcb
+/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli pcb export gerbers -o output/gerbers/ calculator.kicad_pcb
+/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli pcb export drill -o output/gerbers/ calculator.kicad_pcb
 
 cd output/gerbers
 zip -r ../WatchCalc32_Manufacturing/WatchCalc32_Gerbers.zip *
@@ -22,11 +22,12 @@ rm -rf output/gerbers
 
 echo "Packaging STLs..."
 cd ../scratch/stl
-zip -r ../../Hardware/output/WatchCalc32_Manufacturing/WatchCalc32_3D_Models.zip faceplate_mjf.stl faceplate_fdm.stl chassis_tapered.stl top_cap.stl tpu_stretch_cover.stl buttons.stl dummy_pcb.stl
+cp chassis_tapered.stl chassis.stl
+zip -r ../../Hardware/output/WatchCalc32_Manufacturing/WatchCalc32_3D_Models.zip button_faceplate.stl screen_faceplate.stl chassis_tapered.stl top_cap.stl tpu_stretch_cover.stl buttons.stl dummy_pcb.stl
 cd ../../Hardware
 
 echo "Generating BOM..."
-/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 generate_pcbway_bom.py output/pcbs/calculator.kicad_pcb "$OUTDIR/bom.csv"
+/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 generate_pcbway_bom.py calculator.kicad_pcb "$OUTDIR/bom.csv"
 
 echo "Generating Centroid..."
 # We will use export_manufacturing.py which hardcodes output names, so we run it and move them

@@ -208,7 +208,7 @@ uint64_t hw_time_us(void) {
     return time_us_64();
 }
 
-void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int places) {
+void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int places, int use_comma) {
     int is_negative = 0;
     if (val < 0.0) {
         is_negative = 1;
@@ -265,9 +265,13 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
         e_ptr = strchr((char*)buffer, 'E');
     }
 
+    if (use_comma) {
+        char* d = strchr((char*)buffer, '.');
+        if (d) *d = ',';
+    }
     // 2. Remove trailing zeros in the fractional part for ALL mode (mode 0)
     if (mode == 0) {
-        char* dot = strchr((char*)buffer, '.');
+        char* dot = strchr((char*)buffer, use_comma ? ',' : '.');
         if (dot) {
             char* end_of_frac = e_ptr ? e_ptr : ((char*)buffer + strlen((char*)buffer));
             char* p = end_of_frac - 1;

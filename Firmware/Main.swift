@@ -94,7 +94,9 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     }
     
     if engine.isWaitingForLabel || engine.isWaitingForAlpha {
-        if isCommand(buf, len, "<-") || isCommand(buf, len, "BACKSPACE") {
+        if matchOpBytes(buf, len)?.stringValue.hasPrefix("LFU_") == true || (parseUIntBytes(buf, 0, len).flatMap { CalculatorOperation(rawValue: $0) })?.stringValue.hasPrefix("LFU_") == true {
+            // Do not intercept LFU commands as alpha input
+        } else if isCommand(buf, len, "<-") || isCommand(buf, len, "BACKSPACE") {
             engine.submitAlpha("<-")
         } else if isCommand(buf, len, "ENTER") {
             engine.submitAlpha("ENTER")
@@ -139,8 +141,16 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         while e > s && buf[e - 1] <= 32 { e -= 1 }
         let trimmedLen = e - s
         let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
-        engine.executeMath(str)
-        engine.updateDisplay()
+        if str.hasPrefix("PLOTX ") {
+            let valStr = String(str.dropFirst(6))
+            if let val = parseDouble(valStr) {
+                engine.selectedPlotX = val
+                engine.updateDisplay()
+            }
+        } else {
+            engine.executeMath(str)
+            engine.updateDisplay()
+        }
     }
 }
 
@@ -238,7 +248,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 
                 func printVal(_ name: String, _ val: Double) {
                     for b in name.utf8 { pushTx(b) }
-                    format_double_c(val, WatchCalcFirmware.formatBuf, 64, 0, 0)
+                    format_double_c(val, WatchCalcFirmware.formatBuf, 64, 0, 0, engine.useCommaForDecimal ? 1 : 0)
                     var fmtLen = 0
                     while fmtLen < 64 && WatchCalcFirmware.formatBuf[fmtLen] != 0 { fmtLen += 1 }
                     for i in 0..<fmtLen { pushTx(WatchCalcFirmware.formatBuf[i]) }
@@ -368,7 +378,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             case .eng(let p): cMode = 3; cPlaces = Int32(p)
             case .all: cMode = 0; cPlaces = 0
             }
-            format_double_c(val, WatchCalcFirmware.formatBuf, 64, cMode, cPlaces)
+            format_double_c(val, WatchCalcFirmware.formatBuf, 64, cMode, cPlaces, engine.useCommaForDecimal ? 1 : 0)
             var len = 0
             while len < 64 && WatchCalcFirmware.formatBuf[len] != 0 { len += 1 }
             return String(decoding: UnsafeBufferPointer(start: WatchCalcFirmware.formatBuf, count: len), as: UTF8.self)

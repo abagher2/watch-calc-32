@@ -38,38 +38,91 @@ public class RetroUIController {
                 engine.requestPlot = false
                 print("DEBUG: requestPlot SET TO FALSE by RetroUIController")
                 engine.selectedPlotMarkerIndex = nil
+                engine.selectedPlotX = nil
                 return
             }
             
             guard let first = engine.plotData.first, let last = engine.plotData.last else { return }
             let currentMin = first.0
             let currentMax = last.0
+            let width = currentMax - currentMin
+            let center = (currentMin + currentMax) / 2.0
             
-            if finalOp == .backspace { // Zoom Out
-                let width = currentMax - currentMin
-                let center = (currentMin + currentMax) / 2.0
-                let newWidth = width * 6.0
-                engine.generatePlot(variable: nil, explicitMin: center - newWidth / 2.0, explicitMax: center + newWidth / 2.0)
+            if finalOp == .plot {
+                if retroUI.softkeyMode == .plotOptions {
+                    retroUI.softkeyMode = .none
+                } else {
+                    retroUI.softkeyMode = .plotOptions
+                }
                 return
             }
             
-            // 6-region Zoom In
-            var selectedRegion: Int? = nil
-            if finalOp == .lfu0 || finalOp.stringValue == "LFU_0" { selectedRegion = 0 }
-            if finalOp == .lfu1 || finalOp.stringValue == "LFU_1" { selectedRegion = 1 }
-            if finalOp == .lfu2 || finalOp.stringValue == "LFU_2" { selectedRegion = 2 }
-            if finalOp == .lfu3 || finalOp.stringValue == "LFU_3" { selectedRegion = 3 }
-            if finalOp == .lfu4 || finalOp.stringValue == "LFU_4" { selectedRegion = 4 }
-            if finalOp == .lfu5 || finalOp.stringValue == "LFU_5" { selectedRegion = 5 }
-            
-            if let region = selectedRegion {
-                let width = currentMax - currentMin
-                let step = width / 6.0
-                let newMin = currentMin + Double(region) * step
-                let newMax = currentMin + Double(region + 1) * step
-                engine.generatePlot(variable: nil, explicitMin: newMin, explicitMax: newMax)
-                engine.selectedPlotMarkerIndex = region
+            func findY(for x: Double, in pts: [(Double, Double)]) -> Double? {
+                if pts.isEmpty { return nil }
+                if x <= pts.first!.0 { return pts.first!.1 }
+                if x >= pts.last!.0 { return pts.last!.1 }
+                for i in 0..<pts.count - 1 {
+                    let p1 = pts[i]
+                    let p2 = pts[i+1]
+                    if x >= p1.0 && x <= p2.0 {
+                        let t = (x - p1.0) / (p2.0 - p1.0)
+                        return p1.1 + t * (p2.1 - p1.1)
+                    }
+                }
+                return nil
             }
+            
+            if retroUI.softkeyMode == .plotOptions {
+                if finalOp.stringValue == "PLOT_MARK" {
+                    if let y = findY(for: center, in: engine.plotData) {
+                        engine.plotMarkers.append((center, y))
+                    }
+                    retroUI.softkeyMode = .none
+                } else if finalOp.stringValue == "PLOT_CLEAR" {
+                    engine.plotMarkers.removeAll()
+                    retroUI.softkeyMode = .none
+                } else if finalOp.stringValue == "PLOT_STORE" {
+                    if engine.plotMarkers.count >= 2 {
+                        let m1 = engine.plotMarkers[engine.plotMarkers.count - 2]
+                        let m2 = engine.plotMarkers[engine.plotMarkers.count - 1]
+                        engine.push(CalculatorValue(real: m2.0))
+                        engine.push(CalculatorValue(real: m1.0))
+                    } else if engine.plotMarkers.count == 1 {
+                        engine.push(CalculatorValue(real: engine.plotMarkers[0].1))
+                        engine.push(CalculatorValue(real: engine.plotMarkers[0].0))
+                    } else {
+                        if let y = findY(for: center, in: engine.plotData) {
+                            engine.push(CalculatorValue(real: y))
+                            engine.push(CalculatorValue(real: center))
+                        }
+                    }
+                    retroUI.softkeyMode = .none
+                } else if finalOp.stringValue == "PLOT_INTEGRATE" {
+                    let minInt = engine.plotMarkers.first?.0 ?? currentMin
+                    let maxInt = engine.plotMarkers.last?.0 ?? currentMax
+                    engine.startIntegrate(variable: retroUI.softkeySelectedVar, lower: minInt, upper: maxInt, requestPlotAfter: true)
+                    retroUI.softkeyMode = .none
+                }
+                return
+            }
+            
+            // Plot Navigation Controls (Binary Search Zoom & Pan)
+            if finalOp == .lfu0 || finalOp.stringValue == "LFU_0" {
+                engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: currentMin - width * 0.25, explicitMax: currentMax - width * 0.25)
+            } else if finalOp == .lfu1 || finalOp.stringValue == "LFU_1" {
+                engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: currentMin, explicitMax: center)
+            } else if finalOp == .lfu2 || finalOp.stringValue == "LFU_2" || finalOp == .backspace {
+                let newWidth = width * 2.0
+                engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: center - newWidth / 2.0, explicitMax: center + newWidth / 2.0)
+            } else if finalOp == .lfu3 || finalOp.stringValue == "LFU_3" {
+                let newWidth = width / 2.0
+                engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: center - newWidth / 2.0, explicitMax: center + newWidth / 2.0)
+            } else if finalOp == .lfu4 || finalOp.stringValue == "LFU_4" {
+                engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: center, explicitMax: currentMax)
+            } else if finalOp == .lfu5 || finalOp.stringValue == "LFU_5" {
+                engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: currentMin + width * 0.25, explicitMax: currentMax + width * 0.25)
+            }
+            
             return
         }
         
@@ -180,14 +233,19 @@ public class RetroUIController {
                         retroUI.softkeyMode = .none
                         retroUI.softkeyProgram = nil
                     } else if retroUI.softkeyMode == .integrate, let prog = retroUI.softkeyProgram {
+                        engine.currentProgramLabel = prog.label
                         let upper = engine.stack.count > 0 ? engine.stack[0].real : 0.0
                         let lower = engine.stack.count > 1 ? engine.stack[1].real : 0.0
                         engine.statusMessage = "CALCULATING"
                         _ = engine.integrate(variable: varName, lower: lower, upper: upper, program: prog)
+                        engine.currentResumeAction = .integrate(variable: varName, lower: lower, upper: upper, program: prog, requestPlotAfter: true)
+                        engine.generatePlot(variable: varName, explicitMin: lower, explicitMax: upper)
+                        engine.requestPlot = true
                         engine.statusMessage = nil
                         retroUI.softkeyMode = .none
                         retroUI.softkeyProgram = nil
                         engine.cancelAlpha()
+                        engine.updateDisplay()
                     } else {
                         retroUI.softkeySelectedVar = varName
                     }
@@ -197,9 +255,13 @@ public class RetroUIController {
             
             if softkeyActionStr == "SOFTKEY_EXEC" {
                 if retroUI.softkeyMode == .plot {
+                    if let prog = retroUI.softkeyProgram {
+                        engine.currentProgramLabel = prog.label
+                    }
                     engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
                     print("DEBUG: requestPlot SET TO TRUE by RetroUIController")
+                    engine.updateDisplay()
                 } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
                     engine.currentProgramLabel = prog.label
                     if let result = engine.evaluateProgram(prog, variables: engine.variables) {

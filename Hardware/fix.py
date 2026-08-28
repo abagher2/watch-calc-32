@@ -1,27 +1,22 @@
-import re
-with open("designs/chassis_tapered.scad", "r") as f:
-    orig = f.read()
+with open("generate_scad.py", "r") as f:
+    lines = f.readlines()
 
-bad = """module screw_bosses() {
-    for (sx = [7.0, cw - 2*wall - 7.0]) {
-        for (sy = [5.0]) { // Bottom screw position (was at ch-wall-5.0)
-            // Peg that passes through the PCB 1.6mm thickness
-            translate([wall + sx, pt, sy]) rotate([-90, 0, 0])
-                cylinder(d=3.0, h=1.6 + 0.1);
-        }
-    }
-}
-    }
-}"""
-good = """module screw_bosses() {
-    for (sx = [7.0, cw - 2*wall - 7.0]) {
-        for (sy = [5.0]) { // Bottom screw position (was at ch-wall-5.0)
-            // Peg that passes through the PCB 1.6mm thickness
-            translate([wall + sx, pt, sy]) rotate([-90, 0, 0])
-                cylinder(d=3.0, h=1.6 + 0.1);
-        }
-    }
-}"""
-orig = orig.replace(bad, good)
-with open("designs/chassis_tapered.scad", "w") as f:
-    f.write(orig)
+new_lines = []
+in_modules = False
+for line in lines:
+    if "module spiral_arm(r1, r2, w, a)" in line:
+        in_modules = True
+    
+    if in_modules:
+        if "FP_CLR = 0.1;" in line:
+            in_modules = False
+        else:
+            # Escape the braces that aren't already escaped
+            line = line.replace("{", "{{").replace("}", "}}")
+            # If we accidentally double-escaped something, fix it
+            line = line.replace("{{{{", "{{").replace("}}}}", "}}")
+            
+    new_lines.append(line)
+
+with open("generate_scad.py", "w") as f:
+    f.writelines(new_lines)

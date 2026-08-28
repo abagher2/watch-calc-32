@@ -13,6 +13,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return .portrait
         }
         
+        print("AppDelegate asked. Orientation: \(orientation.rawValue)")
+        if orientation == .portraitUpsideDown {
+            print("Returning .portrait")
+            return .portrait
+        }
+        print("Returning .allButUpsideDown")
         return .allButUpsideDown
     }
 }

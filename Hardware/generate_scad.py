@@ -90,11 +90,11 @@ for r_idx, row in enumerate(rows):
                if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
         b['label'] = lbl
         if r_idx < 4:
-            b['w'] = 7.5
-            b['h'] = 6.0
+            b['w'] = 10.0
+            b['h'] = 9.0
         else:
-            b['w'] = 8.5
-            b['h'] = 6.5
+            b['w'] = 12.0
+            b['h'] = 9.0
 
 # --- Compute ENTER width to span ST (row2[0]) + RC (row2[1]) ---
 # After X-mirror: ox = fp_w - (b['x'] + pad_x). The mirrored positions of
@@ -437,7 +437,7 @@ module faceplate() {{
 
     for row in rows:
         for b in row:
-            ox = fp_w - (pad_left + b['x'])
+            ox = pad_left + b['x']
             oy = pad_bottom + b['y']
             faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_pocket({b['w']}, {b['h']});\n"
 
@@ -460,7 +460,7 @@ module faceplate_assembly() {
 
     for row in rows:
         for b in row:
-            ox = fp_w - (pad_left + b['x'])
+            ox = pad_left + b['x']
             oy = pad_bottom + b['y']
             lbl = b.get('label', '').replace('"', '\\"')
             btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
@@ -513,6 +513,143 @@ translate([{fp_w:.3f}, 0, {pt:.3f}]) rotate([0, 180, 0]) faceplate_assembly();
             btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
             faceplate_tapered += btn_str
     faceplate_tapered += closing_str
+
+    # ==========================================
+    # NEW SPLIT FACEPLATE LOGIC (UNIBODY)
+    # ==========================================
+    split_y = pcb_height - pad_bottom - DISP_H
+    FP_CLR = 0.1
+    
+    unibody_scad = f"""
+
+module spiral_arm(r1, r2, w, a) {{
+    polygon([
+        for (i=[0:15]) [ (r1 + (r2-r1)*(i/15)) * cos(a*(i/15)), (r1 + (r2-r1)*(i/15)) * sin(a*(i/15)) ],
+        for (i=[15:-1:0]) [ (r1+w + (r2-r1)*(i/15)) * cos(a*(i/15)), (r1+w + (r2-r1)*(i/15)) * sin(a*(i/15)) ]
+    ]);
+}}
+
+module button_cavity(w, h) {{
+    spring_gap = 0.6;
+    arm_w = 0.6;
+    btn_gap = 0.25; 
+    r_center = min(w,h)/2 - 1.2;
+    
+    // 1. Spring Air Cavity (Z=-0.1 to 0.7)
+    // The spring extends to r_center + spring_gap + arm_w. Adding 0.3mm clearance.
+    r_hole = r_center + spring_gap + arm_w + 0.3;
+    translate([0, 0, -0.1]) cylinder(r=r_hole, h=0.8, $fn=32);
+    
+    // 2. Button Body Air Cavity (Z=0.6 to 4.5)
+    translate([0, 0, 0.6]) squircle_centered(w + 2*btn_gap, h + 2*btn_gap, 4.0, 1.5);
+}}
+
+module button_solid(w, h, label="") {{
+    arm_w = 0.6;
+    spring_gap = 0.6;
+    r_center = min(w,h)/2 - 1.2;
+    
+    render() union() {{
+        // 1. Cruciform shaft (Z=0.0 to 0.6)
+        cross_profile(3.0, 3.0, 0.6, 1.2);
+        
+        // 2. Spiral arms (Z=0.0 to 1.0)
+        r_hole = r_center + spring_gap + arm_w + 0.3;
+        r2 = r_hole - arm_w + 0.1;
+        for(i=[0:2]) rotate([0, 0, i*120]) translate([0,0,0]) linear_extrude(1.0) spiral_arm(1.5, r2, arm_w, 180);
+        
+        // 3. Tapered support from cruciform to squircle (Z=0.6 to 1.5)
+        hull() {{
+            translate([0, 0, 0.6]) cross_profile(3.0, 3.0, 0.01, 1.2);
+            translate([0, 0, 1.5]) squircle_centered(w, h, 0.01, 1.5);
+        }}
+        
+        // 4. Straight vertical section (inside the faceplate hole, Z=1.5 to Z=3.0)
+        translate([0, 0, 1.5]) squircle_centered(w, h, 1.5, 1.5);
+        
+        // 5. Beveled top (HP-42S style, Z=3.0 to 4.2)
+        hull() {{
+            translate([0, 0, 3.0]) squircle_centered(w, h, 0.01, 1.5);
+            translate([0, -0.3, 4.2]) squircle_centered(w - 1.0, h - 1.0, 0.01, 1.0);
+        }}
+        
+        // Embossed Label
+        if (label != "") {{
+            translate([0, 0, 4.2])
+                linear_extrude(0.2)
+                    text(label, size=3, font="Arial:style=Bold", halign="center", valign="center");
+        }}
+    }}
+}}
+
+FP_CLR = 0.1;
+module button_faceplate() {{
+    union() {{
+    difference() {{
+        union() {{
+            // Rails (Z = 0.0 to 1.0)
+            translate([FP_CLR, 0, 0]) cube([fp_w - 2*FP_CLR, {split_y:.3f} - FP_CLR, 1.0]);
+            
+            // Front Solid Block (Z = 1.0 to 3.0)
+            translate([1.5 + FP_CLR, 0, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, {split_y:.3f} - FP_CLR, 2.0]);
+        }}
+        // Button Holes are subtracted here
+"""
+
+    for row in rows:
+        for b in row:
+            ox = pad_left + b['x']
+            oy = pad_bottom + b['y']
+            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_cavity({b['w']}, {b['h']});\n"
+
+    unibody_scad += "    }\n"
+    
+
+    for row in rows:
+        for b in row:
+            ox = pad_left + b['x']
+            oy = pad_bottom + b['y']
+            lbl = b.get('label', '').replace('"', '\\"')
+            label_arg = f', "{lbl}"' if lbl else ',""'
+            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_solid({b['w']}, {b['h']}{label_arg});\n"
+    unibody_scad += f"""
+    }}
+}}
+
+FP_CLR = 0.1;
+module screen_faceplate() {{
+    difference() {{
+        union() {{
+            // Screen Faceplate (Z = 0.0 to 1.0) - Just the rail thickness, no front block
+            translate([FP_CLR, {split_y:.3f} + FP_CLR, 0]) 
+                cube([fp_w - 2*FP_CLR, fp_h - {split_y:.3f} - 2*FP_CLR, 1.0]);
+        }}
+        
+        // Chamfer top corners for rounded chassis
+        translate([0, {fp_h:.3f}, -0.1])
+            rotate([0, 0, -45])
+                translate([-10, 0, 0]) cube([10, 10, 5.0]);
+        translate([{fp_w:.3f}, {fp_h:.3f}, -0.1])
+            rotate([0, 0, 45])
+                cube([10, 10, 5.0]);
+
+        // Bezel Window
+        hull() {{
+            translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, -0.1])
+                cube([{DISP_W:.3f}, {DISP_H:.3f}, 0.01]);
+            translate([{disp_x:.3f} - {ACTIVE_W:.3f}/2, {disp_y:.3f} - {ACTIVE_H:.3f}/2, 1.0 + 0.1])
+                cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.01]);
+        }}
+    }}
+}}
+"""
+    
+    with open("designs/button_faceplate.scad", "w") as f:
+        f.write(faceplate[:faceplate.find("module faceplate_body")] + unibody_scad + "button_faceplate();\n")
+        
+    with open("designs/screen_faceplate.scad", "w") as f:
+        f.write(faceplate[:faceplate.find("module faceplate_body")] + unibody_scad + "screen_faceplate();\n")
+
     with open("designs/faceplate_mjf.scad", "w") as f:
         f.write(faceplate_mjf)
         
@@ -1122,6 +1259,8 @@ if __name__ == "__main__":
     tasks = [
         ("faceplate_mjf",  "designs/faceplate_mjf.scad",  "../scratch/stl/faceplate_mjf.stl"),
         ("faceplate_fdm",  "designs/faceplate_fdm.scad",  "../scratch/stl/faceplate_fdm.stl"),
+        ("button_faceplate",  "designs/button_faceplate.scad",  "../scratch/stl/button_faceplate.stl"),
+        ("screen_faceplate",  "designs/screen_faceplate.scad",  "../scratch/stl/screen_faceplate.stl"),
         ("chassis_tapered","designs/chassis_tapered.scad","../scratch/stl/chassis_tapered.stl"),
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
         ("tpu_stretch_cover","designs/tpu_stretch_cover.scad","../scratch/stl/tpu_stretch_cover.stl"),
@@ -1132,13 +1271,13 @@ if __name__ == "__main__":
     import shutil
     openscad_bin = shutil.which("openscad") or "/usr/local/bin/openscad"
 
-    #for label, src, dst in tasks:
-    #    print(f"  Building {label} ...")
-    #    res = subprocess.run([openscad_bin, "-o", dst, src],
-    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    #    if res.returncode != 0:
-    #        print(f"Error compiling {label}: {res.stderr}")
-    #    else:
-    #        print(f"  ✗ {label} ERRORS:\n{res.stderr[-800:]}")
+    for label, src, dst in tasks:
+        print(f"  Building {label} ...")
+        res = subprocess.run([openscad_bin, "-o", dst, src],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if res.returncode != 0:
+            print(f"Error compiling {label}: {res.stderr}")
+        else:
+            print(f"  ✗ {label} ERRORS:\n{res.stderr[-800:]}")
 
     print("Done generating SCAD files!")

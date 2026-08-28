@@ -1,25 +1,27 @@
-import os
+import sys
 
-p = "/Users/abagher/Documents/GitHub/watch-calc-32/Hardware/generate_scad.py"
-with open(p, "r") as f:
-    c = f.read()
+with open("generate_scad.py", "r") as f:
+    lines = f.readlines()
 
-c = c.replace("""# Display Geometry: EastRising 2.7" ST7567 (ERC12864FSF-6)
-ACTIVE_W = 60.77
-ACTIVE_H = 32.94
-DISP_W   = 71.20
-DISP_H   = 48.20
-# Assuming "No Backlight" version which is typically ~2.0mm to 2.8mm thick. 
-# If they use the 5.1mm backlit version, this will need to be 5.10!
-DISP_T = 2.00""",
-"""# Display Geometry: EastRising 2.5" ERC13265FS-1
-ACTIVE_W = 56.73
-ACTIVE_H = 27.92
-DISP_W   = 69.00
-DISP_H   = 41.50
-DISP_T = 5.20""")
+new_lines = []
+skip = False
+for line in lines:
+    if "def generate_button_faceplate():" in line:
+        new_lines.append(line)
+        continue
+    
+    if "translate([ox:.3f}, {oy:.3f}, 0]) button_solid({b['w']}, {b['h']}{label_arg});" in line:
+        pass # this doesn't match directly anyway
+        
+    if "unibody_scad += f\"        translate([{ox:.3f}, {oy:.3f}, 0]) button_solid" in line:
+        new_lines.append('            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_solid({b[\'w\']}, {b[\'h\']});\\n"\n')
+        continue
+        
+    if "unibody_scad += \"    }\\n\"" in line and "for row in rows" not in line:
+        # this is the end of the union
+        new_lines.append(line)
+        continue
+        
+    new_lines.append(line)
 
-with open(p, "w") as f:
-    f.write(c)
-
-print("generate_scad updated")
+# Wait, it's easier to just use sed or Python to replace the whole block

@@ -1,7 +1,7 @@
 import csv
 import pcbnew
 
-board = pcbnew.LoadBoard("output/pcbs/calculator.kicad_pcb")
+board = pcbnew.LoadBoard("calculator.kicad_pcb")
 
 # Export BOM
 with open("bom.csv", "w", newline="") as f:
