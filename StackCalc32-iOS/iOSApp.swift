@@ -5,6 +5,8 @@ import Observation
 @main
 
 struct StackCalc32_iOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
     @State private var engine = CalculatorEngine()
     @StateObject private var themeManager: ThemeManager = {
         let tm = ThemeManager()
