@@ -198,9 +198,9 @@ public struct RetroUIBodyView: FirmwareView {
             
             var minStr = retroUI.doubleFormatter?(trueMin, .fix(1)) ?? "\(trueMin)"
             var maxStr = retroUI.doubleFormatter?(trueMax, .fix(1)) ?? "\(trueMax)"
-            var centerStr = retroUI.doubleFormatter?(center, .fix(4)) ?? "\(center)"
-            var minYStr = retroUI.doubleFormatter?(trueMinY, .fix(1)) ?? "\(trueMinY)"
-            var maxYStr = retroUI.doubleFormatter?(trueMaxY, .fix(1)) ?? "\(trueMaxY)"
+            var centerStr = retroUI.doubleFormatter?(center, .fix(2)) ?? "\(center)"
+            var minYStr = retroUI.doubleFormatter?(trueMinY, .fix(2)) ?? "\(trueMinY)"
+            var maxYStr = retroUI.doubleFormatter?(trueMaxY, .fix(2)) ?? "\(trueMaxY)"
             
             while minStr.hasPrefix(" ") { minStr = String(minStr.dropFirst()) }
             while maxStr.hasPrefix(" ") { maxStr = String(maxStr.dropFirst()) }
@@ -224,15 +224,15 @@ public struct RetroUIBodyView: FirmwareView {
             FirmwareChart(content: engine.firmwarePlotNodes, width: 132, height: isPlotting ? 54 : 43, minXString: nil, maxXString: nil).draw(in: renderer, x: x, y: y, engine: engine)
             
             // Draw X center at top left (Annunciator location)
-            let xStr = "X=" + centerStr
-            renderer.fillRect(x: x, y: y, w: renderer.getStringWidth(xStr, size: .small) + 2, h: 9, color: false)
-            renderer.drawString(xStr, x: x + 1, y: y + 1, size: .small, color: true)
+            let xStr = centerStr
+            renderer.fillRect(x: x, y: y, w: renderer.getStringWidth(xStr, size: .tiny) + 2, h: 10, color: false)
+            renderer.drawString(xStr, x: x + 1, y: y, size: .tiny, color: true)
             
             // Draw Y limits at top right
             let yStr = "[" + minYStr + "," + maxYStr + "]"
-            let yStrW = renderer.getStringWidth(yStr, size: .small)
-            renderer.fillRect(x: x + 132 - yStrW - 2, y: y, w: yStrW + 2, h: 9, color: false)
-            renderer.drawString(yStr, x: x + 132 - yStrW - 1, y: y + 1, size: .small, color: true)
+            let yStrW = renderer.getStringWidth(yStr, size: .tiny)
+            renderer.fillRect(x: x + 132 - yStrW - 2, y: y, w: yStrW + 2, h: 10, color: false)
+            renderer.drawString(yStr, x: x + 132 - yStrW - 1, y: y, size: .tiny, color: true)
             
             if let status = engine.statusMessage ?? (engine.isPlotLoading ? "CALCULATING..." : nil) {
                 let w = renderer.getStringWidth(status, size: .small)
