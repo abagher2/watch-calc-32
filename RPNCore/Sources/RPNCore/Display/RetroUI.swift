@@ -14,12 +14,17 @@ public class RetroUI {
     public var isShowingRegisters: Bool = false
     public var regsOffset: Int = 0
     
-    public enum SoftkeyMode { case none, solve, integrate, plot, xeq }
+    public enum SoftkeyMode { case none, solve, integrate, plot, xeq, plotOptions }
     public var softkeyMode: SoftkeyMode = .none
     public var softkeyProgram: CalculatorEngine.Program? = nil
     public var softkeySelectedVar: String = "X"
     
     public var doubleFormatter: ((Double, CalculatorEngine.DisplayMode) -> String)?
+    public var plotMinXString: String = ""
+    public var plotMinYString: String = ""
+    public var plotMaxYString: String = ""
+    public var plotMaxXString: String = ""
+    public var plotCenterXString: String = ""
     
     public init(lfuManager: LFUManager) {
         self.lfuManager = lfuManager
@@ -28,11 +33,13 @@ public class RetroUI {
     public func render(engine: CalculatorEngine, renderer: Renderer) {
         // Evaluate the body content
         let screen = FirmwareVStack(alignment: .leading, spacing: 0) {
-            FirmwareFrame(width: 132, height: 11, alignment: .leading, vAlignment: .top) {
-                TopBarIndicatorsView()
+            if !engine.requestPlot {
+                FirmwareFrame(width: 132, height: 11, alignment: .leading, vAlignment: .top) {
+                    TopBarIndicatorsView()
+                }
             }
             
-            RetroUIBodyView(retroUI: self)
+            RetroUIBodyView(retroUI: self, isPlotting: engine.requestPlot)
             
             FirmwareFrame(width: 132, height: 11, alignment: .leading, vAlignment: .bottom) {
                 RetroUIFooterView(retroUI: self)
@@ -45,13 +52,14 @@ public class RetroUI {
 
 public struct RetroUIBodyView: FirmwareView {
     public let retroUI: RetroUI
+    public var isPlotting: Bool = false
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (132, 43)
+        return (132, isPlotting ? 54 : 43)
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
-        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot) isEq=\(engine.isEquationListMode)")
+        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot ? 1 : 0) isEq=\(engine.isEquationListMode ? 1 : 0) err=\(engine.errorMessage != nil ? 1 : 0)")
         if let msg = engine.errorMessage ?? engine.transientMessage {
             let view = FirmwarePadding(leading: 6) {
                 FirmwareText(msg, font: .medium, color: true)
@@ -88,7 +96,7 @@ public struct RetroUIBodyView: FirmwareView {
             }
             
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
-            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot)")
+            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
             
         } else if engine.isEquationListMode {
@@ -109,74 +117,133 @@ public struct RetroUIBodyView: FirmwareView {
             
         } else if engine.requestPlot {
 #if !canImport(SwiftUI)
-            let dataPoints = engine.plotData.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.0, y: $0.element.1) }
-            let scatterPoints = engine.statPoints.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.x, y: $0.element.y) }
-            
-            var regressionPoints: [PlotDataPoint] = []
-            if engine.isStatPlot && engine.statN > 1 {
-                let num = engine.statSumXY - (engine.statSumX * engine.statSumY / engine.statN)
-                let den = engine.statSumX2 - (engine.statSumX * engine.statSumX / engine.statN)
-                let m = den == 0 ? 0 : num / den
-                let b = (engine.statSumY - m * engine.statSumX) / engine.statN
-                
-                if let first = scatterPoints.first, let last = scatterPoints.last {
-                    let startX = first.x - 10
-                    let endX = last.x + 10
-                    regressionPoints = [
-                        PlotDataPoint(id: 0, x: startX, y: m * startX + b),
-                        PlotDataPoint(id: 1, x: endX, y: m * endX + b)
-                    ]
+            let isStatPlot = engine.isStatPlot
+            var dataPoints: [PlotDataPoint] = []
+            dataPoints.reserveCapacity(engine.plotData.count)
+            if !isStatPlot {
+                for (i, pt) in engine.plotData.enumerated() {
+                    dataPoints.append(PlotDataPoint(id: i, x: pt.0, y: pt.1))
                 }
             }
-            
-            var highlightedDataPoints: [PlotDataPoint] = []
-            if let limits = engine.integrationLimits {
-                let minL = min(limits.0, limits.1)
-                let maxL = max(limits.0, limits.1)
-                highlightedDataPoints = dataPoints.filter { $0.x >= minL && $0.x <= maxL }
+            var scatterPoints: [PlotDataPoint] = []
+            if isStatPlot {
+                for (i, pt) in engine.statPoints.enumerated() {
+                    scatterPoints.append(PlotDataPoint(id: i, x: pt.x, y: pt.y))
+                }
+            }
+            var highlightedPoints: [PlotDataPoint] = []
+            if let lim = engine.integrationLimits {
+                for pt in engine.plotData {
+                    if pt.0 >= lim.0 && pt.0 <= lim.1 {
+                        highlightedPoints.append(PlotDataPoint(id: highlightedPoints.count, x: pt.0, y: pt.1))
+                    }
+                }
             }
             
             var tangentPoints: [PlotDataPoint]? = nil
-            if let first = dataPoints.first, let last = dataPoints.last, !engine.isStatPlot {
-                let centerX = (first.x + last.x) / 2.0
-                var closestP = dataPoints[0]
-                var minDiff = Double.greatestFiniteMagnitude
-                var closestIdx = 0
-                for i in 0..<dataPoints.count {
-                    let diff = abs(dataPoints[i].x - centerX)
-                    if diff < minDiff {
-                        minDiff = diff
-                        closestP = dataPoints[i]
-                        closestIdx = i
+            if let rootX = engine.selectedPlotX {
+                var rootY = 0.0
+                var m = 0.0
+                if dataPoints.count > 1 {
+                    for i in 0..<dataPoints.count-1 {
+                        let p1 = dataPoints[i]
+                        let p2 = dataPoints[i+1]
+                        if rootX >= p1.x && rootX <= p2.x {
+                            m = (p2.y - p1.y) / (p2.x - p1.x)
+                            let t = (rootX - p1.x) / (p2.x - p1.x)
+                            rootY = p1.y + t * (p2.y - p1.y)
+                            break
+                        }
                     }
                 }
-                if closestIdx > 0 && closestIdx < dataPoints.count - 1 {
-                    let p1 = dataPoints[closestIdx - 1]
-                    let p2 = dataPoints[closestIdx + 1]
-                    let m = (p2.y - p1.y) / (p2.x - p1.x)
-                    
-                    let startX = first.x
-                    let startY = m * (startX - closestP.x) + closestP.y
-                    let endX = last.x
-                    let endY = m * (endX - closestP.x) + closestP.y
+                
+                if let first = dataPoints.first, let last = dataPoints.last {
+                    let startY = m * (first.x - rootX) + rootY
+                    let endY = m * (last.x - rootX) + rootY
                     tangentPoints = [
-                        PlotDataPoint(id: 0, x: startX, y: startY),
-                        PlotDataPoint(id: 1, x: endX, y: endY)
+                        PlotDataPoint(id: 0, x: first.x, y: startY),
+                        PlotDataPoint(id: 1, x: last.x, y: endY)
                     ]
                 }
             }
             
-            let plotContent: [ChartNode] = 
-                SharedPlotBuilder.buildAxesContent().nodes +
-                SharedPlotBuilder.buildMainPlotContent(isStatPlot: engine.isStatPlot, dataPoints: dataPoints, scatterPoints: scatterPoints, regressionPoints: regressionPoints).nodes +
-                SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints).nodes +
-                SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedDataPoints).nodes
+            engine.firmwarePlotNodes.removeAll(keepingCapacity: true)
+            engine.firmwarePlotNodes.reserveCapacity(dataPoints.count + scatterPoints.count + (tangentPoints?.count ?? 0) + highlightedPoints.count + 5)
+            SharedPlotBuilder.buildMainPlotContent(isStatPlot: isStatPlot, dataPoints: dataPoints, scatterPoints: scatterPoints, regressionPoints: [], into: &engine.firmwarePlotNodes)
+            SharedPlotBuilder.buildAxesContent(into: &engine.firmwarePlotNodes)
+            SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedPoints, into: &engine.firmwarePlotNodes)
+            SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints, into: &engine.firmwarePlotNodes)
             
-            print("DEBUG: Inside FirmwareChart block! reqPlot=\(engine.requestPlot)")
-            FirmwareChart(content: plotContent, width: 132, height: 43).draw(in: renderer, x: x, y: y, engine: engine)
+            var minX = Double.greatestFiniteMagnitude
+            var maxX = -Double.greatestFiniteMagnitude
+            var minY = Double.greatestFiniteMagnitude
+            var maxY = -Double.greatestFiniteMagnitude
+            let allPoints = dataPoints + scatterPoints + (tangentPoints ?? [])
+            for pt in allPoints {
+                if pt.x < minX { minX = pt.x }
+                if pt.x > maxX { maxX = pt.x }
+                if pt.y < minY { minY = pt.y }
+                if pt.y > maxY { maxY = pt.y }
+            }
+            if minX > 1e100 { minX = -10; maxX = 10; minY = -10; maxY = 10 }
+            
+            let padX = (maxX - minX) * 0.1
+            let trueMin = minX - padX
+            let trueMax = maxX + padX
+            let center = (trueMin + trueMax) / 2.0
+            
+            let padY = (maxY - minY) * 0.1
+            let trueMinY = minY - padY
+            let trueMaxY = maxY + padY
+            
+            var minStr = retroUI.doubleFormatter?(trueMin, .fix(1)) ?? "\(trueMin)"
+            var maxStr = retroUI.doubleFormatter?(trueMax, .fix(1)) ?? "\(trueMax)"
+            var centerStr = retroUI.doubleFormatter?(center, .fix(4)) ?? "\(center)"
+            var minYStr = retroUI.doubleFormatter?(trueMinY, .fix(1)) ?? "\(trueMinY)"
+            var maxYStr = retroUI.doubleFormatter?(trueMaxY, .fix(1)) ?? "\(trueMaxY)"
+            
+            while minStr.hasPrefix(" ") { minStr = String(minStr.dropFirst()) }
+            while maxStr.hasPrefix(" ") { maxStr = String(maxStr.dropFirst()) }
+            while centerStr.hasPrefix(" ") { centerStr = String(centerStr.dropFirst()) }
+            while minYStr.hasPrefix(" ") { minYStr = String(minYStr.dropFirst()) }
+            while maxYStr.hasPrefix(" ") { maxYStr = String(maxYStr.dropFirst()) }
+            
+            retroUI.plotMinXString = minStr
+            retroUI.plotMaxXString = maxStr
+            retroUI.plotMinYString = minYStr
+            retroUI.plotMaxYString = maxYStr
+            retroUI.plotCenterXString = centerStr
+            
+            for m in engine.plotMarkers {
+                engine.firmwarePlotNodes.append(.rule(x: m.0, y: nil))
+                engine.firmwarePlotNodes.append(.point(x: m.0, y: m.1))
+            }
+            engine.firmwarePlotNodes.append(.rule(x: center, y: nil))
+            
+            print("DEBUG: Inside FirmwareChart block! reqPlot=\(engine.requestPlot ? 1 : 0) nodes=\(engine.firmwarePlotNodes.count)")
+            FirmwareChart(content: engine.firmwarePlotNodes, width: 132, height: isPlotting ? 54 : 43, minXString: nil, maxXString: nil).draw(in: renderer, x: x, y: y, engine: engine)
+            
+            // Draw X center at top left (Annunciator location)
+            let xStr = "X=" + centerStr
+            renderer.fillRect(x: x, y: y, w: renderer.getStringWidth(xStr, size: .small) + 2, h: 9, color: false)
+            renderer.drawString(xStr, x: x + 1, y: y + 1, size: .small, color: true)
+            
+            // Draw Y limits at top right
+            let yStr = "[" + minYStr + "," + maxYStr + "]"
+            let yStrW = renderer.getStringWidth(yStr, size: .small)
+            renderer.fillRect(x: x + 132 - yStrW - 2, y: y, w: yStrW + 2, h: 9, color: false)
+            renderer.drawString(yStr, x: x + 132 - yStrW - 1, y: y + 1, size: .small, color: true)
+            
+            if let status = engine.statusMessage ?? (engine.isPlotLoading ? "CALCULATING..." : nil) {
+                let w = renderer.getStringWidth(status, size: .small)
+                let sx = max(0, (132 - w) / 2)
+                let sy = y + (isPlotting ? 54 : 43) / 2 - 4
+                renderer.fillRect(x: sx - 2, y: sy - 1, w: w + 4, h: 9, color: false)
+                renderer.drawString(status, x: sx, y: sy, size: .small, color: true)
+            }
 #endif
         } else {
-            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot)")
+            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
         }
     }
@@ -190,7 +257,7 @@ public struct RetroUIFooterView: FirmwareView {
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
-        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot) isEq=\(engine.isEquationListMode)")
+        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot ? 1 : 0) isEq=\(engine.isEquationListMode ? 1 : 0) err=\(engine.errorMessage != nil ? 1 : 0)")
         if engine.errorMessage != nil || engine.transientMessage != nil || retroUI.isShowingRegisters || retroUI.isShowingFullPrecision {
             return
         }
@@ -240,11 +307,33 @@ public struct RetroUIFooterView: FirmwareView {
                 MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
             }
         } else if engine.requestPlot {
-            for i in 0..<6 {
-                let segment = renderer.menuSegments[i]
-                renderer.fillRect(x: segment.x, y: y, w: segment.w, h: 11, color: true)
-                let lw = renderer.getStringWidth("+", size: .tiny)
-                renderer.drawString("+", x: segment.x + (segment.w - lw) / 2, y: y + (11 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
+            if retroUI.softkeyMode == .plotOptions {
+                let items: [MenuItem] = [
+                    MenuItem(label: "MARK", action: "PLOT_MARK"),
+                    MenuItem(label: "CLEAR", action: "PLOT_CLEAR"),
+                    MenuItem(label: "STORE", action: "PLOT_STORE"),
+                    MenuItem(label: "∫ f(x)", action: "PLOT_INTEGRATE")
+                ]
+                MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
+            } else {
+                let labels = [
+                    "<",
+                    "|<-",
+                    "OUT",
+                    "IN",
+                    "->|",
+                    ">"
+                ]
+                for i in 0..<6 {
+                    let segment = renderer.menuSegments[i]
+                    renderer.fillRect(x: segment.x, y: y, w: segment.w, h: 11, color: true)
+                    let label = labels[i]
+                    let lw = renderer.getStringWidth(label, size: .tiny)
+                    let textX = max(segment.x, segment.x + (segment.w - lw) / 2)
+                    renderer.drawString(label, x: textX, y: y + (11 - FontData.Tiny.charHeight)/2, size: .tiny, color: false, scale: 1)
+                }
+                
+                // X=... moved to top left per user request
             }
         } else if !engine.isGeneratingPlot && !engine.isPlotLoading {
             SoftkeyRowView().draw(in: renderer, x: x, y: y, engine: engine)
