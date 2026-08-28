@@ -114,8 +114,8 @@ target_compile_options(WatchCalcFirmware PUBLIC
     "$<$<COMPILE_LANGUAGE:C>:-mno-unaligned-access>"
 )
 
-pico_set_float_implementation(WatchCalcFirmware compiler)
-pico_set_double_implementation(WatchCalcFirmware compiler)
+# pico_set_float_implementation(WatchCalcFirmware compiler)
+# pico_set_double_implementation(WatchCalcFirmware compiler)
 pico_add_extra_outputs(WatchCalcFirmware)
 
 if (TARGET pico_float_pico_vfp)

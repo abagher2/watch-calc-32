@@ -51,6 +51,7 @@ public struct RetroUIBodyView: FirmwareView {
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
+        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot) isEq=\(engine.isEquationListMode)")
         if let msg = engine.errorMessage ?? engine.transientMessage {
             let view = FirmwarePadding(leading: 6) {
                 FirmwareText(msg, font: .medium, color: true)
@@ -87,6 +88,7 @@ public struct RetroUIBodyView: FirmwareView {
             }
             
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
+            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
             
         } else if engine.isEquationListMode {
@@ -170,9 +172,11 @@ public struct RetroUIBodyView: FirmwareView {
                 SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints).nodes +
                 SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedDataPoints).nodes
             
+            print("DEBUG: Inside FirmwareChart block! reqPlot=\(engine.requestPlot)")
             FirmwareChart(content: plotContent, width: 132, height: 43).draw(in: renderer, x: x, y: y, engine: engine)
 #endif
         } else {
+            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
         }
     }
@@ -186,6 +190,7 @@ public struct RetroUIFooterView: FirmwareView {
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
+        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot) isEq=\(engine.isEquationListMode)")
         if engine.errorMessage != nil || engine.transientMessage != nil || retroUI.isShowingRegisters || retroUI.isShowingFullPrecision {
             return
         }

@@ -50,7 +50,7 @@ cat << 'EOF' > "$OUTDIR/PCBWay_Order_Guide.md"
 4. **3D Printed Parts:** `WatchCalc32_3D_Models.zip` (for CNC/3D printing service)
 
 ## Critical Assembly Notes:
-- **J1 (LCD FPC):** The LCD must be shimmed exactly 0.07mm to achieve a 1.5mm coplanarity with the tactile switches.
+- **J1 (LCD FPC):** ZIF Connector for the ERC13265FS-1 LCD display.
 - **Battery:** DO NOT supply the CR2032 battery (it has shipping restrictions). Only the JST connector should be placed.
 - **Top Clearances:** The MCU (Pico) is rotated horizontally on the back. The JST connector is located at the top-right corner to allow a CR2032 wired battery holder to perfectly clear the board and nest into the chassis top cap.
 

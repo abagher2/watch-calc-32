@@ -228,4 +228,119 @@ final class FirmwareHILTests: XCTestCase {
         let screen = readScreen(expecting: "X:")
         XCTAssertTrue(screen.contains("X:"), "Screen did not return to normal view after STACK menu execution")
     }
+
+    func testFirmwareAllMenusAndPlotting() {
+        // Test Plotting over UART
+        sendCommand("PLOT")
+        Thread.sleep(forTimeInterval: 0.5) // waiting for plot variable prompt
+        sendCommand("X") // var X
+        
+        // Let plot run, it evaluates program or equation
+        Thread.sleep(forTimeInterval: 1.0)
+        
+        takeScreenshot(name: "testFirmwarePlotting_Screen")
+        
+        // Cancel plot
+        sendCommand("C")
+        
+        // Test FN Equation menu
+        sendCommand("FN")
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_2") // EQN softkey
+        Thread.sleep(forTimeInterval: 0.5)
+        takeScreenshot(name: "testFirmwareEqnMenu")
+        
+        // Cancel
+        sendCommand("C")
+        sendCommand("C")
+    }
+
+
+    func testFirmwareNormalPDFPlots() {
+        sendCommand("C")
+        sendCommand("C")
+        
+        // Set M=0, S=1
+        sendCommand("0")
+        sendCommand("STO")
+        sendCommand("M")
+        sendCommand("1")
+        sendCommand("STO")
+        sendCommand("S")
+        
+        // Enter PRGM mode
+        sendCommand("PRGM")
+        sendCommand("CLEAR") // clear memory to ensure N and D can be added
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // LBL N
+        for s in ["LBL", "N", "RCL", "X", "RCL", "M", "-", "RCL", "S", "÷", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "RCL", "S", "÷", "2", "π", "×", "√𝑥", "÷", "RTN"] {
+            sendCommand(s)
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        
+        // LBL D (Derivative)
+        for s in ["LBL", "D", "XEQ", "N", "RCL", "X", "RCL", "M", "-", "RCL", "S", "𝑥²", "÷", "+/-", "×", "RTN"] {
+            sendCommand(s)
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        
+        // sendCommand("PRGM") // exit PRGM mode (RTN already exits PRGM mode)
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // 1. Plot Normal PDF
+        sendCommand("PLOT")
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_1") // Select program N (P is LFU_0)
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_2") // Select variable X (M, S, X) -> sorted is M(0), S(1), X(2)
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_3") // EXEC!
+        
+        // Wait for plot to finish
+        Thread.sleep(forTimeInterval: 4.0)
+        takeScreenshot(name: "NormalPDF_Plot")
+        Thread.sleep(forTimeInterval: 1.0)
+        sendCommand("C")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // 2. Plot Derivative
+        sendCommand("PLOT")
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_1") // Select program D
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_2") // Select variable X
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_3") // EXEC!
+        
+        Thread.sleep(forTimeInterval: 4.0)
+        takeScreenshot(name: "NormalPDF_Derivative")
+        Thread.sleep(forTimeInterval: 1.0)
+        sendCommand("C")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // 3. Integrate (Shaded Area)
+        sendCommand("3")
+        sendCommand("+/-")
+        sendCommand("ENTER")
+        sendCommand("3")
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        sendCommand("SHIFT_BLUE")
+        sendCommand("8") // Integrate
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        sendCommand("LFU_0") // Select program N
+        Thread.sleep(forTimeInterval: 0.5)
+        sendCommand("LFU_2") // Select variable X (triggers integration)
+        
+        // Wait for integrate to finish (shading)
+        Thread.sleep(forTimeInterval: 6.0)
+        takeScreenshot(name: "NormalPDF_Shaded")
+        sendCommand("C")
+    }
+
 }
+
+
+

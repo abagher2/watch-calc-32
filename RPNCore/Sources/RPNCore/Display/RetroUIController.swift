@@ -36,6 +36,7 @@ public class RetroUIController {
         if engine.requestPlot {
             if finalOp == .c || finalOp == .clear {
                 engine.requestPlot = false
+                print("DEBUG: requestPlot SET TO FALSE by RetroUIController")
                 engine.selectedPlotMarkerIndex = nil
                 return
             }
@@ -67,6 +68,7 @@ public class RetroUIController {
                 let newMin = currentMin + Double(region) * step
                 let newMax = currentMin + Double(region + 1) * step
                 engine.generatePlot(variable: nil, explicitMin: newMin, explicitMax: newMax)
+                engine.selectedPlotMarkerIndex = region
             }
             return
         }
@@ -118,6 +120,9 @@ public class RetroUIController {
             if finalOp == .xeq { retroUI.softkeyMode = .xeq }
             retroUI.softkeyProgram = nil
             engine.activeMenu = nil
+            if finalOp == .xeq || finalOp == .solve || finalOp == .integrate {
+                engine.executeMath(finalOp.stringValue)
+            }
             return
         }
         
@@ -182,6 +187,7 @@ public class RetroUIController {
                         engine.statusMessage = nil
                         retroUI.softkeyMode = .none
                         retroUI.softkeyProgram = nil
+                        engine.cancelAlpha()
                     } else {
                         retroUI.softkeySelectedVar = varName
                     }
@@ -193,6 +199,7 @@ public class RetroUIController {
                 if retroUI.softkeyMode == .plot {
                     engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
+                    print("DEBUG: requestPlot SET TO TRUE by RetroUIController")
                 } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
                     engine.currentProgramLabel = prog.label
                     if let result = engine.evaluateProgram(prog, variables: engine.variables) {
@@ -202,6 +209,7 @@ public class RetroUIController {
                 }
                 retroUI.softkeyMode = .none
                 retroUI.softkeyProgram = nil
+                engine.cancelAlpha()
                 return
             }
         }

@@ -1,6 +1,8 @@
 #include "hardware_wrapper.h"
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
+#include "hardware/watchdog.h"
+#include "hardware/sync.h"
 #include "hardware/gpio.h"
 #include "hardware/watchdog.h"
 #include <string.h>
@@ -64,13 +66,13 @@ void hw_init(void) {
     gpio_set_dir(PIN_RST, GPIO_OUT);
     gpio_put(PIN_RST, 1);
 
-    // ST7567 Reset
+    // SPLC502 / ERC13265 Reset
     gpio_put(PIN_RST, 0);
     sleep_ms(50);
     gpio_put(PIN_RST, 1);
     sleep_ms(50);
 
-    // ST7567 Init Sequence
+    // ERC13265-1 (SPLC502) Init Sequence
     gpio_put(PIN_CS, 0);
     gpio_put(PIN_DC, 0); // Command mode
     uint8_t init_cmds[] = {
@@ -80,9 +82,9 @@ void hw_init(void) {
         0xA2, // CLEAR_BIAS (1/9)
         0x2F, // Power Control (0x28 | 0x07)
         0x25, // Regulator resistor select (0x20 | 0x05)
-        0x81, 0x1F, // Contrast
+        0x81, 24, // Contrast level (24 per ERC13265-1 driver)
         0x40, // Start line
-        0xAF,  // Display ON
+        0xAF, // Display ON
         0xDC
     };
     spi_write_blocking(SPI_PORT, init_cmds, sizeof(init_cmds));
@@ -126,6 +128,58 @@ void display_send_buffer(const uint8_t* buffer) {
 #endif
 }
 
+
+
+static bool blue_shift_active = false;
+static struct repeating_timer hw_scan_timer;
+
+static void system_sleep(void) {
+    // Turn off display
+    gpio_put(PIN_CS, 0);
+    gpio_put(PIN_DC, 0);
+    uint8_t disp_off = 0xAE;
+    spi_write_blocking(SPI_PORT, &disp_off, 1);
+    gpio_put(PIN_CS, 1);
+    
+    // Set all rows LOW except Row 7 (which has the C / ON key)
+    for (int i=0; i<8; i++) {
+        gpio_put(row_pins[i], i == 7 ? 1 : 0);
+    }
+    
+    // Wait for C key (Col 0) to be released first
+    while(gpio_get(col_pins[0])) {
+        sleep_ms(10);
+    }
+    
+    // Wait for C key to be pressed
+    while(!gpio_get(col_pins[0])) {
+        __wfi(); // Wait for interrupt
+    }
+    
+    // Reboot!
+    watchdog_enable(1, 1);
+    while(1);
+}
+
+uint64_t matrix_scan(void);
+
+bool hw_scan_timer_callback(struct repeating_timer *t) {
+    uint64_t state = matrix_scan();
+    bool blue_pressed = (state & (1ULL << 36)) != 0;
+    bool c_pressed = (state & (1ULL << 42)) != 0;
+    
+    if (blue_pressed) {
+        blue_shift_active = true;
+    } else if (state != 0 && !c_pressed) {
+        blue_shift_active = false;
+    }
+    
+    if (c_pressed && blue_shift_active) {
+        system_sleep();
+    }
+    return true;
+}
+
 uint64_t matrix_scan(void) {
     uint64_t state = 0;
     for (int r = 0; r < 8; r++) {
@@ -155,7 +209,9 @@ uint64_t hw_time_us(void) {
 }
 
 void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int places) {
+    int is_negative = 0;
     if (val < 0.0) {
+        is_negative = 1;
         *buffer = '-';
         buffer++;
         max_len--;

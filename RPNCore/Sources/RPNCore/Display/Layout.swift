@@ -514,6 +514,7 @@ public struct FirmwareChart: FirmwareView {
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
 #if !canImport(SwiftUI)
+        print("DEBUG: FirmwareChart.draw called! requestPlot=\(engine.requestPlot)")
         var minX = Double.greatestFiniteMagnitude
         var maxX = -Double.greatestFiniteMagnitude
         var minY = Double.greatestFiniteMagnitude

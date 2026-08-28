@@ -44,13 +44,25 @@ def generate_rich_bom(kicad_pcb_path, output_csv):
                 sku = "CL05A105KQ5NNNC"
                 desc = "0402 LCD charge pump / decoupling capacitor"
             elif ref == "J1":
-                val = "ERC13265FS-1 (2.5\" LCD)"
-                sku = "ERC13265FS-1"
-                desc = "SPLC502 IC LCD. Connect through the existing J1 FPC connection and shim 0.07mm to 1.50mm above PCB"
+                val = "10-pin 0.5mm FPC Connector"
+                sku = "FH12-10S-0.5SH(55)"
+                desc = "Bottom-contact ZIF FPC connector for LCD. (Placed at J1)"
                 
             components.append({'ref': ref, 'val': val, 'fpid': fpid, 'sku': sku, 'desc': desc})
-            
+
+        
+        # Add the LCD Screen as a separate line item
+        components.append({
+            'ref': 'DISP1',
+            'val': 'ERC13265FS-1 (2.5-inch LCD)',
+            'fpid': 'Mechanical',
+            'sku': 'ERC13265FS-1',
+            'desc': 'ST7565R/ST7567 Controller 132x65 FSTN LCD.'
+        })
+
         # Write to BOM
+
+
         for comp in components:
             writer.writerow([comp['ref'], comp['val'], comp['fpid'], comp['sku'], comp['desc'], 1])
             

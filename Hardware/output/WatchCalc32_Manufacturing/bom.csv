@@ -42,7 +42,7 @@ C11,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupl
 FID3,Fiducial_1mm_Mask2mm,Fiducial_1mm_Mask2mm,,,1
 SOFT2,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 FID1,Fiducial_1mm_Mask2mm,Fiducial_1mm_Mask2mm,,,1
-J1,"ERC13265FS-1 (2.5"" LCD)",Hirose_FH12-10S-0.5SH_1x10-1MP_P0.50mm_Horizontal,ERC13265FS-1,SPLC502 IC LCD. Connect through the existing J1 FPC connection and shim 0.07mm to 1.50mm above PCB,1
+J1,10-pin 0.5mm FPC Connector,Hirose_FH12-10S-0.5SH_1x10-1MP_P0.50mm_Horizontal,FH12-10S-0.5SH(55),Bottom-contact ZIF FPC connector for LCD. (Placed at J1),1
 SOFT6,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 C12,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
 C10,1uF 10V X5R,C_0402_1005Metric,CL05A105KQ5NNNC,0402 LCD charge pump / decoupling capacitor,1
@@ -57,3 +57,4 @@ FID2,Fiducial_1mm_Mask2mm,Fiducial_1mm_Mask2mm,,,1
 SOFT5,ALPS SKQGABE010,SW_TACT_ALPS_SKQGABE010,SKQGABE010,SMD Tactile Switch for keys. **CRITICAL PCBA NOTE:** Z-height must be exactly 1.5mm off PCB surface.,1
 JST1,JST PH 2-pin side-entry header,JST_PH_S2B-PH-K_02x2.00mm_Angled,S2B-PH-K-S(LF)(SN),"Battery connector for wired CR2450 battery; 2.00mm pitch, side entry",1
 MCU1,RP2350 Pico 2,ProMicro,SC1632,"Raspberry Pi Pico 2 (non-wireless, RP2350 with dual Arm Cortex-M33 cores and FPU)",1
+DISP1,ERC13265FS-1 (2.5-inch LCD),Mechanical,ERC13265FS-1,ST7565R/ST7567 Controller 132x65 FSTN LCD.,1

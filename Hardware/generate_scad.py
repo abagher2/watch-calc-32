@@ -9,7 +9,7 @@ import subprocess
 # ─────────────────────────────────────────────────────────
 # KiCad Board – read PCB dimensions and component positions
 # ─────────────────────────────────────────────────────────
-board_path = "output/pcbs/calculator.kicad_pcb"
+board_path = "calculator.kicad_pcb"
 board = pcbnew.LoadBoard(board_path)
 
 bbox   = board.GetBoardEdgesBoundingBox()
@@ -31,6 +31,7 @@ buttons   = []
 soft_keys = []
 disp      = None
 
+caps = []
 for fp in board.GetFootprints():
     ref = fp.GetReference()
     pos = fp.GetPosition()
@@ -44,6 +45,15 @@ for fp in board.GetFootprints():
         buttons.append({'ref': ref, 'x': sx, 'y': sy})
     elif "Disp" in ref or "OLED" in ref or ref == "J1":
         disp = {'ref': ref, 'x': sx, 'y': sy}
+        if ref == "J1":
+            j1_comp = {'ref': ref, 'x': sx, 'y': sy}
+    elif ref == "JST1":
+        jst_comp = {'ref': ref, 'x': sx, 'y': sy, 'rot': fp.GetOrientationDegrees()}
+    elif ref == "MCU1":
+        mcu_comp = {'ref': ref, 'x': sx, 'y': sy, 'rot': fp.GetOrientationDegrees()}
+    elif ref in ["C10", "C11", "C12"]:
+        
+        caps.append({'ref': ref, 'x': sx, 'y': sy})
 
 all_buttons = soft_keys + buttons
 all_buttons.sort(key=lambda b: b['y'], reverse=True)
@@ -106,7 +116,7 @@ if len(rows) >= 3 and len(rows[2]) >= 2:
 WALL   = 1.4   # Base wall thickness (slimmed down for premium look)
 # Target Assembled Width = 80.0mm. TPU cover adds 2.4mm, so bare chassis must be 77.6mm.
 cw = 74.4
-fp_w = cw - 2*WALL - 0.4
+fp_w = pcb_width
 
 # The PCB should have a 5mm border from the outer chassis wall.
 # That means pcb_width should ideally be 70.0mm (80.0 - 10.0).
@@ -122,12 +132,12 @@ fp_h = 143.4
 # pcb_height is 137.0mm. Total padding = 143.4 - 137.0 = 6.4mm.
 pad_bottom = 3.2
 
-J1_Y_OFFSET = 0
+J1_Y_OFFSET = 17.4
 
 corner = 6.0
 
 # Internal Component Heights (mm)
-TACTILE_H = 1.6   # 1.5mm switches + 0.1mm gap for sliding clearance
+TACTILE_H = 1.7   # 1.5mm switches + 0.2mm gap for sliding clearance
 PCB_T     = 1.6   # PCB thickness
 BATT_H    = 4.0   # Clearance for CR2032 battery holder
 plate_t   = 2.0   # Faceplate base thickness (Reduced for slim profile)
@@ -144,14 +154,12 @@ DISP_T   = 2.80     # Reduced from 5.20 to 2.80 for bare COG display without bac
 
 pad_x = pad_left
 pad_y = pad_bottom
-# The J1 footprint is at X=35.075 on the PCB.
-# Because the faceplate's front face points toward -Z, +X points LEFT when viewed from the front.
-# To place the display correctly from the left edge, we must mirror it: fp_w - distance_from_left.
-disp_x = fp_w - (pad_left + 35.075)
 # Plan faceplate display window perfectly from the PCB Display/J1 header
 if disp:
+    disp_x = disp['x'] + pad_x
     disp_y = disp['y'] + J1_Y_OFFSET + pad_bottom + 5.35 # J1 is 5.35mm below the center of the OLED screen window
 else:
+    disp_x = pcb_width / 2 + pad_x
     disp_y = 123.50
 PCB_SCREW_INSET = 7.0
 chassis_screws = [
@@ -321,8 +329,8 @@ module seg_word(word, avail_w=7.0) {{
 module key_button(w, h, label="") {{
     difference() {{
         union() {{
-            // Cap (Local Z=-0.6..0.0 -> Final Z=2.0..2.6)
-            translate([0, 0, -0.6]) squircle_centered(w, h, 0.6, 1.5);
+            // Cap (Local Z=-0.8..0.0 -> Final Z=2.0..2.8)
+            translate([0, 0, -0.8]) squircle_centered(w, h, 0.8, 1.5);
             
             // Taper 2 (Local Z=0.0..0.6 -> Final Z=1.4..2.0)
             hull() {{
@@ -342,10 +350,10 @@ module key_button(w, h, label="") {{
             // Base Squircle (Local Z=1.6..2.0 -> Final Z=0.0..0.4)
             translate([0, 0, 1.6]) squircle_centered(w + 1.2, h + 1.2, 0.4, 1.5);
         }}
-        // Sunken label on top of cap (Local Z=-0.6 to -0.6+SD)
+        // Sunken label on top of cap (Local Z=-0.8 to -0.8+SD)
         // Since it's rotated 180 over X, we MUST mirror the text in Local space
         if (label != "") {{
-            translate([0, 0, -0.6 - 0.01])
+            translate([0, 0, -0.8 - 0.01])
                 mirror([1, 0, 0])
                     seg_word(label, w - 1.5);
         }}
@@ -568,17 +576,13 @@ module chassis_shell() {{
         translate([(cw - pcb_w)/2 - 0.2, {FRONT_LIP} + pt + {TACTILE_H} - 0.2, wall])
             cube([pcb_w + 0.4, {PCB_T} + 0.4, ch + 0.1]);
             
-        // Tier 2.5: PCB Trace Clearance
-        // Hollows out 0.5mm behind the PCB so traces/vias don't scratch the back wall.
-        translate([(cw - pcb_w + 4.0)/2 - 0.1, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, wall])
-            cube([pcb_w - 4.0 + 0.2, 0.5 + 0.1, ch + 0.1]);
-            
-        // Tier 3: Back Components Clearance (Deepest)
-        // Starts at Z=90. Tapers to match the chassis back wall to avoid punching through!
-        // At Z=90, max Y is 9.8. At Z=ch, max Y is 12.2.
+
+        // Tier 3: Back Components & Trace Clearance (Smooth single cavity without lip)
+        // A continuous smooth wedge from Z=0 to Z=ch.
+        // At Z=0, max Y is 7.5. At Z=ch, max Y is 12.2.
         hull() {{
-            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, 90.0])
-                cube([pcb_w - 4.0, 9.8 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
+            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, 0.0])
+                cube([pcb_w - 4.0, 7.5 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
             translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, ch - 0.1])
                 cube([pcb_w - 4.0, 12.2 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
         }}
@@ -663,9 +667,8 @@ chassis();
             
             // Back edge (tapered — shallower at keypad end to save material)
             // Minimum depth at Z=0 must clear all internal cuts:
-            //   Tier 2.5 ends at Y = FRONT_LIP + pt + TACTILE_H + PCB_T + 0.5
-            //                     = 1.0 + 2.0 + 1.6 + 1.6 + 0.5 = 6.7mm
-            // So back wall must be at least Y=9.5mm (center at Y=6.5, r=3)
+            //   The smooth internal cavity starts at Y=7.5mm at Z=0.
+            //   So back wall is set to Y=9.5mm (center at Y=6.5, r=3) to provide exactly 2.0mm solid shell.
             translate([3, 6.5, 0]) cylinder(r=3, h=0.1);
             translate([cw-3, 6.5, 0]) cylinder(r=3, h=0.1);
             
@@ -726,16 +729,16 @@ module top_cap() {{
         // ── MAIN PLATE (Tiered Plugs, Z=ch-cap_t to Z=ch) ─────────
         // Perfect fit into the chassis cavities!
         // Middle Cavity Plug
-        translate([{(cw - 66.4)/2:.3f}, 0.8 + {pt:.3f}, ch - cap_t])
-            cube([66.4, 1.6, cap_t]);
+        translate([{(cw - 66.4)/2:.3f}, {FRONT_LIP} + {pt:.3f}, ch - cap_t])
+            cube([66.4, {TACTILE_H:.3f}, cap_t]);
             
         // PCB Cavity Plug
-        translate([{(cw - pcb_width)/2:.3f}, 0.8 + {pt:.3f} + 1.6, ch - cap_t])
-            cube([{pcb_width:.3f}, 1.6, cap_t]);
+        translate([{(cw - pcb_width)/2:.3f}, {FRONT_LIP} + {pt:.3f} + {TACTILE_H:.3f}, ch - cap_t])
+            cube([{pcb_width:.3f}, {PCB_T:.3f}, cap_t]);
             
         // Trace Clearance & Back Components Cavity Plug
-        translate([{(cw - pcb_width + 4.0)/2:.3f}, 0.8 + {pt:.3f} + 3.2, ch - cap_t])
-            cube([{pcb_width - 4.0:.3f}, D - wall - (0.8 + {pt:.3f} + 3.2), cap_t]);
+        translate([{(cw - pcb_width + 4.0)/2:.3f}, {FRONT_LIP} + {pt:.3f} + {TACTILE_H:.3f} + {PCB_T:.3f}, ch - cap_t])
+            cube([{pcb_width - 4.0:.3f}, D - wall - ({FRONT_LIP} + {pt:.3f} + {TACTILE_H:.3f} + {PCB_T:.3f}), cap_t]);
 
         // ── FRONT LIP ROOF (Bridges across Faceplate to create the upper lip) ──────
         // The main roof sits flush on top of the chassis bezel and faceplate.
@@ -754,7 +757,7 @@ module top_cap() {{
         // ── SCREW BOSSES (Drop down into chassis Tier 3) ─────────────────
         // Left Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
 """
-    cz_top_screw = py_WALL + py_fp_h - 12.0
+    cz_top_screw = py_ch - py_offset_z - (pad_y + 8.0)
     cz_boss_bottom = cz_top_screw - 3.55
     # Calculate exact X coordinates to match chassis holes!
     lx = (cw - pcb_width)/2 + 9.0
@@ -762,24 +765,24 @@ module top_cap() {{
     top_cap += f"""
         difference() {{
             hull() {{
-                translate([{lx:.3f} - 7.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5, {cz_boss_bottom:.3f}]) 
-                    cube([10.0, 11.7 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5), 0.1]);
-                translate([{lx:.3f} - 7.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5, ch - cap_t]) 
-                    cube([10.0, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]);
+                translate([{lx:.3f} - 7.0, {FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 1.5, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - ({FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 1.5), 0.1]);
+                translate([{lx:.3f} - 7.0, {FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 0.5, ch - cap_t]) 
+                    cube([10.0, 12.2 - ({FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]);
             }}
             // Receiver hole for M2 self-tapping screw (d=1.8)
-            translate([{lx:.3f}, D + 0.1, 138.050]) rotate([90, 0, 0]) cylinder(d=1.8, h=D + 2.0);
+            translate([{lx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=1.8, h=D + 2.0);
         }}
         
         // Right Standoff (Widened to 10.0mm to brace laterally against chassis wall!)
         difference() {{
             hull() {{
-                translate([{rx:.3f} - 3.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5, {cz_boss_bottom:.3f}]) 
-                    cube([10.0, 11.7 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 1.5), 0.1]);
-                translate([{rx:.3f} - 3.0, 0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5, ch - cap_t]) 
-                    cube([10.0, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]);
+                translate([{rx:.3f} - 3.0, {FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 1.5, {cz_boss_bottom:.3f}]) 
+                    cube([10.0, 11.7 - ({FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 1.5), 0.1]);
+                translate([{rx:.3f} - 3.0, {FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 0.5, ch - cap_t]) 
+                    cube([10.0, 12.2 - ({FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]);
             }}
-            translate([{rx:.3f}, D + 0.1, 138.050]) rotate([90, 0, 0]) cylinder(d=1.8, h=D + 2.0);
+            translate([{rx:.3f}, D + 0.1, {cz_top_screw:.3f}]) rotate([90, 0, 0]) cylinder(d=1.8, h=D + 2.0);
         }}
         
         // ── BATTERY BUCKET (hangs down into Tier 3 cavity) ─────
@@ -787,18 +790,18 @@ module top_cap() {{
         // Tapered to perfectly respect the 2.0mm back chassis wall without punching through!
         // The coin cell's round edge perfectly avoids the thinnest part of the taper at the bottom.
         // Attached to the Right Screw Boss to print as one solid piece and clear the Pico MCU
-        translate([{rx:.3f} - 3.0 - 24.0, 0.8 + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 28.5]) {{
+        translate([{rx:.3f} - 3.0 - 24.0, {FRONT_LIP} + {pt:.3f} + {TACTILE_H} + {PCB_T}, ch - 38.5]) {{
             difference() {{
                 // Outer block (Tapered)
                 hull() {{
                     cube([24, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}), 0.1]);
-                    translate([0, 0, 26 + 0.1]) cube([24, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]); // Goes ALL THE WAY UP through the cap to let wires out!
+                    translate([0, 0, 36 + 0.1]) cube([24, 12.2 - ({FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 0.5), 0.1]); // Goes ALL THE WAY UP through the cap to let wires out!
                 }}
                 // Inner hollow (1.2mm walls on sides, back, and bottom. OPEN on front to PCB and OPEN on top for wires!)
                 translate([1.2, -0.1, 1.2])
                     hull() {{
                         cube([24 - 2.4, 11.0 - ({pt} + {TACTILE_H} + {PCB_T}) - 1.2, 0.1]);
-                        translate([0, 0, 26 + 0.2]) cube([24 - 2.4, 12.2 - (0.8 + {pt} + {TACTILE_H} + {PCB_T} + 0.5) - 1.2, 0.1]);
+                        translate([0, 0, 26 + 0.2]) cube([24 - 2.4, 12.2 - ({FRONT_LIP} + {pt} + {TACTILE_H} + {PCB_T} + 0.5) - 1.2, 0.1]);
                     }}
                     
                 // Wire exit channel on the RIGHT side to route to the JST connector!
@@ -1046,24 +1049,57 @@ module dummy_pcb_board_local() {{
             
     dummy_scad += f"""    }}
     
-    // Components on the back (MCU and Battery JST)
-    color("Black") {{
-        // RP2350 / ProMicro (35x18x4mm)
-        translate([{34.575 + pad_x:.3f}, {130.075 + pad_y:.3f}, 0]) 
-            translate([-35.0/2, -18.0/2, -4.0])
-            cube([35.0, 18.0, 4.0]);
+    // Components on the back (MCU, Connectors, Battery)
+    color("DarkSlateGray") {{
+        // Pico (51x21x4mm before rotation)
+        translate([{mcu_comp['x'] + pad_x:.3f}, {mcu_comp['y'] + pad_y:.3f}, 0]) 
+            rotate([0, 0, {mcu_comp['rot']:.3f}])
+            translate([-51.0/2, -21.0/2, -4.0])
+            cube([51.0, 21.0, 4.0]);
     }}
     
-    color("White") {{
-        // JST-PH 2-Pin SMD Right-Angle Connector (6x7.8x4.8mm) - MOVED TO TOP
-        translate([{56.15:.3f}, {140.0 + pad_y:.3f}, 0]) 
-            translate([-6.0/2, -7.8/2, -4.8])
-            cube([6.0, 7.8, 4.8]);
+    color("LightGray") {{
+        // JST PH 2-pin connector S2B-PH-K-S (5.9 x 7.6 x 4.8mm)
+        translate([{jst_comp['x'] + pad_x:.3f}, {jst_comp['y'] + pad_y:.3f}, 0])
+            rotate([0, 0, {jst_comp['rot']:.3f}])
+            translate([-5.9/2, -7.6/2, -4.8])
+            cube([5.9, 7.6, 4.8]);
     }}
+
+    color("Silver") {{
+        // J1 ZIF Connector (around 16x5x2mm)
+        translate([{j1_comp['x'] + pad_x:.3f}, {j1_comp['y'] + pad_y:.3f}, 0])
+            translate([-16.0/2, -5.0/2, -2.0])
+            cube([16.0, 5.0, 2.0]);
+    }}
+
+    color("Sienna") {{
+        // Capacitors 0402 (1.0x0.5x0.5mm)
+"""
+    for c in caps:
+        dummy_scad += f"        translate([{c['x'] + pad_x:.3f}, {c['y'] + pad_y:.3f}, 0]) translate([-0.5, -0.25, -0.5]) cube([1.0, 0.5, 0.5]);\n"
+
+    dummy_scad += f"""    }}
+
+    color("Gold") {{
+        // FPC Ribbon Cable
+        // Originates from bottom of display
+        translate([{disp_x:.3f} - 5.0, {disp_y:.3f} + {DISP_H:.3f}/2, 1.6])
+            cube([10.0, 2.0, 0.1]);
+        // Bends through slot
+        translate([{disp_x:.3f} - 5.0, {disp_y:.3f} + {DISP_H:.3f}/2 + 1.9, 0])
+            cube([10.0, 0.1, 1.6]);
+        // Runs across the back to J1
+        translate([{disp_x:.3f} - 5.0, {j1_comp['y'] + pad_y:.3f}, -0.1])
+            cube([10.0, {disp_y:.3f} + {DISP_H:.3f}/2 + 2.0 - ({j1_comp['y'] + pad_y:.3f}), 0.1]);
+    }}
+    
 }}
 
 // Place the board-local model in the chassis coordinate system.
-translate([2, 7.7, 3])
+// Rotate 90 around X to stand it up. 
+// Translation: 0 on X, FRONT_LIP + pt + TACTILE_H + PCB_T on Y (which aligns the back of the PCB perfectly)
+translate([0, {FRONT_LIP} + {pt:.3f} + {TACTILE_H} + {PCB_T}, 0])
     rotate([90, 0, 0])
         dummy_pcb_board_local();
 """
@@ -1096,13 +1132,13 @@ if __name__ == "__main__":
     import shutil
     openscad_bin = shutil.which("openscad") or "/usr/local/bin/openscad"
 
-    for label, src, dst in tasks:
-        print(f"  Building {label} ...")
-        res = subprocess.run([openscad_bin, "-o", dst, src],
-                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if res.returncode == 0:
-            print(f"  ✓ {label}.stl")
-        else:
-            print(f"  ✗ {label} ERRORS:\n{res.stderr[-800:]}")
+    #for label, src, dst in tasks:
+    #    print(f"  Building {label} ...")
+    #    res = subprocess.run([openscad_bin, "-o", dst, src],
+    #                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    #    if res.returncode != 0:
+    #        print(f"Error compiling {label}: {res.stderr}")
+    #    else:
+    #        print(f"  ✗ {label} ERRORS:\n{res.stderr[-800:]}")
 
     print("Done generating SCAD files!")

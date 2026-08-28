@@ -93,7 +93,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         return
     }
     
-    if engine.isWaitingForLabel {
+    if engine.isWaitingForLabel || engine.isWaitingForAlpha {
         if isCommand(buf, len, "<-") || isCommand(buf, len, "BACKSPACE") {
             engine.submitAlpha("<-")
         } else if isCommand(buf, len, "ENTER") {
@@ -105,6 +105,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             while e > s && buf[e - 1] <= 32 { e -= 1 }
             let trimmedLen = e - s
             let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
+            print("SUBMIT ALPHA: \(str), isWaitingForLabel: \(engine.isWaitingForLabel)")
             engine.submitAlpha(str)
         }
         needsDisplay = true
@@ -204,12 +205,14 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                             hw_display_wake_c()
                             isSleeping = false
                             needsDisplay = true
+                            lastActivityTime = hw_time_us()
                         }
                     }
                     
                     if !isSleeping {
                         dispatchUART(lineBuf, lineLen, engine, lfuManager)
                         needsDisplay = true
+                        lastActivityTime = hw_time_us()
                     }
                     lineLen = 0
                 }
@@ -229,13 +232,23 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 }
                 pushTx(10) // \n
                 let yValue = engine.stack.count > 1 ? engine.stack[1].real : 0.0
+                let zValue = engine.stack.count > 2 ? engine.stack[2].real : 0.0
+                let tValue = engine.stack.count > 3 ? engine.stack[3].real : 0.0
+                let lValue = engine.lastX.real
                 
-                pushTx(89); pushTx(58); pushTx(32) // "Y: "
-                format_double_c(yValue, WatchCalcFirmware.formatBuf, 64, 0, 0)
-                var fmtLen = 0
-                while fmtLen < 64 && WatchCalcFirmware.formatBuf[fmtLen] != 0 { fmtLen += 1 }
-                for i in 0..<fmtLen { pushTx(WatchCalcFirmware.formatBuf[i]) }
-                pushTx(10) // \n
+                func printVal(_ name: String, _ val: Double) {
+                    for b in name.utf8 { pushTx(b) }
+                    format_double_c(val, WatchCalcFirmware.formatBuf, 64, 0, 0)
+                    var fmtLen = 0
+                    while fmtLen < 64 && WatchCalcFirmware.formatBuf[fmtLen] != 0 { fmtLen += 1 }
+                    for i in 0..<fmtLen { pushTx(WatchCalcFirmware.formatBuf[i]) }
+                    pushTx(10)
+                }
+                
+                printVal("Y: ", yValue)
+                printVal("Z: ", zValue)
+                printVal("T: ", tValue)
+                printVal("L: ", lValue)
                 
                 for _ in 0..<32 { pushTx(61) } // "================================"
                 pushTx(10) // \n
@@ -316,6 +329,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             
             // Render standard retro UI
             uiController.retroUI.render(engine: engine, renderer: renderer)
+            print("DEBUG: requestPlot=\(engine.requestPlot) isEq=\(engine.isEquationListMode)")
             
             var changed = false
             if let prev = renderer.previousBuffer {

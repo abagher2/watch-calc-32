@@ -907,23 +907,57 @@ public class CalculatorEngine {
             var val = 0.0
             
             if decimalCount == 2 {
-                let valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
-                val = parseFractionString(valString)
+                // To avoid String allocations in Embedded Swift, parse the fraction slice directly
+                // format: integer.numerator.denominator
+                var part0: Double = 0.0
+                var part1: Double = 0.0
+                var part2: Double = 0.0
+                var currentPart: Double = 0.0
+                var partIndex = 0
+                for i in 0..<currentInputLength {
+                    let c = currentInputBuffer[i]
+                    if c == 46 { // '.'
+                        if partIndex == 0 { part0 = currentPart }
+                        else if partIndex == 1 { part1 = currentPart }
+                        else if partIndex == 2 { part2 = currentPart }
+                        currentPart = 0.0
+                        partIndex += 1
+                    } else if c >= 48 && c <= 57 {
+                        currentPart = currentPart * 10.0 + Double(c - 48)
+                    }
+                }
+                if partIndex == 0 { part0 = currentPart }
+                else if partIndex == 1 { part1 = currentPart }
+                else if partIndex == 2 { part2 = currentPart }
+                
+                if partIndex >= 2 && part2 != 0 {
+                    val = part0 + (part1 / part2)
+                } else {
+                    val = part0
+                }
             } else {
                 if baseMode != .dec {
-                    let valString = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
-                    let radix: Int
+                    let radix: Int64
                     switch baseMode {
                     case .hex: radix = 16
                     case .oct: radix = 8
                     case .bin: radix = 2
                     default: radix = 10
                     }
-                    if let parsedInt = Int64(valString, radix: radix) {
-                        val = Double(parsedInt)
-                    } else {
-                        val = 0.0
+                    var parsedInt: Int64 = 0
+                    var valid = false
+                    for i in 0..<currentInputLength {
+                        let c = currentInputBuffer[i]
+                        var digit: Int64 = -1
+                        if c >= 48 && c <= 57 { digit = Int64(c - 48) }
+                        else if c >= 65 && c <= 70 { digit = Int64(c - 65 + 10) }
+                        else if c >= 97 && c <= 102 { digit = Int64(c - 97 + 10) }
+                        if digit >= 0 && digit < radix {
+                            parsedInt = parsedInt * radix + digit
+                            valid = true
+                        }
                     }
+                    val = valid ? Double(parsedInt) : 0.0
                 } else {
                     val = parseDoubleSlice(currentInputBuffer[0..<currentInputLength], exponent: isBuildingExponent ? currentExponent : nil)
                 }
@@ -1299,7 +1333,10 @@ public class CalculatorEngine {
             if isProgrammingMode {
                 saveProgram()
                 isProgrammingMode = false
-                updateProgramDisplay()
+                isWaitingForLabel = false
+                prgmIsBuildingNumber = false
+                promptString = nil
+                updateDisplay()
                 return
             }
             isProgrammingMode = true
@@ -1315,8 +1352,10 @@ public class CalculatorEngine {
             } else if operation == "C" || operation == "CLEAR" {
                 saveProgram()
                 isProgrammingMode = false
+                isWaitingForLabel = false
                 prgmIsBuildingNumber = false
-                updateProgramDisplay()
+                promptString = nil
+                updateDisplay()
                 return
             } else if let p = parseInt(operation) {
                 currentProgramSteps.append("\(p)")
@@ -1403,6 +1442,15 @@ public class CalculatorEngine {
 
         
         if operation == "EQN" {
+            if isProgrammingMode {
+                saveProgram()
+                isProgrammingMode = false
+                isWaitingForLabel = false
+                prgmIsBuildingNumber = false
+                promptString = nil
+                updateDisplay()
+                return
+            }
             requestEqn = true
             isEquationListMode = true
             currentEquationListIndex = 0
@@ -1471,6 +1519,7 @@ public class CalculatorEngine {
         }
         
         if operation == "XEQ" {
+            print("DEBUG: XEQ handled, setting requestXEQ=true")
             isWaitingForLabel = true
             startAlpha()
             alphaPrompt = "XEQ _"
@@ -2140,6 +2189,7 @@ public class CalculatorEngine {
             // Plot data will just be an empty array, or we can use statPoints directly in the view
         }
         self.requestPlot = true
+        print("DEBUG: requestPlot SET TO TRUE by generatePlot")
     }
     
     public func evaluateProgram(_ program: Program, variables: [String: CalculatorValue]) -> CalculatorValue? {
@@ -2176,6 +2226,13 @@ public class CalculatorEngine {
                 skipNextInstruction = false
                 i += 1
                 continue
+            }
+            
+            if case .operation(let op) = step, op == .rtn {
+                break
+            }
+            if case .custom(let str) = step, str == "RTN" {
+                break
             }
             
             switch step {
@@ -2497,6 +2554,7 @@ public class CalculatorEngine {
     }
     
     public func submitAlpha(_ str: String) {
+        print("DEBUG: submitAlpha \(str), isWaitingForLabel: \(isWaitingForLabel), requestXEQ: \(requestXEQ)")
         let key = str.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
         if key.isEmpty { 
             cancelAlpha()
@@ -2553,12 +2611,19 @@ public class CalculatorEngine {
             isWaitingForLabel = false
             
             if requestXEQ {
+                print("DEBUG: Inside requestXEQ block in submitAlpha")
                 requestXEQ = false
-                isProgrammingMode = false
-                if let program = programs.first(where: { $0.label == initialChar }) {
-                    currentResumeAction = .eval(program)
-                    pendingEquationVars = program.extractVariables()
-                    promptNextEquationVar()
+                if isProgrammingMode {
+                    currentProgramSteps.append("XEQ \(initialChar)")
+                    updateProgramDisplay()
+                    return
+                } else {
+                    isProgrammingMode = false
+                    if let program = programs.first(where: { $0.label == initialChar }) {
+                        currentResumeAction = .eval(program)
+                        pendingEquationVars = program.extractVariables()
+                        promptNextEquationVar()
+                    }
                 }
             } else {
                 isProgrammingMode = true
@@ -2670,8 +2735,8 @@ public class CalculatorEngine {
         isWaitingForAlpha = false
         if !isProgrammingMode {
             promptString = nil
-            updateDisplay()
         }
+        updateDisplay()
     }
     
     public func startPlot(variable: String, lower: Double, upper: Double) {
@@ -2723,6 +2788,7 @@ public class CalculatorEngine {
             if requestPlotAfter {
                 self.isPlotSRequested = false
                 self.requestPlot = true
+        print("DEBUG: requestPlot SET TO TRUE by generatePlot")
             }
         case .plot(let variable, let lower, let upper, let program):
             _ = integrate(variable: variable, lower: lower, upper: upper, program: program) // plot is generated internally inside plot function if we implement it, wait, currently generatePlot uses evaluateProgram directly. 
@@ -2921,6 +2987,7 @@ public class CalculatorEngine {
             let stepNum = currentProgramSteps.count < 10 ? "0\(currentProgramSteps.count)" : "\(currentProgramSteps.count)"
             promptString = "\(stepNum) \(currentProgramSteps.last!)"
         }
+        updateDisplay()
     }
     
     

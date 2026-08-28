@@ -1,0 +1,1128 @@
+** Drc report for calculator.kicad_pcb **
+** Created on 2026-08-27T22:03:02 **
+** Report includes: Errors, Warnings **
+
+** Found 299 DRC violations **
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.5000 mm; actual 0.3503 mm)
+    Rule: board setup constraints edge; error
+    @(37.0000 mm, -88.0000 mm): Segment on Edge.Cuts
+    @(53.4253 mm, -81.4670 mm): Track [P15] on B.Cu, length 8.2079 mm
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.5000 mm; actual 0.3503 mm)
+    Rule: board setup constraints edge; error
+    @(53.0000 mm, -88.0000 mm): Segment on Edge.Cuts
+    @(53.4253 mm, -81.4670 mm): Track [P15] on B.Cu, length 8.2079 mm
+[copper_edge_clearance]: Board edge clearance violation (board setup constraints edge clearance 0.5000 mm; actual 0.3503 mm)
+    Rule: board setup constraints edge; error
+    @(53.0000 mm, -86.5000 mm): Segment on Edge.Cuts
+    @(53.4253 mm, -81.4670 mm): Track [P15] on B.Cu, length 8.2079 mm
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(14.2026 mm, -59.0784 mm): Via [P5] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(28.9839 mm, -58.1868 mm): Via [P5] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(50.1789 mm, -52.5239 mm): Via [P5] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(43.5171 mm, -58.0124 mm): Via [P5] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(53.4253 mm, -81.4670 mm): Via [P15] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(16.3259 mm, -100.6108 mm): Via [P6] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(12.1961 mm, -81.4670 mm): Via [P6] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(43.1612 mm, -36.6563 mm): Via [P6] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(30.6154 mm, -36.6563 mm): Via [P6] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(14.2792 mm, -38.8633 mm): Via [P6] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(56.3875 mm, -32.7728 mm): Via [P6] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(47.2827 mm, -62.4753 mm): Via [P0] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(32.4418 mm, -63.9455 mm): Via [P0] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(24.9676 mm, -66.0613 mm): Via [P0] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(67.4920 mm, -63.1208 mm): Via [P0] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(12.9910 mm, -68.5658 mm): Via [P0] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(31.9510 mm, -107.7212 mm): Via [P21] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(31.8061 mm, -24.8943 mm): Via [P10] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(14.6917 mm, -23.9120 mm): Via [P10] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(29.9024 mm, -95.0287 mm): Via [P10] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(56.3875 mm, -25.3823 mm): Via [P10] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(24.9676 mm, -75.3765 mm): Via [P4] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(35.5993 mm, -75.3765 mm): Via [P4] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(70.6495 mm, -75.3765 mm): Via [P4] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(47.2827 mm, -75.3765 mm): Via [P4] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(57.5586 mm, -79.9968 mm): Via [P14] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(47.1743 mm, -54.9763 mm): Via [P1] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(69.2420 mm, -53.6145 mm): Via [P1] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(18.0742 mm, -56.2270 mm): Via [P1] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(34.6170 mm, -56.9407 mm): Via [P1] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(60.6032 mm, -83.2498 mm): Via [P16] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(41.6794 mm, -91.4253 mm): Via [Net-(J1-Pad8)] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(36.6752 mm, -91.7009 mm): Via [GND] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(43.6930 mm, -94.6668 mm): Via [Net-(J1-Pad9)] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(29.9553 mm, -107.9600 mm): Via [P20] on F.Cu - B.Cu
+[via_diameter]: Via diameter (board setup constraints min diameter 0.6000 mm; actual 0.4000 mm)
+    Rule: netclass 'Default'; error
+    @(49.2685 mm, -92.3438 mm): Via [Net-(J1-Pad10)] on F.Cu - B.Cu
+[isolated_copper]: Isolated copper fill
+    Local override; warning
+    @(6.9500 mm, -140.0500 mm): Zone [<no net>] on F.Cu, priority 0
+[isolated_copper]: Isolated copper fill
+    Local override; warning
+    @(6.9500 mm, -140.0500 mm): Zone [<no net>] on B.Cu, priority 0
+[isolated_copper]: Isolated copper fill
+    Local override; warning
+    @(6.9500 mm, -140.0500 mm): Zone [<no net>] on In1.Cu, priority 0
+[isolated_copper]: Isolated copper fill
+    Local override; warning
+    @(6.9500 mm, -140.0500 mm): Zone [<no net>] on In2.Cu, priority 0
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(9.0000 mm, 0.0000 mm): Segment on Edge.Cuts
+    @(12.6000 mm, -10.9500 mm): Segment on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(9.0000 mm, 0.0000 mm): Segment on Edge.Cuts
+    @(12.6000 mm, 0.0000 mm): Segment on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(9.0000 mm, 0.0000 mm): Segment on Edge.Cuts
+    @(22.6000 mm, -10.9500 mm): Segment on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(9.0000 mm, 0.0000 mm): Segment on Edge.Cuts
+    @(70.6000 mm, -10.9500 mm): Segment on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(9.0000 mm, 0.0000 mm): Segment on Edge.Cuts
+    @(70.6000 mm, 0.0000 mm): Segment on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(9.0000 mm, 0.0000 mm): Segment on Edge.Cuts
+    @(80.6000 mm, -10.9500 mm): Segment on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(37.0000 mm, -88.0000 mm): Segment on Edge.Cuts
+    @(45.0000 mm, -88.3000 mm): Reference field of J1
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(46.3690 mm, -22.0000 mm): Footprint B28
+[lib_footprint_mismatch]: Footprint 'Fiducial_1mm_Mask2mm' does not match copy in library 'Fiducial'
+    Local override; warning
+    @(60.0000 mm, 20.0000 mm): Footprint FID3
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(27.7500 mm, -82.0000 mm): Footprint SOFT2
+[lib_footprint_mismatch]: Footprint 'Fiducial_1mm_Mask2mm' does not match copy in library 'Fiducial'
+    Local override; warning
+    @(5.0000 mm, 140.0000 mm): Footprint FID1
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(73.7500 mm, -82.0000 mm): Footprint SOFT6
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(50.7500 mm, -82.0000 mm): Footprint SOFT4
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(39.2500 mm, -82.0000 mm): Footprint SOFT3
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(16.2500 mm, -82.0000 mm): Footprint SOFT1
+[lib_footprint_mismatch]: Footprint 'Fiducial_1mm_Mask2mm' does not match copy in library 'Fiducial'
+    Local override; warning
+    @(60.0000 mm, 140.0000 mm): Footprint FID2
+[lib_footprint_issues]: The current configuration does not include the footprint library 'E73'
+    Local override; warning
+    @(62.2500 mm, -82.0000 mm): Footprint SOFT5
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(57.0000 mm, -118.1000 mm): Circle on F.Silkscreen
+    @(45.0000 mm, -128.0000 mm): PCB text 'StackCalc 32' on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(57.0000 mm, -118.1000 mm): Circle on F.Silkscreen
+    @(45.0000 mm, -120.0000 mm): PCB text 'LCD Screen Area' on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(45.0000 mm, -135.0000 mm): PCB text 'Copyright 2026' on F.Silkscreen
+    @(10.5000 mm, -135.5000 mm): Rectangle on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(45.0000 mm, -135.0000 mm): PCB text 'Copyright 2026' on F.Silkscreen
+    @(45.0000 mm, -133.0000 mm): PCB text 'ERC13265FS-1 (2.5")' on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -60.7500 mm): Segment of B7 on F.Silkscreen
+    @(36.1500 mm, -60.1500 mm): Pad 2 [P9] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -63.2500 mm): Segment of B7 on F.Silkscreen
+    @(42.3500 mm, -63.8500 mm): Pad NC [<no net>] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -63.2500 mm): Segment of B7 on F.Silkscreen
+    @(42.3500 mm, -63.8500 mm): Pad NC [<no net>] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -63.2500 mm): Segment of B7 on F.Silkscreen
+    @(42.3500 mm, -60.1500 mm): Pad NC [<no net>] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -60.7500 mm): Segment of B7 on F.Silkscreen
+    @(42.3500 mm, -60.1500 mm): Pad NC [<no net>] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -63.2500 mm): Segment of B2 on F.Silkscreen
+    @(13.1500 mm, -63.8500 mm): Pad 1 [P0] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -63.2500 mm): Segment of B2 on F.Silkscreen
+    @(13.1500 mm, -60.1500 mm): Pad 2 [P7] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -63.2500 mm): Segment of B2 on F.Silkscreen
+    @(13.1500 mm, -63.8500 mm): Pad 1 [P0] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -63.2500 mm): Segment of B2 on F.Silkscreen
+    @(19.3500 mm, -63.8500 mm): Pad NC [<no net>] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -63.2500 mm): Segment of B2 on F.Silkscreen
+    @(19.3500 mm, -63.8500 mm): Pad NC [<no net>] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -63.2500 mm): Segment of B2 on F.Silkscreen
+    @(19.3500 mm, -60.1500 mm): Pad NC [<no net>] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -60.7500 mm): Segment of B2 on F.Silkscreen
+    @(13.1500 mm, -60.1500 mm): Pad 2 [P7] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -60.7500 mm): Segment of B2 on F.Silkscreen
+    @(19.3500 mm, -60.1500 mm): Pad NC [<no net>] of B2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.2500 mm, -53.2500 mm): Segment of B1 on F.Silkscreen
+    @(18.9000 mm, -53.8500 mm): Pad 1 [P1] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.2500 mm, -53.2500 mm): Segment of B1 on F.Silkscreen
+    @(18.9000 mm, -53.8500 mm): Pad 1 [P1] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.2500 mm, -53.2500 mm): Segment of B1 on F.Silkscreen
+    @(18.9000 mm, -50.1500 mm): Pad 2 [P7] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.2500 mm, -50.7500 mm): Segment of B1 on F.Silkscreen
+    @(18.9000 mm, -50.1500 mm): Pad 2 [P7] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(24.7500 mm, -53.2500 mm): Segment of B1 on F.Silkscreen
+    @(25.1000 mm, -53.8500 mm): Pad NC [<no net>] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(24.7500 mm, -53.2500 mm): Segment of B1 on F.Silkscreen
+    @(25.1000 mm, -53.8500 mm): Pad NC [<no net>] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(24.7500 mm, -53.2500 mm): Segment of B1 on F.Silkscreen
+    @(25.1000 mm, -50.1500 mm): Pad NC [<no net>] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(24.7500 mm, -50.7500 mm): Segment of B1 on F.Silkscreen
+    @(25.1000 mm, -50.1500 mm): Pad NC [<no net>] of B1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -63.2500 mm): Segment of B4 on F.Silkscreen
+    @(24.6500 mm, -63.8500 mm): Pad 1 [P0] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -63.2500 mm): Segment of B4 on F.Silkscreen
+    @(24.6500 mm, -60.1500 mm): Pad 2 [P8] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -63.2500 mm): Segment of B4 on F.Silkscreen
+    @(24.6500 mm, -63.8500 mm): Pad 1 [P0] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -60.7500 mm): Segment of B4 on F.Silkscreen
+    @(24.6500 mm, -60.1500 mm): Pad 2 [P8] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -63.2500 mm): Segment of B4 on F.Silkscreen
+    @(30.8500 mm, -63.8500 mm): Pad NC [<no net>] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -63.2500 mm): Segment of B4 on F.Silkscreen
+    @(30.8500 mm, -63.8500 mm): Pad NC [<no net>] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -63.2500 mm): Segment of B4 on F.Silkscreen
+    @(30.8500 mm, -60.1500 mm): Pad NC [<no net>] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -60.7500 mm): Segment of B4 on F.Silkscreen
+    @(30.8500 mm, -60.1500 mm): Pad NC [<no net>] of B4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -73.2500 mm): Segment of B3 on F.Silkscreen
+    @(13.1500 mm, -73.8500 mm): Pad 1 [P4] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -73.2500 mm): Segment of B3 on F.Silkscreen
+    @(13.1500 mm, -70.1500 mm): Pad 2 [P7] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -70.7500 mm): Segment of B3 on F.Silkscreen
+    @(13.1500 mm, -70.1500 mm): Pad 2 [P7] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -73.2500 mm): Segment of B3 on F.Silkscreen
+    @(19.3500 mm, -73.8500 mm): Pad NC [<no net>] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -73.2500 mm): Segment of B3 on F.Silkscreen
+    @(19.3500 mm, -70.1500 mm): Pad NC [<no net>] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -70.7500 mm): Segment of B3 on F.Silkscreen
+    @(19.3500 mm, -70.1500 mm): Pad NC [<no net>] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -73.2500 mm): Segment of B3 on F.Silkscreen
+    @(13.1500 mm, -73.8500 mm): Pad 1 [P4] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -73.2500 mm): Segment of B3 on F.Silkscreen
+    @(19.3500 mm, -73.8500 mm): Pad NC [<no net>] of B3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -83.2500 mm): Segment of SOFT1 on F.Silkscreen
+    @(13.1500 mm, -83.8500 mm): Pad 1 [P20] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -83.2500 mm): Segment of SOFT1 on F.Silkscreen
+    @(13.1500 mm, -80.1500 mm): Pad 2 [P7] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -83.2500 mm): Segment of SOFT1 on F.Silkscreen
+    @(13.1500 mm, -83.8500 mm): Pad 1 [P20] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(13.5000 mm, -80.7500 mm): Segment of SOFT1 on F.Silkscreen
+    @(13.1500 mm, -80.1500 mm): Pad 2 [P7] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -83.2500 mm): Segment of SOFT1 on F.Silkscreen
+    @(19.3500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -83.2500 mm): Segment of SOFT1 on F.Silkscreen
+    @(19.3500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -83.2500 mm): Segment of SOFT1 on F.Silkscreen
+    @(19.3500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(19.0000 mm, -80.7500 mm): Segment of SOFT1 on F.Silkscreen
+    @(19.3500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -60.7500 mm): Segment of B10 on F.Silkscreen
+    @(53.8500 mm, -60.1500 mm): Pad NC [<no net>] of B10 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -63.2500 mm): Segment of B13 on F.Silkscreen
+    @(59.1500 mm, -60.1500 mm): Pad 2 [P14] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -63.2500 mm): Segment of B13 on F.Silkscreen
+    @(59.1500 mm, -63.8500 mm): Pad 1 [P0] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -63.2500 mm): Segment of B13 on F.Silkscreen
+    @(59.1500 mm, -63.8500 mm): Pad 1 [P0] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -70.7500 mm): Segment of B14 on F.Silkscreen
+    @(59.1500 mm, -70.1500 mm): Pad 2 [P14] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -70.7500 mm): Segment of B14 on F.Silkscreen
+    @(65.3500 mm, -70.1500 mm): Pad NC [<no net>] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -63.2500 mm): Segment of B13 on F.Silkscreen
+    @(65.3500 mm, -63.8500 mm): Pad NC [<no net>] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -60.7500 mm): Segment of B13 on F.Silkscreen
+    @(59.1500 mm, -60.1500 mm): Pad 2 [P14] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -60.7500 mm): Segment of B13 on F.Silkscreen
+    @(65.3500 mm, -60.1500 mm): Pad NC [<no net>] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -53.2500 mm): Segment of B12 on F.Silkscreen
+    @(59.1500 mm, -50.1500 mm): Pad 2 [P14] of B12 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -53.2500 mm): Segment of B12 on F.Silkscreen
+    @(59.1500 mm, -53.8500 mm): Pad 1 [P1] of B12 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -53.2500 mm): Segment of B12 on F.Silkscreen
+    @(59.1500 mm, -53.8500 mm): Pad 1 [P1] of B12 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -53.2500 mm): Segment of B12 on F.Silkscreen
+    @(65.3500 mm, -53.8500 mm): Pad NC [<no net>] of B12 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -53.2500 mm): Segment of B12 on F.Silkscreen
+    @(65.3500 mm, -50.1500 mm): Pad NC [<no net>] of B12 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -53.2500 mm): Segment of B12 on F.Silkscreen
+    @(65.3500 mm, -53.8500 mm): Pad NC [<no net>] of B12 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -60.7500 mm): Segment of B10 on F.Silkscreen
+    @(47.6500 mm, -60.1500 mm): Pad 2 [P15] of B10 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -53.2500 mm): Segment of B9 on F.Silkscreen
+    @(47.6500 mm, -53.8500 mm): Pad 1 [P1] of B9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -53.2500 mm): Segment of B9 on F.Silkscreen
+    @(47.6500 mm, -50.1500 mm): Pad 2 [P15] of B9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -53.2500 mm): Segment of B9 on F.Silkscreen
+    @(47.6500 mm, -53.8500 mm): Pad 1 [P1] of B9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -53.2500 mm): Segment of B9 on F.Silkscreen
+    @(53.8500 mm, -53.8500 mm): Pad NC [<no net>] of B9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -53.2500 mm): Segment of B9 on F.Silkscreen
+    @(53.8500 mm, -53.8500 mm): Pad NC [<no net>] of B9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -53.2500 mm): Segment of B9 on F.Silkscreen
+    @(53.8500 mm, -50.1500 mm): Pad NC [<no net>] of B9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -73.2500 mm): Segment of B11 on F.Silkscreen
+    @(47.6500 mm, -73.8500 mm): Pad 1 [P4] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -73.2500 mm): Segment of B11 on F.Silkscreen
+    @(47.6500 mm, -70.1500 mm): Pad 2 [P15] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -73.2500 mm): Segment of B11 on F.Silkscreen
+    @(47.6500 mm, -73.8500 mm): Pad 1 [P4] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -70.7500 mm): Segment of B11 on F.Silkscreen
+    @(47.6500 mm, -70.1500 mm): Pad 2 [P15] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -73.2500 mm): Segment of B11 on F.Silkscreen
+    @(53.8500 mm, -73.8500 mm): Pad NC [<no net>] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -73.2500 mm): Segment of B11 on F.Silkscreen
+    @(53.8500 mm, -73.8500 mm): Pad NC [<no net>] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -73.2500 mm): Segment of B11 on F.Silkscreen
+    @(53.8500 mm, -70.1500 mm): Pad NC [<no net>] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -70.7500 mm): Segment of B11 on F.Silkscreen
+    @(53.8500 mm, -70.1500 mm): Pad NC [<no net>] of B11 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -83.2500 mm): Segment of SOFT6 on F.Silkscreen
+    @(76.8500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -83.2500 mm): Segment of SOFT6 on F.Silkscreen
+    @(76.8500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -83.2500 mm): Segment of SOFT6 on F.Silkscreen
+    @(76.8500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -80.7500 mm): Segment of SOFT6 on F.Silkscreen
+    @(76.8500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -83.2500 mm): Segment of SOFT6 on F.Silkscreen
+    @(70.6500 mm, -83.8500 mm): Pad 1 [P20] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -83.2500 mm): Segment of SOFT6 on F.Silkscreen
+    @(70.6500 mm, -80.1500 mm): Pad 2 [P16] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -83.2500 mm): Segment of SOFT6 on F.Silkscreen
+    @(70.6500 mm, -83.8500 mm): Pad 1 [P20] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -80.7500 mm): Segment of SOFT6 on F.Silkscreen
+    @(70.6500 mm, -80.1500 mm): Pad 2 [P16] of SOFT6 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -83.2500 mm): Segment of SOFT5 on F.Silkscreen
+    @(65.3500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -83.2500 mm): Segment of SOFT5 on F.Silkscreen
+    @(65.3500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -83.2500 mm): Segment of SOFT5 on F.Silkscreen
+    @(65.3500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -80.7500 mm): Segment of SOFT5 on F.Silkscreen
+    @(65.3500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -83.2500 mm): Segment of SOFT5 on F.Silkscreen
+    @(59.1500 mm, -83.8500 mm): Pad 1 [P20] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -83.2500 mm): Segment of SOFT5 on F.Silkscreen
+    @(59.1500 mm, -80.1500 mm): Pad 2 [P14] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -83.2500 mm): Segment of SOFT5 on F.Silkscreen
+    @(59.1500 mm, -83.8500 mm): Pad 1 [P20] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -80.7500 mm): Segment of SOFT5 on F.Silkscreen
+    @(59.1500 mm, -80.1500 mm): Pad 2 [P14] of SOFT5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -73.2500 mm): Segment of B5 on F.Silkscreen
+    @(30.8500 mm, -73.8500 mm): Pad NC [<no net>] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -73.2500 mm): Segment of B5 on F.Silkscreen
+    @(30.8500 mm, -70.1500 mm): Pad NC [<no net>] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -70.7500 mm): Segment of B5 on F.Silkscreen
+    @(30.8500 mm, -70.1500 mm): Pad NC [<no net>] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -73.2500 mm): Segment of B8 on F.Silkscreen
+    @(36.1500 mm, -73.8500 mm): Pad 1 [P4] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -73.2500 mm): Segment of B8 on F.Silkscreen
+    @(36.1500 mm, -70.1500 mm): Pad 2 [P9] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -70.7500 mm): Segment of B8 on F.Silkscreen
+    @(36.1500 mm, -70.1500 mm): Pad 2 [P9] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -73.2500 mm): Segment of B5 on F.Silkscreen
+    @(24.6500 mm, -73.8500 mm): Pad 1 [P4] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -73.2500 mm): Segment of B5 on F.Silkscreen
+    @(24.6500 mm, -70.1500 mm): Pad 2 [P8] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -73.2500 mm): Segment of B5 on F.Silkscreen
+    @(24.6500 mm, -73.8500 mm): Pad 1 [P4] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -70.7500 mm): Segment of B5 on F.Silkscreen
+    @(24.6500 mm, -70.1500 mm): Pad 2 [P8] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -73.2500 mm): Segment of B5 on F.Silkscreen
+    @(30.8500 mm, -73.8500 mm): Pad NC [<no net>] of B5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -63.2500 mm): Segment of B7 on F.Silkscreen
+    @(36.1500 mm, -63.8500 mm): Pad 1 [P0] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -63.2500 mm): Segment of B7 on F.Silkscreen
+    @(36.1500 mm, -60.1500 mm): Pad 2 [P9] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -63.2500 mm): Segment of B7 on F.Silkscreen
+    @(36.1500 mm, -63.8500 mm): Pad 1 [P0] of B7 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -73.2500 mm): Segment of B8 on F.Silkscreen
+    @(42.3500 mm, -73.8500 mm): Pad NC [<no net>] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -73.2500 mm): Segment of B8 on F.Silkscreen
+    @(42.3500 mm, -70.1500 mm): Pad NC [<no net>] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -70.7500 mm): Segment of B8 on F.Silkscreen
+    @(42.3500 mm, -70.1500 mm): Pad NC [<no net>] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -83.2500 mm): Segment of SOFT2 on F.Silkscreen
+    @(24.6500 mm, -83.8500 mm): Pad 1 [P20] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -83.2500 mm): Segment of SOFT2 on F.Silkscreen
+    @(24.6500 mm, -80.1500 mm): Pad 2 [P8] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -83.2500 mm): Segment of SOFT2 on F.Silkscreen
+    @(24.6500 mm, -83.8500 mm): Pad 1 [P20] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(25.0000 mm, -80.7500 mm): Segment of SOFT2 on F.Silkscreen
+    @(24.6500 mm, -80.1500 mm): Pad 2 [P8] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -83.2500 mm): Segment of SOFT2 on F.Silkscreen
+    @(30.8500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -83.2500 mm): Segment of SOFT2 on F.Silkscreen
+    @(30.8500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -83.2500 mm): Segment of SOFT2 on F.Silkscreen
+    @(30.8500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(30.5000 mm, -80.7500 mm): Segment of SOFT2 on F.Silkscreen
+    @(30.8500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -73.2500 mm): Segment of B8 on F.Silkscreen
+    @(36.1500 mm, -73.8500 mm): Pad 1 [P4] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -83.2500 mm): Segment of SOFT3 on F.Silkscreen
+    @(36.1500 mm, -83.8500 mm): Pad 1 [P20] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -83.2500 mm): Segment of SOFT3 on F.Silkscreen
+    @(36.1500 mm, -80.1500 mm): Pad 2 [P9] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -80.7500 mm): Segment of SOFT3 on F.Silkscreen
+    @(36.1500 mm, -80.1500 mm): Pad 2 [P9] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -73.2500 mm): Segment of B8 on F.Silkscreen
+    @(42.3500 mm, -73.8500 mm): Pad NC [<no net>] of B8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -80.7500 mm): Segment of SOFT4 on F.Silkscreen
+    @(47.6500 mm, -80.1500 mm): Pad 2 [P15] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -83.2500 mm): Segment of SOFT3 on F.Silkscreen
+    @(42.3500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -83.2500 mm): Segment of SOFT3 on F.Silkscreen
+    @(42.3500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -83.2500 mm): Segment of SOFT3 on F.Silkscreen
+    @(42.3500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(42.0000 mm, -80.7500 mm): Segment of SOFT3 on F.Silkscreen
+    @(42.3500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -83.2500 mm): Segment of SOFT4 on F.Silkscreen
+    @(53.8500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(36.5000 mm, -83.2500 mm): Segment of SOFT3 on F.Silkscreen
+    @(36.1500 mm, -83.8500 mm): Pad 1 [P20] of SOFT3 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -83.2500 mm): Segment of SOFT4 on F.Silkscreen
+    @(47.6500 mm, -83.8500 mm): Pad 1 [P20] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -83.2500 mm): Segment of SOFT4 on F.Silkscreen
+    @(47.6500 mm, -80.1500 mm): Pad 2 [P15] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(48.0000 mm, -83.2500 mm): Segment of SOFT4 on F.Silkscreen
+    @(47.6500 mm, -83.8500 mm): Pad 1 [P20] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -83.2500 mm): Segment of SOFT4 on F.Silkscreen
+    @(53.8500 mm, -83.8500 mm): Pad NC [<no net>] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -83.2500 mm): Segment of SOFT4 on F.Silkscreen
+    @(53.8500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(53.5000 mm, -80.7500 mm): Segment of SOFT4 on F.Silkscreen
+    @(53.8500 mm, -80.1500 mm): Pad NC [<no net>] of SOFT4 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -73.2500 mm): Segment of B14 on F.Silkscreen
+    @(59.1500 mm, -73.8500 mm): Pad 1 [P4] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -73.2500 mm): Segment of B14 on F.Silkscreen
+    @(59.1500 mm, -70.1500 mm): Pad 2 [P14] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(59.5000 mm, -73.2500 mm): Segment of B14 on F.Silkscreen
+    @(59.1500 mm, -73.8500 mm): Pad 1 [P4] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -73.2500 mm): Segment of B14 on F.Silkscreen
+    @(65.3500 mm, -73.8500 mm): Pad NC [<no net>] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -73.2500 mm): Segment of B14 on F.Silkscreen
+    @(65.3500 mm, -70.1500 mm): Pad NC [<no net>] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -73.2500 mm): Segment of B14 on F.Silkscreen
+    @(65.3500 mm, -73.8500 mm): Pad NC [<no net>] of B14 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -73.2500 mm): Segment of B17 on F.Silkscreen
+    @(70.6500 mm, -73.8500 mm): Pad 1 [P4] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -73.2500 mm): Segment of B17 on F.Silkscreen
+    @(70.6500 mm, -70.1500 mm): Pad 2 [P16] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -73.2500 mm): Segment of B17 on F.Silkscreen
+    @(70.6500 mm, -73.8500 mm): Pad 1 [P4] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -70.7500 mm): Segment of B17 on F.Silkscreen
+    @(70.6500 mm, -70.1500 mm): Pad 2 [P16] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -73.2500 mm): Segment of B17 on F.Silkscreen
+    @(76.8500 mm, -73.8500 mm): Pad NC [<no net>] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -73.2500 mm): Segment of B17 on F.Silkscreen
+    @(76.8500 mm, -73.8500 mm): Pad NC [<no net>] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -73.2500 mm): Segment of B17 on F.Silkscreen
+    @(76.8500 mm, -70.1500 mm): Pad NC [<no net>] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -70.7500 mm): Segment of B17 on F.Silkscreen
+    @(76.8500 mm, -70.1500 mm): Pad NC [<no net>] of B17 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -63.2500 mm): Segment of B13 on F.Silkscreen
+    @(65.3500 mm, -60.1500 mm): Pad NC [<no net>] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(65.0000 mm, -63.2500 mm): Segment of B13 on F.Silkscreen
+    @(65.3500 mm, -63.8500 mm): Pad NC [<no net>] of B13 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -63.2500 mm): Segment of B16 on F.Silkscreen
+    @(70.6500 mm, -63.8500 mm): Pad 1 [P0] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -63.2500 mm): Segment of B16 on F.Silkscreen
+    @(70.6500 mm, -60.1500 mm): Pad 2 [P16] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -63.2500 mm): Segment of B16 on F.Silkscreen
+    @(70.6500 mm, -63.8500 mm): Pad 1 [P0] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -60.7500 mm): Segment of B16 on F.Silkscreen
+    @(70.6500 mm, -60.1500 mm): Pad 2 [P16] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -63.2500 mm): Segment of B16 on F.Silkscreen
+    @(76.8500 mm, -63.8500 mm): Pad NC [<no net>] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -63.2500 mm): Segment of B16 on F.Silkscreen
+    @(76.8500 mm, -63.8500 mm): Pad NC [<no net>] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -63.2500 mm): Segment of B16 on F.Silkscreen
+    @(76.8500 mm, -60.1500 mm): Pad NC [<no net>] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -60.7500 mm): Segment of B16 on F.Silkscreen
+    @(76.8500 mm, -60.1500 mm): Pad NC [<no net>] of B16 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -53.2500 mm): Segment of B15 on F.Silkscreen
+    @(70.6500 mm, -53.8500 mm): Pad 1 [P1] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -53.2500 mm): Segment of B15 on F.Silkscreen
+    @(70.6500 mm, -50.1500 mm): Pad 2 [P16] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -53.2500 mm): Segment of B15 on F.Silkscreen
+    @(70.6500 mm, -53.8500 mm): Pad 1 [P1] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(71.0000 mm, -50.7500 mm): Segment of B15 on F.Silkscreen
+    @(70.6500 mm, -50.1500 mm): Pad 2 [P16] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -53.2500 mm): Segment of B15 on F.Silkscreen
+    @(76.8500 mm, -53.8500 mm): Pad NC [<no net>] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -53.2500 mm): Segment of B15 on F.Silkscreen
+    @(76.8500 mm, -53.8500 mm): Pad NC [<no net>] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -53.2500 mm): Segment of B15 on F.Silkscreen
+    @(76.8500 mm, -50.1500 mm): Pad NC [<no net>] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(76.5000 mm, -50.7500 mm): Segment of B15 on F.Silkscreen
+    @(76.8500 mm, -50.1500 mm): Pad NC [<no net>] of B15 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -33.2500 mm): Segment of B31 on F.Silkscreen
+    @(56.9595 mm, -33.8500 mm): Pad 1 [P6] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -33.2500 mm): Segment of B31 on F.Silkscreen
+    @(56.9595 mm, -30.1500 mm): Pad 2 [P15] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -30.7500 mm): Segment of B31 on F.Silkscreen
+    @(56.9595 mm, -30.1500 mm): Pad 2 [P15] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -23.2500 mm): Segment of B32 on F.Silkscreen
+    @(56.9595 mm, -23.8500 mm): Pad 1 [P10] of B32 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -20.7500 mm): Segment of B32 on F.Silkscreen
+    @(56.9595 mm, -20.1500 mm): Pad 2 [P15] of B32 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -10.7500 mm): Segment of B33 on F.Silkscreen
+    @(56.9595 mm, -10.1500 mm): Pad 2 [P15] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -13.2500 mm): Segment of B33 on F.Silkscreen
+    @(63.1595 mm, -13.8500 mm): Pad NC [<no net>] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -13.2500 mm): Segment of B33 on F.Silkscreen
+    @(63.1595 mm, -13.8500 mm): Pad NC [<no net>] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -13.2500 mm): Segment of B33 on F.Silkscreen
+    @(63.1595 mm, -10.1500 mm): Pad NC [<no net>] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -10.7500 mm): Segment of B33 on F.Silkscreen
+    @(63.1595 mm, -10.1500 mm): Pad NC [<no net>] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -13.2500 mm): Segment of B33 on F.Silkscreen
+    @(56.9595 mm, -13.8500 mm): Pad 1 [P21] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -13.2500 mm): Segment of B33 on F.Silkscreen
+    @(56.9595 mm, -10.1500 mm): Pad 2 [P15] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -13.2500 mm): Segment of B33 on F.Silkscreen
+    @(56.9595 mm, -13.8500 mm): Pad 1 [P21] of B33 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -13.2500 mm): Segment of B29 on F.Silkscreen
+    @(49.4690 mm, -13.8500 mm): Pad NC [<no net>] of B29 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -13.2500 mm): Segment of B29 on F.Silkscreen
+    @(49.4690 mm, -13.8500 mm): Pad NC [<no net>] of B29 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -13.2500 mm): Segment of B29 on F.Silkscreen
+    @(49.4690 mm, -10.1500 mm): Pad NC [<no net>] of B29 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -10.7500 mm): Segment of B29 on F.Silkscreen
+    @(49.4690 mm, -10.1500 mm): Pad NC [<no net>] of B29 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -23.2500 mm): Segment of B32 on F.Silkscreen
+    @(56.9595 mm, -23.8500 mm): Pad 1 [P10] of B32 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -23.2500 mm): Segment of B32 on F.Silkscreen
+    @(56.9595 mm, -20.1500 mm): Pad 2 [P15] of B32 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -23.2500 mm): Segment of B28 on F.Silkscreen
+    @(49.4690 mm, -23.8500 mm): Pad NC [<no net>] of B28 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -23.2500 mm): Segment of B28 on F.Silkscreen
+    @(49.4690 mm, -23.8500 mm): Pad NC [<no net>] of B28 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(49.1190 mm, -23.2500 mm): Segment of B28 on F.Silkscreen
+    @(49.4690 mm, -20.1500 mm): Pad NC [<no net>] of B28 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -43.2500 mm): Segment of B30 on F.Silkscreen
+    @(56.9595 mm, -43.8500 mm): Pad 1 [P5] of B30 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -43.2500 mm): Segment of B30 on F.Silkscreen
+    @(56.9595 mm, -40.1500 mm): Pad 2 [P15] of B30 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -40.7500 mm): Segment of B30 on F.Silkscreen
+    @(56.9595 mm, -40.1500 mm): Pad 2 [P15] of B30 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -43.2500 mm): Segment of B30 on F.Silkscreen
+    @(63.1595 mm, -40.1500 mm): Pad NC [<no net>] of B30 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -43.2500 mm): Segment of B30 on F.Silkscreen
+    @(63.1595 mm, -43.8500 mm): Pad NC [<no net>] of B30 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -40.7500 mm): Segment of B30 on F.Silkscreen
+    @(63.1595 mm, -40.1500 mm): Pad NC [<no net>] of B30 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(57.3095 mm, -33.2500 mm): Segment of B31 on F.Silkscreen
+    @(56.9595 mm, -33.8500 mm): Pad 1 [P6] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -33.2500 mm): Segment of B31 on F.Silkscreen
+    @(63.1595 mm, -33.8500 mm): Pad NC [<no net>] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -33.2500 mm): Segment of B31 on F.Silkscreen
+    @(63.1595 mm, -33.8500 mm): Pad NC [<no net>] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -33.2500 mm): Segment of B31 on F.Silkscreen
+    @(63.1595 mm, -30.1500 mm): Pad NC [<no net>] of B31 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(62.8095 mm, -30.7500 mm): Segment of B31 on F.Silkscreen
+    @(63.1595 mm, -30.1500 mm): Pad NC [<no net>] of B31 on F.Cu
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **

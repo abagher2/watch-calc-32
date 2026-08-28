@@ -153,7 +153,7 @@ public struct HP32KeyMap {
         HP32Key(row: 1, col: 10, rowSpan: 1, label: "×", yellowLabel: "", blueLabel: "", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: .multiply),
         
         // Row 2
-        HP32Key(row: 2, col: 0, rowSpan: 1, label: "R/S", yellowLabel: "M", blueLabel: "PRGM", alphaLabel: "", yellowAction: nil, blueAction: nil, primaryAction: nil),
+        HP32Key(row: 2, col: 0, rowSpan: 1, label: "R/S", yellowLabel: "M", blueLabel: "PRGM", alphaLabel: "", yellowAction: nil, blueAction: .prgm, primaryAction: nil),
         HP32Key(row: 2, col: 1, rowSpan: 1, label: "GSB", yellowLabel: "N", blueLabel: "RTN", alphaLabel: "", yellowAction: nil, blueAction: .rtn, primaryAction: nil),
         HP32Key(row: 2, col: 2, rowSpan: 1, label: "R↓", yellowLabel: "O", blueLabel: "R↑", alphaLabel: "", yellowAction: nil, blueAction: .rollUp, primaryAction: .rollDown),
         HP32Key(row: 2, col: 3, rowSpan: 1, label: "𝑥≷𝑦", yellowLabel: "P", blueLabel: "𝑥≷?", alphaLabel: "", yellowAction: nil, blueAction: .swapXYPrompt, primaryAction: .swapXY),
