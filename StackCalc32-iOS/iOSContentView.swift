@@ -119,9 +119,13 @@ struct iOSContentView: View {
                 .rotationEffect((deviceOrientation == .portraitUpsideDown && UIDevice.current.userInterfaceIdiom == .phone) ? .degrees(180) : .zero)
                 .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
                     let orientation = UIDevice.current.orientation
-                    if orientation == .portraitUpsideDown && UIDevice.current.userInterfaceIdiom == .phone {
+                    if UIDevice.current.userInterfaceIdiom == .phone {
                         if let windowScene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
-                            windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+                            if orientation == .portraitUpsideDown {
+                                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait))
+                            } else if orientation.isLandscape || orientation == .portrait {
+                                windowScene.requestGeometryUpdate(.iOS(interfaceOrientations: .allButUpsideDown))
+                            }
                         }
                     }
                     withAnimation {
