@@ -11,7 +11,7 @@ import Observation
 import RationalModule
 #endif
 
-internal func parseDoubleSlice(_ slice: ArraySlice<UInt8>, exponent: String? = nil) -> Double {
+public func parseDoubleSlice(_ slice: ArraySlice<UInt8>, exponent: String? = nil) -> Double {
     var val = 0.0
     var sign = 1.0
     var parsingFraction = false
@@ -91,7 +91,7 @@ internal func _substringToString(_ substring: Substring) -> String {
 }
 internal func _formatDouble(_ value: Double) -> String { return "\(value)" }
 
-internal func parseDouble(_ text: String) -> Double? {
+public func parseDouble(_ text: String) -> Double? {
     var val = 0.0
     var sign = 1.0
     var parsingFraction = false
@@ -200,7 +200,7 @@ internal func _sqrt(_ x: Double) -> Double { return Foundation.sqrt(x) }
 internal func parseInt(_ text: String) -> Int? { return Int(text) }
 internal func _substringToString(_ substring: Substring) -> String { return String(substring) }
 internal func _formatDouble(_ value: Double) -> String { return "\(value)" }
-internal func parseDouble(_ text: String) -> Double? { return Double(text) }
+public func parseDouble(_ text: String) -> Double? { return Double(text) }
 internal func parseInt64(_ text: String, radix: Int) -> Int64? { return Int64(text, radix: radix) }
 internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 
@@ -250,6 +250,7 @@ public class CalculatorEngine {
     // UI Events
     public var requestPlot: Bool = false
     public var requestPlotPrompt: Bool = false
+    public var selectedPlotX: Double? = nil
     public var requestThemeChange: Bool = false
     /// Set true by handleCommand; the UI observes via onChange and resets to false.
     public var requestEqn: Bool = false
@@ -260,6 +261,8 @@ public class CalculatorEngine {
     public var requestShow: Bool = false
     public var isPlotLoading: Bool = false
     public var plotData: [(Double, Double)] = []
+    public var firmwarePlotNodes: [ChartNode] = []
+
     public var plotMarkers: [(Double, Double)] = []
     public var selectedPlotMarkerIndex: Int? = nil
     public var isStatPlot: Bool = false
@@ -2091,6 +2094,7 @@ public class CalculatorEngine {
     }
     
     public func generatePlot(variable: String? = nil, explicitMin: Double? = nil, explicitMax: Double? = nil) {
+        print("DEBUG: generatePlot called!")
         if let variable = variable {
             // Plot Equation
             isStatPlot = false
@@ -2106,8 +2110,11 @@ public class CalculatorEngine {
             }
             
             // plotData.removeAll()
-            plotData.removeAll()
-            plotMarkers.removeAll()
+            plotData.removeAll(keepingCapacity: true)
+            plotMarkers.removeAll(keepingCapacity: true)
+            plotData.reserveCapacity(110)
+            plotMarkers.reserveCapacity(10)
+            self.isSilent = true
             
             let prog: Program?
             if let label = currentProgramLabel.isEmpty ? nil : currentProgramLabel,
@@ -2121,9 +2128,11 @@ public class CalculatorEngine {
             
             let evalFunc: (Double) -> Double? = { xVal in
                 if let program = prog {
-                    var vars = self.variables
-                    vars[variable] = CalculatorValue(real: xVal)
-                    return self.evaluateProgram(program, variables: vars)?.real
+                    let oldVal = self.variables[variable]
+                    self.variables[variable] = CalculatorValue(real: xVal)
+                    let result = self.evaluateProgram(program, variables: self.variables)?.real
+                    self.variables[variable] = oldVal // Restore directly to avoid dictionary copies
+                    return result
                 } else {
                     return (1.0 / sqrt(2.0 * Double.pi)) * exp(-pow(xVal, 2) / 2.0)
                 }
@@ -2186,33 +2195,52 @@ public class CalculatorEngine {
         } else {
             // Scatter Plot
             isStatPlot = true
-            // Plot data will just be an empty array, or we can use statPoints directly in the view
+            plotData.removeAll(keepingCapacity: true)
+        self.plotData.reserveCapacity(110)
+            plotMarkers.removeAll()
         }
+        self.isSilent = false
         self.requestPlot = true
         print("DEBUG: requestPlot SET TO TRUE by generatePlot")
     }
     
-    public func evaluateProgram(_ program: Program, variables: [String: CalculatorValue]) -> CalculatorValue? {
+    public func evaluateProgram(_ program: Program, variables: [String: CalculatorValue], clearStack: Bool = true) -> CalculatorValue? {
         // Save state
-        let savedStack = self.stack
-        let savedLastX = self.lastX
-        let savedStackStrings = self.stackStrings
-        let savedPrompt = self.promptString
-        let savedDisplayX = self.displayX
-        let savedProgMode = self.isProgrammingMode
-        let savedInputBuffer = self.currentInputBuffer
-        let savedInputLength = self.currentInputLength
-        let savedIsBuildingNum = self.isBuildingNumber
-        let savedShift = self.shiftState
-        let savedLiftEnabled = self.stackLiftEnabled
+        var savedStack = self.stack
+        var savedLastX = self.lastX
+        var savedStackStrings = self.isSilent ? [] : self.stackStrings
+        var savedPrompt = self.isSilent ? nil : self.promptString
+        var savedDisplayXBuffer = self.isSilent ? [] : self.displayXBuffer
+        var savedDisplayXLength = self.displayXLength
+        var savedProgMode = self.isProgrammingMode
+        var savedInputBuffer = self.isSilent ? [] : self.currentInputBuffer
+        var savedInputLength = self.currentInputLength
+        var savedIsBuildingNum = self.isBuildingNumber
+        var savedShift = self.shiftState
+        var savedLiftEnabled = self.stackLiftEnabled
+        var savedVariables = self.variables
         
+        if !clearStack {
+            savedStack = []
+            savedStackStrings = []
+            savedVariables = [:]
+        }
+        
+        self.variables = variables
         self.isProgrammingMode = false
         self.isBuildingNumber = false
         self.stackLiftEnabled = true
         self.currentEvaluatingProgram = program
         
         // Clear stack for the program
-        self.stack = Array(repeating: CalculatorValue(), count: self.stackSizeLimit)
+        // Reuse existing stack array to prevent memory allocation in loops
+        if clearStack {
+            if self.stack.count != self.stackSizeLimit {
+                self.stack = Array(repeating: CalculatorValue(), count: self.stackSizeLimit)
+            } else {
+                for j in 0..<self.stack.count { self.stack[j] = CalculatorValue() }
+            }
+        }
         
         if let emptyVar = variables[""] {
             self.push(emptyVar)
@@ -2276,6 +2304,17 @@ public class CalculatorEngine {
                     self.push(val)
                     self.stackLiftEnabled = true
                 }
+            case .xeq(let label):
+                var subProgram: Program? = nil
+                for p in programs {
+                    if p.label == label { subProgram = p; break }
+                }
+                if let sub = subProgram {
+                    if let res = evaluateProgram(sub, variables: self.variables, clearStack: false) {
+                        // For subprograms, it operates on the live stack now. No need to push.
+                        self.stackLiftEnabled = true
+                    }
+                }
             case .sto(let varName):
                 self.variables[varName] = self.stack.first ?? CalculatorValue()
             case .custom(let str):
@@ -2308,15 +2347,26 @@ public class CalculatorEngine {
         let result = self.stack.first
         
         // Restore state
-        self.stack = savedStack
-        self.lastX = savedLastX
-        self.stackStrings = savedStackStrings
-        self.promptString = savedPrompt
-        self.displayX = savedDisplayX
+        if clearStack {
+            self.stack = savedStack
+            self.lastX = savedLastX
+            if !self.isSilent {
+                self.stackStrings = savedStackStrings
+                self.promptString = savedPrompt
+                for j in 0..<savedDisplayXLength {
+                    self.displayXBuffer[j] = savedDisplayXBuffer[j]
+                }
+            }
+            self.displayXLength = savedDisplayXLength
+            self.variables = savedVariables
+        }
+        
         self.isProgrammingMode = savedProgMode
         self.currentInputLength = savedInputLength
-        for j in 0..<savedInputLength {
-            self.currentInputBuffer[j] = savedInputBuffer[j]
+        if !self.isSilent {
+            for j in 0..<savedInputLength {
+                self.currentInputBuffer[j] = savedInputBuffer[j]
+            }
         }
         self.isBuildingNumber = savedIsBuildingNum
         self.shiftState = savedShift
@@ -2652,7 +2702,7 @@ public class CalculatorEngine {
             if let program = currentEvaluatingProgram {
                 let lower = stack.count > 1 ? stack[1].real : 0.0
                 let upper = stack.count > 0 ? stack[0].real : 0.0
-                currentResumeAction = .integrate(variable: initialChar, lower: lower, upper: upper, program: program, requestPlotAfter: false)
+                currentResumeAction = .integrate(variable: initialChar, lower: lower, upper: upper, program: program, requestPlotAfter: true)
                 pendingEquationVars = program.extractVariables().filter { $0 != initialChar && variables[$0] == nil }
                 promptNextEquationVar()
             }
@@ -3096,17 +3146,21 @@ public class CalculatorEngine {
     public func integrate(variable: String, lower: Double, upper: Double, program: Program) -> Double {
         let n = 30 // Reduced to prevent main thread lockup
         let h = (upper - lower) / Double(n)
-        var vars = variables
+        
         var sum = 0.0
         
-        self.plotData.removeAll()
+        self.plotData.removeAll(keepingCapacity: true)
+        self.plotData.reserveCapacity(110)
         self.isStatPlot = false
         
         self.isSilent = true // Prevent UI updates during tight loop
         for i in 0...n {
             let x = lower + Double(i) * h
-            vars[variable] = CalculatorValue(real: x)
-            let f = evaluateProgram(program, variables: vars)?.real ?? 0.0
+            
+            let oldVal = self.variables[variable]
+            self.variables[variable] = CalculatorValue(real: x)
+            let f = evaluateProgram(program, variables: self.variables)?.real ?? 0.0
+            self.variables[variable] = oldVal
             
             self.plotData.append((x, f))
             
@@ -3126,6 +3180,7 @@ public class CalculatorEngine {
     public func derive(variable: String, at: Double, program: Program) -> Double? {
         let h = 1e-5
         var vars = variables
+        
         vars[variable] = CalculatorValue(real: at + h)
         let fPlus = evaluateProgram(program, variables: vars)?.real ?? 0.0
         vars[variable] = CalculatorValue(real: at - h)
@@ -3142,18 +3197,20 @@ public class CalculatorEngine {
         let tolerance = 1e-7
         var x0 = variables[variable]?.real ?? 0.0
         var x1 = x0 + 0.1
-        var vars = variables
         
-        vars[variable] = CalculatorValue(real: x0)
-        var f0 = (evaluateProgram(program, variables: vars)?.real ?? 0.0) - target
+        let oldVal = self.variables[variable]
         
-        vars[variable] = CalculatorValue(real: x1)
-        var f1 = (evaluateProgram(program, variables: vars)?.real ?? 0.0) - target
+        self.variables[variable] = CalculatorValue(real: x0)
+        var f0 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
+        
+        self.variables[variable] = CalculatorValue(real: x1)
+        var f1 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
         
         for _ in 0..<maxIterations {
             if abs(f1 - f0) < 1e-14 { break }
             let x2 = x1 - f1 * (x1 - x0) / (f1 - f0)
             if abs(x2 - x1) < tolerance {
+                self.variables[variable] = oldVal
                 self.pushToStack(CalculatorValue(real: x2))
                 updateDisplay()
                 return x2
@@ -3162,10 +3219,11 @@ public class CalculatorEngine {
             f0 = f1
             x1 = x2
             
-            vars[variable] = CalculatorValue(real: x1)
-            f1 = (evaluateProgram(program, variables: vars)?.real ?? 0.0) - target
+            self.variables[variable] = CalculatorValue(real: x1)
+            f1 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
         }
         
+        self.variables[variable] = oldVal
         return nil
     }
 }
@@ -3174,3 +3232,93 @@ public class CalculatorEngine {
 extension CalculatorEngine: ObservableObject {}
 #endif
 
+
+extension CalculatorEngine {
+    public var plotDataPoints: [PlotDataPoint] {
+        plotData.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.0, y: $0.element.1) }
+    }
+    
+    public var scatterPlotDataPoints: [PlotDataPoint] {
+        statPoints.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.x, y: $0.element.y) }
+    }
+    
+    public var regressionPlotDataPoints: [PlotDataPoint] {
+        guard isStatPlot, statN > 1 else { return [] }
+        let num = statSumXY - (statSumX * statSumY / Double(statN))
+        let den = statSumX2 - (statSumX * statSumX / Double(statN))
+        let m = den == 0 ? 0 : num / den
+        let b = (statSumY - m * statSumX) / Double(statN)
+        
+        let minX = statPoints.map { $0.x }.min() ?? -10.0
+        let maxX = statPoints.map { $0.x }.max() ?? 10.0
+        
+        let padding = (maxX - minX) * 0.1
+        let startX = minX - padding
+        let endX = maxX + padding
+        
+        return [
+            PlotDataPoint(id: 0, x: startX, y: m * startX + b),
+            PlotDataPoint(id: 1, x: endX, y: m * endX + b)
+        ]
+    }
+    
+    public var highlightedPlotDataPoints: [PlotDataPoint] {
+        guard let limits = integrationLimits else { return [] }
+        let minL = min(limits.0, limits.1)
+        let maxL = max(limits.0, limits.1)
+        return plotData.enumerated().compactMap { (i, pt) in
+            if pt.0 >= minL && pt.0 <= maxL {
+                return PlotDataPoint(id: i, x: pt.0, y: pt.1)
+            }
+            return nil
+        }
+    }
+    
+    public func findYForPlot(x: Double) -> Double? {
+        let pts = plotData.sorted { $0.0 < $1.0 }
+        guard let first = pts.first, let last = pts.last else { return nil }
+        if x <= first.0 { return first.1 }
+        if x >= last.0 { return last.1 }
+        
+        for i in 0..<pts.count - 1 {
+            let p1 = pts[i]
+            let p2 = pts[i+1]
+            if x >= p1.0 && x <= p2.0 {
+                let dx = p2.0 - p1.0
+                if dx == 0 { return nil }
+                let t = (x - p1.0) / dx
+                return p1.1 + t * (p2.1 - p1.1)
+            }
+        }
+        return nil
+    }
+    
+    public func tangentSlopeForPlot(x: Double) -> Double? {
+        let pts = plotData.sorted { $0.0 < $1.0 }
+        guard let first = pts.first, let last = pts.last else { return nil }
+        if x <= first.0 || x >= last.0 { return nil }
+        
+        for i in 0..<pts.count - 1 {
+            let p1 = pts[i]
+            let p2 = pts[i+1]
+            if x >= p1.0 && x <= p2.0 {
+                let dx = p2.0 - p1.0
+                if dx == 0 { return nil }
+                return (p2.1 - p1.1) / dx
+            }
+        }
+        return nil
+    }
+    
+    public func tangentPlotDataPoints(at x: Double) -> [PlotDataPoint]? {
+        guard let y = findYForPlot(x: x),
+              let m = tangentSlopeForPlot(x: x),
+              let first = plotData.first, let last = plotData.last else { return nil }
+              
+        let startX = first.0
+        let startY = m * (startX - x) + y
+        let endX = last.0
+        let endY = m * (endX - x) + y
+        return [PlotDataPoint(id: 0, x: startX, y: startY), PlotDataPoint(id: 1, x: endX, y: endY)]
+    }
+}

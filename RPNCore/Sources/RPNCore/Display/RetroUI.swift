@@ -169,7 +169,7 @@ public struct RetroUIBodyView: FirmwareView {
             
             engine.firmwarePlotNodes.removeAll(keepingCapacity: true)
             engine.firmwarePlotNodes.reserveCapacity(dataPoints.count + scatterPoints.count + (tangentPoints?.count ?? 0) + highlightedPoints.count + 5)
-            SharedPlotBuilder.buildMainPlotContent(isStatPlot: isStatPlot, dataPoints: dataPoints, scatterPoints: scatterPoints, regressionPoints: [], into: &engine.firmwarePlotNodes)
+            SharedPlotBuilder.buildMainPlotContent(isStatPlot: isStatPlot, dataPoints: dataPoints, scatterPoints: scatterPoints, regressionPoints: regressionPoints, into: &engine.firmwarePlotNodes)
             SharedPlotBuilder.buildAxesContent(into: &engine.firmwarePlotNodes)
             SharedPlotBuilder.buildAreaContent(hasIntegrationLimits: engine.integrationLimits != nil, highlightedDataPoints: highlightedPoints, into: &engine.firmwarePlotNodes)
             SharedPlotBuilder.buildOverlayContent(scatterPoints: scatterPoints, tangentPoints: tangentPoints, into: &engine.firmwarePlotNodes)

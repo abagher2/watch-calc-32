@@ -26,33 +26,11 @@ struct FullScreenPlotView: View {
     @State private var selectedX2: Double?
     @State private var pushedValueMessage: String?
     
-    var dataPoints: [PlotDataPoint] {
-        engine.plotData.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.0, y: $0.element.1) }
-    }
+    var dataPoints: [PlotDataPoint] { engine.plotDataPoints }
     
-    var scatterPoints: [PlotDataPoint] {
-        engine.statPoints.enumerated().map { PlotDataPoint(id: $0.offset, x: $0.element.x, y: $0.element.y) }
-    }
+    var scatterPoints: [PlotDataPoint] { engine.scatterPlotDataPoints }
     
-    var regressionPoints: [PlotDataPoint] {
-        guard engine.isStatPlot, engine.statN > 1 else { return [] }
-        let num = engine.statSumXY - (engine.statSumX * engine.statSumY / engine.statN)
-        let den = engine.statSumX2 - (engine.statSumX * engine.statSumX / engine.statN)
-        let m = den == 0 ? 0 : num / den
-        let b = (engine.statSumY - m * engine.statSumX) / engine.statN
-        
-        let minX = engine.statPoints.map { $0.x }.min() ?? -10
-        let maxX = engine.statPoints.map { $0.x }.max() ?? 10
-        
-        let padding = (maxX - minX) * 0.1
-        let startX = minX - padding
-        let endX = maxX + padding
-        
-        return [
-            PlotDataPoint(id: 0, x: startX, y: m * startX + b),
-            PlotDataPoint(id: 0, x: endX, y: m * endX + b)
-        ]
-    }
+    var regressionPoints: [PlotDataPoint] { engine.regressionPlotDataPoints }
     
     var highlightedDataPoints: [PlotDataPoint] {
         guard let limits = engine.integrationLimits else { return [] }
@@ -355,48 +333,16 @@ struct FullScreenPlotView: View {
     }
     
     private func findY(for x: Double) -> Double? {
-        let pts = dataPoints.sorted { $0.x < $1.x }
-        guard let first = pts.first, let last = pts.last else { return nil }
-        if x <= first.x { return first.y }
-        if x >= last.x { return last.y }
-        
-        for i in 0..<pts.count - 1 {
-            let p1 = pts[i]
-            let p2 = pts[i+1]
-            if x >= p1.x && x <= p2.x {
-                let t = (x - p1.x) / (p2.x - p1.x)
-                return p1.y + t * (p2.y - p1.y)
-            }
-        }
-        return nil
+        return engine.findYForPlot(x: x)
     }
     
     private func tangentSlope(at x: Double) -> Double? {
-        let pts = dataPoints.sorted { $0.x < $1.x }
-        guard let first = pts.first, let last = pts.last else { return nil }
-        if x <= first.x || x >= last.x { return nil }
-        
-        for i in 0..<pts.count - 1 {
-            let p1 = pts[i]
-            let p2 = pts[i+1]
-            if x >= p1.x && x <= p2.x {
-                return (p2.y - p1.y) / (p2.x - p1.x)
-            }
-        }
-        return nil
+        return engine.tangentSlopeForPlot(x: x)
     }
     
     var tangentPoints: [PlotDataPoint]? {
-        guard let x1 = selectedX1, selectedX2 == nil,
-              let y1 = findY(for: x1),
-              let m = tangentSlope(at: x1),
-              let first = dataPoints.first, let last = dataPoints.last else { return nil }
-              
-        let startX = first.x
-        let startY = m * (startX - x1) + y1
-        let endX = last.x
-        let endY = m * (endX - x1) + y1
-        return [PlotDataPoint(id: 0, x: startX, y: startY), PlotDataPoint(id: 1, x: endX, y: endY)]
+        guard let x1 = selectedX1, selectedX2 == nil else { return nil }
+        return engine.tangentPlotDataPoints(at: x1)
     }
     
     @ViewBuilder
