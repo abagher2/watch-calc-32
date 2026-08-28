@@ -63,9 +63,13 @@ struct iOSContentView: View {
         }
         .onChange(of: engine.requestPlot) { oldValue, newValue in
             if newValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    showingPlot = true
-                    engine.requestPlot = false
+                if themeManager.activeThemeType == .retro {
+                    // Let the simulated LCD Hardware grid handle the plot rendering directly!
+                } else {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        showingPlot = true
+                        engine.requestPlot = false
+                    }
                 }
             }
         }

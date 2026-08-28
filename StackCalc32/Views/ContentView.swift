@@ -369,9 +369,13 @@ struct WatchMenuModifier: ViewModifier {
             }
             .onChange(of: bindableEngine.requestPlot) { _, newValue in
                 if newValue {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        showingPlot = true
-                        bindableEngine.requestPlot = false
+                    if themeManager.activeThemeType == .retro {
+                        // Keep requestPlot true so RetroUI handles the rendering!
+                    } else {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            showingPlot = true
+                            bindableEngine.requestPlot = false
+                        }
                     }
                 }
             }

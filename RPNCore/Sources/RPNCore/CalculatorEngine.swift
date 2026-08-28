@@ -2094,6 +2094,7 @@ public class CalculatorEngine {
     }
     
     public func generatePlot(variable: String? = nil, explicitMin: Double? = nil, explicitMax: Double? = nil) {
+        if isBuildingNumber { commitInput() }
         print("DEBUG: generatePlot called!")
         if let variable = variable {
             // Plot Equation
@@ -2790,6 +2791,7 @@ public class CalculatorEngine {
     }
     
     public func startPlot(variable: String, lower: Double, upper: Double) {
+        if isBuildingNumber { commitInput() }
         if let program = programs.first(where: { $0.label == currentProgramLabel }) {
             currentResumeAction = .plot(variable: variable, lower: lower, upper: upper, program: program)
             pendingEquationVars = program.extractVariables().filter { $0 != variable && variables[$0] == nil }
@@ -2798,6 +2800,7 @@ public class CalculatorEngine {
     }
     
     public func startIntegrate(variable: String, lower: Double, upper: Double, requestPlotAfter: Bool = false) {
+        if isBuildingNumber { commitInput() }
         if let program = programs.first(where: { $0.label == currentProgramLabel }) {
             currentResumeAction = .integrate(variable: variable, lower: lower, upper: upper, program: program, requestPlotAfter: requestPlotAfter)
             pendingEquationVars = program.extractVariables().filter { $0 != variable && variables[$0] == nil }
@@ -2841,9 +2844,6 @@ public class CalculatorEngine {
         print("DEBUG: requestPlot SET TO TRUE by generatePlot")
             }
         case .plot(let variable, let lower, let upper, let program):
-            _ = integrate(variable: variable, lower: lower, upper: upper, program: program) // plot is generated internally inside plot function if we implement it, wait, currently generatePlot uses evaluateProgram directly. 
-            // Wait, for plot, the prompt sets it up, then generatePlot does it.
-            // Let's implement generatePlot here.
             self.generatePlot(variable: variable, explicitMin: lower, explicitMax: upper)
         case .none:
             break
