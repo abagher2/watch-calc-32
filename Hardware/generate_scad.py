@@ -69,38 +69,83 @@ if cur_row:
     cur_row.sort(key=lambda b: b['x'])
     rows.append(cur_row)
 
-labels = [
-    # Row 0: Soft keys (blank — function shown on vinyl sticker only)
-    ["", "", "", "", "", ""],
-    # Row 1: Math functions (≤2 chars each for 0.4mm nozzle)
-    ["Sx", "ex", "LN", "yx", "1x", "S+"],
-    # Row 2: Store/Recall/Trig
-    ["ST", "RC", "Rv", "SI", "CO", "TA"],
-    # Row 3: ENTER (full word — spans ST+RC width), then 2-char labels
-    ["ENTER", "xy", "+-", "E", "<-"],
-    # Rows 4–7: Numpad
-    ["XQ", "7", "8", "9", "/"],
-    ["f", "4", "5", "6", "x"],
-    ["g", "1", "2", "3", "-"],
-    ["C", "0", ".", "PT", "+"],
-]
+key_map = {
+    0: {
+        0: {'label': '', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        1: {'label': '', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        2: {'label': '', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        3: {'label': '', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        4: {'label': '', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        5: {'label': '', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+    },
+    1: {
+        0: {'label': '√𝑥', 'label_left': '𝑥²', 'label_right': 'PARTS', 'label_alpha': 'A'},
+        1: {'label': '𝑒ˣ', 'label_left': '10ˣ', 'label_right': 'PROB', 'label_alpha': 'B'},
+        2: {'label': 'LN', 'label_left': 'LOG', 'label_right': 'L.R.', 'label_alpha': 'C'},
+        3: {'label': '𝑦ˣ', 'label_left': 'ˣ√𝑦', 'label_right': '𝑥̄,𝑦̄', 'label_alpha': 'D'},
+        4: {'label': '¹/𝑥', 'label_left': '𝑥!', 'label_right': 's,σ', 'label_alpha': 'E'},
+        5: {'label': 'Σ+', 'label_left': 'Σ-', 'label_right': 'SUMS', 'label_alpha': 'F'},
+    },
+    2: {
+        0: {'label': 'STO', 'label_left': 'CMPLX', 'label_right': 'EQN', 'label_alpha': 'G'},
+        1: {'label': 'RCL', 'label_left': 'RND', 'label_right': 'SCRL', 'label_alpha': 'H'},
+        2: {'label': 'R↓', 'label_left': 'HYP', 'label_right': 'R↑', 'label_alpha': 'I'},
+        3: {'label': 'SIN', 'label_left': 'ASIN', 'label_right': 'π', 'label_alpha': 'J'},
+        4: {'label': 'COS', 'label_left': 'ACOS', 'label_right': '%', 'label_alpha': 'K'},
+        5: {'label': 'TAN', 'label_left': 'ATAN', 'label_right': '%CHG', 'label_alpha': 'L'},
+    },
+    3: {
+        0: {'label': 'ENTER', 'label_left': 'LAST𝑥', 'label_right': 'SHOW', 'label_alpha': 'M'},
+        2: {'label': '𝑥≷𝑦', 'label_left': 'MEM', 'label_right': '𝑥≷?', 'label_alpha': 'N'},
+        3: {'label': '+/-', 'label_left': 'MODES', 'label_right': '|x|', 'label_alpha': 'O'},
+        4: {'label': 'E', 'label_left': 'DISP', 'label_right': '÷R', 'label_alpha': 'P'},
+        5: {'label': '<-', 'label_left': 'CLEAR', 'label_right': '', 'label_alpha': ''},
+    },
+    4: {
+        0: {'label': 'XEQ', 'label_left': 'FN=', 'label_right': '', 'label_alpha': ''},
+        1: {'label': '7', 'label_left': '↓', 'label_right': 'SOLVE', 'label_alpha': 'Q'},
+        2: {'label': '8', 'label_left': '↑', 'label_right': '∫', 'label_alpha': 'R'},
+        3: {'label': '9', 'label_left': '▸km', 'label_right': '▸mi', 'label_alpha': 'S'},
+        4: {'label': '÷', 'label_left': '𝑥?𝑦', 'label_right': '𝑥?0', 'label_alpha': ''},
+    },
+    5: {
+        0: {'label': 'yellow', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        1: {'label': '4', 'label_left': '▸θ,𝑟', 'label_right': '▸𝑦,𝑥', 'label_alpha': 'T'},
+        2: {'label': '5', 'label_left': '▸HR', 'label_right': '▸HMS', 'label_alpha': 'U'},
+        3: {'label': '6', 'label_left': '▸DEG', 'label_right': '▸RAD', 'label_alpha': 'V'},
+        4: {'label': '×', 'label_left': 'BASE', 'label_right': 'FLAGS', 'label_alpha': ''},
+    },
+    6: {
+        0: {'label': 'blue', 'label_left': '', 'label_right': '', 'label_alpha': ''},
+        1: {'label': '1', 'label_left': '▸kg', 'label_right': '▸lb', 'label_alpha': 'W'},
+        2: {'label': '2', 'label_left': '▸°C', 'label_right': '▸°F', 'label_alpha': 'X'},
+        3: {'label': '3', 'label_left': '▸cm', 'label_right': '▸in', 'label_alpha': 'Y'},
+        4: {'label': '-', 'label_left': '▸l', 'label_right': '▸gal', 'label_alpha': ''},
+    },
+    7: {
+        0: {'label': 'C', 'label_left': '', 'label_right': 'OFF', 'label_alpha': ''},
+        1: {'label': '0', 'label_left': 'REGS', 'label_right': 'VIEW', 'label_alpha': 'Z'},
+        2: {'label': '.', 'label_left': 'FDISP', 'label_right': '/c', 'label_alpha': 'i'},
+        3: {'label': 'PLOT', 'label_left': 'CNST', 'label_right': '', 'label_alpha': '(i)'},
+        4: {'label': '+', 'label_left': 'LBL', 'label_right': 'RTN', 'label_alpha': ''},
+    },
+}
+
 for r_idx, row in enumerate(rows):
     for c_idx, b in enumerate(row):
-        lbl = (labels[r_idx][c_idx]
-               if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
-        b['label'] = lbl
         b['w'] = 8.3
         b['h'] = 7.3
         
-        # Add some demo side labels to the numpad and math rows to show off the skirt labels!
-        if r_idx >= 4 and lbl not in ["f", "g", "ENTER", "C"]:
-            # Front label
-            b['label_alpha'] = chr(65 + c_idx + (r_idx-4)*5)  # A, B, C...
-            # Left label
-            left_funcs = ["sin", "cos", "tan", "asin", "acos", "atan", "log", "ln", "e^x", "10^x", "sqrt", "x^2", "1/x", "y^x", "PI", "MOD", "n!", "nCr", "nPr", "RND"]
-            b['label_left'] = left_funcs[(r_idx-4)*5 + c_idx] if ((r_idx-4)*5 + c_idx) < len(left_funcs) else ""
-            # Right label (just to show it works)
-            b['label_right'] = "R" + str(c_idx)
+        real_col = c_idx
+        if r_idx == 3 and c_idx >= 1:
+            real_col += 1
+
+        kdata = key_map.get(r_idx, {}).get(real_col, {})
+        
+        b['label'] = kdata.get("label", "")
+        b['label_left'] = kdata.get("label_left", "")
+        b['label_right'] = kdata.get("label_right", "")
+        b['label_alpha'] = kdata.get("label_alpha", "")
 
 # --- Compute ENTER width to span ST (row2[0]) + RC (row2[1]) ---
 # After X-mirror: ox = fp_w - (b['x'] + pad_x). The mirrored positions of
@@ -543,7 +588,7 @@ module button_cavity(w, h) {{
 
 module button_solid(w, h, label="", label_left="", label_right="", label_alpha="") {{
     arm_w = 0.6;
-    spring_gap = 0.6;
+    btn_gap = 1.0;
     
     z_spring_top = 1.0;
     z_expansion_top = 3.5; 
@@ -566,93 +611,85 @@ module button_solid(w, h, label="", label_left="", label_right="", label_alpha="
     mid_z = z_expansion_top + dz_skirt / 2;
     mid_x = (w + top_w) / 4;
     mid_y = (h + top_h) / 4;
+    
+    my_font = "Helvetica:style=Bold";
 
     render() difference() {{ 
         union() {{
-            if (w > 15) {{
-                translate([-5.75, 0, 0]) squircle_centered(core_w, core_h, z_spring_top, 1.0);
-                translate([ 5.75, 0, 0]) squircle_centered(core_w, core_h, z_spring_top, 1.0);
-                
-                translate([-5.75, 0, 0]) for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, 4.0, arm_w, 180);
-                translate([ 5.75, 0, 0]) for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, 4.0, arm_w, 180);
-                
-                hull() {{
-                    translate([-5.75, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
-                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                }}
-                hull() {{
-                    translate([ 5.75, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
-                    translate([ 5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                }}
-                
-                hull() {{
-                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                    translate([ 5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                }}
-                
-                hull() {{
-                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                    translate([-5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
-                }}
-                hull() {{
-                    translate([ 5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                    translate([ 5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
-                }}
-                
-                hull() {{
-                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
-                    translate([ 5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
-                }}
-                hull() {{
-                    translate([-5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
-                    translate([ 5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
-                }}
-            }} else {{
-                squircle_centered(core_w, core_h, z_spring_top, 1.0);
-                
-                for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, 4.0, arm_w, 180);
-                
-                hull() {{
-                    translate([0, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
-                    translate([0, 0.5, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
-                }}
-                
-                hull() {{
-                    translate([0, 0.5, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
-                    translate([0, 0.5, z_top]) squircle_centered(top_w, top_h, 0.01, 1.0);
-                }}
+            // Core Shaft
+            squircle_centered(core_w, core_h, z_spring_top, 1.0);
+            
+            // Suspension Springs (Intersected to slightly penetrate cavity walls for fusing)
+            intersection() {{
+                for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, (w + btn_gap)/2 + 2.0, arm_w, 180);
+                squircle_centered(w + btn_gap + 0.05, h + btn_gap + 0.05, z_spring_top + 0.1, 1.5);
+            }}
+            
+            // Hidden Shaft Expansion
+            hull() {{
+                translate([0, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
+                translate([0, 0.5, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
+            }}
+            
+            // Visible Button Skirt
+            hull() {{
+                translate([0, 0.5, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
+                translate([0, 0.5, z_top]) squircle_centered(top_w, top_h, 0.01, 1.0);
             }}
         }} 
         
+        // Deepen text emboss to 0.8mm
         if (label != "") {{
             translate([0, 0.5, z_top]) 
-                translate([0, 0, -0.6])
-                linear_extrude(1.0) 
-                    text(label, size=min(w*0.35, 3.5), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                translate([0, 0, -1.0])
+                linear_extrude(1.2) {{
+                    let(
+                        base = min(w*0.35, 3.5),
+                        safe = min(base, (top_w - 1.0) / max(1, len(label) * 0.65))
+                    )
+                    text(label, size=safe, font=my_font, halign="center", valign="center");
+                }}
         }}
         
         if (label_alpha != "") {{
             translate([0, -mid_y + 0.5, mid_z])
                 rotate([90 - ang_y_skirt, 0, 0])
-                translate([0, 0, -0.6])
-                linear_extrude(1.0) 
-                    text(label_alpha, size=min(w*0.35, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                translate([0, 0, -1.0])
+                linear_extrude(1.2) {{
+                    let(
+                        base = min(w*0.35, 2.0),
+                        safe = min(base, (w - 2.0) / max(1, len(label_alpha) * 0.65))
+                    )
+                    text(label_alpha, size=safe, font=my_font, halign="center", valign="center");
+                }}
         }}
         
         if (label_left != "") {{
             translate([-mid_x, 0.5, mid_z])
                 rotate([0, -(90 - ang_x_skirt), 0])
-                translate([0, 0, -0.6])
-                linear_extrude(1.0)
-                    text(label_left, size=min(w*0.35, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                rotate([0, 0, -90]) // Rotate to read left-to-right (horizontally)
+                translate([0, 0, -1.0])
+                linear_extrude(1.2) {{
+                    let(
+                        base = min(h*0.35, 2.0),
+                        safe = min(base, (h - 2.0) / max(1, len(label_left) * 0.65))
+                    )
+                    text(label_left, size=safe, font=my_font, halign="center", valign="center");
+                }}
         }}
         
         if (label_right != "") {{
             translate([mid_x, 0.5, mid_z])
                 rotate([0, 90 - ang_x_skirt, 0])
-                translate([0, 0, -0.6])
-                linear_extrude(1.0)
-                    text(label_right, size=min(w*0.35, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                rotate([0, 0, 90]) // Rotate to read left-to-right
+                translate([0, 0, -1.0])
+                linear_extrude(1.2) {{
+                    let(
+                        base = min(h*0.35, 2.0),
+                        safe = min(base, (h - 2.0) / max(1, len(label_right) * 0.65))
+                    )
+                    text(label_right, size=safe, font=my_font, halign="center", valign="center");
+                }}
         }}
     }} 
 }}

@@ -5,6 +5,7 @@ npx -y ergogen ergogen_config.yaml
 
 $KICAD_PYTHON add_silkscreen.py "output/pcbs/calculator.kicad_pcb"
 $KICAD_PYTHON inject_eink.py "output/pcbs/calculator.kicad_pcb"
+$KICAD_PYTHON replace_j1_28pin.py "output/pcbs/calculator.kicad_pcb"
 $KICAD_PYTHON inject_logo.py "output/pcbs/calculator.kicad_pcb"
 
 $KICAD_PYTHON add_soft_keys.py

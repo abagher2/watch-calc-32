@@ -58,7 +58,8 @@ final class FirmwareHILTests: XCTestCase {
         
         let command = cmd + "\n"
         let data = [UInt8](command.utf8)
-        outputStream.write(data, maxLength: data.count)
+        let written = outputStream.write(data, maxLength: data.count)
+        print("DEBUG WRITE: sent \(cmd), written=\(written)")
         Thread.sleep(forTimeInterval: 0.1) // Give firmware time to process and redraw
     }
     

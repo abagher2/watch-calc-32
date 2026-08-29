@@ -9,11 +9,10 @@
 #include <stdio.h>
 
 #define SPI_PORT spi0
-#define PIN_CS   17
+#define PIN_CS   2
 #define PIN_SCK  18
 #define PIN_MOSI 19
-#define PIN_DC   21
-#define PIN_RST  20
+#define PIN_DC   3
 
 // Keypad pins remapped
 const uint8_t col_pins[] = {0, 1, 4, 2, 3, 9};
@@ -62,15 +61,8 @@ void hw_init(void) {
     gpio_set_dir(PIN_DC, GPIO_OUT);
     gpio_put(PIN_DC, 0);
 
-    gpio_init(PIN_RST);
-    gpio_set_dir(PIN_RST, GPIO_OUT);
-    gpio_put(PIN_RST, 1);
-
-    // SPLC502 / ERC13265 Reset
-    gpio_put(PIN_RST, 0);
-    sleep_ms(50);
-    gpio_put(PIN_RST, 1);
-    sleep_ms(50);
+    // LCD Reset is tied to MCU Hardware Reset, no software toggle needed
+    sleep_ms(100);
 
     // ERC13265-1 (SPLC502) Init Sequence
     gpio_put(PIN_CS, 0);
@@ -131,6 +123,36 @@ void display_send_buffer(const uint8_t* buffer) {
 
 
 static bool blue_shift_active = false;
+volatile bool oom_fault_occurred = false;
+
+void isr_hardfault(void) {
+    oom_fault_occurred = true;
+    while(1) {
+        uint64_t state = matrix_scan();
+        bool c_pressed = (state & (1ULL << 42)) != 0;
+        bool blue_pressed = (state & (1ULL << 40)) != 0;
+        if (c_pressed && blue_pressed) {
+            system_sleep();
+        } else if (c_pressed) {
+            watchdog_reboot(0, 0, 0);
+        }
+    }
+}
+
+void abort(void) {
+    oom_fault_occurred = true;
+    while(1) {
+        uint64_t state = matrix_scan();
+        bool c_pressed = (state & (1ULL << 42)) != 0;
+        bool blue_pressed = (state & (1ULL << 40)) != 0;
+        if (c_pressed && blue_pressed) {
+            system_sleep();
+        } else if (c_pressed) {
+            watchdog_reboot(0, 0, 0);
+        }
+    }
+}
+
 static struct repeating_timer hw_scan_timer;
 
 static void system_sleep(void) {
@@ -176,6 +198,9 @@ bool hw_scan_timer_callback(struct repeating_timer *t) {
     
     if (c_pressed && blue_shift_active) {
         system_sleep();
+    }
+    if (oom_fault_occurred && c_pressed) {
+        watchdog_reboot(0, 0, 0);
     }
     return true;
 }

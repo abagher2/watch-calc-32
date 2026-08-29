@@ -18,11 +18,19 @@ public class RetroUIController {
         let finalOp = op
         
         if finalOp == .off || finalOp.stringValue == "OFF" {
-            engine.factoryReset()
+            // "OFF" should NOT clear memory (that's what CLEAR ALL is for).
+            // It should just reset the UI out of any menus/prompts/errors.
+            engine.clearError()
             retroUI.isShowingFullPrecision = false
             retroUI.isShowingRegisters = false
             retroUI.softkeyMode = .none
             retroUI.regsOffset = 0
+            engine.activeMenu = nil
+            engine.isWaitingForAlpha = false
+            engine.isWaitingForLabel = false
+            engine.isWaitingForFlag = false
+            engine.isAssigning = false
+            engine.shiftState = 0
             render()
             return
         }
@@ -41,6 +49,12 @@ public class RetroUIController {
                 engine.isTestMode = false
             }
             return
+        }
+        
+        if finalOp == .c || finalOp == .clear {
+            retroUI.softkeyMode = .none
+            retroUI.softkeyProgram = nil
+            engine.requestPlot = false
         }
         
         if engine.requestPlot {

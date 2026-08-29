@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -7,6 +8,8 @@ int posix_memalign(void **memptr, size_t alignment, size_t size) {
     *memptr = malloc(size);
     if (*memptr == NULL) {
         printf("posix_memalign OOM: size=%zu align=%zu\n", size, alignment);
+        extern volatile bool oom_fault_occurred;
+        oom_fault_occurred = true;
     }
     return 0;
 }

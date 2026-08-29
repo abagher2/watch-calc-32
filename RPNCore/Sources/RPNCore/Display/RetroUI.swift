@@ -236,7 +236,8 @@ public struct RetroUIBodyView: FirmwareView {
             engine.firmwarePlotNodes.append(.rule(x: center, y: nil))
             
             print("DEBUG: Inside FirmwareChart block! reqPlot=\(engine.requestPlot ? 1 : 0) nodes=\(engine.firmwarePlotNodes.count)")
-            FirmwareChart(content: engine.firmwarePlotNodes, width: 132, height: isPlotting ? 54 : 43, minXString: nil, maxXString: nil).draw(in: renderer, x: x, y: y, engine: engine)
+            // Shift plot down by 10 pixels to avoid text overlap
+            FirmwareChart(content: engine.firmwarePlotNodes, width: 132, height: isPlotting ? 44 : 33, minXString: nil, maxXString: nil).draw(in: renderer, x: x, y: y + 10, engine: engine)
             
             // Draw X center at top left (Annunciator location)
             let xStr = centerStr

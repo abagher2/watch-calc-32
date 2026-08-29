@@ -369,6 +369,25 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         print("Booted!")
         hw_init()
         
+        // True hardware/firmware level interrupt polling for C and OFF
+        engine.isInterrupted = {
+            let m = matrix_scan()
+            for r in 0..<8 {
+                for c in 0..<6 {
+                    let bit = UInt64(1) << ((r * 6) + c)
+                    if (m & bit) != 0 {
+                        if let key = HP32KeyMap.standardGrid.first(where: { $0.row == r && $0.col == c }) {
+                            if key.primaryAction == .c {
+                                lastMatrixState = m // Update to prevent double-trigger when returning to loop
+                                return true
+                            }
+                        }
+                    }
+                }
+            }
+            return false
+        }
+        
         uiController.retroUI.doubleFormatter = { (val, mode) in
             var cMode: Int32 = 0
             var cPlaces: Int32 = 0

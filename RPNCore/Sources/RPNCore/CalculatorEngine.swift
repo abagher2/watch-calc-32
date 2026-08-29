@@ -300,6 +300,7 @@ public class CalculatorEngine {
     
     public var errorMessage: String? = nil
     public var transientMessage: String? = nil
+    public var isInterrupted: (() -> Bool)? = nil
     public var isWaitingForFlag: Bool = false
     public var flagAction: String = ""
     public var flagDotPressed: Bool = false
@@ -851,9 +852,19 @@ public class CalculatorEngine {
             hasDecimal = true
         } else {
             // Support HP 32sii fraction input (e.g. 1.2.3 for 1 2/3)
-            // Allow multiple decimals
-            appendInputByte(46)
-            isFractionMode = true // Auto-enable fraction display
+            // Allow up to 2 decimals total
+            var dotCount = 0
+            for i in 0..<currentInputLength {
+                if currentInputBuffer[i] == 46 { dotCount += 1 }
+            }
+            if dotCount < 2 {
+                appendInputByte(46)
+                if dotCount == 1 {
+                    isFractionMode = true // Auto-enable fraction display on second decimal
+                }
+            } else {
+                return // Disallow more than 2 decimals
+            }
         }
         updateCurrentInputDisplay()
     }
@@ -996,16 +1007,31 @@ public class CalculatorEngine {
                 var part2: Double = 0.0
                 var currentPart: Double = 0.0
                 var partIndex = 0
+                var emptyPart1 = false
+                var emptyPart0 = false
+                var charsInPart = 0
+                var isNegativeFraction = false
+                
                 for i in 0..<currentInputLength {
                     let c = currentInputBuffer[i]
                     if c == 46 { // '.'
-                        if partIndex == 0 { part0 = currentPart }
-                        else if partIndex == 1 { part1 = currentPart }
+                        if partIndex == 0 { 
+                            part0 = currentPart
+                            if charsInPart == 0 { emptyPart0 = true }
+                        }
+                        else if partIndex == 1 { 
+                            part1 = currentPart
+                            if charsInPart == 0 { emptyPart1 = true }
+                        }
                         else if partIndex == 2 { part2 = currentPart }
                         currentPart = 0.0
+                        charsInPart = 0
                         partIndex += 1
                     } else if c >= 48 && c <= 57 {
                         currentPart = currentPart * 10.0 + Double(c - 48)
+                        charsInPart += 1
+                    } else if c == 45 { // '-'
+                        isNegativeFraction = true
                     }
                 }
                 if partIndex == 0 { part0 = currentPart }
@@ -1013,9 +1039,19 @@ public class CalculatorEngine {
                 else if partIndex == 2 { part2 = currentPart }
                 
                 if partIndex >= 2 && part2 != 0 {
-                    val = part0 + (part1 / part2)
+                    if emptyPart1 {
+                        // b..c form (e.g. 1..2 -> 1/2)
+                        val = part0 / part2
+                    } else {
+                        // a.b.c or .b.c form
+                        val = part0 + (part1 / part2)
+                    }
                 } else {
                     val = part0
+                }
+                
+                if isNegativeFraction {
+                    val = -val
                 }
             } else {
                 if baseMode != .dec {
@@ -1628,7 +1664,7 @@ public class CalculatorEngine {
         }
         
         if operation == "SOLVE" {
-            if currentEvaluatingProgram == nil {
+            if programs.isEmpty {
                 errorMessage = "NO EQN"
                 updateDisplay()
                 return
@@ -1641,7 +1677,7 @@ public class CalculatorEngine {
         }
         
         if operation == "∫" {
-            if currentEvaluatingProgram == nil {
+            if programs.isEmpty {
                 errorMessage = "NO EQN"
                 updateDisplay()
                 return
@@ -2449,7 +2485,17 @@ public class CalculatorEngine {
         
         // Execute steps
         var i = 0
+        var cycleCount = 0
         while i < program.steps.count {
+            if let check = isInterrupted, check() {
+                errorMessage = "INTERRUPTED"
+                break
+            }
+            cycleCount += 1
+            if cycleCount > 100000 {
+                errorMessage = "TIMEOUT"
+                break
+            }
             let step = program.steps[i]
             if skipNextInstruction {
                 skipNextInstruction = false
@@ -2888,6 +2934,8 @@ public class CalculatorEngine {
                 updateProgramDisplay()
             }
         } else if alphaAction == .evalEquation {
+            isEquationListMode = false
+            requestEqn = false
             if let program = programs.first(where: { $0.label == initialChar }) {
                 currentResumeAction = .eval(program)
                 pendingEquationVars = program.extractVariables()
@@ -3144,6 +3192,48 @@ public class CalculatorEngine {
             default: break
             }
         }
+        
+        if isFractionMode {
+            let valAbs = abs(val)
+            let whole = Int64(valAbs)
+            let remainder = valAbs - Double(whole)
+            let sign = val < 0 ? -1 : 1
+            
+            if remainder > 1e-6 {
+                var fnum: Int64 = 0
+                var fden: Int64 = 1
+                
+                if flags[8] {
+                    // Denominator = /c
+                    let targetDen = Int64(maxDenominator)
+                    let targetNum = Int64(round(remainder * Double(targetDen)))
+                    if flags[9] {
+                        // Denominator is always = /c
+                        fnum = targetNum
+                        fden = targetDen
+                    } else {
+                        // Fraction is reduced
+                        let d = engineGcd(targetNum, targetDen)
+                        fnum = targetNum / d
+                        fden = targetDen / d
+                    }
+                } else {
+                    // Optimal denominator <= /c
+                    let num = Int64(round(remainder * 1_000_000))
+                    let den = Int64(1_000_000)
+                    let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
+                    fnum = frac.numerator
+                    fden = frac.denominator
+                }
+                
+                if whole == 0 {
+                    return sign < 0 ? "-\(fnum)/\(fden)" : "\(fnum)/\(fden)"
+                } else {
+                    return sign < 0 ? "-\(whole) \(fnum)/\(fden)" : "\(whole) \(fnum)/\(fden)"
+                }
+            }
+        }
+        
         var cMode: Int32 = 0
         var cPlaces: Int32 = 0
         switch displayMode {
@@ -3275,6 +3365,8 @@ public class CalculatorEngine {
         }
         // Cap to prevent excessive lag on devices
         n = min(n, 200)
+        // Ensure n is a multiple of 3 for Simpson's 3/8 Rule
+        n = ((n + 2) / 3) * 3
 
         let h = (upper - lower) / Double(n)
         
@@ -3286,6 +3378,10 @@ public class CalculatorEngine {
         
         self.isSilent = true // Prevent UI updates during tight loop
         for i in 0...n {
+            if let check = isInterrupted, check() {
+                errorMessage = "INTERRUPTED"
+                break
+            }
             let x = lower + Double(i) * h
             
             let oldVal = self.variables[variable]
@@ -3338,6 +3434,10 @@ public class CalculatorEngine {
         var f1 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
         
         for _ in 0..<maxIterations {
+            if let check = isInterrupted, check() {
+                errorMessage = "INTERRUPTED"
+                break
+            }
             if abs(f1 - f0) < 1e-14 { break }
             let x2 = x1 - f1 * (x1 - x0) / (f1 - f0)
             if abs(x2 - x1) < tolerance {

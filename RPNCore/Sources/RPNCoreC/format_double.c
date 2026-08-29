@@ -16,44 +16,88 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
     }
     
     if (mode == 1) { // FIX
-        snprintf((char*)buffer, max_len, "%.*f", places, val);
-    } else if (mode == 2) { // SCI
-        snprintf((char*)buffer, max_len, "%.*E", places, val);
-        char* e_ptr = strchr((char*)buffer, 'E');
-        if (e_ptr) {
-            char sign = e_ptr[1];
-            char* digits = e_ptr + 2;
-            while (*digits == '0' && *(digits + 1) != '\0') digits++;
-            if (sign == '+') {
-                memmove(e_ptr + 1, digits, strlen(digits) + 1);
-            } else {
-                memmove(e_ptr + 2, digits, strlen(digits) + 1);
+        char temp_buf[32];
+        int needed = snprintf(temp_buf, sizeof(temp_buf), "%.*f", places, val);
+        int commas = 0;
+        char* dp = strchr(temp_buf, '.');
+        if (!dp) dp = temp_buf + needed;
+        char* start = temp_buf;
+        if (*start == '-') start++;
+        int digits = dp - start;
+        if (digits > 3) commas = (digits - 1) / 3;
+        
+        if (needed + commas <= max_len - 1) {
+            snprintf((char*)buffer, max_len, "%.*f", places, val);
+        } else {
+            // Fallback to ALL mode behavior if it doesn't fit
+            mode = 0; 
+        }
+    }
+    
+    if (mode == 2 || mode == 3 || mode == 4) {
+        int max_chars = max_len - 1;
+        int original_places = places;
+        
+        for (int p = original_places; p >= 0; p--) {
+            char temp_buf[64];
+            if (mode == 2) {
+                snprintf(temp_buf, sizeof(temp_buf), "%.*E", p, val);
+            } else if (mode == 3) {
+                snprintf(temp_buf, sizeof(temp_buf), "%.*G", p, val);
+            } else { // mode == 4
+                snprintf(temp_buf, sizeof(temp_buf), "%.*E", p > 0 ? p - 1 : 0, val);
+            }
+            
+            // Clean up exponent in temp_buf
+            char* e_ptr = strchr(temp_buf, 'E');
+            if (e_ptr) {
+                char sign = e_ptr[1];
+                char* digits = e_ptr + 2;
+                while (*digits == '0' && *(digits + 1) != '\0') digits++;
+                if (sign == '+') {
+                    memmove(e_ptr + 1, digits, strlen(digits) + 1);
+                } else {
+                    memmove(e_ptr + 2, digits, strlen(digits) + 1);
+                }
+            }
+            
+            if (strlen(temp_buf) <= max_chars) {
+                strcpy((char*)buffer, temp_buf);
+                break;
             }
         }
-    } else if (mode == 3) { // ENG
-        snprintf((char*)buffer, max_len, "%.*G", places, val);
-    } else if (mode == 4) { // SIG
-        snprintf((char*)buffer, max_len, "%.*E", places > 0 ? places - 1 : 0, val);
-        char* e_ptr = strchr((char*)buffer, 'E');
-        if (e_ptr) {
-            char sign = e_ptr[1];
-            char* digits = e_ptr + 2;
-            while (*digits == '0' && *(digits + 1) != ' ') digits++;
-            if (sign == '+') {
-                memmove(e_ptr + 1, digits, strlen(digits) + 1);
-            } else {
-                memmove(e_ptr + 2, digits, strlen(digits) + 1);
-            }
-        }
-    } else { // ALL
+    } else if (mode == 0) { // ALL
         int max_chars = max_len - 1;
         double abs_val = val < 0 ? -val : val;
+        
         if (abs_val >= 1.0 && abs_val < 1e11 && (abs_val - (int64_t)abs_val) < 1e-9) {
-            snprintf((char*)buffer, max_len, "%lld", (long long)val);
+            char temp_buf[32];
+            int len = snprintf(temp_buf, sizeof(temp_buf), "%lld", (long long)val);
+            int commas = (len > 3 && temp_buf[0] != '-') ? (len - 1) / 3 : ((len > 4 && temp_buf[0] == '-') ? (len - 2) / 3 : 0);
+            if (len + commas <= max_chars) {
+                snprintf((char*)buffer, max_len, "%lld", (long long)val);
+            } else {
+                snprintf((char*)buffer, max_len, "%.*E", 11, val);
+            }
         } else {
             for (int p = 11; p >= 0; p--) {
-                int needed = snprintf(NULL, 0, "%.*G", p, val);
-                if (needed <= max_chars) {
+                char temp_buf[32];
+                int needed = snprintf(temp_buf, sizeof(temp_buf), "%.*G", p, val);
+                
+                // Calculate commas that will be added to integer part
+                int commas = 0;
+                char* e_ptr = strchr(temp_buf, 'E');
+                if (!e_ptr) e_ptr = strchr(temp_buf, 'e');
+                if (!e_ptr) { // Only add commas if not scientific notation
+                    char* dp = strchr(temp_buf, '.');
+                    if (!dp) dp = temp_buf + needed;
+                    char* start = temp_buf;
+                    if (*start == '-') start++;
+                    int digits = dp - start;
+                    if (digits > 3) commas = (digits - 1) / 3;
+                }
+                
+                if (needed + commas <= max_chars) {
                     snprintf((char*)buffer, max_len, "%.*G", p, val);
                     break;
                 }
@@ -140,14 +184,58 @@ int format_input_buffer_c(const uint8_t* in_buf, int in_len, const uint8_t* exp_
     char dec_char = use_comma ? ',' : '.';
     char group_char = use_comma ? '.' : ',';
     
-    // Find decimal point in input buffer
-    int dp_idx = in_len;
+    // Find first and second decimal points
+    int dp1_idx = -1;
+    int dp2_idx = -1;
     for (int i = 0; i < in_len; i++) {
         if (in_buf[i] == '.' || in_buf[i] == ',') {
-            dp_idx = i;
-            break;
+            if (dp1_idx == -1) dp1_idx = i;
+            else if (dp2_idx == -1) dp2_idx = i;
         }
     }
+    
+    if (dp2_idx != -1) {
+        // Fraction mode formatting
+        int out_idx = 0;
+        
+        // Handle negative sign
+        int start_idx = 0;
+        if (in_len > 0 && in_buf[0] == '-') {
+            out_buf[out_idx++] = '-';
+            start_idx = 1;
+        }
+        
+        // If first decimal is at start_idx, Integer part is "0"
+        if (dp1_idx == start_idx) {
+            out_buf[out_idx++] = '0';
+        } else {
+            for (int i = start_idx; i < dp1_idx; i++) {
+                out_buf[out_idx++] = in_buf[i];
+            }
+        }
+        
+        // Space between Integer and Numerator
+        out_buf[out_idx++] = ' ';
+        
+        // Numerator
+        for (int i = dp1_idx + 1; i < dp2_idx; i++) {
+            out_buf[out_idx++] = in_buf[i];
+        }
+        
+        // Slash between Numerator and Denominator
+        out_buf[out_idx++] = '/';
+        
+        // Denominator
+        for (int i = dp2_idx + 1; i < in_len; i++) {
+            out_buf[out_idx++] = in_buf[i];
+        }
+        
+        out_buf[out_idx] = '\0';
+        return out_idx;
+    }
+    
+    // Normal mode formatting
+    int dp_idx = dp1_idx != -1 ? dp1_idx : in_len;
     
     int start_idx = 0;
     if (in_len > 0 && in_buf[0] == '-') {
