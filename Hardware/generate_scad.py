@@ -607,27 +607,42 @@ module button_cavity(w, h) {{
 }}
 
 module button_solid(w, h, label="", label_left="", label_right="", label_alpha="") {{
+    arm_w = 0.5; // Spring width
     z_spring_top = 0.4; // 2 FDM layers thick
     z_faceplate = 2.5; 
     z_top = 5.6; 
     
+    // Top exposed chiclet
     top_w = (w > 15) ? w - 1.0 : w - 1.0;
     top_h = h - 1.0;
+    
+    // Bottom narrow base for springs and switch
+    base_w = 6.0;
+    base_h = 6.0;
     
     cavity_w = w - 0.4;
     cavity_h = h - 0.4;
     
     render() difference() {{ 
         union() {{
-            // Straight shaft button
-            squircle_centered(top_w, top_h, z_top, 1.0);
+            // Narrow base (Z = 0.0 to 1.5)
+            squircle_centered(base_w, base_h, 1.5, 1.0);
             
-            // Lattice Springs (North, South, East, West tabs connecting to ribs)
-            intersection() {{
-                union() {{
-                    translate([-cavity_w/2, -0.6, 0]) cube([cavity_w, 1.2, z_spring_top]);
-                    translate([-0.6, -cavity_h/2, 0]) cube([1.2, cavity_h, z_spring_top]);
+            // 45-degree chamfer expansion (Z = 1.5 to 2.9)
+            // (top_w - base_w)/2 = (8.8 - 6.0)/2 = 1.4mm. So height needed is 1.4mm for 45 deg.
+            translate([0, 0, 1.5])
+                hull() {{
+                    squircle_centered(base_w, base_h, 0.01, 1.0);
+                    translate([0, 0, 1.4]) squircle_centered(top_w, top_h, 0.01, 1.0);
                 }}
+                
+            // Straight shaft (Z = 2.9 to 5.6)
+            translate([0, 0, 2.9])
+                squircle_centered(top_w, top_h, z_top - 2.9, 1.0);
+            
+            // Spiral Springs connecting the narrow base to the cavity walls
+            intersection() {{
+                for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(3.2, cavity_w/2 + 0.1, arm_w, 180);
                 squircle_centered(cavity_w + 0.2, cavity_h + 0.2, z_spring_top + 0.1, 1.5);
             }}
         }} 
@@ -640,8 +655,8 @@ module button_solid(w, h, label="", label_left="", label_right="", label_alpha="
                 }}
         }}
         
-        // Engraved Side Labels (Front, Left, Right)
-        mid_z = z_faceplate + (z_top - z_faceplate)/2; 
+        // Engraved Side Labels (Front, Left, Right) - on the straight shaft section
+        mid_z = 2.9 + (z_top - 2.9)/2; 
         
         if (label_alpha != "") {{
             translate([0, -top_h/2 + 0.4, mid_z])
@@ -670,9 +685,9 @@ module button_solid(w, h, label="", label_left="", label_right="", label_alpha="
         }}
         
         // Pocket to clear 1.5mm tall tactile switch body (SKQGABE010 is 5.2x5.2mm)
-        // 6.0 x 6.0mm pocket leaves 4 solid corner legs for the button to adhere to the bed
-        translate([0, 0, 1.5/2 - 0.1])
-            cube([6.0, 6.0, 1.5 + 0.2], center=true);
+        // 5.2 x 5.2mm pocket inside the 6.0x6.0 base leaves 0.4mm walls for the springs to attach!
+        translate([0, 0, 1.6/2 - 0.1])
+            cube([5.2, 5.2, 1.6], center=true);
     }}
 }}
 FP_CLR = 0.1;

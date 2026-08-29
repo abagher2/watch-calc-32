@@ -122,6 +122,58 @@ public struct SharedCalculatorThoroughTestCases {
             "RCL", "X", "ENTER", "𝑥²", "RTN", "PRGM", "CLEAR"
         ]
         
+        
+        // --- UX PARITY TESTS ---
+        generated.append(SharedCalculatorTestCase(name: "UX_Transient_Message_Clear", steps: [
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("ENTER"),
+            SharedCalculatorStep("STO"),
+            SharedCalculatorStep("A"),
+            SharedCalculatorStep("VIEW"),
+            SharedCalculatorStep("A"),
+            SharedCalculatorStep("5"),
+            SharedCalculatorStep("ENTER", expectedX: "5.0000") // Should NOT lock up! Display should be 5.0
+        ]))
+
+        generated.append(SharedCalculatorTestCase(name: "UX_STO_PLUS_Alpha", steps: [
+            SharedCalculatorStep("2"),
+            SharedCalculatorStep("ENTER"),
+            SharedCalculatorStep("STO"),
+            SharedCalculatorStep("A"),
+            SharedCalculatorStep("5"),
+            SharedCalculatorStep("ENTER"),
+            SharedCalculatorStep("STO"),
+            SharedCalculatorStep("+"),
+            SharedCalculatorStep("A"),
+            SharedCalculatorStep("RCL"),
+            SharedCalculatorStep("A", expectedX: "7.0000")
+        ]))
+        
+        generated.append(SharedCalculatorTestCase(name: "UX_SIG_Mode_Tracking", steps: [
+            SharedCalculatorStep("SIG 4"),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("2"),
+            SharedCalculatorStep("."),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("ENTER"),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("2"),
+            SharedCalculatorStep("."),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("+", expectedX: "24.2"),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("."),
+            SharedCalculatorStep("2"),
+            SharedCalculatorStep("3"),
+            SharedCalculatorStep("ENTER"),
+            SharedCalculatorStep("1"),
+            SharedCalculatorStep("."),
+            SharedCalculatorStep("2"),
+            SharedCalculatorStep("×", expectedX: "1.5"),
+            SharedCalculatorStep("ALL")
+        ]))
+        
         return generated
     }()
 }
