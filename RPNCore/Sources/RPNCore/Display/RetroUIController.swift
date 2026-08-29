@@ -60,7 +60,7 @@ public class RetroUIController {
         if engine.requestPlot {
             if finalOp == .c || finalOp == .clear {
                 engine.requestPlot = false
-                print("DEBUG: requestPlot SET TO FALSE by RetroUIController")
+                // print("DEBUG: requestPlot SET TO FALSE by RetroUIController")
                 engine.selectedPlotMarkerIndex = nil
                 engine.selectedPlotX = nil
                 return
@@ -284,7 +284,7 @@ public class RetroUIController {
                     }
                     engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
-                    print("DEBUG: requestPlot SET TO TRUE by RetroUIController")
+                    // print("DEBUG: requestPlot SET TO TRUE by RetroUIController")
                     engine.updateDisplay()
                 } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
                     engine.currentProgramLabel = prog.label

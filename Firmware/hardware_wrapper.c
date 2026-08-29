@@ -9,14 +9,14 @@
 #include <stdio.h>
 
 #define SPI_PORT spi0
-#define PIN_CS   2
-#define PIN_SCK  18
-#define PIN_MOSI 19
-#define PIN_DC   3
+#define PIN_CS   1
+#define PIN_SCK  2
+#define PIN_MOSI 3
+#define PIN_DC   4
 
-// Keypad pins remapped
-const uint8_t col_pins[] = {0, 1, 4, 2, 3, 9};
-const uint8_t row_pins[] = {8, 7, 6, 5, 16, 14, 15, 12};
+// Keypad pins remapped for 14 available GPIOs
+const uint8_t col_pins[] = {14, 16, 10, 5, 6, 7};
+const uint8_t row_pins[] = {21, 20, 19, 18, 15, 0, 8, 9};
 
 struct EmuDisplay {
     uint32_t magic[4];
@@ -139,6 +139,8 @@ void isr_hardfault(void) {
     }
 }
 
+void system_sleep(void);
+
 void abort(void) {
     oom_fault_occurred = true;
     while(1) {
@@ -155,7 +157,7 @@ void abort(void) {
 
 static struct repeating_timer hw_scan_timer;
 
-static void system_sleep(void) {
+void system_sleep(void) {
     // Turn off display
     gpio_put(PIN_CS, 0);
     gpio_put(PIN_DC, 0);

@@ -173,12 +173,18 @@ private struct MenuItemRow: View {
         } else if item.requiresDigit {
             VStack(alignment: .leading, spacing: 6) {
                 Text(item.label).font(.headline)
+                #if os(watchOS)
+                Slider(value: Binding(
+                    get: { Double(digit) },
+                    set: { digit = Int($0) }
+                ), in: 0...9, step: 1) {
+                    Text("Digits")
+                }
+                Text("Selected: \(digit)").font(.caption).foregroundColor(.secondary)
+                #else
                 Picker("Digits", selection: $digit) {
                     ForEach(0...9, id: \.self) { n in Text("\(n)").tag(n) }
                 }
-                #if os(watchOS)
-                .pickerStyle(.wheel)
-                #else
                 .pickerStyle(.segmented)
                 #endif
                 Button("Apply \(item.label) \(digit)") {

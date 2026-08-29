@@ -49,10 +49,11 @@ struct BottomNumpadView: View {
             return
         }
 
-        // All remaining ops (special-sheet ops like .eqn/.solve/.show as well as regular keys)
-        // go through executeOp. Special-sheet ops set engine request flags observed by
-        // WatchMenuModifier.onChange; regular ops execute directly.
-        engine.executeOp(op)
+        // Special-sheet ops like .eqn/.solve/.show are passed through here.
+        // Regular keys (digits, +, -, etc.) have ALREADY been executed by dispatchKey in CalcButton.
+        if menuCommands.contains(op) {
+            engine.executeOp(op)
+        }
 
         if horizontalPage == 0 && op == .enter {
             if engine.autoReturnToMainPad {

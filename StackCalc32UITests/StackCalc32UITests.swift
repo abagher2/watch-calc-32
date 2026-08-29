@@ -1317,5 +1317,13 @@ import RPNCore
     // Verify Exam badge is gone
     XCTAssertFalse(examBadge.exists)
   }
-}
 
+  func testFractionEntry() throws {
+      if let tc = SharedMathTestCases.cases.first(where: { $0.name == "FractionEntry" }) {
+          runSharedTestCase(tc)
+      } else {
+          XCTFail("Could not find FractionEntry test case")
+      }
+  }
+
+}

@@ -1822,7 +1822,7 @@ public class CalculatorEngine {
                 if isFractionMode {
                     let val = stack[0].real
                     let valAbs = abs(val)
-                    let whole = Int64(valAbs)
+                    var whole = Int64(valAbs)
                     let remainder = valAbs - Double(whole)
                     let sign = val < 0 ? -1.0 : 1.0
                     
@@ -3195,7 +3195,7 @@ public class CalculatorEngine {
         
         if isFractionMode {
             let valAbs = abs(val)
-            let whole = Int64(valAbs)
+            var whole = Int64(valAbs)
             let remainder = valAbs - Double(whole)
             let sign = val < 0 ? -1 : 1
             
@@ -3226,7 +3226,14 @@ public class CalculatorEngine {
                     fden = frac.denominator
                 }
                 
-                if whole == 0 {
+                if fnum == fden && fden > 0 {
+                    fnum = 0
+                    whole += 1
+                }
+                
+                if fnum == 0 {
+                    return sign < 0 ? "-\(whole)" : "\(whole)"
+                } else if whole == 0 {
                     return sign < 0 ? "-\(fnum)/\(fden)" : "\(fnum)/\(fden)"
                 } else {
                     return sign < 0 ? "-\(whole) \(fnum)/\(fden)" : "\(whole) \(fnum)/\(fden)"

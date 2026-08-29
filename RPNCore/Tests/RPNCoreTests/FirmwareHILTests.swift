@@ -374,4 +374,27 @@ final class FirmwareHILTests: XCTestCase {
         Thread.sleep(forTimeInterval: 0.5)
         takeScreenshot(name: "NormalPDF_StackValues")
     }
+
+    
+
+
+    func testFractionEntry() {
+        sendCommand("C")
+        sendCommand("1")
+        sendCommand(".")
+        sendCommand("2")
+        sendCommand(".")
+        
+        var screen = readScreen(expecting: "0 1/2_")
+        XCTAssertTrue(screen.contains("0 1/2_") || screen.contains("0 1/2"), "Expected fraction format, got: \(screen)")
+        
+        sendCommand("3")
+        screen = readScreen(expecting: "1 2/3_")
+        XCTAssertTrue(screen.contains("1 2/3_") || screen.contains("1 2/3"), "Expected fraction format, got: \(screen)")
+        
+        sendCommand("ENTER")
+        screen = readScreen(expecting: "1 2/3")
+        XCTAssertTrue(screen.contains("1 2/3"), "Expected fraction evaluated, got: \(screen)")
+    }
+
 }

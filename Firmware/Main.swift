@@ -107,7 +107,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             while e > s && buf[e - 1] <= 32 { e -= 1 }
             let trimmedLen = e - s
             let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
-            print("SUBMIT ALPHA: \(str), isWaitingForLabel: \(engine.isWaitingForLabel)")
+            // print("SUBMIT ALPHA: \(str), isWaitingForLabel: \(engine.isWaitingForLabel)")
             engine.submitAlpha(str)
         }
         needsDisplay = true
@@ -246,8 +246,8 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                 let tValue = engine.stack.count > 3 ? engine.stack[3].real : 0.0
                 let lValue = engine.lastX.real
                 
-                func printVal(_ name: String, _ val: Double) {
-                    for b in name.utf8 { pushTx(b) }
+                func printVal(_ nameBytes: [UInt8], _ val: Double) {
+                    for b in nameBytes { pushTx(b) }
                     format_double_c(val, WatchCalcFirmware.formatBuf, 64, 0, 0, engine.useCommaForDecimal ? 1 : 0)
                     var fmtLen = 0
                     while fmtLen < 64 && WatchCalcFirmware.formatBuf[fmtLen] != 0 { fmtLen += 1 }
@@ -255,10 +255,10 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
                     pushTx(10)
                 }
                 
-                printVal("Y: ", yValue)
-                printVal("Z: ", zValue)
-                printVal("T: ", tValue)
-                printVal("L: ", lValue)
+                printVal([89, 58, 32], yValue) // Y: 
+                printVal([90, 58, 32], zValue) // Z: 
+                printVal([84, 58, 32], tValue) // T: 
+                printVal([76, 58, 32], lValue) // L: 
                 
                 for _ in 0..<32 { pushTx(61) } // "================================"
                 pushTx(10) // \n
@@ -339,7 +339,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             
             // Render standard retro UI
             uiController.retroUI.render(engine: engine, renderer: renderer)
-            print("DEBUG: requestPlot=\(engine.requestPlot ? "1" : "0") isEq=\(engine.isEquationListMode ? "1" : "0")")
+            // print("DEBUG: requestPlot=\(engine.requestPlot ? "1" : "0") isEq=\(engine.isEquationListMode ? "1" : "0")")
             
             var changed = false
             if let prev = renderer.previousBuffer {
@@ -366,7 +366,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     }
 
     static func main() {
-        print("Booted!")
+        // print("Booted!")
         hw_init()
         
         // True hardware/firmware level interrupt polling for C and OFF

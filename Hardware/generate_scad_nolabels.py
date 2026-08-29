@@ -133,8 +133,8 @@ key_map = {
 
 for r_idx, row in enumerate(rows):
     for c_idx, b in enumerate(row):
-        b['w'] = 9.8
-        b['h'] = 9.6
+        b['w'] = 8.3
+        b['h'] = 7.3
         
         real_col = c_idx
         if r_idx == 3 and c_idx >= 1:
@@ -409,7 +409,7 @@ module key_button(w, h, label="") {{
         }}
         // Sunken label on top of cap (Local Z=-0.8 to -0.8+SD)
         // Since it's rotated 180 over X, we MUST mirror the text in Local space
-        if (label != "") {{
+        if (False) {{
             translate([0, 0, -0.8 - 0.01])
                 mirror([1, 0, 0])
                     seg_word(label, w - 1.5);
@@ -659,46 +659,46 @@ module button_solid(w, h, label="", label_left="", label_right="", label_alpha="
             // Exposed top straight section (above faceplate)
             translate([0, 0, z_faceplate])
                 squircle_centered(top_w, top_h, z_top - z_faceplate, 1.0);
-            // EMBOSSED (Raised) Side Labels: Added to the union so they protrude outward
-            if (label_alpha != "") {{
-                translate([0, -mid_y, mid_z])
-                    rotate([ang_y_skirt, 0, 0])
-                    rotate([90, 0, 0])
-                    translate([0, 0, -0.1])
-                    linear_extrude(0.5) {{ // Starts 0.1 inside, protrudes 0.4 outside
-                        sf_word(label_alpha, w - 2.0, min(w*0.16, h*0.18));
-                    }}
-            }}
-            
-            if (label_left != "") {{
-                translate([-mid_x, 0, mid_z])
-                    rotate([0, -ang_x_skirt, 0])
-                    rotate([0, -90, 0])
-                    rotate([0, 0, 90]) // Rotate to read left-to-right (horizontally)
-                    translate([0, 0, -0.1])
-                    linear_extrude(0.5) {{
-                        sf_word(label_left, h - 2.0, min(w*0.13, h*0.16));
-                    }}
-            }}
-            
-            if (label_right != "") {{
-                translate([mid_x, 0, mid_z])
-                    rotate([0, ang_x_skirt, 0])
-                    rotate([0, 90, 0])
-                    rotate([0, 0, -90]) // Rotate to read left-to-right
-                    translate([0, 0, -0.1])
-                    linear_extrude(0.5) {{
-                        sf_word(label_right, h - 2.0, min(w*0.13, h*0.16));
-                    }}
-            }}
         }} 
         
-        // SUNKEN (Engraved) Top Label: Subtracted from the union
-        if (label != "") {{
+        // Deepen text emboss to 1.2mm for visibility
+        if (False) {{
             translate([0, 0, z_top]) 
-                translate([0, 0, -0.4]) // 0.4mm deep engraving
-                linear_extrude(0.6) {{
+                translate([0, 0, -1.2])
+                linear_extrude(1.4) {{
                     sf_word(label, top_w - 1.0, min(w*0.25, h*0.3));
+                }}
+        }}
+        
+        if (False) {{
+            translate([0, -mid_y, mid_z])
+                rotate([ang_y_skirt, 0, 0])
+                rotate([90, 0, 0])
+                translate([0, 0, -1.2])
+                linear_extrude(1.4) {{
+                    sf_word(label_alpha, w - 2.0, min(w*0.16, h*0.18));
+                }}
+        }}
+        
+        if (False) {{
+            translate([-mid_x, 0, mid_z])
+                rotate([0, -ang_x_skirt, 0])
+                rotate([0, -90, 0])
+                rotate([0, 0, 90]) // Rotate to read left-to-right (horizontally)
+                translate([0, 0, -1.2])
+                linear_extrude(1.4) {{
+                    sf_word(label_left, h - 2.0, min(w*0.13, h*0.16));
+                }}
+        }}
+        
+        if (False) {{
+            translate([mid_x, 0, mid_z])
+                rotate([0, ang_x_skirt, 0])
+                rotate([0, 90, 0])
+                rotate([0, 0, -90]) // Rotate to read left-to-right
+                translate([0, 0, -1.2])
+                linear_extrude(1.4) {{
+                    sf_word(label_right, h - 2.0, min(w*0.13, h*0.16));
                 }}
         }}
     }} 

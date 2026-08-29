@@ -59,7 +59,7 @@ public struct RetroUIBodyView: FirmwareView {
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
-        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot ? 1 : 0) isEq=\(engine.isEquationListMode ? 1 : 0) err=\(engine.errorMessage != nil ? 1 : 0)")
+        // print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot ? 1 : 0) isEq=\(engine.isEquationListMode ? 1 : 0) err=\(engine.errorMessage != nil ? 1 : 0)")
         if let msg = engine.errorMessage ?? engine.transientMessage {
             let view = FirmwarePadding(leading: 6) {
                 FirmwareText(msg, font: .medium, color: true)
@@ -96,7 +96,7 @@ public struct RetroUIBodyView: FirmwareView {
             }
             
         } else if engine.isBuildingNumber || engine.isWaitingForAlpha {
-            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
+            // print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
             
         } else if engine.isEquationListMode {
@@ -235,7 +235,7 @@ public struct RetroUIBodyView: FirmwareView {
             }
             engine.firmwarePlotNodes.append(.rule(x: center, y: nil))
             
-            print("DEBUG: Inside FirmwareChart block! reqPlot=\(engine.requestPlot ? 1 : 0) nodes=\(engine.firmwarePlotNodes.count)")
+            // print("DEBUG: Inside FirmwareChart block! reqPlot=\(engine.requestPlot ? 1 : 0) nodes=\(engine.firmwarePlotNodes.count)")
             // Shift plot down by 10 pixels to avoid text overlap
             FirmwareChart(content: engine.firmwarePlotNodes, width: 132, height: isPlotting ? 44 : 33, minXString: nil, maxXString: nil).draw(in: renderer, x: x, y: y + 10, engine: engine)
             
@@ -259,7 +259,7 @@ public struct RetroUIBodyView: FirmwareView {
             }
 // End FirmwarePlot drawing
         } else {
-            print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
+            // print("DEBUG: MainDisplayNumberView.draw! reqPlot=\(engine.requestPlot ? 1 : 0)")
             MainDisplayNumberView().draw(in: renderer, x: x, y: y + 13, engine: engine)
         }
     }
@@ -273,7 +273,7 @@ public struct RetroUIFooterView: FirmwareView {
     }
     
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
-        print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot ? 1 : 0) isEq=\(engine.isEquationListMode ? 1 : 0) err=\(engine.errorMessage != nil ? 1 : 0)")
+        // print("DEBUG: RetroUIBodyView.draw - reqPlot=\(engine.requestPlot ? 1 : 0) isEq=\(engine.isEquationListMode ? 1 : 0) err=\(engine.errorMessage != nil ? 1 : 0)")
         if engine.errorMessage != nil || engine.transientMessage != nil || retroUI.isShowingRegisters || retroUI.isShowingFullPrecision {
             return
         }

@@ -64,6 +64,7 @@ final class MenuParityTests: XCTestCase {
         engine.executeMath("FIX 4"); XCTAssertEqual(engine.displayMode, .fix(4))
         engine.executeMath("SCI 3"); XCTAssertEqual(engine.displayMode, .sci(3))
         engine.executeMath("ENG 2"); XCTAssertEqual(engine.displayMode, .eng(2))
+        engine.executeMath("SIG 5"); XCTAssertEqual(engine.displayMode, .sig(5))
         engine.executeMath("ALL");   XCTAssertEqual(engine.displayMode, .all)
     }
 

@@ -241,6 +241,7 @@ struct ContentView: View {
         let fontSize = displayHeight * 0.45
         
         return VStack(spacing: 2) {
+            Color.clear.frame(height: 18) // Padding for watchOS status bar (time)
             // Indicators Row
             LCDAnnunciatorsView(
                 engine: engine,

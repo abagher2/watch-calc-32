@@ -22,6 +22,20 @@ public struct SharedCalculatorTestCase {
 
 public struct SharedMathTestCases {
     public static let cases: [SharedCalculatorTestCase] = [
+
+        // Fraction Entry Test
+        SharedCalculatorTestCase(
+            name: "FractionEntry",
+            steps: [
+                SharedCalculatorStep("1"),
+                SharedCalculatorStep("."),
+                SharedCalculatorStep("2"),
+                SharedCalculatorStep("."),
+                SharedCalculatorStep("3", expectedX: "1 2/3"),
+                SharedCalculatorStep("ENTER", expectedX: "1 2/3")
+            ]
+        ),
+
         // 1. Basic Math UI (42 ENTER 5 x = 210)
         SharedCalculatorTestCase(
             name: "BasicMathUI",

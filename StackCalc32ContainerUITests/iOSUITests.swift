@@ -138,6 +138,14 @@ import RPNCore
         }
     }
 
+func testFractionEntry() throws {
+      if let tc = SharedMathTestCases.cases.first(where: { $0.name == "FractionEntry" }) {
+          runSharedTestCase(tc)
+      } else {
+          XCTFail("Could not find FractionEntry test case")
+      }
+  }
+
     func testCalculationEfficiency() throws {
         if let tc = SharedMathTestCases.cases.first(where: { $0.name == "CalculationEfficiency" }) {
             runSharedTestCase(tc)
@@ -1977,4 +1985,5 @@ import XCTest
         }
         Thread.sleep(forTimeInterval: 1.0)
     }
+
 }
