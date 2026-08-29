@@ -109,13 +109,13 @@ public struct FirmwareText: FirmwareView {
     let color: Bool
     let scale: Int
     
-    public init(_ text: String, font: Renderer.FontSize = .small, color: Bool = true, scale: Int = 1) {
+    public init(_ text: String, font: Renderer.FontSize = .medium, color: Bool = true, scale: Int = 1) {
         self.text = text; self.font = font; self.color = color; self.scale = scale
     }
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
         let w = renderer.getStringWidth(text, size: font) * scale
-        let h = (font == .small ? 8 : (font == .display ? 32 : 12)) * scale
+        let h = (font == .medium ? 8 : (font == .large ? 32 : 12)) * scale
         return (w, h)
     }
     
@@ -130,13 +130,13 @@ public struct FirmwareChar: FirmwareView {
     let color: Bool
     let scale: Int
     
-    public init(_ ch: UInt8, font: Renderer.FontSize = .small, color: Bool = true, scale: Int = 1) {
+    public init(_ ch: UInt8, font: Renderer.FontSize = .medium, color: Bool = true, scale: Int = 1) {
         self.ch = ch; self.font = font; self.color = color; self.scale = scale
     }
     
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
         let w = renderer.getCharWidth(UInt32(ch), size: font) * scale
-        let h = (font == .small ? 8 : (font == .display ? 32 : 12)) * scale
+        let h = (font == .medium ? 8 : (font == .large ? 32 : 12)) * scale
         return (w, h)
     }
     
@@ -624,8 +624,8 @@ public struct TopBarIndicatorsView: FirmwareView {
         var leftX = x + 6
         
         let drawInd = { (label: String) in
-            let w = renderer.getStringWidth(label, size: .small)
-            renderer.drawString(label, x: leftX, y: indY, size: .small, color: true, scale: 1)
+            let w = renderer.getStringWidth(label, size: .medium)
+            renderer.drawString(label, x: leftX, y: indY, size: .medium, color: true, scale: 1)
             leftX += w + 6
         }
         
@@ -641,7 +641,7 @@ public struct TopBarIndicatorsView: FirmwareView {
 public struct MainDisplayNumberView: FirmwareView {
     public init() {}
     public func size(in renderer: Renderer) -> (width: Int, height: Int) {
-        return (132, 16) // Changed from 11 to 16 since .display font is 16px tall
+        return (132, 16) // Changed from 11 to 16 since .large font is 16px tall
     }
     public func draw(in renderer: Renderer, x: Int, y: Int, engine: CalculatorEngine) {
         engine.displayXBuffer.withUnsafeBufferPointer { ptr in
@@ -651,7 +651,7 @@ public struct MainDisplayNumberView: FirmwareView {
             // Calculate total text width
             var textW = 0
             for i in 0..<len {
-                textW += renderer.getCharWidth(UInt32(ptr[i]), size: .display)
+                textW += renderer.getCharWidth(UInt32(ptr[i]), size: .large)
             }
             
             let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
@@ -660,12 +660,12 @@ public struct MainDisplayNumberView: FirmwareView {
             currentX = x + 2
             
             for i in 0..<len {
-                let cw = renderer.drawChar(UInt32(ptr[i]), x: currentX, y: y, size: .display, color: true, scale: 1)
+                let cw = renderer.drawChar(UInt32(ptr[i]), x: currentX, y: y, size: .large, color: true, scale: 1)
                 currentX += cw
             }
             
             if hasCursor {
-                renderer.fillRect(x: currentX, y: y + FontData.Display.charHeight - 2, w: 6, h: 2, color: true)
+                renderer.fillRect(x: currentX, y: y + FontData.Large.charHeight - 2, w: 6, h: 2, color: true)
             }
         }
     }

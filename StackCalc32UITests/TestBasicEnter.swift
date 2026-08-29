@@ -6,7 +6,7 @@ final class TestBasicEnter: XCTestCase {
         app.launchArguments = ["-UITesting"]
         app.launch()
         
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5))
         
         app.buttons["btn_1"].tap()

@@ -1,32 +1,29 @@
-# Solid Unibody Face-Up Faceplate Refactor
+# Fix Spring Attachments, ENTER Shaft, and Key Labels
 
-We will refactor `button_faceplate` in `generate_scad.py` to be a solid unibody block that prints perfectly face-up (Z=0 at the back, Z=3.0 at the front) with integrated compliant buttons.
-
-## User Review Required
-The faceplate body will be completely solid from Z=0 to Z=3.0, except for the squircle cutouts for the buttons. This guarantees extreme rigidity. 
-
-## Open Questions
-- Is a 3.0mm total thickness correct for the button faceplate? 
-- We will set the button top surface flush with Z=3.0, and the sunken labels etched from Z=3.0 down to Z=2.6. Does this match your intent?
+This plan addresses all issues found in the recent slicer review of the print-in-place calculator keypad.
 
 ## Proposed Changes
 
-### `Hardware/generate_scad.py`
+### 1. Fix Spiral Spring Attachments
+- **Issue:** The spiral springs currently stop at `r=4.0`, while the button cavity is `w+btn_gap` (~9.3mm). This leaves the ends of the springs floating in mid-air, requiring supports.
+- **Fix:** Modify `button_solid` to calculate the exact distance to the cavity wall (`w/2 + btn_gap/2`). Extend the `spiral_arm` radius to completely bridge the gap.
+- **Result:** The spiral arms will fuse perfectly to the faceplate cavity walls during slicing, anchoring the buttons without any supports.
 
-#### [MODIFY] generate_scad.py
-- **Remove** the hollow shell logic (Front Face, Side Walls, Bottom/Top walls).
-- **Create** a solid `squircle_centered` block for the entire faceplate body from Z=0 to Z=3.0 (with rails integrated at the edges).
-- **Implement a new `button_hole_and_mechanism` module**:
-    - **Cut** a squircle hole through the solid faceplate from Z=0 to Z=3.0 for each button.
-    - **Add** the spiral spring at Z=0 to Z=0.6 (connecting the hole wall to the shaft).
-    - **Add** the cruciform shaft at Z=0.
-    - **Add** the upper dome from Z=0.6 upwards, hulling out to the full squircle button shape.
-    - **Add** the squircle button top and subtract the 3D text label.
+### 2. Fix ENTER Button Shaft
+- **Issue:** The ENTER button was generated with two inner shafts, which does not align with the single tactile switch on the PCB.
+- **Fix:** Remove the `if (w > 15)` double-shaft logic in `generate_scad.py`. All buttons (including ENTER) will use a single, centrally-aligned inner shaft and spring mechanism.
 
-## Verification Plan
-1. Generate the SCAD and STL files using `generate_scad.py`.
-2. Inspect the STL in a 3D viewer (via a Python PyVista script) to guarantee:
-   - The faceplate is solid.
-   - The spiral springs are flat on the bottom (Z=0).
-   - The button tops are squircles with sunken text.
-   - Zero overhangs > 45 degrees.
+### 3. Extract and Apply All iOS App Labels
+- **Issue:** Side labels were only applied to a few keys using dummy data.
+- **Fix:** Parse `HP32KeyMap.swift` to extract the `yellowLabel`, `blueLabel`, and `alphaLabel` for every single key on the grid.
+- **Mapping:** 
+  - `yellowLabel` -> Left Skirt (`label_left`)
+  - `blueLabel` -> Right Skirt (`label_right`)
+  - `alphaLabel` -> Front Skirt (`label_alpha`)
+
+### 4. Rotate and Deepen Side Labels
+- **Issue:** Side labels are oriented vertically, and the emboss depth is too shallow.
+- **Fix:** Update the label `rotate()` transformations in `generate_scad.py` so they read horizontally (left-to-right) along the Y-axis. Increase the subtraction depth to `0.8mm` to ensure they slice clearly.
+
+## User Review Required
+Please approve this plan so I can proceed with patching the Python generator and extracting the exact labels from your iOS source code!

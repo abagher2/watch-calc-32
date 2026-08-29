@@ -1,6 +1,5 @@
 import XCTest
 @testable import RPNCore
-@testable import ParityExporter
 
 final class TestEval3: XCTestCase {
     func testEval3() {

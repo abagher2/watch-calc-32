@@ -71,7 +71,7 @@ public struct SharedCalculatorThoroughTestCases {
         addMathTestStr(name: "Edge_LogZero", steps: ["0", "LN"], expected: "DIVIDE BY 0")
         addMathTestStr(name: "Edge_SqrtNeg", steps: ["1", "+/-", "√𝑥"], expected: "INVALID DATA")
         addMathTestStr(name: "Edge_FactNeg", steps: ["2", "+/-", "𝑥!"], expected: "INVALID DATA")
-        addMathTestStr(name: "Edge_FactFrac", steps: ["2", ".", "5", "𝑥!"], expected: "INVALID DATA")
+        addMathTestStr(name: "Edge_FactFrac", steps: ["2", ".", "5", "𝑥!"], expected: "3.3233509704")
 
         generated.append(SharedCalculatorTestCase(
             name: "Edge_TinyNumber",

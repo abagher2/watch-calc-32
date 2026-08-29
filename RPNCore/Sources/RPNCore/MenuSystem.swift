@@ -77,17 +77,24 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
     
     // Static arrays to prevent re-allocating [MenuItem] on every access.
     public static let modesItems: [MenuItem] = [
-        MenuItem(label: "DEG"), MenuItem(label: "RAD"), MenuItem(label: "GRAD"), MenuItem(label: "."), MenuItem(label: ",")
+        MenuItem(label: "DEG", description: "Degrees (360)"),
+        MenuItem(label: "RAD", description: "Radians (2π)"),
+        MenuItem(label: "GRAD", description: "Gradians (400)"),
+        MenuItem(label: ".", description: "Dot decimal separator"),
+        MenuItem(label: ",", description: "Comma decimal separator")
     ]
     public static let dispItems: [MenuItem] = [
-        MenuItem(label: "FIX", requiresDigit: true),
-        MenuItem(label: "SCI", requiresDigit: true),
-        MenuItem(label: "ENG", requiresDigit: true),
-        MenuItem(label: "SIG", requiresDigit: true),
-        MenuItem(label: "ALL")
+        MenuItem(label: "FIX", requiresDigit: true, description: "Fixed decimal places"),
+        MenuItem(label: "SCI", requiresDigit: true, description: "Scientific notation"),
+        MenuItem(label: "ENG", requiresDigit: true, description: "Engineering notation"),
+        MenuItem(label: "SIG", requiresDigit: true, description: "Significant figures"),
+        MenuItem(label: "ALL", description: "Show all trailing digits")
     ]
     public static let baseItems: [MenuItem] = [
-        MenuItem(label: "HEX"), MenuItem(label: "DEC"), MenuItem(label: "OCT"), MenuItem(label: "BIN")
+        MenuItem(label: "HEX", description: "Hexadecimal (Base 16)"),
+        MenuItem(label: "DEC", description: "Decimal (Base 10)"),
+        MenuItem(label: "OCT", description: "Octal (Base 8)"),
+        MenuItem(label: "BIN", description: "Binary (Base 2)")
     ]
     public static let constItems: [MenuItem] = [
         MenuItem(label: "π", action: "π", symbol: "π", description: "Pi"),
@@ -123,9 +130,9 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         items.append(MenuItem(label: "Flag 4", action: "FLAG 4", isBoolean: true, isSoftwareOnly: true))
         items.append(MenuItem(label: "Flag 5", action: "FLAG 5", isBoolean: true, isSoftwareOnly: true))
         items.append(MenuItem(label: "Flag 6", action: "FLAG 6", isBoolean: true, isSoftwareOnly: true))
-        items.append(MenuItem(label: "Flag 7", action: "FLAG 7", isBoolean: true, isSoftwareOnly: true))
-        items.append(MenuItem(label: "Flag 8", action: "FLAG 8", isBoolean: true, isSoftwareOnly: true))
-        items.append(MenuItem(label: "Flag 9", action: "FLAG 9", isBoolean: true, isSoftwareOnly: true))
+        items.append(MenuItem(label: "Flag 7", action: "FLAG 7", description: "Fractions Mode Enabled", isBoolean: true, isSoftwareOnly: true))
+        items.append(MenuItem(label: "Flag 8", action: "FLAG 8", description: "Reduced fraction closest to /c factor", isBoolean: true, isSoftwareOnly: true))
+        items.append(MenuItem(label: "Flag 9", action: "FLAG 9", description: "Force unreduced /c denominator factor", isBoolean: true, isSoftwareOnly: true))
         items.append(MenuItem(label: "Flag 10", action: "FLAG 10", isBoolean: true, isSoftwareOnly: true))
         items.append(MenuItem(label: "Flag 11", action: "FLAG 11", isBoolean: true, isSoftwareOnly: true))
         #endif
@@ -134,54 +141,84 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
     }
 
     public static let stackItems: [MenuItem] = [
-        MenuItem(label: "4-LVL", action: "STK4"),
-        MenuItem(label: "8-LVL", action: "STK8"),
-        MenuItem(label: "INF", action: "STKINF")
+        MenuItem(label: "4-LVL", action: "STK4", description: "Classic 4-Level XYZT Stack"),
+        MenuItem(label: "8-LVL", action: "STK8", description: "Extended 8-Level Stack"),
+        MenuItem(label: "INF", action: "STKINF", description: "Infinite Stack Size")
     ]
     public static let clearItems: [MenuItem] = [
-        MenuItem(label: "Σ", action: "CLΣ"),
-        MenuItem(label: "VARS", action: "CLVARS"),
-        MenuItem(label: "REGS", action: "CLREGS"),
-        MenuItem(label: "STK", action: "CLSTK"),
-        MenuItem(label: "PGM", action: "CLPRGM"),
-        MenuItem(label: "ALL", action: "CLALL")
+        MenuItem(label: "x", action: "CLx", description: "Clear X register"),
+        MenuItem(label: "VARS", action: "CLVARS", description: "Clear all variables"),
+        MenuItem(label: "ALL", action: "CLALL", description: "Clear variables and programs"),
+        MenuItem(label: "Σ", action: "CLΣ", description: "Clear sum/statistical registers"),
+        MenuItem(label: "REGS", action: "CLREGS", description: "Clear storage registers"),
+        MenuItem(label: "STK", action: "CLSTK", description: "Clear stack"),
+        MenuItem(label: "PGM", action: "CLPRGM", description: "Clear programs")
     ]
     public static let partsItems: [MenuItem] = [
-        MenuItem(label: "INT", action: "INTG"), MenuItem(label: "FRAC"), MenuItem(label: "ABS"), MenuItem(label: "SGN")
+        MenuItem(label: "INT", action: "INTG", description: "Integer part"),
+        MenuItem(label: "FRAC", description: "Fractional part"),
+        MenuItem(label: "ABS", description: "Absolute value"),
+        MenuItem(label: "SGN", description: "Sign (-1, 0, 1)")
     ]
     public static let probItems: [MenuItem] = [
-        MenuItem(label: "Cn,r", action: "nCr"),
-        MenuItem(label: "Pn,r", action: "nPr"),
-        MenuItem(label: "n!",   action: "𝑥!"),
-        MenuItem(label: "RAND"),
-        MenuItem(label: "SD")
+        MenuItem(label: "Cn,r", action: "nCr", description: "Combinations"),
+        MenuItem(label: "Pn,r", action: "nPr", description: "Permutations"),
+        MenuItem(label: "n!",   action: "𝑥!", description: "Factorial / Gamma"),
+        MenuItem(label: "RAND", description: "Random number (0≤x<1)"),
+        MenuItem(label: "SD", description: "Seed random number")
     ]
     public static let sumsItems: [MenuItem] = [
-        MenuItem(label: "Σx"), MenuItem(label: "Σy"), MenuItem(label: "Σx²"), MenuItem(label: "Σy²"), MenuItem(label: "Σxy"), MenuItem(label: "n")
+        MenuItem(label: "Σx", description: "Sum of X values"),
+        MenuItem(label: "Σy", description: "Sum of Y values"),
+        MenuItem(label: "Σx²", description: "Sum of X squared"),
+        MenuItem(label: "Σy²", description: "Sum of Y squared"),
+        MenuItem(label: "Σxy", description: "Sum of X * Y"),
+        MenuItem(label: "n", description: "Number of data points")
     ]
     public static let statItems: [MenuItem] = [
-        MenuItem(label: "𝑥̄,ȳ",  action: "STATMEAN"),
-        MenuItem(label: "s,σ",  action: "STATSTDDEV"),
-        MenuItem(label: "L.R.", action: "STATLR"),
-        MenuItem(label: "SUMS", action: "STATSUMS")
+        MenuItem(label: "𝑥̄,ȳ",  action: "STATMEAN", description: "Means"),
+        MenuItem(label: "s,σ",  action: "STATSTDDEV", description: "Standard Deviations"),
+        MenuItem(label: "L.R.", action: "STATLR", description: "Linear Regression"),
+        MenuItem(label: "SUMS", action: "STATSUMS", description: "Statistical Sums")
     ]
     public static let memItems: [MenuItem] = [
-        MenuItem(label: "VARS"), MenuItem(label: "PRGM"), MenuItem(label: "REGS")
+        MenuItem(label: "VARS", description: "Used variables memory"),
+        MenuItem(label: "PRGM", description: "Programs memory"),
+        MenuItem(label: "REGS", description: "Registers memory")
     ]
     public static let testXYItems: [MenuItem] = [
-        MenuItem(label: "x=y"), MenuItem(label: "x≠y"), MenuItem(label: "x>y"), MenuItem(label: "x<y"), MenuItem(label: "x≥y"), MenuItem(label: "x≤y")
+        MenuItem(label: "x=y", description: "Test if x equals y"),
+        MenuItem(label: "x≠y", description: "Test if x not equals y"),
+        MenuItem(label: "x>y", description: "Test if x greater than y"),
+        MenuItem(label: "x<y", description: "Test if x less than y"),
+        MenuItem(label: "x≥y", description: "Test if x greater/equal to y"),
+        MenuItem(label: "x≤y", description: "Test if x less/equal to y")
     ]
     public static let statMeanItems: [MenuItem] = [
-        MenuItem(label: "x̄", action: "x-bar"), MenuItem(label: "ȳ", action: "y-bar"), MenuItem(label: "x̄w", action: "xw")
+        MenuItem(label: "x̄", action: "x-bar", description: "Mean of X values"),
+        MenuItem(label: "ȳ", action: "y-bar", description: "Mean of Y values"),
+        MenuItem(label: "x̄w", action: "xw", description: "Weighted mean of X")
     ]
     public static let statStdDevItems: [MenuItem] = [
-        MenuItem(label: "sx", action: "s"), MenuItem(label: "sy"), MenuItem(label: "σx", action: "σ"), MenuItem(label: "σy", action: "σy")
+        MenuItem(label: "sx", action: "s", description: "Sample std dev of X (n-1)"),
+        MenuItem(label: "sy", description: "Sample std dev of Y (n-1)"),
+        MenuItem(label: "σx", action: "σ", description: "Population std dev of X (n)"),
+        MenuItem(label: "σy", action: "σy", description: "Population std dev of Y (n)")
     ]
     public static let lrItems: [MenuItem] = [
-        MenuItem(label: "ŷ", action: "ŷ,r"), MenuItem(label: "x̂", action: "x̂"), MenuItem(label: "r", action: "ŷ,r"), MenuItem(label: "m"), MenuItem(label: "b")
+        MenuItem(label: "ŷ", action: "ŷ,r", description: "Estimated Y / Correlation"),
+        MenuItem(label: "x̂", action: "x̂", description: "Estimated X"),
+        MenuItem(label: "r", action: "ŷ,r", description: "Correlation coefficient"),
+        MenuItem(label: "m", description: "Inclination (slope)"),
+        MenuItem(label: "b", description: "Y-intercept")
     ]
     public static let testX0Items: [MenuItem] = [
-        MenuItem(label: "x=0"), MenuItem(label: "x≠0"), MenuItem(label: "x>0"), MenuItem(label: "x<0"), MenuItem(label: "x≥0"), MenuItem(label: "x≤0")
+        MenuItem(label: "x=0", description: "Test if x equals 0"),
+        MenuItem(label: "x≠0", description: "Test if x not equals 0"),
+        MenuItem(label: "x>0", description: "Test if x greater than 0"),
+        MenuItem(label: "x<0", description: "Test if x less than 0"),
+        MenuItem(label: "x≥0", description: "Test if x greater/equal to 0"),
+        MenuItem(label: "x≤0", description: "Test if x less/equal to 0")
     ]
 
     public func getItems(engine: CalculatorEngine?) -> [MenuItem] {

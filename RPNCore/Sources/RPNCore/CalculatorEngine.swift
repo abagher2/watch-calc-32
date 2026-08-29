@@ -163,9 +163,22 @@ public class DispatchQueue {
 public extension Double {
     static func now() -> Double { return 0.0 }
 }
+
 public extension Int64 {
     init?(_ text: String, radix: Int) { self = 0 }
 }
+
+public extension String {
+    init<T>(reflecting value: T) {
+        self = "\(value)"
+    }
+}
+public extension FixedWidthInteger {
+
+    init?(_ text: String) { self = 0 }
+    init?(_ text: Substring) { self = 0 }
+}
+
 public class NumberFormatter {
     public enum Style { case decimal, scientific }
     public var usesGroupingSeparator = false
@@ -182,8 +195,21 @@ public class NumberFormatter {
         let val = num.value
         let intPart = Int64(val)
         let fracPart = val < 0 ? Double(intPart) - val : val - Double(intPart)
+
+        var intStr = String(abs(intPart))
+        if usesGroupingSeparator && intStr.count > 3 {
+            var res = ""
+            for (i, ch) in intStr.reversed().enumerated() {
+                if i > 0 && i % 3 == 0 { res.append(decimalSeparator == "," ? "." : ",") }
+                res.append(ch)
+            }
+            intStr = String(res.reversed())
+        }
+        let sign = intPart < 0 ? "-" : ""
+        let finalIntPart = sign + intStr
+
         if fracPart < 0.0000001 {
-            return String(intPart)
+            return finalIntPart
         } else {
             var fracInt = Int64(fracPart * 100000.0)
             // Remove trailing zeros
@@ -196,7 +222,7 @@ public class NumberFormatter {
             while fracStr.count < expectedLen {
                 fracStr = "0" + fracStr
             }
-            return String(intPart) + "." + fracStr
+            return finalIntPart + decimalSeparator + fracStr
         }
     }
 }
@@ -237,12 +263,13 @@ internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 
 #endif
 
-#if hasFeature(Embedded)
 @_silgen_name("format_double_c")
 func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32, _ mode: Int32, _ places: Int32, _ use_comma: Int32)
+
+
+#if !hasFeature(Embedded)
+@Observable
 #endif
-
-
 public class CalculatorEngine {
 
 
@@ -705,7 +732,7 @@ public class CalculatorEngine {
     
     public func digit(_ d: Int) {
         if isWaitingForLabel { return }
-        errorMessage = nil
+        if errorMessage != nil { clearError(); return }
         
         if alphaAction != .promptVar {
             if isProgrammingMode {
@@ -772,6 +799,7 @@ public class CalculatorEngine {
     }
     
     public func startExponent() {
+        if errorMessage != nil { clearError(); return }
         if alphaAction != .promptVar {
             if isProgrammingMode {
                 if let last = currentProgramSteps.last, isProgramNumberStep(last) {
@@ -794,7 +822,7 @@ public class CalculatorEngine {
     }
     
     public func decimal() {
-        errorMessage = nil
+        if errorMessage != nil { clearError(); return }
         
         if alphaAction != .promptVar {
             if isProgrammingMode {
@@ -835,7 +863,7 @@ public class CalculatorEngine {
     }
     
     public func toggleSign() {
-        errorMessage = nil
+        if errorMessage != nil { clearError(); return }
         if alphaAction != .promptVar {
             if isProgrammingMode {
                 if let last = currentProgramSteps.last, isProgramNumberStep(last) {
@@ -893,27 +921,44 @@ public class CalculatorEngine {
         }
     }
     
+    @_silgen_name("format_input_buffer_c")
+    func format_input_buffer_c(_ inBuf: UnsafePointer<UInt8>, _ inLen: Int32, _ expBuf: UnsafePointer<UInt8>?, _ expLen: Int32, _ outBuf: UnsafeMutablePointer<UInt8>, _ maxOut: Int32, _ useComma: Int32) -> Int32
+
     private func updateCurrentInputDisplay() {
-        #if hasFeature(Embedded)
-        displayXLength = currentInputLength
-        for i in 0..<currentInputLength {
-            displayXBuffer[i] = currentInputBuffer[i]
-        }
+        var expBytes: [UInt8] = []
         if isBuildingExponent {
-            displayXBuffer[displayXLength] = 69 // 'E'
-            displayXLength += 1
-            for c in currentExponent.utf8 {
-                if displayXLength >= 64 { break }
-                displayXBuffer[displayXLength] = c
-                displayXLength += 1
+            expBytes = currentExponent.isEmpty ? [48] : Array(currentExponent.utf8) // 48 is '0'
+        }
+        
+        #if hasFeature(Embedded)
+        let inPtr = currentInputBuffer.withUnsafeBufferPointer { $0.baseAddress! }
+        let outPtr = displayXBuffer.withUnsafeMutableBufferPointer { $0.baseAddress! }
+        
+        if expBytes.isEmpty {
+            displayXLength = Int(format_input_buffer_c(inPtr, Int32(currentInputLength), nil, 0, outPtr, 64, useCommaForDecimal ? 1 : 0))
+        } else {
+            expBytes.withUnsafeBufferPointer { expPtr in
+                displayXLength = Int(format_input_buffer_c(inPtr, Int32(currentInputLength), expPtr.baseAddress!, Int32(expBytes.count), outPtr, 64, useCommaForDecimal ? 1 : 0))
             }
         }
         #else
-        var str = String(decoding: currentInputBuffer[0..<currentInputLength], as: UTF8.self)
-        if isBuildingExponent {
-            str += "E\(currentExponent.isEmpty ? "0" : currentExponent)"
+        var outBytes = [UInt8](repeating: 0, count: 64)
+        let inLen = Int32(currentInputLength)
+        let expLen = Int32(expBytes.count)
+        
+        let outLen: Int32 = currentInputBuffer.withUnsafeBufferPointer { inPtr in
+            outBytes.withUnsafeMutableBufferPointer { outPtr in
+                if expLen == 0 {
+                    return format_input_buffer_c(inPtr.baseAddress!, inLen, nil, 0, outPtr.baseAddress!, 64, useCommaForDecimal ? 1 : 0)
+                } else {
+                    return expBytes.withUnsafeBufferPointer { expPtr in
+                        return format_input_buffer_c(inPtr.baseAddress!, inLen, expPtr.baseAddress!, expLen, outPtr.baseAddress!, 64, useCommaForDecimal ? 1 : 0)
+                    }
+                }
+            }
         }
-        displayX = str
+        
+        displayX = String(decoding: outBytes[0..<Int(outLen)], as: UTF8.self)
         updateStackStrings()
         #endif
     }
@@ -1258,6 +1303,7 @@ public class CalculatorEngine {
         handleCommand(instruction.stringValue)
     }
     
+    
     public func executeMath(_ operation: String) {
 
         if isWaitingForLabel {
@@ -1363,16 +1409,9 @@ public class CalculatorEngine {
             }
         }
         
-        let hadError = errorMessage != nil
-        errorMessage = nil
-        
-
-        if hadError {
-            stackLiftEnabled = false
-            if (operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" || operation == "CLX" || operation == "<-") {
-                updateDisplay()
-                return
-            }
+        if errorMessage != nil {
+            clearError()
+            return
         }
 
         if isAssigning {
@@ -1744,10 +1783,35 @@ public class CalculatorEngine {
             }
         case "RND":
             if stack.count > 0 {
-                // Formatting to string and back to simulate RND to display precision
-                let str = formatNumber(stack[0].real)
-                if let rounded = parseDouble(str) {
-                    stack[0].real = rounded
+                if isFractionMode {
+                    let val = stack[0].real
+                    let valAbs = abs(val)
+                    let whole = Int64(valAbs)
+                    let remainder = valAbs - Double(whole)
+                    let sign = val < 0 ? -1.0 : 1.0
+                    
+                    var fnum: Int64 = 0
+                    var fden: Int64 = 1
+                    
+                    if flags[8] {
+                        let targetDen = Int64(maxDenominator)
+                        let targetNum = Int64(round(remainder * Double(targetDen)))
+                        fnum = targetNum
+                        fden = targetDen
+                    } else {
+                        let num = Int64(round(remainder * 1_000_000))
+                        let den = Int64(1_000_000)
+                        let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
+                        fnum = frac.numerator
+                        fden = frac.denominator
+                    }
+                    
+                    stack[0].real = (Double(whole) + Double(fnum) / Double(fden)) * sign
+                } else {
+                    let str = formatNumber(stack[0].real)
+                    if let rounded = parseDouble(str) {
+                        stack[0].real = rounded
+                    }
                 }
             }
         case "HEX":
@@ -1865,7 +1929,7 @@ public class CalculatorEngine {
         case "x≤0", "x<=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real <= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real <= 0) }; return
         case "𝑥!", "n!": 
             if stack.count > 0 {
-                if stack[0].real < 0 || stack[0].real != floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
+                if stack[0].real < 0 && stack[0].real == floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
             }
             unaryOp { CalculatorValue(real: tgamma($0.real + 1)) }
         case "π": commitInput(); pushToStack(CalculatorValue(real: Double.pi))
@@ -2300,6 +2364,29 @@ public class CalculatorEngine {
         print("DEBUG: requestPlot SET TO TRUE by generatePlot")
     }
     
+    
+    private func getVar(_ name: String) -> CalculatorValue {
+        let resolved = resolveTargetName(name)
+        if resolved == "Σn" { return CalculatorValue(real: Double(statN)) }
+        if resolved == "Σx" { return CalculatorValue(real: statSumX) }
+        if resolved == "Σy" { return CalculatorValue(real: statSumY) }
+        if resolved == "Σx²" { return CalculatorValue(real: statSumX2) }
+        if resolved == "Σy²" { return CalculatorValue(real: statSumY2) }
+        if resolved == "Σxy" { return CalculatorValue(real: statSumXY) }
+        return variables[resolved] ?? CalculatorValue()
+    }
+    
+    private func setVar(_ name: String, _ value: CalculatorValue) {
+        let resolved = resolveTargetName(name)
+        if resolved == "Σn" { statN = value.real; return }
+        if resolved == "Σx" { statSumX = value.real; return }
+        if resolved == "Σy" { statSumY = value.real; return }
+        if resolved == "Σx²" { statSumX2 = value.real; return }
+        if resolved == "Σy²" { statSumY2 = value.real; return }
+        if resolved == "Σxy" { statSumXY = value.real; return }
+        if !resolved.isEmpty { variables[resolved] = value }
+    }
+
     private func resolveTargetName(_ name: String) -> String {
         if name == "(i)" {
             let idxVal = self.variables["i"]?.real ?? 0.0
@@ -2431,8 +2518,7 @@ public class CalculatorEngine {
                     }
                 }
             case .sto(let varName):
-                let targetName = resolveTargetName(varName)
-                if !targetName.isEmpty { self.variables[targetName] = self.stack.first ?? CalculatorValue() }
+                self.setVar(varName, self.stack.first ?? CalculatorValue())
             case .custom(let str):
                 if let val = variables[str] {
                     self.push(val)
@@ -2856,41 +2942,41 @@ public class CalculatorEngine {
             }
             updateProgramDisplay()
         } else if alphaAction == .sto {
-            variables[initialChar] = stack.count > 0 ? stack[0] : CalculatorValue()
+            setVar(initialChar, stack.count > 0 ? stack[0] : CalculatorValue())
         } else if alphaAction == .stoAdd {
-            let existing = variables[initialChar] ?? CalculatorValue()
-            variables[initialChar] = existing + (stack.count > 0 ? stack[0] : CalculatorValue())
+            let existing = getVar(initialChar)
+            setVar(initialChar, existing + (stack.count > 0 ? stack[0] : CalculatorValue()))
         } else if alphaAction == .stoSub {
-            let existing = variables[initialChar] ?? CalculatorValue()
-            variables[initialChar] = existing - (stack.count > 0 ? stack[0] : CalculatorValue())
+            let existing = getVar(initialChar)
+            setVar(initialChar, existing - (stack.count > 0 ? stack[0] : CalculatorValue()))
         } else if alphaAction == .stoMul {
-            let existing = variables[initialChar] ?? CalculatorValue()
-            variables[initialChar] = existing * (stack.count > 0 ? stack[0] : CalculatorValue())
+            let existing = getVar(initialChar)
+            setVar(initialChar, existing * (stack.count > 0 ? stack[0] : CalculatorValue()))
         } else if alphaAction == .stoDiv {
-            let existing = variables[initialChar] ?? CalculatorValue()
+            let existing = getVar(initialChar)
             if let top = stack.first, top.real != 0 {
-                variables[initialChar] = existing / top
+                setVar(initialChar, existing / top)
             } else {
                 errorMessage = "DIVIDE BY 0"
             }
         } else if alphaAction == .swapVar {
-            let varValue = variables[initialChar] ?? CalculatorValue()
+            let varValue = getVar(initialChar)
             let xValue = stack.first ?? CalculatorValue()
-            variables[initialChar] = xValue
+            setVar(initialChar, xValue)
             stack[0] = varValue
             stackLiftEnabled = true
         } else if alphaAction == .rcl {
-            let val = variables[initialChar] ?? CalculatorValue()
+            let val = getVar(initialChar)
             pushToStack(val)
             updateDisplay()
         } else if alphaAction == .view {
-            let val = variables[initialChar] ?? CalculatorValue()
+            let val = getVar(initialChar)
             let valStr = val.isComplex ? "\(formatNumber(val.real)) + \(formatNumber(val.imag))i" : formatNumber(val.real)
             transientMessage = "\(initialChar) = \(valStr)"
             updateDisplay()
         } else {
             // Push variable directly if in run mode
-            let val = variables[initialChar] ?? CalculatorValue()
+            let val = getVar(initialChar)
             push(val)
         }
         
@@ -3058,113 +3144,27 @@ public class CalculatorEngine {
             default: break
             }
         }
-        
-        if isFractionMode {
-            let valAbs = abs(val)
-            let whole = Int64(valAbs)
-            let remainder = valAbs - Double(whole)
-            let sign = val < 0 ? -1 : 1
-            
-            if remainder > 1e-6 {
-                var fnum: Int64 = 0
-                var fden: Int64 = 1
-                
-                if flags[8] {
-                    // Denominator = /c
-                    let targetDen = Int64(maxDenominator)
-                    let targetNum = Int64(round(remainder * Double(targetDen)))
-                    if flags[9] {
-                        // Denominator is always = /c
-                        fnum = targetNum
-                        fden = targetDen
-                    } else {
-                        // Fraction is reduced
-                        let d = engineGcd(targetNum, targetDen)
-                        fnum = targetNum / d
-                        fden = targetDen / d
-                    }
-                } else {
-                    // Optimal denominator <= /c
-                    let num = Int64(round(remainder * 1_000_000))
-                    let den = Int64(1_000_000)
-                    let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
-                    fnum = frac.numerator
-                    fden = frac.denominator
-                }
-                
-                if whole == 0 {
-                    return sign < 0 ? "-\(fnum)/\(fden)" : "\(fnum)/\(fden)"
-                } else {
-                    return sign < 0 ? "-\(whole) \(fnum)/\(fden)" : "\(whole) \(fnum)/\(fden)"
-                }
-            }
-        }
-        
-        let formatter = NumberFormatter()
-        formatter.usesGroupingSeparator = false
-        formatter.decimalSeparator = useCommaForDecimal ? "," : "."
-        let maxLength = 12
-        
+        var cMode: Int32 = 0
+        var cPlaces: Int32 = 0
         switch displayMode {
-        case .fix(let places):
-            formatter.numberStyle = .decimal
-            formatter.minimumFractionDigits = places
-            formatter.maximumFractionDigits = places
-            let result = formatter.string(from: NSNumber(value: val)) ?? "0"
-            if val != 0 && (parseDouble(result) ?? 0.0) == 0.0 {
-                return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
-            }
-            return result.count > maxLength ? formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places) : result
-        case .sci(let places):
-            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
-        case .eng(let places):
-            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
-        case .sig(let places):
-            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
-        case .all:
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = maxLength - 1
-            formatter.minimumFractionDigits = 0
-            var result = formatter.string(from: NSNumber(value: val)) ?? "0"
-            
-            if result.count <= maxLength && (abs(val) >= 1e-4 || val == 0) {
-                return result
-            }
-            
-            if abs(val) >= 1e-4 && abs(val) < pow(10.0, Double(maxLength - 1)) {
-                let intPartLen = String(Int64(abs(val))).count
-                let signLen = val < 0 ? 1 : 0
-                let allowedFraction = max(0, maxLength - intPartLen - signLen - 1)
-                formatter.maximumFractionDigits = allowedFraction
-                result = formatter.string(from: NSNumber(value: val)) ?? "0"
-                if result.count <= maxLength {
-                    return result
-                }
-            }
-            
-            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: maxLength - 1)
-        }
-    }
-    
-    private func formatScientificToFit(val: Double, maxLength: Int, maxFraction: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.usesGroupingSeparator = false
-        formatter.numberStyle = .scientific
-        formatter.decimalSeparator = useCommaForDecimal ? "," : "."
-        formatter.exponentSymbol = "E"
-        formatter.usesSignificantDigits = true
-        
-        for fractionDigits in (0...maxFraction).reversed() {
-            formatter.maximumSignificantDigits = fractionDigits + 1
-            formatter.minimumSignificantDigits = fractionDigits + 1
-            if let str = formatter.string(from: NSNumber(value: val)), str.count <= maxLength {
-                return str
-            }
+        case .fix(let p): cMode = 1; cPlaces = Int32(p)
+        case .sci(let p): cMode = 2; cPlaces = Int32(p)
+        case .eng(let p): cMode = 3; cPlaces = Int32(p)
+        case .sig(let p): cMode = 4; cPlaces = Int32(p)
+        case .all: cMode = 0; cPlaces = 0
         }
         
-        formatter.maximumSignificantDigits = 1
-        formatter.minimumSignificantDigits = 1
-        return formatter.string(from: NSNumber(value: val)) ?? "0"
+        let bufLen = 64
+        var buffer = [UInt8](repeating: 0, count: bufLen)
+        buffer.withUnsafeMutableBufferPointer { ptr in
+            // max_len = 13 strictly enforces a maximum string length of 12 characters.
+            // This prevents ANY ellipsis or wrapping on the physical UI constraints.
+            format_double_c(val, ptr.baseAddress!, 13, cMode, cPlaces, useCommaForDecimal ? 1 : 0)
+        }
+        
+        var len = 0
+        while len < bufLen && buffer[len] != 0 { len += 1 }
+        return String(decoding: buffer[0..<len], as: UTF8.self)
     }
     
     public func updateProgramDisplay() {
@@ -3193,9 +3193,9 @@ public class CalculatorEngine {
     public func updateDisplay() {
         if isSilent { return }
         if let err = errorMessage {
-            displayX = err
-            promptString = err
-            _populateBufferWithString(displayX)
+            // Do NOT poison displayX or promptString with the error.
+            // UI components explicitly check engine.errorMessage.
+            // Just return so we don't overwrite the underlying buffer while the error is showing.
             return
         }
         if isEquationListMode {
@@ -3225,31 +3225,14 @@ public class CalculatorEngine {
             stack.append(CalculatorValue())
         }
         if !isBuildingNumber {
-                #if hasFeature(Embedded)
-                if baseMode != .dec {
-                    let strVal = formatNumber(stack[0].real)
-                    _populateBufferWithString(strVal)
-                } else {
-                    var cMode: Int32 = 0
-                    var cPlaces: Int32 = 0
-                    switch displayMode {
-                    case .fix(let p): cMode = 1; cPlaces = Int32(p)
-                    case .sci(let p): cMode = 2; cPlaces = Int32(p)
-                    case .eng(let p): cMode = 3; cPlaces = Int32(p)
-                    case .all: cMode = 0; cPlaces = 0
-                    }
-                    displayXBuffer.withUnsafeMutableBufferPointer { ptr in
-                        format_double_c(stack[0].real, ptr.baseAddress!, 13, cMode, cPlaces, useCommaForDecimal ? 1 : 0)
-                    }
-                    var len = 0
-                    while len < 64 && displayXBuffer[len] != 0 { len += 1 }
-                    displayXLength = len
-                }
-                #else
-                displayX = formatNumber(stack[0].real)
-                _populateBufferWithString(displayX)
-                #endif
-            }
+            #if hasFeature(Embedded)
+            let strVal = formatNumber(stack[0].real)
+            _populateBufferWithString(strVal)
+            #else
+            displayX = formatNumber(stack[0].real)
+            _populateBufferWithString(displayX)
+            #endif
+        }
         #if !hasFeature(Embedded)
         updateStackStrings()
         #endif
@@ -3281,7 +3264,18 @@ public class CalculatorEngine {
     // MARK: - Calculus and Advanced Math
     
     public func integrate(variable: String, lower: Double, upper: Double, program: Program) -> Double {
-        let n = 30 // Reduced to prevent main thread lockup
+        // HP-32SII nuance: Integration accuracy dynamically adjusts based on current display mode
+        var n = 30
+        switch displayMode {
+        case .fix(let places): n = 30 + (places * 20)
+        case .sci(let places): n = 30 + (places * 10)
+        case .eng(let places): n = 30 + (places * 10)
+        case .all: n = 100
+        case .sig(let sigFigs): n = 30 + (sigFigs * 15)
+        }
+        // Cap to prevent excessive lag on devices
+        n = min(n, 200)
+
         let h = (upper - lower) / Double(n)
         
         var sum = 0.0

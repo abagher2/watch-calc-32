@@ -108,7 +108,7 @@ public struct RetroUIBodyView: FirmwareView {
                 let view = FirmwarePadding(leading: 6) {
                     FirmwareHStack(alignment: .bottom, spacing: 6) {
                         FirmwareText(prog.label, font: .medium, color: true)
-                        FirmwareText(summary.prefix(32).description, font: .small, color: true)
+                        FirmwareText(summary.prefix(32).description, font: .tiny, color: true)
                     }
                 }
                 view.draw(in: renderer, x: x, y: startY, engine: engine)
@@ -118,14 +118,54 @@ public struct RetroUIBodyView: FirmwareView {
         } else if engine.requestPlot {
 // Start FirmwarePlot drawing
             let isStatPlot = engine.isStatPlot
-            let dataPoints = engine.plotDataPoints
-            let scatterPoints = engine.scatterPlotDataPoints
-            let highlightedPoints = engine.highlightedPlotDataPoints
-            let regressionPoints = engine.regressionPlotDataPoints
+            let dataPoints = engine.plotData
+            let scatterPoints = engine.statPoints
             
-            var tangentPoints: [PlotDataPoint]? = nil
+            var highlightedPoints: [(Double, Double)] = []
+            if let lim = engine.integrationLimits {
+                for pt in dataPoints {
+                    if pt.0 >= lim.0 && pt.0 <= lim.1 { highlightedPoints.append(pt) }
+                }
+            }
+            
+            var regressionPoints: [(Double, Double)] = []
+            if isStatPlot && engine.statN > 1 {
+                let num = engine.statSumXY - (engine.statSumX * engine.statSumY / Double(engine.statN))
+                let den = engine.statSumX2 - (pow(engine.statSumX, 2) / Double(engine.statN))
+                let m = num / den
+                let b = (engine.statSumY - m * engine.statSumX) / Double(engine.statN)
+                if let minX = engine.statPoints.min(by: { $0.x < $1.x })?.x,
+                   let maxX = engine.statPoints.max(by: { $0.x < $1.x })?.x {
+                    let pad = (maxX - minX) * 0.1
+                    regressionPoints.append((minX - pad, m * (minX - pad) + b))
+                    regressionPoints.append((maxX + pad, m * (maxX + pad) + b))
+                }
+            }
+            
+            var tangentPoints: [(Double, Double)]? = nil
             if let rootX = engine.selectedPlotX {
-                tangentPoints = engine.tangentPlotDataPoints(at: rootX)
+                if let p = engine.programs.first(where: { $0.label == (engine.currentProgramLabel.isEmpty ? nil : engine.currentProgramLabel) }) ?? engine.programs.first {
+                    let h = 1e-5
+                    var vars = engine.variables
+                    let eqVar = "X".split(separator: "=").first.map(String.init) ?? "X"
+                    vars[eqVar] = CalculatorValue(real: rootX + h)
+                    let fPlus = engine.evaluateProgram(p, variables: vars)?.real ?? 0.0
+                    vars[eqVar] = CalculatorValue(real: rootX - h)
+                    let fMinus = engine.evaluateProgram(p, variables: vars)?.real ?? 0.0
+                    let slope = (fPlus - fMinus) / (2 * h)
+                    
+                    vars[eqVar] = CalculatorValue(real: rootX)
+                    let rootY = engine.evaluateProgram(p, variables: vars)?.real ?? 0.0
+                    let intercept = rootY - slope * rootX
+                    
+                    var pMinX = Double.greatestFiniteMagnitude
+                    var pMaxX = -Double.greatestFiniteMagnitude
+                    for pt in dataPoints {
+                        if pt.0 < pMinX { pMinX = pt.0 }
+                        if pt.0 > pMaxX { pMaxX = pt.0 }
+                    }
+                    tangentPoints = [(pMinX, slope * pMinX + intercept), (pMaxX, slope * pMaxX + intercept)]
+                }
             }
             
             engine.firmwarePlotNodes.removeAll(keepingCapacity: true)
@@ -139,12 +179,26 @@ public struct RetroUIBodyView: FirmwareView {
             var maxX = -Double.greatestFiniteMagnitude
             var minY = Double.greatestFiniteMagnitude
             var maxY = -Double.greatestFiniteMagnitude
-            let allPoints = dataPoints + scatterPoints + (tangentPoints ?? [])
-            for pt in allPoints {
+            
+            for pt in dataPoints {
+                if pt.0 < minX { minX = pt.0 }
+                if pt.0 > maxX { maxX = pt.0 }
+                if pt.1 < minY { minY = pt.1 }
+                if pt.1 > maxY { maxY = pt.1 }
+            }
+            for pt in scatterPoints {
                 if pt.x < minX { minX = pt.x }
                 if pt.x > maxX { maxX = pt.x }
                 if pt.y < minY { minY = pt.y }
                 if pt.y > maxY { maxY = pt.y }
+            }
+            if let tp = tangentPoints {
+                for pt in tp {
+                    if pt.0 < minX { minX = pt.0 }
+                    if pt.0 > maxX { maxX = pt.0 }
+                    if pt.1 < minY { minY = pt.1 }
+                    if pt.1 > maxY { maxY = pt.1 }
+                }
             }
             if minX > 1e100 { minX = -10; maxX = 10; minY = -10; maxY = 10 }
             
@@ -196,11 +250,11 @@ public struct RetroUIBodyView: FirmwareView {
             renderer.drawString(yStr, x: x + 132 - yStrW - 1, y: y, size: .tiny, color: true)
             
             if let status = engine.statusMessage ?? (engine.isPlotLoading ? "CALCULATING..." : nil) {
-                let w = renderer.getStringWidth(status, size: .small)
+                let w = renderer.getStringWidth(status, size: .tiny)
                 let sx = max(0, (132 - w) / 2)
                 let sy = y + (isPlotting ? 54 : 43) / 2 - 4
                 renderer.fillRect(x: sx - 2, y: sy - 1, w: w + 4, h: 9, color: false)
-                renderer.drawString(status, x: sx, y: sy, size: .small, color: true)
+                renderer.drawString(status, x: sx, y: sy, size: .tiny, color: true)
             }
 // End FirmwarePlot drawing
         } else {

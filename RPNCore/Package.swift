@@ -17,9 +17,11 @@ let package = Package(
         .package(url: "https://github.com/abdel-17/swift-rational.git", from: "1.0.0")
     ],
     targets: [
+        .target(name: "RPNCoreC"),
         .target(
             name: "RPNCore",
             dependencies: [
+                "RPNCoreC",
                 .product(name: "RationalModule", package: "swift-rational")
             ]),
         .testTarget(

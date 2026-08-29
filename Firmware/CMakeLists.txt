@@ -28,7 +28,8 @@ list(FILTER RATIONAL_SOURCES EXCLUDE REGEX "Rational\\+AlgebraicField\\.swift$")
 file(GLOB FIRMWARE_SOURCES "*.swift" "core/*.swift" "display/*.swift")
 
 add_executable(WatchCalcFirmware
-    hardware_wrapper.c test_sub.c
+    hardware_wrapper.c
+    ../RPNCore/Sources/RPNCoreC/format_double.c test_sub.c
     font_bitmaps.c
     missing_stubs.c
     ${FIRMWARE_SOURCES}

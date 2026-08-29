@@ -119,7 +119,11 @@ import RPNCore
             }
             
             if let expected = step.expectedX {
-                let display = app.staticTexts["lcd_display"]
+                let display = app.descendants(matching: .any)["lcd_display"]
+                if !display.waitForExistence(timeout: 2.0) {
+                    print("UI HIERARCHY DUMP:")
+                    print(app.debugDescription)
+                }
                 XCTAssertTrue(display.waitForExistence(timeout: 2.0))
                 XCTAssertTrue(display.label.contains(expected), "[\(testCase.name)] Expected screen to contain \(expected), but got: \(display.label)")
             }
@@ -166,7 +170,7 @@ import RPNCore
         
         Thread.sleep(forTimeInterval: 1.0)
         
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5.0))
         
         // Test PARTS menu (Blue Shift + func_√𝑥)
@@ -344,7 +348,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)
@@ -370,7 +374,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)
@@ -408,7 +412,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // clearAll(app: app)  // yellow shift
@@ -426,7 +430,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Jump to Matrix2View where STO is
@@ -453,7 +457,7 @@ import XCTest
     app.buttons["func_𝑦ˣ"].tap()
 
     // ENTER to save equation
-    app.staticTexts["lcd_display"].tap()
+    app.descendants(matching: .any)["lcd_display"].tap()
 
     // Plot it
     // clearAll(app: app)
@@ -478,7 +482,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter equation mode using EQN (Blue Shift + STO)
@@ -534,7 +538,7 @@ import XCTest
     app.buttons["func_÷"].tap()
 
     // Save
-    app.staticTexts["lcd_display"].tap()
+    app.descendants(matching: .any)["lcd_display"].tap()
 
     // Plot
     navigateToNumericPad(app: app)
@@ -559,7 +563,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter equation mode using EQN (Blue Shift + STO)
@@ -593,7 +597,7 @@ import XCTest
     app.buttons["func_1/𝑥"].tap()
 
     // Save
-    app.staticTexts["lcd_display"].tap()
+    app.descendants(matching: .any)["lcd_display"].tap()
 
     // Plot
     navigateToNumericPad(app: app)
@@ -618,7 +622,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     app.buttons["btn_blue_shift"].tap()  // blue shift
@@ -634,12 +638,12 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    XCTAssertTrue(app.staticTexts["lcd_display"].waitForExistence(timeout: 5.0))
+    XCTAssertTrue(app.descendants(matching: .any)["lcd_display"].waitForExistence(timeout: 5.0))
 
     // Let UI settle
     Thread.sleep(forTimeInterval: 1.0)
 
-    let lcdDisplay = app.staticTexts["lcd_display"]
+    let lcdDisplay = app.descendants(matching: .any)["lcd_display"]
     let btnC = app.buttons["C"]
     let btnZero = app.buttons["btn_0"]
 
@@ -674,7 +678,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Set FN=
@@ -718,7 +722,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Set FN=
@@ -754,7 +758,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Set limits for Plotting? We can just invoke PLOT
@@ -780,7 +784,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // FN=
@@ -814,7 +818,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Jump to Matrix2View where STO is
@@ -839,7 +843,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)
@@ -878,7 +882,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)
@@ -956,7 +960,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
     
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
     
     // Screenshot 1: Main Numpad
@@ -1096,7 +1100,7 @@ import XCTest
     // Relaunch for Exam Mode screenshot
     app.terminate()
     app.launch()
-    XCTAssertTrue(app.staticTexts["lcd_display"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.descendants(matching: .any)["lcd_display"].waitForExistence(timeout: 5))
     
     // Open FLAGS menu (Blue Shift + ×)
     app.buttons["btn_blue_shift"].tap()
@@ -1127,7 +1131,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 2.0)
     #endif
     
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     guard display.waitForExistence(timeout: 5) else { return }
     
     Thread.sleep(forTimeInterval: 1.0)
@@ -1279,7 +1283,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter point 1 (1, 2)
@@ -1433,7 +1437,7 @@ import XCTest
     // Wait for plot to dismiss and check stack (display label should have a captured coordinate)
     Thread.sleep(forTimeInterval: 1.0)
     
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 2.0))
     
     // We expect SOME numerical value pushed to the stack
@@ -1447,7 +1451,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter a 12 digit number: 123456789012
@@ -1484,7 +1488,7 @@ import XCTest
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     let testConstants = [
@@ -1583,7 +1587,7 @@ import XCTest
         setupSnapshot(app)
         app.launch()
 
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5))
 
         let pad = app.otherElements["numpad_bg"]
@@ -1702,7 +1706,7 @@ import XCTest
         setupSnapshot(app)
         app.launch()
         
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5))
         
         // Push 5 to stack
@@ -1943,7 +1947,7 @@ import XCTest
         app.launchArguments = ["-UITesting"]
         app.launch()
         
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5.0))
         
         // Go into Equation Mode

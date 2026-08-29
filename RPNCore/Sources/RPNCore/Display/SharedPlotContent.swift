@@ -111,16 +111,16 @@ public struct SharedPlotBuilder {
 #endif
     public static func buildMainPlotContent(
         isStatPlot: Bool,
-        dataPoints: [PlotDataPoint],
-        scatterPoints: [PlotDataPoint],
-        regressionPoints: [PlotDataPoint],
+        dataPoints: [(Double, Double)],
+        scatterPoints: [CalculatorEngine.StatPoint],
+        regressionPoints: [(Double, Double)],
         into nodes: inout [ChartNode]
     ) {
         if !isStatPlot {
-            for pt in dataPoints { nodes.append(.line(x: pt.x, y: pt.y, dash: [], series: "Curve")) }
+            for pt in dataPoints { nodes.append(.line(x: pt.0, y: pt.1, dash: [], series: "Curve")) }
         } else {
             for pt in scatterPoints { nodes.append(.point(x: pt.x, y: pt.y)) }
-            for pt in regressionPoints { nodes.append(.line(x: pt.x, y: pt.y, dash: [], series: "Regression")) }
+            for pt in regressionPoints { nodes.append(.line(x: pt.0, y: pt.1, dash: [], series: "Regression")) }
         }
     }
 
@@ -130,19 +130,19 @@ public struct SharedPlotBuilder {
 
     public static func buildAreaContent(
         hasIntegrationLimits: Bool,
-        highlightedDataPoints: [PlotDataPoint],
+        highlightedDataPoints: [(Double, Double)],
         into nodes: inout [ChartNode]
     ) {
         if hasIntegrationLimits {
             for pt in highlightedDataPoints {
-                nodes.append(.area(x: pt.x, yStart: 0, yEnd: pt.y))
+                nodes.append(.area(x: pt.0, yStart: 0, yEnd: pt.1))
             }
         }
     }
 
     public static func buildOverlayContent(
-        scatterPoints: [PlotDataPoint],
-        tangentPoints: [PlotDataPoint]?,
+        scatterPoints: [CalculatorEngine.StatPoint],
+        tangentPoints: [(Double, Double)]?,
         into nodes: inout [ChartNode]
     ) {
         for pt in scatterPoints {
@@ -150,7 +150,7 @@ public struct SharedPlotBuilder {
         }
         if let tp = tangentPoints {
             for pt in tp {
-                nodes.append(.line(x: pt.x, y: pt.y, dash: [5], series: "Tangent"))
+                nodes.append(.line(x: pt.0, y: pt.1, dash: [5], series: "Tangent"))
             }
         }
     }

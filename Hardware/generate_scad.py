@@ -89,8 +89,18 @@ for r_idx, row in enumerate(rows):
         lbl = (labels[r_idx][c_idx]
                if r_idx < len(labels) and c_idx < len(labels[r_idx]) else "")
         b['label'] = lbl
-        b['w'] = 10.0
-        b['h'] = 9.0
+        b['w'] = 8.3
+        b['h'] = 7.3
+        
+        # Add some demo side labels to the numpad and math rows to show off the skirt labels!
+        if r_idx >= 4 and lbl not in ["f", "g", "ENTER", "C"]:
+            # Front label
+            b['label_alpha'] = chr(65 + c_idx + (r_idx-4)*5)  # A, B, C...
+            # Left label
+            left_funcs = ["sin", "cos", "tan", "asin", "acos", "atan", "log", "ln", "e^x", "10^x", "sqrt", "x^2", "1/x", "y^x", "PI", "MOD", "n!", "nCr", "nPr", "RND"]
+            b['label_left'] = left_funcs[(r_idx-4)*5 + c_idx] if ((r_idx-4)*5 + c_idx) < len(left_funcs) else ""
+            # Right label (just to show it works)
+            b['label_right'] = "R" + str(c_idx)
 
 # --- Compute ENTER width to span ST (row2[0]) + RC (row2[1]) ---
 # After X-mirror: ox = fp_w - (b['x'] + pad_x). The mirrored positions of
@@ -187,7 +197,7 @@ def generate_scad():
     # Keys face DOWN. 
     # ═══════════════════════════════════════════════════════
     gap         = 0.60   # print-in-place clearance
-    pt          = 2.0    # Faceplate overall thickness
+    pt          = 3.5    # Faceplate overall thickness
     
     # Plunger dimensions (Base of the button)
     pw = 6.0
@@ -526,112 +536,126 @@ module spiral_arm(r1, r2, w, a) {{
 }}
 
 module button_cavity(w, h) {{
-    spring_gap = 0.6;
-    arm_w = 0.6;
-    btn_gap = 0.25; 
-    r_center = min(w > 15 ? h : w, h)/2 - 1.2;
-    
-    // 1. Spring Air Cavity (Z=-0.1 to 0.7)
-    r_hole = r_center + spring_gap + arm_w + 0.3;
-    if (w > 15) {{
-        hull() {{
-            translate([-5.75, 0, -0.1]) cylinder(r=r_hole, h=0.8, $fn=32);
-            translate([ 5.75, 0, -0.1]) cylinder(r=r_hole, h=0.8, $fn=32);
-        }}
-    }} else {{
-        translate([0, 0, -0.1]) cylinder(r=r_hole, h=0.8, $fn=32);
-    }}
-    
-    // 2. Button Body Air Cavity (Z=0.6 to 4.5)
-    translate([0, 0, 0.6]) squircle_centered(w + 2*btn_gap, h + 2*btn_gap, 4.0, 1.5);
+    btn_gap = 1.0; 
+    translate([0, 0, -0.1]) 
+        squircle_centered(w + btn_gap, h + btn_gap, 10.0, 1.5);
 }}
 
 module button_solid(w, h, label="", label_left="", label_right="", label_alpha="") {{
     arm_w = 0.6;
     spring_gap = 0.6;
-    r_center = min(w > 15 ? h : w, h)/2 - 1.2;
     
+    z_spring_top = 1.0;
+    z_expansion_top = 3.5; 
+    z_faceplate = 3.5; 
+    z_top = 6.1; 
+    
+    core_w = 4.0;
+    core_h = 4.0;
+    
+    top_w = (w > 15) ? w - 1.5 : min(w-1.5, 7.8);
+    top_h = min(h-1.5, 6.0);
+    
+    // Skirt calculations
+    dx_skirt = (w - top_w) / 2;
+    dy_skirt = (h - top_h) / 2;
+    dz_skirt = z_top - z_expansion_top;
+    ang_x_skirt = atan(dx_skirt / dz_skirt);
+    ang_y_skirt = atan(dy_skirt / dz_skirt);
+    
+    mid_z = z_expansion_top + dz_skirt / 2;
+    mid_x = (w + top_w) / 4;
+    mid_y = (h + top_h) / 4;
+
     render() difference() {{ 
         union() {{
             if (w > 15) {{
-                // Double shafts for ENTER key
-                // Centers are 11.5mm apart (5.75 from center)
-                translate([-5.75, 0, 0]) {{
-                    cross_profile(3.0, 3.0, 0.6, 1.2);
-                    r_hole = r_center + spring_gap + arm_w + 0.3;
-                    r2 = r_hole - arm_w + 0.1;
-                    for(i=[0:2]) rotate([0, 0, i*120]) translate([0,0,0]) linear_extrude(1.0) spiral_arm(1.5, r2, arm_w, 180);
+                translate([-5.75, 0, 0]) squircle_centered(core_w, core_h, z_spring_top, 1.0);
+                translate([ 5.75, 0, 0]) squircle_centered(core_w, core_h, z_spring_top, 1.0);
+                
+                translate([-5.75, 0, 0]) for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, 4.0, arm_w, 180);
+                translate([ 5.75, 0, 0]) for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, 4.0, arm_w, 180);
+                
+                hull() {{
+                    translate([-5.75, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
+                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
                 }}
-                translate([5.75, 0, 0]) {{
-                    cross_profile(3.0, 3.0, 0.6, 1.2);
-                    r_hole = r_center + spring_gap + arm_w + 0.3;
-                    r2 = r_hole - arm_w + 0.1;
-                    for(i=[0:2]) rotate([0, 0, i*120]) translate([0,0,0]) linear_extrude(1.0) spiral_arm(1.5, r2, arm_w, 180);
+                hull() {{
+                    translate([ 5.75, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
+                    translate([ 5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
                 }}
                 
                 hull() {{
-                    translate([-5.75, 0, 0.6]) cross_profile(3.0, 3.0, 0.01, 1.2);
-                    translate([ 5.75, 0, 0.6]) cross_profile(3.0, 3.0, 0.01, 1.2);
-                    translate([0, 0.5, 3.0]) squircle_centered(w-2.0, min(h-1.5, 6.0), 0.01, 1.0);
+                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
+                    translate([ 5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
+                }}
+                
+                hull() {{
+                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
+                    translate([-5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
+                }}
+                hull() {{
+                    translate([ 5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
+                    translate([ 5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
+                }}
+                
+                hull() {{
+                    translate([-5.75, 0.5, z_expansion_top]) squircle_centered(10, h, 0.01, 1.0);
+                    translate([ 5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
+                }}
+                hull() {{
+                    translate([-5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
+                    translate([ 5.75, 0.5, z_top]) squircle_centered(10, top_h, 0.01, 1.0);
                 }}
             }} else {{
-                // 1. Cruciform shaft (Z=0.0 to 0.6)
-                cross_profile(3.0, 3.0, 0.6, 1.2);
+                squircle_centered(core_w, core_h, z_spring_top, 1.0);
                 
-                // 2. Spiral arms (Z=0.0 to 1.0)
-                r_hole = r_center + spring_gap + arm_w + 0.3;
-                r2 = r_hole - arm_w + 0.1;
-                for(i=[0:2]) rotate([0, 0, i*120]) translate([0,0,0]) linear_extrude(1.0) spiral_arm(1.5, r2, arm_w, 180);
+                for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, 4.0, arm_w, 180);
                 
-                // 3. 45-Degree Truncated Pyramid (Z=0.6 to Z=3.0)
                 hull() {{
-                    translate([0, 0, 0.6]) cross_profile(3.0, 3.0, 0.01, 1.2);
-                    // Use max top width of 7.8mm (i.e. w=10.0 -> 7.8 max)
-                    translate([0, 0.5, 3.0]) squircle_centered(min(w-1.5, 7.8), min(h-1.5, 6.0), 0.01, 1.0);
+                    translate([0, 0, z_spring_top]) squircle_centered(core_w, core_h, 0.01, 1.0);
+                    translate([0, 0.5, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
+                }}
+                
+                hull() {{
+                    translate([0, 0.5, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
+                    translate([0, 0.5, z_top]) squircle_centered(top_w, top_h, 0.01, 1.0);
                 }}
             }}
-        }} // End Union
+        }} 
         
-        // ── PRINT-IN-PLACE SUNKEN LABELS ──────────────────────
-        // 1. Top Face (Main Label)
         if (label != "") {{
-            translate([0, 0.5, 3.0]) // Z=3.0 is the flat top
-                translate([0, 0, -0.6])
-                linear_extrude(1.0) // Digs in by 0.6mm
-                    text(label, size=min(w*0.3, 3.5), font="Liberation Sans:style=Bold", halign="center", valign="center");
-        }}
-        
-        // 2. Front Skirt (Alpha Label)
-        // Angle: dx=1.0, dz=2.4 -> atan(1.0/2.4) = 22.6 deg
-        if (label_alpha != "") {{
-            translate([0, -2.0, 1.8])
-                rotate([22.6, 0, 0])
+            translate([0, 0.5, z_top]) 
                 translate([0, 0, -0.6])
                 linear_extrude(1.0) 
-                    text(label_alpha, size=min(w*0.3, 2.5), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                    text(label, size=min(w*0.35, 3.5), font="Liberation Sans:style=Bold", halign="center", valign="center");
         }}
         
-        // 3. Left Skirt (Yellow Shift)
-        // Angle: dx=(3.75 - 1.5)=2.25, dz=2.4 -> atan(2.25/2.4) = 43 deg
+        if (label_alpha != "") {{
+            translate([0, -mid_y + 0.5, mid_z])
+                rotate([90 - ang_y_skirt, 0, 0])
+                translate([0, 0, -0.6])
+                linear_extrude(1.0) 
+                    text(label_alpha, size=min(w*0.35, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
+        }}
+        
         if (label_left != "") {{
-            translate([-2.5, 0.5, 1.8])
-                rotate([0, -43, 0])
+            translate([-mid_x, 0.5, mid_z])
+                rotate([0, -(90 - ang_x_skirt), 0])
                 translate([0, 0, -0.6])
                 linear_extrude(1.0)
-                    text(label_left, size=min(w*0.25, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                    text(label_left, size=min(w*0.35, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
         }}
         
-        // 4. Right Skirt (Blue Shift)
         if (label_right != "") {{
-            translate([2.5, 0.5, 1.8])
-                rotate([0, 43, 0])
+            translate([mid_x, 0.5, mid_z])
+                rotate([0, 90 - ang_x_skirt, 0])
                 translate([0, 0, -0.6])
                 linear_extrude(1.0)
-                    text(label_right, size=min(w*0.25, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
+                    text(label_right, size=min(w*0.35, 2.0), font="Liberation Sans:style=Bold", halign="center", valign="center");
         }}
-    }} // End Difference
+    }} 
 }}
-
 FP_CLR = 0.1;
 module button_faceplate() {{
     union() {{
@@ -640,8 +664,8 @@ module button_faceplate() {{
             // Rails (Z = 0.0 to 1.0)
             translate([FP_CLR, 0, 0]) cube([fp_w - 2*FP_CLR, {split_y:.3f} - FP_CLR, 1.0]);
             
-            // Front Solid Block (Z = 1.0 to 3.0)
-            translate([1.5 + FP_CLR, 0, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, {split_y:.3f} - FP_CLR, 1.0]);
+            // Front Solid Block (Z = 1.0 to 3.5)
+            translate([1.5 + FP_CLR, 0, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, {split_y:.3f} - FP_CLR, 2.5]);
         }}
         // Button Holes are subtracted here
 """
@@ -672,9 +696,12 @@ FP_CLR = 0.1;
 module screen_faceplate() {{
     difference() {{
         union() {{
-            // Screen Faceplate (Z = 0.0 to 1.0) - Just the rail thickness, no front block
+            // Screen Faceplate (Z = 0.0 to 1.0)
             translate([FP_CLR, {split_y:.3f} + FP_CLR, 0]) 
                 cube([fp_w - 2*FP_CLR, fp_h - {split_y:.3f} - 2*FP_CLR, 1.0]);
+            
+            // Front Solid Block (Z = 1.0 to 3.5)
+            translate([1.5 + FP_CLR, {split_y:.3f} + FP_CLR, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, fp_h - {split_y:.3f} - 2*FP_CLR, 2.5]);
         }}
         
         // Chamfer top corners for rounded chassis
@@ -1316,7 +1343,7 @@ if __name__ == "__main__":
         ("chassis_tapered","designs/chassis_tapered.scad","../scratch/stl/chassis_tapered.stl"),
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
         ("tpu_stretch_cover","designs/tpu_stretch_cover.scad","../scratch/stl/tpu_stretch_cover.stl"),
-        ("buttons",        "designs/buttons.scad",        "../scratch/stl/buttons.stl"),
+        
         ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),
     ]
 

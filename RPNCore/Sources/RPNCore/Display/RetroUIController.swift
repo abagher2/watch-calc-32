@@ -17,6 +17,16 @@ public class RetroUIController {
     public func processAction(_ op: CalculatorOperation) {
         let finalOp = op
         
+        if finalOp == .off || finalOp.stringValue == "OFF" {
+            engine.factoryReset()
+            retroUI.isShowingFullPrecision = false
+            retroUI.isShowingRegisters = false
+            retroUI.softkeyMode = .none
+            retroUI.regsOffset = 0
+            render()
+            return
+        }
+        
         // HP-32SII Error Message Reset Handling:
         // When an error is displayed, pressing any key clears the error message
         // and restores the normal display without executing the key.

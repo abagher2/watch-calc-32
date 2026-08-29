@@ -65,3 +65,13 @@ __attribute__((weak)) int __atomic_compare_exchange_4(volatile void *mem, void *
         return 0;
     }
 }
+
+#include <math.h>
+
+double c_abs(double x) {
+    return fabs(x);
+}
+
+double c_floor(double x) {
+    return floor(x);
+}

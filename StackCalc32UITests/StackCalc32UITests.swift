@@ -73,7 +73,7 @@ import RPNCore
       setupSnapshot(app)
       app.launch()
       
-      let display = app.staticTexts["lcd_display"]
+      let display = app.descendants(matching: .any)["lcd_display"]
       XCTAssertTrue(display.waitForExistence(timeout: 5))
       
       clearAll(app: app)
@@ -162,7 +162,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     clearAll(app: app)  // yellow shift
@@ -180,7 +180,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Jump to Matrix2View where STO is
@@ -230,7 +230,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter equation mode using EQN (Blue Shift + STO)
@@ -289,7 +289,7 @@ import RPNCore
     app.buttons["func_÷"].tap()
 
     // Save equation and exit programming mode by double tapping
-    app.staticTexts["lcd_display"].doubleTap()
+    app.descendants(matching: .any)["lcd_display"].doubleTap()
 
     // Plot
     navigateToNumericPad(app: app)
@@ -313,7 +313,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter equation mode using EQN (Blue Shift + STO)
@@ -347,7 +347,7 @@ import RPNCore
     app.buttons["func_¹/𝑥"].tap()
 
     // Save equation and exit programming mode by double tapping
-    app.staticTexts["lcd_display"].doubleTap()
+    app.descendants(matching: .any)["lcd_display"].doubleTap()
 
     // Plot
     navigateToNumericPad(app: app)
@@ -371,7 +371,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     app.buttons["btn_blue_shift"].tap()  // blue shift
@@ -387,12 +387,12 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    XCTAssertTrue(app.staticTexts["lcd_display"].waitForExistence(timeout: 5.0))
+    XCTAssertTrue(app.descendants(matching: .any)["lcd_display"].waitForExistence(timeout: 5.0))
 
     // Let UI settle
     Thread.sleep(forTimeInterval: 1.0)
 
-    let lcdDisplay = app.staticTexts["lcd_display"]
+    let lcdDisplay = app.descendants(matching: .any)["lcd_display"]
     let btnC = app.buttons["C"]
     let btnZero = app.buttons["btn_0"]
 
@@ -427,7 +427,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Set FN=
@@ -474,7 +474,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Set FN=
@@ -517,7 +517,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Set limits for Plotting? We can just invoke PLOT
@@ -544,7 +544,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // FN=
@@ -578,7 +578,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Jump to Matrix2View where STO is
@@ -603,7 +603,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)
@@ -637,7 +637,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)
@@ -712,7 +712,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
     
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
     
     // Screenshot 1: Main Numpad
@@ -866,7 +866,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
     
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
     let pad = app.otherElements["numpad_bg"]
     
@@ -986,7 +986,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter point 1 (1, 2)
@@ -1073,7 +1073,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // 1. Enter an equation: EQN, A, X^2, ENTER
@@ -1160,7 +1160,7 @@ import RPNCore
     // Wait for plot to dismiss and check stack (display label should have a captured coordinate)
     Thread.sleep(forTimeInterval: 1.0)
     
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 2.0))
     
     // We expect SOME numerical value pushed to the stack
@@ -1174,7 +1174,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter a 12 digit number: 123456789012
@@ -1209,7 +1209,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     let testConstants = [
@@ -1271,7 +1271,7 @@ import RPNCore
     setupSnapshot(app)
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     func slowTap(_ element: XCUIElement) {

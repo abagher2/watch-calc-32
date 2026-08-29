@@ -62,6 +62,10 @@ public struct MathLabel: View {
                 Text("÷").font(.system(size: size, weight: .bold))
                 Text("R").font(.system(size: subSize, weight: .bold)).baselineOffset(offset)
             }
+                case "(i)":
+            Text("(i)").font(.system(size: size, weight: .bold, design: .monospaced)).lineLimit(1).fixedSize()
+        case "i":
+            Text("i").font(.system(size: size, weight: .bold, design: .monospaced)).lineLimit(1).fixedSize()
         default:
             Text(LocalizedStringKey(text)).font(.system(size: size, weight: .bold))
         }

@@ -126,7 +126,12 @@ private struct MenuItemRow: View {
                 get: { engine.flags[flagIndex] },
                 set: { engine.executeMath($0 ? "SF \(flagIndex)" : "CF \(flagIndex)") }
             )) {
-                Text(item.label)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.label)
+                    if let desc = item.description {
+                        Text(desc).font(.caption).foregroundColor(.secondary).lineLimit(2)
+                    }
+                }
             }
         } else if item.action == "STACK" {
             VStack(alignment: .leading, spacing: 6) {
@@ -206,6 +211,7 @@ private struct MenuItemRow: View {
                     }
                 }
             }
+            .accessibilityIdentifier(item.label)
         }
     }
 }

@@ -16,7 +16,7 @@ public class FoundationValueFormatter: ValueFormatter {
         let val = value
         
         let formatter = NumberFormatter()
-        formatter.usesGroupingSeparator = false
+        formatter.usesGroupingSeparator = true
         formatter.decimalSeparator = "."
         let maxLength = 12
         
@@ -61,7 +61,7 @@ public class FoundationValueFormatter: ValueFormatter {
     
     private func formatScientificToFit(val: Double, maxLength: Int, maxFraction: Int) -> String {
         let formatter = NumberFormatter()
-        formatter.usesGroupingSeparator = false
+        formatter.usesGroupingSeparator = true
         formatter.numberStyle = .scientific
         formatter.decimalSeparator = "."
         formatter.exponentSymbol = "E"

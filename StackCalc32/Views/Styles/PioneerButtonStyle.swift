@@ -86,13 +86,13 @@ struct ShiftedPioneerButtonStyle: ButtonStyle {
         
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                MathLabel(text: yellow)
+                MathLabel(text: yellow, size: 11)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(theme.yellowShiftColor.opacity(activeShift == 0 ? 1.0 : (activeShift == 1 ? 1.0 : 0.3)))
                     .minimumScaleFactor(0.1)
                     .lineLimit(1)
                 Spacer(minLength: 0)
-                MathLabel(text: blue)
+                MathLabel(text: blue, size: 11)
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
                     .foregroundColor(theme.blueShiftColor.opacity(activeShift == 0 ? 1.0 : (activeShift == 2 ? 1.0 : 0.3)))
                     .minimumScaleFactor(0.1)

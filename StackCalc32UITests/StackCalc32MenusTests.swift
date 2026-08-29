@@ -65,7 +65,7 @@ class StackCalc32MenusTests: XCTestCase {
         app.launchArguments = ["-UITesting"]
         app.launch()
 
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5))
 
         let pad = app.otherElements["numpad_bg"]
@@ -183,7 +183,7 @@ class StackCalc32MenusTests: XCTestCase {
         app.launchArguments = ["-UITesting"]
         app.launch()
         
-        let display = app.staticTexts["lcd_display"]
+        let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5))
         
         // Push 5 to stack
@@ -233,7 +233,7 @@ class StackCalc32MenusTests: XCTestCase {
     app.launchArguments = ["-UITesting"]
     app.launch()
 
-    let display = app.staticTexts["lcd_display"]
+    let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     navigateToNumericPad(app: app)

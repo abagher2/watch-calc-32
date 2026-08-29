@@ -48,10 +48,10 @@ public class Renderer {
     }
     
     public enum FontSize {
-        case tiny, small, display, medium, large
+        case tiny, medium, large
     }
     
-    public func drawChar(_ scalarValue: UInt32, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) -> Int {
+    public func drawChar(_ scalarValue: UInt32, x: Int, y: Int, size: FontSize = .medium, color: Bool = true, scale: Int = 1) -> Int {
         var returnWidth: Int = 0
         let shouldBold = boldFonts && size != .tiny
         switch size {
@@ -59,16 +59,6 @@ public class Renderer {
             if let result = FontData.Tiny.glyph(forScalar: scalarValue) {
                 returnWidth = result.width * scale
                 drawGlyphFromStatic(FontData.Tiny.bitmapData, offset: result.offset, width: result.width, height: FontData.Tiny.charHeight, bytesPerRow: FontData.Tiny.bytesPerRow, x: x, y: y, color: color, bold: false, scale: scale)
-            }
-        case .small:
-            if let result = FontData.Small.glyph(forScalar: scalarValue) {
-                returnWidth = (result.width + (shouldBold ? 1 : 0)) * scale
-                drawGlyphFromStatic(FontData.Small.bitmapData, offset: result.offset, width: result.width, height: FontData.Small.charHeight, bytesPerRow: FontData.Small.bytesPerRow, x: x, y: y, color: color, bold: shouldBold, scale: scale)
-            }
-        case .display:
-            if let result = FontData.Display.glyph(forScalar: scalarValue) {
-                returnWidth = (result.width + (shouldBold ? 1 : 0)) * scale
-                drawGlyphFromStatic(FontData.Display.bitmapData, offset: result.offset, width: result.width, height: FontData.Display.charHeight, bytesPerRow: FontData.Display.bytesPerRow, x: x, y: y, color: color, bold: shouldBold, scale: scale)
             }
         case .medium:
             if let result = FontData.Medium.glyph(forScalar: scalarValue) {
@@ -154,13 +144,11 @@ public class Renderer {
     }
 
 
-    public func getCharWidth(_ scalar: UInt32, size: FontSize = .small) -> Int {
+    public func getCharWidth(_ scalar: UInt32, size: FontSize = .medium) -> Int {
         var charWidth = 0
         let shouldBold = boldFonts && size != .tiny
         switch size {
         case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar) { charWidth = result.width }
-        case .small: if let result = FontData.Small.glyph(forScalar: scalar) { charWidth = result.width }
-        case .display: if let result = FontData.Display.glyph(forScalar: scalar) { charWidth = result.width }
         case .medium: if let result = FontData.Medium.glyph(forScalar: scalar) { charWidth = result.width }
         case .large: if let result = FontData.Large.glyph(forScalar: scalar) { charWidth = result.width }
         }
@@ -168,15 +156,13 @@ public class Renderer {
         return charWidth
     }
     
-    public func getStringWidth(_ str: String, size: FontSize = .small) -> Int {
+    public func getStringWidth(_ str: String, size: FontSize = .medium) -> Int {
         var total = 0
         let shouldBold = boldFonts && size != .tiny
         for scalar in str.unicodeScalars {
             var charWidth = 0
             switch size {
             case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar.value) { charWidth = result.width }
-            case .small: if let result = FontData.Small.glyph(forScalar: scalar.value) { charWidth = result.width }
-            case .display: if let result = FontData.Display.glyph(forScalar: scalar.value) { charWidth = result.width }
             case .medium: if let result = FontData.Medium.glyph(forScalar: scalar.value) { charWidth = result.width }
             case .large: if let result = FontData.Large.glyph(forScalar: scalar.value) { charWidth = result.width }
             }
@@ -185,7 +171,7 @@ public class Renderer {
         return total + max(0, str.count - 1)
     }
     
-    public func getStringWidth(_ buffer: UnsafePointer<UInt8>, length: Int, size: FontSize = .small) -> Int {
+    public func getStringWidth(_ buffer: UnsafePointer<UInt8>, length: Int, size: FontSize = .medium) -> Int {
         var total = 0
         let shouldBold = boldFonts && size != .tiny
         for i in 0..<length {
@@ -193,8 +179,6 @@ public class Renderer {
             var charWidth = 0
             switch size {
             case .tiny: if let result = FontData.Tiny.glyph(forScalar: scalar) { charWidth = result.width }
-            case .small: if let result = FontData.Small.glyph(forScalar: scalar) { charWidth = result.width }
-            case .display: if let result = FontData.Display.glyph(forScalar: scalar) { charWidth = result.width }
             case .medium: if let result = FontData.Medium.glyph(forScalar: scalar) { charWidth = result.width }
             case .large: if let result = FontData.Large.glyph(forScalar: scalar) { charWidth = result.width }
             }
@@ -205,7 +189,7 @@ public class Renderer {
     }
     
     
-    public func drawString(_ buffer: UnsafePointer<UInt8>, length: Int, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) {
+    public func drawString(_ buffer: UnsafePointer<UInt8>, length: Int, x: Int, y: Int, size: FontSize = .medium, color: Bool = true, scale: Int = 1) {
         var cursorX = x
         for i in 0..<length {
             let width = drawChar(UInt32(buffer[i]), x: cursorX, y: y, size: size, color: color, scale: scale)
@@ -213,7 +197,7 @@ public class Renderer {
         }
     }
 
-    public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .small, color: Bool = true, scale: Int = 1) {
+    public func drawString(_ str: String, x: Int, y: Int, size: FontSize = .medium, color: Bool = true, scale: Int = 1) {
         let processed = str
         var cursorX = x
         for scalar in processed.unicodeScalars {
@@ -299,7 +283,7 @@ public class Renderer {
     
     public func renderMenu(menu: CalculatorMenu, query: String = "", offset: Int = 0) {
         if !query.isEmpty {
-            drawString("Search: \(query)_", x: 2, y: 38, size: .small, color: true)
+            drawString("Search: \(query)_", x: 2, y: 38, size: .medium, color: true)
         }
         let items = MenuSystem.filter(menu: menu, query: query, engine: nil)
         let visibleCount = items.count - offset

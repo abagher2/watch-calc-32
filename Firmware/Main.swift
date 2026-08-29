@@ -339,7 +339,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             
             // Render standard retro UI
             uiController.retroUI.render(engine: engine, renderer: renderer)
-            print("DEBUG: requestPlot=\(engine.requestPlot) isEq=\(engine.isEquationListMode)")
+            print("DEBUG: requestPlot=\(engine.requestPlot ? "1" : "0") isEq=\(engine.isEquationListMode ? "1" : "0")")
             
             var changed = false
             if let prev = renderer.previousBuffer {

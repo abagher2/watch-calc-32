@@ -364,13 +364,24 @@ private struct ButtonView: View {
 
                 // Alpha label — in side position, highlighted in alpha mode
                 if !key.alphaLabel.isEmpty {
-                    Text(key.alphaLabel)
-                        .font(.system(size: alphaFontSize, weight: .bold))
-                        .minimumScaleFactor(0.1)
-                        .foregroundColor(engine.isWaitingForAlpha ? .primary : .gray)
-                        .frame(width: 8, alignment: .leading)
+                    Group {
+                        if key.alphaLabel == "(i)" {
+                            HStack(spacing: 0) {
+                                Text("(")
+                                Text("i")
+                                Text(")")
+                            }
+                        } else {
+                            Text(key.alphaLabel)
+                        }
+                    }
+                    .font(.system(size: alphaFontSize, weight: .bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.1)
+                    .foregroundColor(engine.isWaitingForAlpha ? .primary : .gray)
+                    .frame(width: 16, alignment: .leading)
                 } else {
-                    Spacer().frame(width: 8)
+                    Spacer().frame(width: 16)
                 }
             }
         }
