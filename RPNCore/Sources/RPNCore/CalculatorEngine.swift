@@ -310,7 +310,6 @@ public class CalculatorEngine {
     
     // UI Events
     public var requestPlot: Bool = false
-    public var showRegs: Bool = false
     public var requestPlotPrompt: Bool = false
     public var selectedPlotX: Double? = nil
     public var requestThemeChange: Bool = false
@@ -1361,10 +1360,6 @@ public class CalculatorEngine {
                 // If they typed something else, it just clears the view and proceeds.
             }
         }
-        if operation == "REGS" {
-            self.showRegs = true
-            return
-        }
         
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
@@ -1409,10 +1404,6 @@ public class CalculatorEngine {
             if operation != "VIEW" {
                 // If they typed something else, it just clears the view and proceeds.
             }
-        }
-        if operation == "REGS" {
-            self.showRegs = true
-            return
         }
         
         if isWaitingForLabel {
@@ -1775,8 +1766,8 @@ public class CalculatorEngine {
             updateDisplay()
             return
         }
-        if operation == "SIG" {
-            displayMode = .sig(-1)
+        if operation.hasPrefix("SIG ") {
+            if let p = parseInt(_substringToString(operation.dropFirst(4))) { displayMode = .sig(p) }
             isFractionMode = false
             updateDisplay()
             return
@@ -3351,9 +3342,9 @@ public class CalculatorEngine {
     
     public func formatValue(_ cv: CalculatorValue) -> String {
         let val = cv.real
-        if displayMode == .sig(-1) {
-            // Auto sig figs formatting
-            let sf = cv.effectiveSigFigs
+        if case .sig(let p) = displayMode {
+            // Cap the auto sig figs to the user's requested parameter `p`
+            let sf = min(p, cv.effectiveSigFigs)
             
             #if hasFeature(Embedded)
             let bufLen = 64
@@ -3559,7 +3550,7 @@ public class CalculatorEngine {
         case .sci(let places): n = 30 + (places * 10)
         case .eng(let places): n = 30 + (places * 10)
         case .all: n = 100
-        case .sig(_): n = 100 // Auto sig figs
+        case .sig(let sigFigs): n = 30 + (sigFigs * 15)
         }
         // Cap to prevent excessive lag on devices
         n = min(n, 200)

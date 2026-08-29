@@ -87,7 +87,7 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         MenuItem(label: "FIX", requiresDigit: true, description: "Fixed decimal places"),
         MenuItem(label: "SCI", requiresDigit: true, description: "Scientific notation"),
         MenuItem(label: "ENG", requiresDigit: true, description: "Engineering notation"),
-        MenuItem(label: "SIG", requiresDigit: false, description: "Significant figures (Auto)"),
+        MenuItem(label: "SIG", requiresDigit: true, description: "Significant figures"),
         MenuItem(label: "ALL", description: "Show all trailing digits")
     ]
     public static let baseItems: [MenuItem] = [

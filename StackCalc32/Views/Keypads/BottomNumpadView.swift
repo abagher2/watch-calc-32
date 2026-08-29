@@ -78,6 +78,7 @@ struct BottomNumpadView: View {
         case .disp:       return .disp
         case .modes:      return .modes
         case .base:       return .base
+        case .regs:       return .regs
         case .testXY:     return .testXY
         case .testX0:     return .testX0
         case .prob:       return .prob

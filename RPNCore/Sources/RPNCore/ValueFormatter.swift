@@ -33,12 +33,6 @@ public class FoundationValueFormatter: ValueFormatter {
         case .sci(let places), .eng(let places):
             return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
         case .sig(let places):
-            if places == -1 {
-                // If it's auto, we can't extract CalculatorValue here because ValueFormatter only takes Double.
-                // But RetroUI will use updateDisplay() anyways for main rendering, and for stack it uses formatNumber.
-                // We'll just fallback to .all for the double-only formatter when in auto mode.
-                return format(value: val, mode: .all)
-            }
             return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
         case .all:
             formatter.numberStyle = .decimal
@@ -108,7 +102,6 @@ public class BasicValueFormatter: ValueFormatter {
         case .eng(let places):
             return formatEng(val, places: places)
         case .sig(let places):
-            if places == -1 { return formatAll(val) }
             return formatSci(val, places: places)
         case .all:
             return formatAll(val)
