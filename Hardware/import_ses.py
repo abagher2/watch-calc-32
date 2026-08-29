@@ -43,9 +43,15 @@ def parse_ses_and_apply(board_path, ses_path):
     
     for netname, content in net_blocks:
         
-        netcode = board.GetNetcodeFromNetname(netname)
+        netname_clean = netname.strip('"')
+        try:
+            netcode = board.GetNetcodeFromNetname(netname_clean)
+        except Exception as e:
+            print(f"Warning: Exception looking up net {netname_clean} (original: {netname}): {e}")
+            continue
+            
         if netcode <= 0:
-            print(f"Warning: net {netname} not found on board!")
+            print(f"Warning: net {netname_clean} not found on board! (code <= 0)")
             continue
             
         # Wires

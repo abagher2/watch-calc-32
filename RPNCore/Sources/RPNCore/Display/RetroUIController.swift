@@ -288,7 +288,7 @@ public class RetroUIController {
                     engine.updateDisplay()
                 } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
                     engine.currentProgramLabel = prog.label
-                    if let result = engine.evaluateProgram(prog, variables: engine.variables) {
+                    if let result = engine.evaluateProgram(prog) {
                         engine.pushToStack(result)
                         engine.updateDisplay()
                     }

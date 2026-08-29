@@ -310,6 +310,7 @@ public class CalculatorEngine {
     
     // UI Events
     public var requestPlot: Bool = false
+    public var showRegs: Bool = false
     public var requestPlotPrompt: Bool = false
     public var selectedPlotX: Double? = nil
     public var requestThemeChange: Bool = false
@@ -358,6 +359,10 @@ public class CalculatorEngine {
     public var stackStrings: [String] = []
     
     // Internal state - stack[0] is X, stack[1] is Y, etc.
+    private var plotSavedStack: [CalculatorValue] = Array(repeating: CalculatorValue(), count: 10)
+    private var plotSavedInputBuffer: [UInt8] = Array(repeating: 0, count: 50)
+    private var plotSavedStackStrings: [String] = Array(repeating: "", count: 10)
+    private var plotSavedDisplayXBuffer: [UInt8] = Array(repeating: 0, count: 50)
     public var stack: [CalculatorValue] = [CalculatorValue()]
     public var isBuildingNumber: Bool = false
     private var hasDecimal: Bool = false
@@ -733,6 +738,7 @@ public class CalculatorEngine {
     
     public func digit(_ d: Int) {
         if isWaitingForLabel { return }
+        if transientMessage != nil { transientMessage = nil; updateDisplay() }
         if errorMessage != nil { clearError(); return }
         
         if alphaAction != .promptVar {
@@ -994,8 +1000,14 @@ public class CalculatorEngine {
     public func commitInput() {
         if isBuildingNumber {
             var decimalCount = 0
+            var decimalPos = -1
+            var hasExponent = false
             for i in 0..<currentInputLength {
-                if currentInputBuffer[i] == 46 { decimalCount += 1 }
+                if currentInputBuffer[i] == 46 { 
+                    decimalCount += 1 
+                    decimalPos = i
+                }
+                if currentInputBuffer[i] == 69 { hasExponent = true }
             }
             var val = 0.0
             
@@ -1130,7 +1142,7 @@ public class CalculatorEngine {
             if isBuildingNumber { commitInput() }
             if let varName = pendingEquationVars.first {
                 print("ENTER VAR: \(varName) VALUE: \(stack.first?.real ?? 0)")
-                variables[varName] = stack.count > 0 ? stack[0] : CalculatorValue()
+                self.variables[varName] = stack.count > 0 ? stack[0] : CalculatorValue()
                 pendingEquationVars.removeFirst()
                 promptNextEquationVar()
             }
@@ -1342,6 +1354,18 @@ public class CalculatorEngine {
     
     public func executeMath(_ operation: String) {
 
+        if transientMessage != nil {
+            transientMessage = nil
+            updateDisplay()
+            if operation != "VIEW" {
+                // If they typed something else, it just clears the view and proceeds.
+            }
+        }
+        if operation == "REGS" {
+            self.showRegs = true
+            return
+        }
+        
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
@@ -1379,6 +1403,18 @@ public class CalculatorEngine {
             return
         }
 
+        if transientMessage != nil {
+            transientMessage = nil
+            updateDisplay()
+            if operation != "VIEW" {
+                // If they typed something else, it just clears the view and proceeds.
+            }
+        }
+        if operation == "REGS" {
+            self.showRegs = true
+            return
+        }
+        
         if isWaitingForLabel {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 cancelAlpha()
@@ -1434,7 +1470,7 @@ public class CalculatorEngine {
             if operation == "ENTER" || operation == "R/S" {
                 if isBuildingNumber { commitInput() }
                 if let varName = pendingEquationVars.first {
-                    variables[varName] = stack.count > 0 ? stack[0] : CalculatorValue()
+                    self.variables[varName] = stack.count > 0 ? stack[0] : CalculatorValue()
                     pendingEquationVars.removeFirst()
                     promptNextEquationVar()
                 }
@@ -1735,6 +1771,12 @@ public class CalculatorEngine {
         }
         if operation.hasPrefix("ENG ") {
             if let p = parseInt(_substringToString(operation.dropFirst(4))) { displayMode = .eng(p) }
+            isFractionMode = false
+            updateDisplay()
+            return
+        }
+        if operation == "SIG" {
+            displayMode = .sig(-1)
             isFractionMode = false
             updateDisplay()
             return
@@ -2326,7 +2368,7 @@ public class CalculatorEngine {
                 if let program = prog {
                     let oldVal = self.variables[variable]
                     self.variables[variable] = CalculatorValue(real: xVal)
-                    let result = self.evaluateProgram(program, variables: self.variables)?.real
+                    let result = self.evaluateProgram(program)?.real
                     self.variables[variable] = oldVal // Restore directly to avoid dictionary copies
                     return result
                 } else {
@@ -2441,9 +2483,10 @@ public class CalculatorEngine {
         return name
     }
 
-    public func evaluateProgram(_ program: Program, variables: [String: CalculatorValue], clearStack: Bool = true) -> CalculatorValue? {
+    public func evaluateProgram(_ program: Program, clearStack: Bool = true) -> CalculatorValue? {
         // Save state
-        var savedStack = self.stack
+        var savedStack = Array(repeating: CalculatorValue(), count: self.stackSizeLimit)
+        for i in 0..<self.stack.count { savedStack[i] = self.stack[i] }
         var savedLastX = self.lastX
         var savedStackStrings = self.isSilent ? [] : self.stackStrings
         var savedPrompt = self.isSilent ? nil : self.promptString
@@ -2455,16 +2498,13 @@ public class CalculatorEngine {
         var savedIsBuildingNum = self.isBuildingNumber
         var savedShift = self.shiftState
         var savedLiftEnabled = self.stackLiftEnabled
-        var savedVariables = self.variables
-        
+                
         if !clearStack {
             savedStack = []
             savedStackStrings = []
-            savedVariables = [:]
-        }
+                    }
         
-        self.variables = variables
-        self.isProgrammingMode = false
+                self.isProgrammingMode = false
         self.isBuildingNumber = false
         self.stackLiftEnabled = true
         self.currentEvaluatingProgram = program
@@ -2558,7 +2598,7 @@ public class CalculatorEngine {
                     if p.label == label { subProgram = p; break }
                 }
                 if let sub = subProgram {
-                    if let res = evaluateProgram(sub, variables: self.variables, clearStack: false) {
+                    if let res = evaluateProgram(sub, clearStack: false) {
                         // For subprograms, it operates on the live stack now. No need to push.
                         self.stackLiftEnabled = true
                     }
@@ -2566,18 +2606,18 @@ public class CalculatorEngine {
             case .sto(let varName):
                 self.setVar(varName, self.stack.first ?? CalculatorValue())
             case .custom(let str):
-                if let val = variables[str] {
+                if let val = self.variables[str] {
                     self.push(val)
                     self.stackLiftEnabled = true
                 } else if str.hasPrefix("RCL ") {
                     let varName = String(str.dropFirst(4))
-                    if let val = variables[varName] {
+                    if let val = self.variables[varName] {
                         self.push(val)
                         self.stackLiftEnabled = true
                     }
                 } else if str.hasPrefix("STO ") {
                     let varName = String(str.dropFirst(4))
-                    self.variables[varName] = self.stack.first ?? CalculatorValue()
+                    self.self.variables[varName] = self.stack.first ?? CalculatorValue()
                 } else if ["SETUP", "DISP", "MODES", "STAT", "FN=", "EQN", "PRGM", "SOLVE", "∫", "SHOW", "PLOT", "VIEW", "CLEAR"].contains(str) {
                     // Handled by action closure
                 } else {
@@ -2596,24 +2636,23 @@ public class CalculatorEngine {
         
         // Restore state
         if clearStack {
-            self.stack = savedStack
+            for i in 0..<self.stack.count { self.stack[i] = savedStack[i] }
             self.lastX = savedLastX
             if !self.isSilent {
-                self.stackStrings = savedStackStrings
+                for j in 0..<self.stackStrings.count { self.stackStrings[j] = self.plotSavedStackStrings[j] }
                 self.promptString = savedPrompt
                 for j in 0..<savedDisplayXLength {
                     self.displayXBuffer[j] = savedDisplayXBuffer[j]
                 }
             }
             self.displayXLength = savedDisplayXLength
-            self.variables = savedVariables
-        }
+                    }
         
         self.isProgrammingMode = savedProgMode
         self.currentInputLength = savedInputLength
         if !self.isSilent {
             for j in 0..<savedInputLength {
-                self.currentInputBuffer[j] = savedInputBuffer[j]
+                self.currentInputBuffer[j] = self.plotSavedInputBuffer[j]
             }
         }
         self.isBuildingNumber = savedIsBuildingNum
@@ -2852,6 +2891,7 @@ public class CalculatorEngine {
     }
     
     public func submitAlpha(_ str: String) {
+        if transientMessage != nil { transientMessage = nil; updateDisplay() }
         print("DEBUG: submitAlpha \(str), isWaitingForLabel: \(isWaitingForLabel), requestXEQ: \(requestXEQ)")
         let key = str.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
         if key.isEmpty { 
@@ -2870,7 +2910,7 @@ public class CalculatorEngine {
             // User submitted a value for a variable in an equation
             if let val = parseDouble(key) {
                 if let varName = pendingEquationVars.first {
-                    variables[varName] = CalculatorValue(real: val)
+                    self.variables[varName] = CalculatorValue(real: val)
                     pendingEquationVars.removeFirst()
                     promptNextEquationVar()
                 }
@@ -3077,7 +3117,7 @@ public class CalculatorEngine {
         
         switch currentResumeAction {
         case .eval(let program):
-            if let result = evaluateProgram(program, variables: variables) {
+            if let result = evaluateProgram(program) {
                 push(result)
             }
         case .solve(let variable, let program):
@@ -3182,6 +3222,157 @@ public class CalculatorEngine {
     
     // MARK: - Update Display
     
+    
+    private func intToBuffer(_ val: Int64, buffer: inout [UInt8], offset: Int) -> Int {
+        var v = abs(val)
+        var length = 0
+        if v == 0 {
+            buffer[offset] = 48
+            return 1
+        }
+        var temp = [UInt8](repeating: 0, count: 20)
+        while v > 0 {
+            temp[length] = UInt8(v % 10) + 48
+            v /= 10
+            length += 1
+        }
+        if val < 0 {
+            temp[length] = 45 // '-'
+            length += 1
+        }
+        for i in 0..<length {
+            buffer[offset + i] = temp[length - 1 - i]
+        }
+        return length
+    }
+    
+    private func intToRadixBuffer(_ val: Int64, radix: Int64, suffix: UInt8, buffer: inout [UInt8], offset: Int) -> Int {
+        var v = val // For base conversions, usually treat as bit pattern, but let's just do positive
+        if v < 0 { v = Int64(bitPattern: UInt64(bitPattern: v)) }
+        var length = 0
+        if v == 0 {
+            buffer[offset] = 48
+            buffer[offset+1] = suffix
+            return 2
+        }
+        var temp = [UInt8](repeating: 0, count: 64)
+        while v > 0 {
+            let rem = UInt8(v % radix)
+            temp[length] = rem < 10 ? rem + 48 : rem - 10 + 65 // 'A'
+            v /= radix
+            length += 1
+        }
+        for i in 0..<length {
+            buffer[offset + i] = temp[length - 1 - i]
+        }
+        buffer[offset + length] = suffix
+        return length + 1
+    }
+
+    public func formatNumberToBuffer(_ val: Double, buffer: inout [UInt8]) -> Int {
+        if baseMode != .dec {
+            let intVal = Int64(val)
+            switch baseMode {
+            case .hex: return intToRadixBuffer(intVal, radix: 16, suffix: 104, buffer: &buffer, offset: 0) // 'h'
+            case .oct: return intToRadixBuffer(intVal, radix: 8, suffix: 111, buffer: &buffer, offset: 0) // 'o'
+            case .bin: return intToRadixBuffer(intVal, radix: 2, suffix: 98, buffer: &buffer, offset: 0) // 'b'
+            default: break
+            }
+        }
+        
+        if isFractionMode {
+            let valAbs = abs(val)
+            var whole = Int64(valAbs)
+            let remainder = valAbs - Double(whole)
+            let sign = val < 0 ? -1 : 1
+            
+            if remainder > 1e-6 {
+                var fnum: Int64 = 0
+                var fden: Int64 = 1
+                
+                if flags[8] {
+                    let targetDen = Int64(maxDenominator)
+                    let targetNum = Int64(round(remainder * Double(targetDen)))
+                    if flags[9] {
+                        fnum = targetNum; fden = targetDen
+                    } else {
+                        let d = engineGcd(targetNum, targetDen)
+                        fnum = targetNum / d; fden = targetDen / d
+                    }
+                } else {
+                    let num = Int64(round(remainder * 1_000_000))
+                    let den = Int64(1_000_000)
+                    let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
+                    fnum = frac.numerator; fden = frac.denominator
+                }
+                
+                if fnum == fden && fden > 0 { fnum = 0; whole += 1 }
+                
+                if fnum == 0 {
+                    return intToBuffer(sign < 0 ? -whole : whole, buffer: &buffer, offset: 0)
+                } else if whole == 0 {
+                    var off = 0
+                    if sign < 0 { buffer[off] = 45; off += 1 }
+                    off += intToBuffer(fnum, buffer: &buffer, offset: off)
+                    buffer[off] = 47; off += 1 // '/'
+                    off += intToBuffer(fden, buffer: &buffer, offset: off)
+                    return off
+                } else {
+                    var off = 0
+                    if sign < 0 { buffer[off] = 45; off += 1 }
+                    off += intToBuffer(whole, buffer: &buffer, offset: off)
+                    buffer[off] = 32; off += 1 // ' '
+                    off += intToBuffer(fnum, buffer: &buffer, offset: off)
+                    buffer[off] = 47; off += 1 // '/'
+                    off += intToBuffer(fden, buffer: &buffer, offset: off)
+                    return off
+                }
+            }
+        }
+        
+        var cMode: Int32 = 0
+        var cPlaces: Int32 = 0
+        switch displayMode {
+        case .fix(let p): cMode = 1; cPlaces = Int32(p)
+        case .sci(let p): cMode = 2; cPlaces = Int32(p)
+        case .eng(let p): cMode = 3; cPlaces = Int32(p)
+        case .sig(let p): cMode = 4; cPlaces = Int32(p)
+        case .all: cMode = 0; cPlaces = 0
+        }
+        
+        var len = 0
+        buffer.withUnsafeMutableBufferPointer { ptr in
+            format_double_c(val, ptr.baseAddress!, 13, cMode, cPlaces, useCommaForDecimal ? 1 : 0)
+        }
+        while len < 64 && buffer[len] != 0 { len += 1 }
+        return len
+    }
+
+    
+    public func formatValue(_ cv: CalculatorValue) -> String {
+        let val = cv.real
+        if displayMode == .sig(-1) {
+            // Auto sig figs formatting
+            let sf = cv.effectiveSigFigs
+            
+            #if hasFeature(Embedded)
+            let bufLen = 64
+            var buffer = [UInt8](repeating: 0, count: bufLen)
+            buffer.withUnsafeMutableBufferPointer { ptr in
+                // mode 3 is %G in format_double_c which is ideal for standard sig-fig formatting
+                format_double_c(val, ptr.baseAddress!, 13, 3, Int32(sf), useCommaForDecimal ? 1 : 0)
+            }
+            var len = 0
+            while len < bufLen && buffer[len] != 0 { len += 1 }
+            return String(decoding: buffer[0..<len], as: UTF8.self)
+            #else
+            // In swift, %g uses `sf` significant digits
+            return String(format: "%.*g", sf, val)
+            #endif
+        }
+        return formatNumber(val)
+    }
+
     public func formatNumber(_ val: Double) -> String {
         if baseMode != .dec {
             let intVal = Int64(val)
@@ -3323,10 +3514,10 @@ public class CalculatorEngine {
         }
         if !isBuildingNumber {
             #if hasFeature(Embedded)
-            let strVal = formatNumber(stack[0].real)
+            let strVal = formatValue(stack[0])
             _populateBufferWithString(strVal)
             #else
-            displayX = formatNumber(stack[0].real)
+            displayX = formatValue(stack[0])
             _populateBufferWithString(displayX)
             #endif
         }
@@ -3338,7 +3529,7 @@ public class CalculatorEngine {
     private func updateStackStrings() {
         #if !hasFeature(Embedded)
         let logicalStack = getLogicalStack()
-        stackStrings = logicalStack.map { formatNumber($0.real) }
+        stackStrings = logicalStack.map { formatValue($0) }
         #endif
     }
 
@@ -3368,7 +3559,7 @@ public class CalculatorEngine {
         case .sci(let places): n = 30 + (places * 10)
         case .eng(let places): n = 30 + (places * 10)
         case .all: n = 100
-        case .sig(let sigFigs): n = 30 + (sigFigs * 15)
+        case .sig(_): n = 100 // Auto sig figs
         }
         // Cap to prevent excessive lag on devices
         n = min(n, 200)
@@ -3393,7 +3584,7 @@ public class CalculatorEngine {
             
             let oldVal = self.variables[variable]
             self.variables[variable] = CalculatorValue(real: x)
-            let f = evaluateProgram(program, variables: self.variables)?.real ?? 0.0
+            let f = evaluateProgram(program)?.real ?? 0.0
             self.variables[variable] = oldVal
             
             self.plotData.append((x, f))
@@ -3416,9 +3607,9 @@ public class CalculatorEngine {
         var vars = variables
         
         vars[variable] = CalculatorValue(real: at + h)
-        let fPlus = evaluateProgram(program, variables: vars)?.real ?? 0.0
+        self.variables = vars; let fPlus = evaluateProgram(program)?.real ?? 0.0
         vars[variable] = CalculatorValue(real: at - h)
-        let fMinus = evaluateProgram(program, variables: vars)?.real ?? 0.0
+        self.variables = vars; let fMinus = evaluateProgram(program)?.real ?? 0.0
         
         let derivative = (fPlus - fMinus) / (2 * h)
         self.pushToStack(CalculatorValue(real: derivative))
@@ -3435,10 +3626,10 @@ public class CalculatorEngine {
         let oldVal = self.variables[variable]
         
         self.variables[variable] = CalculatorValue(real: x0)
-        var f0 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
+        var f0 = (evaluateProgram(program)?.real ?? 0.0) - target
         
         self.variables[variable] = CalculatorValue(real: x1)
-        var f1 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
+        var f1 = (evaluateProgram(program)?.real ?? 0.0) - target
         
         for _ in 0..<maxIterations {
             if let check = isInterrupted, check() {
@@ -3458,7 +3649,7 @@ public class CalculatorEngine {
             x1 = x2
             
             self.variables[variable] = CalculatorValue(real: x1)
-            f1 = (evaluateProgram(program, variables: self.variables)?.real ?? 0.0) - target
+            f1 = (evaluateProgram(program)?.real ?? 0.0) - target
         }
         
         self.variables[variable] = oldVal

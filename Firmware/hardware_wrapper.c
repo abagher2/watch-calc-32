@@ -13,15 +13,19 @@
 #define PIN_SCK  2
 #define PIN_MOSI 3
 #define PIN_DC   4
+#define PIN_RES  5
 
 // Keypad pins remapped for 14 available GPIOs
-const uint8_t col_pins[] = {14, 16, 10, 5, 6, 7};
-const uint8_t row_pins[] = {21, 20, 19, 18, 15, 0, 8, 9};
+const uint8_t col_pins[] = {11, 12, 13, 15, 16, 17};
+const uint8_t row_pins[] = {6, 7, 8, 9, 10, 14, 18, 19};
 
 struct EmuDisplay {
     uint32_t magic[4];
     uint8_t buffer[1188];
 };
+
+static struct EmuDisplay g_emu_display;
+static bool display_dirty = true;
 
 volatile struct EmuDisplay emu_display = {
     .magic = {0x11223344, 0x55667788, 0x99AABBCC, 0xDDEEFF00},
@@ -61,7 +65,11 @@ void hw_init(void) {
     gpio_set_dir(PIN_DC, GPIO_OUT);
     gpio_put(PIN_DC, 0);
 
-    // LCD Reset is tied to MCU Hardware Reset, no software toggle needed
+    gpio_init(PIN_RES);
+    gpio_set_dir(PIN_RES, GPIO_OUT);
+    gpio_put(PIN_RES, 0); // Reset LCD
+    sleep_ms(50);
+    gpio_put(PIN_RES, 1); // Release Reset
     sleep_ms(100);
 
     // ERC13265-1 (SPLC502) Init Sequence

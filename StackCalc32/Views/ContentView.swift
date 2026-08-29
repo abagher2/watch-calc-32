@@ -338,6 +338,7 @@ struct WatchMenuModifier: ViewModifier {
     @State private var showIntegrate = false
     @State private var showShow = false
     @State private var showProgramEditor = false
+    @State private var showRegs = false
 
     func body(content: Content) -> some View {
         @Bindable var bindableEngine = engine
@@ -348,6 +349,7 @@ struct WatchMenuModifier: ViewModifier {
             .sheet(isPresented: $showXEQ) { XEQPromptView().environment(engine) }
             .sheet(isPresented: $showIntegrate) { IntegratePromptView().environment(engine) }
             .sheet(isPresented: $showShow) { ShowView(rawValue: engine.stack.first?.real ?? 0) }
+            .sheet(isPresented: $showRegs) { RegsView() }
             .sheet(isPresented: $showProgramEditor) { EquationEditorView() }
             .sheet(isPresented: Binding(
                 get: { bindableEngine.currentEvaluatingProgram != nil },

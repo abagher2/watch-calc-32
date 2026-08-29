@@ -589,119 +589,91 @@ module spiral_arm(r1, r2, w, a) {{
 }}
 
 module button_cavity(w, h) {{
-    btn_gap = 1.0; 
-    z_expansion_top = 2.0;
-    z_faceplate = 3.5;
+    cavity_w = w - 0.4;
+    cavity_h = h - 0.4;
+    z_faceplate = 2.5;
     
-    top_w = (w > 15) ? w - 1.5 : min(w-1.5, 7.8);
-    top_h = min(h-1.5, 6.0);
+    top_w = (w > 15) ? w - 1.0 : w - 1.0;
+    top_h = h - 1.0;
+    hole_top_w = top_w + 0.4; 
+    hole_top_h = top_h + 0.4;
     
-    translate([0, 0, -0.1]) {{
-        // Base straight section of the hole
-        linear_extrude(z_expansion_top + 0.1)
-            squircle_centered(w + btn_gap, h + btn_gap, 10.0, 1.5);
-            
-        // Tapered top section of the hole (captures the button)
-        translate([0, 0, z_expansion_top + 0.1])
-        hull() {{
-            squircle_centered(w + btn_gap, h + btn_gap, 0.01, 1.5);
-            translate([0, 0, z_faceplate - z_expansion_top])
-                squircle_centered(top_w + btn_gap, top_h + btn_gap, 0.01, 1.5);
-        }}
-        
-        // Ensure cavity goes all the way through if faceplate is thicker
-        translate([0, 0, z_faceplate + 0.1])
-            linear_extrude(10.0)
-            squircle_centered(top_w + btn_gap, top_h + btn_gap, 10.0, 1.5);
+    // Tapered hole
+    hull() {{
+        translate([0, 0, 0.0]) squircle_centered(cavity_w, cavity_h, 0.01, 1.5);
+        translate([0, 0, z_faceplate]) squircle_centered(hole_top_w, hole_top_h, 0.01, 1.5);
     }}
+    translate([0, 0, z_faceplate - 0.01]) squircle_centered(hole_top_w, hole_top_h, 10.0, 1.5);
 }}
 
 module button_solid(w, h, label="", label_left="", label_right="", label_alpha="") {{
-    arm_w = 0.6;
-    btn_gap = 1.0;
-    
-    z_spring_top = 1.0;
-    z_expansion_top = 2.0; 
-    z_faceplate = 3.5; 
+    z_spring_top = 0.4; // 2 FDM layers thick
+    z_faceplate = 2.5; 
     z_top = 5.6; 
     
-    top_w = (w > 15) ? w - 1.5 : min(w-1.5, 7.8);
-    top_h = min(h-1.5, 6.0);
+    top_w = (w > 15) ? w - 1.0 : w - 1.0;
+    top_h = h - 1.0;
     
-    // Skirt calculations
-    dx_skirt = (w - top_w) / 2;
-    dy_skirt = (h - top_h) / 2;
-    dz_skirt = z_faceplate - z_expansion_top;
-    ang_x_skirt = atan(dx_skirt / dz_skirt);
-    ang_y_skirt = atan(dy_skirt / dz_skirt);
-    
-    mid_z = z_expansion_top + dz_skirt / 2;
-    mid_x = (w + top_w) / 4;
-    mid_y = (h + top_h) / 4;
+    cavity_w = w - 0.4;
+    cavity_h = h - 0.4;
     
     render() difference() {{ 
         union() {{
-            // Base straight section (including where springs attach)
-            squircle_centered(w, h, z_expansion_top, 1.0);
+            // Straight shaft button
+            squircle_centered(top_w, top_h, z_top, 1.0);
             
-            // Suspension Springs attached to the base block
+            // Lattice Springs (North, South, East, West tabs connecting to ribs)
             intersection() {{
-                for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(1.5, (w + btn_gap)/2 + 2.0, arm_w, 180);
-                squircle_centered(w + btn_gap + 0.05, h + btn_gap + 0.05, z_spring_top + 0.1, 1.5);
-            }}
-            
-            // Tapered capture section
-            hull() {{
-                translate([0, 0, z_expansion_top]) squircle_centered(w, h, 0.01, 1.0);
-                translate([0, 0, z_faceplate]) squircle_centered(top_w, top_h, 0.01, 1.0);
-            }}
-            
-            // Exposed top straight section (above faceplate)
-            translate([0, 0, z_faceplate])
-                squircle_centered(top_w, top_h, z_top - z_faceplate, 1.0);
-            // EMBOSSED (Raised) Side Labels: Added to the union so they protrude outward
-            if (label_alpha != "") {{
-                translate([0, -mid_y, mid_z])
-                    rotate([ang_y_skirt, 0, 0])
-                    rotate([90, 0, 0])
-                    translate([0, 0, -0.1])
-                    linear_extrude(0.5) {{ // Starts 0.1 inside, protrudes 0.4 outside
-                        sf_word(label_alpha, w - 2.0, min(w*0.16, h*0.18));
-                    }}
-            }}
-            
-            if (label_left != "") {{
-                translate([-mid_x, 0, mid_z])
-                    rotate([0, -ang_x_skirt, 0])
-                    rotate([0, -90, 0])
-                    rotate([0, 0, 90]) // Rotate to read left-to-right (horizontally)
-                    translate([0, 0, -0.1])
-                    linear_extrude(0.5) {{
-                        sf_word(label_left, h - 2.0, min(w*0.13, h*0.16));
-                    }}
-            }}
-            
-            if (label_right != "") {{
-                translate([mid_x, 0, mid_z])
-                    rotate([0, ang_x_skirt, 0])
-                    rotate([0, 90, 0])
-                    rotate([0, 0, -90]) // Rotate to read left-to-right
-                    translate([0, 0, -0.1])
-                    linear_extrude(0.5) {{
-                        sf_word(label_right, h - 2.0, min(w*0.13, h*0.16));
-                    }}
+                union() {{
+                    translate([-cavity_w/2, -0.6, 0]) cube([cavity_w, 1.2, z_spring_top]);
+                    translate([-0.6, -cavity_h/2, 0]) cube([1.2, cavity_h, z_spring_top]);
+                }}
+                squircle_centered(cavity_w + 0.2, cavity_h + 0.2, z_spring_top + 0.1, 1.5);
             }}
         }} 
         
-        // SUNKEN (Engraved) Top Label: Subtracted from the union
+        // Engraved Top Label
         if (label != "") {{
-            translate([0, 0, z_top]) 
-                translate([0, 0, -0.4]) // 0.4mm deep engraving
-                linear_extrude(0.6) {{
-                    sf_word(label, top_w - 1.0, min(w*0.25, h*0.3));
+            translate([0, 0, z_top - 0.4]) 
+                linear_extrude(1.0) {{
+                    offset(delta=0.01) offset(delta=-0.01) sf_word(label, top_w - 1.5, min(top_w*0.3, top_h*0.35));
                 }}
         }}
-    }} 
+        
+        // Engraved Side Labels (Front, Left, Right)
+        mid_z = z_faceplate + (z_top - z_faceplate)/2; 
+        
+        if (label_alpha != "") {{
+            translate([0, -top_h/2 + 0.4, mid_z])
+                rotate([90, 0, 0])
+                linear_extrude(1.0) {{
+                    offset(delta=0.01) offset(delta=-0.01) sf_word(label_alpha, top_w - 2.0, min(top_w*0.16, top_h*0.18));
+                }}
+        }}
+        
+        if (label_left != "") {{
+            translate([-top_w/2 + 0.4, 0, mid_z])
+                rotate([0, -90, 0])
+                rotate([0, 0, -90]) // Flipped 180 degrees
+                linear_extrude(1.0) {{
+                    offset(delta=0.01) offset(delta=-0.01) sf_word(label_left, top_h - 2.0, min(top_w*0.13, top_h*0.16));
+                }}
+        }}
+        
+        if (label_right != "") {{
+            translate([top_w/2 - 0.4, 0, mid_z])
+                rotate([0, 90, 0])
+                rotate([0, 0, 90]) // Flipped 180 degrees
+                linear_extrude(1.0) {{
+                    offset(delta=0.01) offset(delta=-0.01) sf_word(label_right, top_h - 2.0, min(top_w*0.13, top_h*0.16));
+                }}
+        }}
+        
+        // Pocket to clear 1.5mm tall tactile switch body (SKQGABE010 is 5.2x5.2mm)
+        // 6.0 x 6.0mm pocket leaves 4 solid corner legs for the button to adhere to the bed
+        translate([0, 0, 1.5/2 - 0.1])
+            cube([6.0, 6.0, 1.5 + 0.2], center=true);
+    }}
 }}
 FP_CLR = 0.1;
 module button_faceplate() {{
@@ -711,8 +683,8 @@ module button_faceplate() {{
             // Rails (Z = 0.0 to 1.0)
             translate([FP_CLR, 0, 0]) cube([fp_w - 2*FP_CLR, {split_y:.3f} - FP_CLR, 1.0]);
             
-            // Front Solid Block (Z = 1.0 to 3.5)
-            translate([1.5 + FP_CLR, 0, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, {split_y:.3f} - FP_CLR, 2.5]);
+            // Front Solid Block (Z = 1.0 to 2.5) -> Total thickness 2.5mm
+            translate([1.5 + FP_CLR, 0, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, {split_y:.3f} - FP_CLR, 1.5]);
         }}
         // Button Holes are subtracted here
 """

@@ -131,7 +131,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         
         // Case 1: X = 10 -> (10 > 0) is 1.0 -> 5 * 1.0 = 5.0
         engine.variables["X"] = CalculatorValue(real: 10.0)
-        if let result1 = engine.evaluateProgram(program, variables: engine.variables) {
+        if let result1 = engine.evaluateProgram(program) {
             engine.push(result1)
         }
         print("STACK POST EVAL 1: \(engine.stack[0].real), \(engine.stack[1].real), \(engine.stack[2].real)")
@@ -139,7 +139,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         
         // Case 2: X = -5 -> (-5 > 0) is 0.0 -> 5 * 0.0 = 0.0
         engine.variables["X"] = CalculatorValue(real: -5.0)
-        if let result2 = engine.evaluateProgram(program, variables: engine.variables) {
+        if let result2 = engine.evaluateProgram(program) {
             engine.push(result2)
         }
         print("STACK POST EVAL 2: \(engine.stack[0].real), \(engine.stack[1].real), \(engine.stack[2].real)")

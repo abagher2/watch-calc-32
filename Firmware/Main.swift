@@ -41,23 +41,194 @@ func matchOpBytes(_ buf: UnsafePointer<UInt8>, _ len: Int) -> CalculatorOperatio
     let trimmedLen = end - start
     if trimmedLen == 0 { return nil }
     
-    for op in CalculatorOperation.allCases {
-        let utf8 = op.stringValue.utf8
-        if utf8.count == trimmedLen {
-            var match = true
-            var i = 0
-            for byte in utf8 {
-                if byte != buf[start + i] {
-                    match = false
-                    break
-                }
-                i += 1
-            }
-            if match { return op }
-        }
-    }
+    return fastMatchOp(buf + start, trimmedLen)
+}
+
+func fastMatchOp(_ buf: UnsafePointer<UInt8>, _ len: Int) -> CalculatorOperation? {
+    if len == 0 { return nil }
+    let b0 = buf[0]
+    let b1 = len > 1 ? buf[1] : 0
+    let b2 = len > 2 ? buf[2] : 0
+    let b3 = len > 3 ? buf[3] : 0
+    let b4 = len > 4 ? buf[4] : 0
+    let b5 = len > 5 ? buf[5] : 0
+    let b6 = len > 6 ? buf[6] : 0
+    let b7 = len > 7 ? buf[7] : 0
+    let b8 = len > 8 ? buf[8] : 0
+    let b9 = len > 9 ? buf[9] : 0
+    let b10 = len > 10 ? buf[10] : 0
+    let b11 = len > 11 ? buf[11] : 0
+    let b12 = len > 12 ? buf[12] : 0
+    let b13 = len > 13 ? buf[13] : 0
+    if len == 5 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 99 && b4 == 109 { return .toCm }
+    if len == 6 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 103 && b4 == 97 && b5 == 108 { return .toGal }
+    if len == 5 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 105 && b4 == 110 { return .toIn }
+    if len == 5 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 107 && b4 == 103 { return .toKg }
+    if len == 5 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 107 && b4 == 109 { return .toKm }
+    if len == 4 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 108 { return .toLiters }
+    if len == 5 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 108 && b4 == 98 { return .toLb }
+    if len == 5 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 109 && b4 == 105 { return .toMi }
+    if len == 6 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 194 && b4 == 176 && b5 == 67 { return .toCelsius }
+    if len == 6 && b0 == 226 && b1 == 134 && b2 == 146 && b3 == 194 && b4 == 176 && b5 == 70 { return .toFahrenheit }
+    if len == 1 && b0 == 48 { return .digit0 }
+    if len == 1 && b0 == 49 { return .digit1 }
+    if len == 1 && b0 == 50 { return .digit2 }
+    if len == 1 && b0 == 51 { return .digit3 }
+    if len == 1 && b0 == 52 { return .digit4 }
+    if len == 1 && b0 == 53 { return .digit5 }
+    if len == 1 && b0 == 54 { return .digit6 }
+    if len == 1 && b0 == 55 { return .digit7 }
+    if len == 1 && b0 == 56 { return .digit8 }
+    if len == 1 && b0 == 57 { return .digit9 }
+    if len == 1 && b0 == 43 { return .add }
+    if len == 1 && b0 == 45 { return .subtract }
+    if len == 2 && b0 == 195 && b1 == 151 { return .multiply }
+    if len == 2 && b0 == 195 && b1 == 183 { return .divide }
+    if len == 1 && b0 == 46 { return .decimal }
+    if len == 5 && b0 == 69 && b1 == 78 && b2 == 84 && b3 == 69 && b4 == 82 { return .enter }
+    if len == 3 && b0 == 43 && b1 == 47 && b2 == 45 { return .toggleSign }
+    if len == 6 && b0 == 49 && b1 == 47 && b2 == 240 && b3 == 157 && b4 == 145 && b5 == 165 { return .reciprocal }
+    if len == 4 && b0 == 49 && b1 == 48 && b2 == 203 && b3 == 163 { return .exp10 }
+    if len == 6 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 146 && b4 == 203 && b5 == 163 { return .exp }
+    if len == 6 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 166 && b4 == 203 && b5 == 163 { return .power }
+    if len == 3 && b0 == 120 && b1 == 86 && b2 == 121 { return .xRootY }
+    if len == 6 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 165 && b4 == 194 && b5 == 178 { return .square }
+    if len == 7 && b0 == 226 && b1 == 136 && b2 == 154 && b3 == 240 && b4 == 157 && b5 == 145 && b6 == 165 { return .sqrt }
+    if len == 5 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 165 && b4 == 33 { return .factorial }
+    if len == 4 && b0 == 62 && b1 == 68 && b2 == 69 && b3 == 71 { return .toDeg }
+    if len == 4 && b0 == 62 && b1 == 72 && b2 == 77 && b3 == 83 { return .toHms }
+    if len == 3 && b0 == 62 && b1 == 72 && b2 == 82 { return .toHr }
+    if len == 4 && b0 == 62 && b1 == 82 && b2 == 65 && b3 == 68 { return .toRad }
+    if len == 4 && b0 == 62 && b1 == 121 && b2 == 44 && b3 == 120 { return .toRectangular }
+    if len == 5 && b0 == 62 && b1 == 206 && b2 == 184 && b3 == 44 && b4 == 114 { return .toPolar }
+    if len == 3 && b0 == 65 && b1 == 66 && b2 == 83 { return .abs }
+    if len == 4 && b0 == 65 && b1 == 67 && b2 == 79 && b3 == 83 { return .acos }
+    if len == 3 && b0 == 65 && b1 == 78 && b2 == 68 { return .and }
+    if len == 4 && b0 == 65 && b1 == 83 && b2 == 73 && b3 == 78 { return .asin }
+    if len == 4 && b0 == 65 && b1 == 84 && b2 == 65 && b3 == 78 { return .atan }
+    if len == 3 && b0 == 226 && b1 == 134 && b2 == 144 { return .backspace }
+    if len == 4 && b0 == 66 && b1 == 65 && b2 == 83 && b3 == 69 { return .base }
+    if len == 3 && b0 == 66 && b1 == 73 && b2 == 78 { return .bin }
+    if len == 1 && b0 == 67 { return .c }
+    if len == 5 && b0 == 67 && b1 == 76 && b2 == 69 && b3 == 65 && b4 == 82 { return .clear }
+    if len == 5 && b0 == 67 && b1 == 77 && b2 == 80 && b3 == 76 && b4 == 88 { return .cmplx }
+    if len == 5 && b0 == 67 && b1 == 79 && b2 == 78 && b3 == 83 && b4 == 84 { return .const }
+    if len == 3 && b0 == 67 && b1 == 79 && b2 == 83 { return .cos }
+    if len == 3 && b0 == 68 && b1 == 69 && b2 == 67 { return .dec }
+    if len == 4 && b0 == 68 && b1 == 73 && b2 == 83 && b3 == 80 { return .disp }
+    if len == 1 && b0 == 69 { return .e }
+    if len == 3 && b0 == 69 && b1 == 78 && b2 == 71 { return .eng }
+    if len == 3 && b0 == 69 && b1 == 81 && b2 == 78 { return .eqn }
+    if len == 3 && b0 == 70 && b1 == 73 && b2 == 88 { return .fix }
+    if len == 5 && b0 == 70 && b1 == 76 && b2 == 65 && b3 == 71 && b4 == 83 { return .flags }
+    if len == 3 && b0 == 70 && b1 == 78 && b2 == 61 { return .fnEq }
+    if len == 4 && b0 == 70 && b1 == 82 && b2 == 65 && b3 == 67 { return .frac }
+    if len == 3 && b0 == 71 && b1 == 84 && b2 == 79 { return .gto }
+    if len == 3 && b0 == 72 && b1 == 69 && b2 == 88 { return .hex }
+    if len == 3 && b0 == 72 && b1 == 89 && b2 == 80 { return .hyp }
+    if len == 4 && b0 == 73 && b1 == 78 && b2 == 84 && b3 == 71 { return .intg }
+    if len == 5 && b0 == 73 && b1 == 78 && b2 == 84 && b3 == 195 && b4 == 183 { return .intDiv }
+    if len == 4 && b0 == 76 && b1 == 46 && b2 == 82 && b3 == 46 { return .lr }
+    if len == 8 && b0 == 76 && b1 == 65 && b2 == 83 && b3 == 84 && b4 == 240 && b5 == 157 && b6 == 145 && b7 == 165 { return .lastx }
+    if len == 3 && b0 == 76 && b1 == 66 && b2 == 76 { return .lbl }
+    if len == 5 && b0 == 76 && b1 == 70 && b2 == 85 && b3 == 95 && b4 == 48 { return .lfu0 }
+    if len == 5 && b0 == 76 && b1 == 70 && b2 == 85 && b3 == 95 && b4 == 49 { return .lfu1 }
+    if len == 5 && b0 == 76 && b1 == 70 && b2 == 85 && b3 == 95 && b4 == 50 { return .lfu2 }
+    if len == 5 && b0 == 76 && b1 == 70 && b2 == 85 && b3 == 95 && b4 == 51 { return .lfu3 }
+    if len == 5 && b0 == 76 && b1 == 70 && b2 == 85 && b3 == 95 && b4 == 52 { return .lfu4 }
+    if len == 5 && b0 == 76 && b1 == 70 && b2 == 85 && b3 == 95 && b4 == 53 { return .lfu5 }
+    if len == 2 && b0 == 76 && b1 == 78 { return .ln }
+    if len == 3 && b0 == 76 && b1 == 79 && b2 == 71 { return .log }
+    if len == 3 && b0 == 77 && b1 == 69 && b2 == 77 { return .mem }
+    if len == 5 && b0 == 77 && b1 == 79 && b2 == 68 && b3 == 69 && b4 == 83 { return .modes }
+    if len == 3 && b0 == 78 && b1 == 79 && b2 == 84 { return .not }
+    if len == 3 && b0 == 79 && b1 == 67 && b2 == 84 { return .oct }
+    if len == 3 && b0 == 79 && b1 == 70 && b2 == 70 { return .off }
+    if len == 2 && b0 == 79 && b1 == 82 { return .or }
+    if len == 5 && b0 == 80 && b1 == 65 && b2 == 82 && b3 == 84 && b4 == 83 { return .parts }
+    if len == 4 && b0 == 80 && b1 == 76 && b2 == 79 && b3 == 84 { return .plot }
+    if len == 4 && b0 == 80 && b1 == 82 && b2 == 71 && b3 == 77 { return .prgm }
+    if len == 4 && b0 == 80 && b1 == 82 && b2 == 79 && b3 == 66 { return .prob }
+    if len == 3 && b0 == 110 && b1 == 80 && b2 == 114 { return .nPr }
+    if len == 3 && b0 == 110 && b1 == 67 && b2 == 114 { return .nCr }
+    if len == 4 && b0 == 82 && b1 == 65 && b2 == 78 && b3 == 68 { return .rand }
+    if len == 3 && b0 == 82 && b1 == 67 && b2 == 76 { return .rcl }
+    if len == 4 && b0 == 82 && b1 == 69 && b2 == 71 && b3 == 83 { return .regs }
+    if len == 3 && b0 == 82 && b1 == 78 && b2 == 68 { return .rnd }
+    if len == 4 && b0 == 82 && b1 == 226 && b2 == 134 && b3 == 145 { return .rollUp }
+    if len == 4 && b0 == 82 && b1 == 226 && b2 == 134 && b3 == 147 { return .rollDown }
+    if len == 3 && b0 == 83 && b1 == 67 && b2 == 73 { return .sci }
+    if len == 8 && b0 == 83 && b1 == 69 && b2 == 84 && b3 == 95 && b4 == 69 && b5 == 88 && b6 == 65 && b7 == 77 { return .setExam }
+    if len == 9 && b0 == 83 && b1 == 69 && b2 == 84 && b3 == 95 && b4 == 83 && b5 == 84 && b6 == 65 && b7 == 67 && b8 == 75 { return .setStack }
+    if len == 4 && b0 == 83 && b1 == 72 && b2 == 79 && b3 == 87 { return .show }
+    if len == 3 && b0 == 83 && b1 == 73 && b2 == 78 { return .sin }
+    if len == 5 && b0 == 83 && b1 == 79 && b2 == 76 && b3 == 86 && b4 == 69 { return .solve }
+    if len == 3 && b0 == 83 && b1 == 84 && b2 == 79 { return .sto }
+    if len == 4 && b0 == 83 && b1 == 85 && b2 == 77 && b3 == 83 { return .sums }
+    if len == 3 && b0 == 84 && b1 == 65 && b2 == 78 { return .tan }
+    if len == 4 && b0 == 86 && b1 == 73 && b2 == 69 && b3 == 87 { return .view }
+    if len == 3 && b0 == 88 && b1 == 69 && b2 == 81 { return .xeq }
+    if len == 3 && b0 == 88 && b1 == 79 && b2 == 82 { return .xor }
+    if len == 4 && b0 == 115 && b1 == 44 && b2 == 207 && b3 == 131 { return .statStdDev }
+    if len == 13 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 165 && b4 == 204 && b5 == 132 && b6 == 44 && b7 == 240 && b8 == 157 && b9 == 145 && b10 == 166 && b11 == 204 && b12 == 132 { return .statMean }
+    if len == 3 && b0 == 206 && b1 == 163 && b2 == 43 { return .statAdd }
+    if len == 3 && b0 == 206 && b1 == 163 && b2 == 45 { return .statSub }
+    if len == 4 && b0 == 120 && b1 == 33 && b2 == 61 && b3 == 48 { return .testNeq0 }
+    if len == 4 && b0 == 120 && b1 == 33 && b2 == 61 && b3 == 121 { return .testNeq }
+    if len == 3 && b0 == 120 && b1 == 60 && b2 == 48 { return .testLt0 }
+    if len == 4 && b0 == 120 && b1 == 60 && b2 == 61 && b3 == 48 { return .testLte0 }
+    if len == 4 && b0 == 120 && b1 == 60 && b2 == 61 && b3 == 121 { return .testLte }
+    if len == 3 && b0 == 120 && b1 == 60 && b2 == 121 { return .testLt }
+    if len == 3 && b0 == 120 && b1 == 61 && b2 == 48 { return .testEq0 }
+    if len == 3 && b0 == 120 && b1 == 61 && b2 == 121 { return .testEq }
+    if len == 3 && b0 == 120 && b1 == 62 && b2 == 48 { return .testGt0 }
+    if len == 3 && b0 == 120 && b1 == 62 && b2 == 121 { return .testGt }
+    if len == 6 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 165 && b4 == 63 && b5 == 48 { return .testX0 }
+    if len == 9 && b0 == 240 && b1 == 157 && b2 == 145 && b3 == 165 && b4 == 63 && b5 == 240 && b6 == 157 && b7 == 145 && b8 == 166 { return .testXY }
+    if len == 5 && b0 == 120 && b1 == 226 && b2 == 134 && b3 == 148 && b4 == 63 { return .swapXYPrompt }
+    if len == 5 && b0 == 120 && b1 == 226 && b2 == 134 && b3 == 148 && b4 == 121 { return .swapXY }
+    if len == 5 && b0 == 226 && b1 == 136 && b2 == 171 && b3 == 70 && b4 == 78 { return .integrate }
+    if len == 1 && b0 == 37 { return .percent }
+    if len == 4 && b0 == 37 && b1 == 67 && b2 == 72 && b3 == 71 { return .percentChange }
+    if len == 3 && b0 == 77 && b1 == 79 && b2 == 68 { return .modulo }
+    if len == 3 && b0 == 82 && b1 == 84 && b2 == 78 { return .rtn }
+    if len == 4 && b0 == 83 && b1 == 67 && b2 == 82 && b3 == 76 { return .scrl }
+    if len == 2 && b0 == 207 && b1 == 128 { return .pi }
+    if len == 12 && b0 == 83 && b1 == 72 && b2 == 73 && b3 == 70 && b4 == 84 && b5 == 95 && b6 == 89 && b7 == 69 && b8 == 76 && b9 == 76 && b10 == 79 && b11 == 87 { return .shiftYellow }
+    if len == 10 && b0 == 83 && b1 == 72 && b2 == 73 && b3 == 70 && b4 == 84 && b5 == 95 && b6 == 66 && b7 == 76 && b8 == 85 && b9 == 69 { return .shiftBlue }
+    if len == 5 && b0 == 70 && b1 == 68 && b2 == 73 && b3 == 83 && b4 == 80 { return .fdisp }
+    if len == 2 && b0 == 47 && b1 == 99 { return .slashc }
+    if len == 3 && b0 == 226 && b1 == 134 && b2 == 145 { return .scrollUp }
+    if len == 3 && b0 == 226 && b1 == 134 && b2 == 147 { return .scrollDown }
+    if len == 1 && b0 == 65 { return .sqrt }
+    if len == 1 && b0 == 66 { return .exp }
+    if len == 1 && b0 == 67 { return .ln }
+    if len == 1 && b0 == 68 { return .power }
+    if len == 1 && b0 == 69 { return .reciprocal }
+    if len == 1 && b0 == 70 { return .statAdd }
+    if len == 1 && b0 == 71 { return .sto }
+    if len == 1 && b0 == 72 { return .rcl }
+    if len == 1 && b0 == 73 { return .rollDown }
+    if len == 1 && b0 == 74 { return .sin }
+    if len == 1 && b0 == 75 { return .cos }
+    if len == 1 && b0 == 76 { return .tan }
+    if len == 1 && b0 == 77 { return .enter }
+    if len == 1 && b0 == 78 { return .swapXY }
+    if len == 1 && b0 == 79 { return .toggleSign }
+    if len == 1 && b0 == 80 { return .e }
+    if len == 1 && b0 == 81 { return .digit7 }
+    if len == 1 && b0 == 82 { return .digit8 }
+    if len == 1 && b0 == 83 { return .digit9 }
+    if len == 1 && b0 == 84 { return .digit4 }
+    if len == 1 && b0 == 85 { return .digit5 }
+    if len == 1 && b0 == 86 { return .digit6 }
+    if len == 1 && b0 == 87 { return .digit1 }
+    if len == 1 && b0 == 88 { return .digit2 }
+    if len == 1 && b0 == 89 { return .digit3 }
+    if len == 1 && b0 == 90 { return .digit0 }
     return nil
 }
+
 
 func isCommand(_ buf: UnsafePointer<UInt8>, _ len: Int, _ cmd: StaticString) -> Bool {
     var start = 0

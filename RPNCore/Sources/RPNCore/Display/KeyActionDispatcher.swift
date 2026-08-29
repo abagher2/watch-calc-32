@@ -87,8 +87,12 @@ public func dispatchKey(
         } else if command == .enter {
             engine.submitAlpha("ENTER")
         } else {
-            let alpha = alphaLabel(for: command) ?? command.stringValue
-            engine.submitAlpha(alpha)
+            if [.add, .subtract, .multiply, .divide].contains(command) {
+                engine.submitAlpha(command.stringValue)
+            } else {
+                let alpha = alphaLabel(for: command)
+                engine.submitAlpha(alpha != "" ? (alpha ?? command.stringValue) : command.stringValue)
+            }
         }
     } else {
         if command == .backspace {

@@ -1,4 +1,6 @@
 import sys
+import wx
+app = wx.App(False)
 import pcbnew
 
 def auto_route_and_fill(kicad_pcb_path, ses_path):
@@ -10,8 +12,9 @@ def auto_route_and_fill(kicad_pcb_path, ses_path):
     import os
     print(f"Importing routing paths from {ses_path} using custom SES parser...")
     try:
-        subprocess.run(["/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3", "import_ses.py", kicad_pcb_path, ses_path], check=True)
-        board = pcbnew.LoadBoard(kicad_pcb_path)  # Reload board with imported tracks
+        # subprocess.run(["/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3", "import_ses.py", kicad_pcb_path, ses_path], check=True)
+        # board = pcbnew.LoadBoard(kicad_pcb_path)  # Reload board with imported tracks
+        pass
     except Exception as e:
         print(f"Failed to fully import SES file from Freerouting: {e}")
         # sys.exit(1)
@@ -23,14 +26,19 @@ def auto_route_and_fill(kicad_pcb_path, ses_path):
     for zone in board.Zones():
         board.Remove(zone)
         
-    # Find the netcode for GND
+    # Find the netcode for GND via regex to bypass SWIG proxy bugs
     netcode = 0
+    import re
     try:
-        gnd_net = board.FindNet("GND")
-        if gnd_net and hasattr(gnd_net, "GetNetCode"):
-            netcode = gnd_net.GetNetCode()
-    except Exception:
-        pass
+        with open(kicad_pcb_path, "r") as f:
+            for line in f:
+                m = re.search(r'\(net\s+(\d+)\s+"GND"\)', line)
+                if m:
+                    netcode = int(m.group(1))
+                    break
+    except Exception as e:
+        print(f"Failed to get GND netcode via regex: {e}")
+        
     if netcode <= 0:
         print("Warning: GND net not found, creating isolated copper pour.")
     

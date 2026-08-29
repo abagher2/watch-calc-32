@@ -149,13 +149,16 @@ public struct RetroUIBodyView: FirmwareView {
                     var vars = engine.variables
                     let eqVar = "X".split(separator: "=").first.map(String.init) ?? "X"
                     vars[eqVar] = CalculatorValue(real: rootX + h)
-                    let fPlus = engine.evaluateProgram(p, variables: vars)?.real ?? 0.0
+                    engine.variables = vars
+                    let fPlus = engine.evaluateProgram(p)?.real ?? 0.0
                     vars[eqVar] = CalculatorValue(real: rootX - h)
-                    let fMinus = engine.evaluateProgram(p, variables: vars)?.real ?? 0.0
+                    engine.variables = vars
+                    let fMinus = engine.evaluateProgram(p)?.real ?? 0.0
                     let slope = (fPlus - fMinus) / (2 * h)
                     
                     vars[eqVar] = CalculatorValue(real: rootX)
-                    let rootY = engine.evaluateProgram(p, variables: vars)?.real ?? 0.0
+                    engine.variables = vars
+                    let rootY = engine.evaluateProgram(p)?.real ?? 0.0
                     let intercept = rootY - slope * rootX
                     
                     var pMinX = Double.greatestFiniteMagnitude

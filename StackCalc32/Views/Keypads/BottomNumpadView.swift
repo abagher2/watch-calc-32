@@ -66,6 +66,11 @@ struct BottomNumpadView: View {
         if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isProgrammingMode {
             withAnimation { horizontalPage = 1 }
         }
+        
+        // Auto-swipe to Alpha pad when waiting for variable after STO+ / STO- / STOx / STO/
+        if engine.isWaitingForAlpha && (engine.alphaAction == .stoAdd || engine.alphaAction == .stoSub || engine.alphaAction == .stoMul || engine.alphaAction == .stoDiv) {
+            withAnimation { horizontalPage = 0 }
+        }
     }
 
     private func menuForOp(_ op: CalculatorOperation) -> CalculatorMenu? {
