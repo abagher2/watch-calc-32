@@ -17,7 +17,7 @@ func strtod(_ nptr: UnsafePointer<CChar>, _ endptr: UnsafeMutablePointer<UnsafeM
 import Foundation
 #endif
 
-#if !hasFeature(Embedded)
+#if !hasFeature(Embedded) && !EMULATOR
 import Foundation
 import Observation
 import RationalModule
@@ -267,7 +267,7 @@ internal func parseInt64(_ text: String) -> Int64? { return Int64(text) }
 func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max_len: Int32, _ mode: Int32, _ places: Int32, _ use_comma: Int32)
 
 
-#if !hasFeature(Embedded)
+#if !hasFeature(Embedded) && !EMULATOR
 @Observable
 #endif
 public class CalculatorEngine {
@@ -430,7 +430,7 @@ public class CalculatorEngine {
     public var statSumY2: Double = 0.0
     public var statSumXY: Double = 0.0
     
-    #if !hasFeature(Embedded)
+    #if !hasFeature(Embedded) && !EMULATOR
     public struct StatPoint: Codable, Equatable {
         public let x: Double
         public let y: Double
@@ -446,7 +446,7 @@ public class CalculatorEngine {
     // Variables & Equations
     public var variables: [String: CalculatorValue] = [:]
     
-    #if !hasFeature(Embedded)
+    #if !hasFeature(Embedded) && !EMULATOR
     public struct Equation: Codable, Identifiable {
         public var id: String { label }
         public var label: String
@@ -551,7 +551,7 @@ public class CalculatorEngine {
     #endif
     public var equations: [Equation] = [] {
         didSet {
-            #if !hasFeature(Embedded)
+            #if !hasFeature(Embedded) && !EMULATOR
             if let data = try? JSONEncoder().encode(equations) {
                 UserDefaults.standard.set(data, forKey: "saved_programs")
             }
@@ -560,7 +560,7 @@ public class CalculatorEngine {
     }
     
     public init() {
-        #if !hasFeature(Embedded)
+        #if !hasFeature(Embedded) && !EMULATOR
         if let data = UserDefaults.standard.data(forKey: "saved_programs"),
            let savedPrograms = try? JSONDecoder().decode([Equation].self, from: data) {
             self.equations = savedPrograms
@@ -1355,7 +1355,7 @@ public class CalculatorEngine {
             updateDisplay()
         } else {
             transientMessage = result ? "YES" : "NO"
-            #if !hasFeature(Embedded)
+            #if !hasFeature(Embedded) && !EMULATOR
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 if self.transientMessage == "YES" || self.transientMessage == "NO" {
                     self.transientMessage = nil
@@ -1808,7 +1808,8 @@ public class CalculatorEngine {
         if operation == "E" || operation == "EEX" { startExponent(); return }
         if operation == "+/-" { toggleSign(); return }
         if operation == "<-" || operation == "BACKSPACE" { backspace(); return }
-        if operation == "C" || operation == "CLEAR" || operation == "CLX" { clearX(); return }
+        if operation == "C" || operation == "BACKSPACE" { backspace(); return }
+        if operation == "CLEAR" || operation == "CLX" { clearX(); return }
         
         commitInput()
         stackLiftEnabled = true
@@ -3484,13 +3485,13 @@ public class CalculatorEngine {
             _populateBufferWithString(displayX)
             #endif
         }
-        #if !hasFeature(Embedded)
+        #if !hasFeature(Embedded) && !EMULATOR
         updateStackStrings()
         #endif
     }
     
     private func updateStackStrings() {
-        #if !hasFeature(Embedded)
+        #if !hasFeature(Embedded) && !EMULATOR
         let logicalStack = getLogicalStack()
         stackStrings = logicalStack.map { formatValue($0) }
         #endif
@@ -3620,7 +3621,7 @@ public class CalculatorEngine {
     }
 }
 
-#if !hasFeature(Embedded)
+#if !hasFeature(Embedded) && !EMULATOR
 extension CalculatorEngine: ObservableObject {}
 #endif
 

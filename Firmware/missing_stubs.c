@@ -1,3 +1,42 @@
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+void sleep_ms(uint32_t ms) { usleep(ms * 1000); }
+void sleep_us(uint64_t us) { usleep(us); }
+uint64_t time_us_64(void) { return 0; }
+bool gpio_get(int pin) { return false; }
+void wfi(void) { usleep(1000); }
+void watchdog_enable(uint32_t delay_ms, bool pause_on_debug) {}
+void gpio_init(int pin) {}
+void gpio_set_dir(int pin, int dir) {}
+void gpio_pull_down(int pin) {}
+void gpio_put(int pin, int val) {}
+void watchdog_update(void) {}
+void watchdog_reboot(int a, int b, int c) { _exit(0); }
+void spi_write_blocking(void* spi, const uint8_t* src, size_t len) {}
+void stdio_init_all(void) {}
+int getchar_timeout_us(uint32_t timeout_us) {
+    static int flags_set = 0;
+    if (!flags_set) {
+        int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+        flags_set = 1;
+    }
+    
+    char c;
+    if (read(STDIN_FILENO, &c, 1) == 1) {
+        return (int)(unsigned char)c;
+    }
+    
+    if (timeout_us > 0) {
+        usleep(timeout_us);
+    }
+    return -1;
+}
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

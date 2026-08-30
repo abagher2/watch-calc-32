@@ -1,11 +1,35 @@
 #include "hardware_wrapper.h"
+
+
+#include <stdlib.h>
+#include <math.h>
+
+
+
+#ifndef EMULATOR
 #include "pico/stdlib.h"
+#endif
+#ifndef EMULATOR
 #include "hardware/spi.h"
+#endif
+#ifndef EMULATOR
 #include "hardware/watchdog.h"
+#endif
+#ifndef EMULATOR
 #include "hardware/sync.h"
+#endif
+#ifndef EMULATOR
 #include "hardware/gpio.h"
+#endif
+#ifndef EMULATOR
 #include "hardware/watchdog.h"
+#endif
+
+#ifdef EMULATOR
+#include "missing_stubs.h"
+#endif
 #include <string.h>
+
 #include <stdio.h>
 
 #define SPI_PORT spi0
@@ -44,7 +68,7 @@ void hw_init(void) {
 #ifndef EMULATOR
     watchdog_enable(2000, 1);
 #endif
-    printf("C Booted! Magic check: %lx\n", emu_display.magic[0]);
+    printf("C Booted! Magic check: %x\n", emu_display.magic[0]);
     void* ptr = malloc(32);
     free(ptr);
 
@@ -140,14 +164,14 @@ void isr_hardfault(void) {
         bool c_pressed = (state & (1ULL << 42)) != 0;
         bool blue_pressed = (state & (1ULL << 40)) != 0;
         if (c_pressed && blue_pressed) {
-            system_sleep();
+            
         } else if (c_pressed) {
             watchdog_reboot(0, 0, 0);
         }
     }
 }
 
-void system_sleep(void);
+
 
 void abort(void) {
     oom_fault_occurred = true;
@@ -156,14 +180,16 @@ void abort(void) {
         bool c_pressed = (state & (1ULL << 42)) != 0;
         bool blue_pressed = (state & (1ULL << 40)) != 0;
         if (c_pressed && blue_pressed) {
-            system_sleep();
+            
         } else if (c_pressed) {
             watchdog_reboot(0, 0, 0);
         }
     }
 }
 
+#ifndef EMULATOR
 static struct repeating_timer hw_scan_timer;
+#endif
 
 void system_sleep(void) {
     // Turn off display
@@ -185,7 +211,7 @@ void system_sleep(void) {
     
     // Wait for C key to be pressed
     while(!gpio_get(col_pins[0])) {
-        __wfi(); // Wait for interrupt
+        wfi(); // Wait for interrupt
     }
     
     // Reboot!
@@ -207,7 +233,7 @@ bool hw_scan_timer_callback(struct repeating_timer *t) {
     }
     
     if (c_pressed && blue_shift_active) {
-        system_sleep();
+        
     }
     if (oom_fault_occurred && c_pressed) {
         watchdog_reboot(0, 0, 0);

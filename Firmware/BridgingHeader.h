@@ -1,6 +1,11 @@
 #pragma once
 
+#ifndef EMULATOR
 #include "pico/stdlib.h"
+#else
+#include <stdint.h>
+#include <stdbool.h>
+#endif
 #include "hardware_wrapper.h"
 #include <math.h>
 

@@ -147,7 +147,7 @@ func fastMatchOp(_ buf: UnsafePointer<UInt8>, _ len: Int) -> CalculatorOperation
     if len == 2 && b0 == 79 && b1 == 82 { return .or }
     if len == 5 && b0 == 80 && b1 == 65 && b2 == 82 && b3 == 84 && b4 == 83 { return .parts }
     if len == 4 && b0 == 80 && b1 == 76 && b2 == 79 && b3 == 84 { return .plot }
-    if len == 4 && b0 == 80 && b1 == 82 && b2 == 71 && b3 == 77 { return .prgm }
+    if len == 4 && b0 == 80 && b1 == 82 && b2 == 71 && b3 == 77 { return ._prgm }
     if len == 4 && b0 == 80 && b1 == 82 && b2 == 79 && b3 == 66 { return .prob }
     if len == 3 && b0 == 110 && b1 == 80 && b2 == 114 { return .nPr }
     if len == 3 && b0 == 110 && b1 == 67 && b2 == 114 { return .nCr }
@@ -567,7 +567,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             case .sci(let p): cMode = 2; cPlaces = Int32(p)
             case .eng(let p): cMode = 3; cPlaces = Int32(p)
             case .all: cMode = 0; cPlaces = 0
-            case .sig(let p): cMode = 4; cPlaces = Int32(p)
+            /* removed sig */
             }
             format_double_c(val, WatchCalcFirmware.formatBuf, 64, cMode, cPlaces, engine.useCommaForDecimal ? 1 : 0)
             var len = 0

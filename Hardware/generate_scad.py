@@ -133,8 +133,8 @@ key_map = {
 
 for r_idx, row in enumerate(rows):
     for c_idx, b in enumerate(row):
-        b['w'] = 9.8
-        b['h'] = 9.6
+        b['w'] = 8.2
+        b['h'] = 5.2
         
         real_col = c_idx
         if r_idx == 3 and c_idx >= 1:
@@ -579,9 +579,9 @@ translate([{fp_w:.3f}, 0, {pt:.3f}]) rotate([0, 180, 0]) faceplate_assembly();
     unibody_scad = f"""
 use <buttons.scad>;
 
+
 FP_CLR = 0.1;
 module button_faceplate() {{
-    union() {{
     difference() {{
         union() {{
             // Rails (Z = 0.0 to 1.0)
@@ -597,9 +597,8 @@ module button_faceplate() {{
         for b in row:
             ox = pad_left + b['x']
             oy = pad_bottom + b['y']
-            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_cavity({b['w']});\n"
+            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) hp32_cavity({b['w'] + 0.4:.3f}, {b['h'] + 0.4:.3f}, 8.4, 2.5);\n"
 
-    unibody_scad += "    }\n"
     
 
     for row in rows:
@@ -610,7 +609,7 @@ module button_faceplate() {{
             lbl_l = b.get('label_left', '').replace('"', '\\"')
             lbl_r = b.get('label_right', '').replace('"', '\\"')
             lbl_a = b.get('label_alpha', '').replace('"', '\\"')
-            unibody_scad += f'        translate([{ox:.3f}, {oy:.3f}, 0]) button_labeled({b["w"]}, {b["w"]}, 0.5, "{lbl_a}", "{lbl_l}", "{lbl_r}");\n'
+            
     unibody_scad += f"""
     }}
 }}
@@ -1131,13 +1130,42 @@ tpu_stretch_cover();
     # ═══════════════════════════════════════════════════════
     # STANDALONE KEYCAPS 
     # ═══════════════════════════════════════════════════════
-    buttons_scad = ""
+
+    # ═══════════════════════════════════════════════════════
+    # BUTTONS ARRAY 
+    # ═══════════════════════════════════════════════════════
+    buttons_scad = "use <buttons.scad>;\n\n"
     for row in rows:
         for b in row:
-            buttons_scad += f"translate([{b['x']:.1f}, {b['y']:.1f}, 2.0]) rotate([0, 180, 0]) key_button({b['w']}, {b['h']}, \"{b['label']}\");\n"
+            ox = pad_left + b['x']
+            oy = pad_bottom + b['y']
+            lbl = b.get('label', '').replace('"', '\\"')
+            buttons_scad += f"translate([{ox:.3f}, {oy:.3f}, 0]) button_hp32({b['w']}, {b['h']}, 5.6, 0.8, \"{lbl}\");\n"
+    
+    with open("designs/buttons_generated.scad", "w") as f:
+        f.write(buttons_scad)
 
-    if False:
-        pass
+
+
+    # ═══════════════════════════════════════════════════════
+    # LCD SPACER (Raises LCD by 3.0mm)
+    # ═══════════════════════════════════════════════════════
+    lcd_spacer_scad = f"""
+// WatchCalc 32 LCD Spacer
+// Raises the Sharp Memory LCD by 3.0mm to align it with the 5.6mm buttons.
+$fn = 24;
+difference() {{
+    translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, 0])
+        cube([{DISP_W:.3f}, {DISP_H:.3f} - 4.0, 3.0]); // 4.0mm shorter to leave room for the ribbon cable
+    
+    // Hollow out the center to save material
+    translate([{disp_x:.3f} - {DISP_W:.3f}/2 + 2.0, {disp_y:.3f} - {DISP_H:.3f}/2 + 2.0, -0.1])
+        cube([{DISP_W:.3f} - 4.0, {DISP_H:.3f} - 8.0, 3.2]);
+}}
+"""
+    with open("designs/lcd_spacer.scad", "w") as f:
+        f.write(lcd_spacer_scad)
+
 
     # ---------------------------------------------------------
     # DUMMY PCB FOR ALIGNMENT
@@ -1161,14 +1189,14 @@ module dummy_pcb_board_local() {{
 
     // Sharp Memory LCD Base (White)
     color("White") {{
-        translate([{disp_x:.3f}, {disp_y:.3f}, 1.6]) 
+        translate([{disp_x:.3f}, {disp_y:.3f}, 1.6 + 3.0]) 
             translate([-{DISP_W:.3f}/2, -{DISP_H:.3f}/2, 0])
             cube([{DISP_W:.3f}, {DISP_H:.3f}, {DISP_T - 0.4:.3f}]);
     }}
 
     // Sharp LCD Active Glass Area (Black)
     color("Black") {{
-        translate([{disp_x:.3f}, {disp_y:.3f}, 1.6 + {DISP_T - 0.4:.3f}]) 
+        translate([{disp_x:.3f}, {disp_y:.3f}, 1.6 + 3.0 + {DISP_T - 0.4:.3f}]) 
             translate([-{ACTIVE_W:.3f}/2, -{ACTIVE_H:.3f}/2, 0])
             cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.4]);
     }}
@@ -1223,7 +1251,7 @@ module dummy_pcb_board_local() {{
     color("Gold") {{
         // FPC Ribbon Cable
         // Originates from bottom of display
-        translate([{disp_x:.3f} - 5.0, {disp_y:.3f} + {DISP_H:.3f}/2, 1.6])
+        translate([{disp_x:.3f} - 5.0, {disp_y:.3f} + {DISP_H:.3f}/2, 1.6 + 3.0])
             cube([10.0, 2.0, 0.1]);
         // Bends through slot
         translate([{disp_x:.3f} - 5.0, {disp_y:.3f} + {DISP_H:.3f}/2 + 1.9, 0])
@@ -1262,12 +1290,14 @@ if __name__ == "__main__":
         ("faceplate_mjf",  "designs/faceplate_mjf.scad",  "../scratch/stl/faceplate_mjf.stl"),
         ("faceplate_fdm",  "designs/faceplate_fdm.scad",  "../scratch/stl/faceplate_fdm.stl"),
         ("button_faceplate",  "designs/button_faceplate.scad",  "../scratch/stl/button_faceplate.stl"),
+        ("buttons_generated", "designs/buttons_generated.scad", "../scratch/stl/buttons_generated.stl"),
         ("screen_faceplate",  "designs/screen_faceplate.scad",  "../scratch/stl/screen_faceplate.stl"),
         ("chassis_tapered","designs/chassis_tapered.scad","../scratch/stl/chassis_tapered.stl"),
         ("top_cap",        "designs/top_cap.scad",        "../scratch/stl/top_cap.stl"),
         ("tpu_stretch_cover","designs/tpu_stretch_cover.scad","../scratch/stl/tpu_stretch_cover.stl"),
         
         ("dummy_pcb",      "designs/dummy_pcb.scad",      "../scratch/stl/dummy_pcb.stl"),
+        ("lcd_spacer",       "designs/lcd_spacer.scad",       "../scratch/stl/lcd_spacer.stl"),
     ]
 
     import shutil
