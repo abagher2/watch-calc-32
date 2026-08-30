@@ -275,31 +275,23 @@ public class CalculatorEngine {
     private func computeFractionToFit(valAbs: Double, sign: Double) -> (whole: Int64, num: Int64, den: Int64)? {
         var whole = Int64(valAbs)
         let remainder = valAbs - Double(whole)
-        if remainder <= 1e-6 {
-            return (whole, 0, 1) // Just integer
-        }
+        if remainder <= 1e-6 { return (whole, 0, 1) }
         
         let signLen = (sign < 0) ? 1 : 0
         let wholeLen = (whole == 0) ? 0 : String(whole).count
         let spaceLen = (whole == 0) ? 0 : 1
-        let slashLen = 1
-        let available = 12 - signLen - wholeLen - spaceLen - slashLen
+        let available = 12 - signLen - wholeLen - spaceLen - 1
         
-        if available < 2 { return nil } // Cannot fit
+        if available < 2 { return nil }
         
         if flags[8] {
             let targetDen = Int64(maxDenominator)
             let targetNum = Int64(round(remainder * Double(targetDen)))
-            var fn = targetNum
-            var fd = targetDen
-            if !flags[9] {
-                let d = engineGcd(targetNum, targetDen)
-                fn = targetNum / d; fd = targetDen / d
-            }
+            var fn = targetNum; var fd = targetDen
+            if !flags[9] { let d = engineGcd(targetNum, targetDen); fn = targetNum / d; fd = targetDen / d }
             if fn == fd && fd > 0 { fn = 0; whole += 1 }
             if fn == 0 { return (whole, 0, 1) }
-            let len = String(fn).count + String(fd).count
-            if len <= available { return (whole, fn, fd) }
+            if String(fn).count + String(fd).count <= available { return (whole, fn, fd) }
             return nil
         }
         
@@ -309,20 +301,16 @@ public class CalculatorEngine {
         
         while currentMaxDenom >= 2 {
             let frac = Rational<Int64>(num, den).limitDenominator(to: currentMaxDenom)
-            var fn = frac.numerator
-            var fd = frac.denominator
+            var fn = frac.numerator; var fd = frac.denominator
             if fn == fd && fd > 0 { fn = 0; whole += 1 }
             if fn == 0 { return (whole, 0, 1) }
-            
-            let len = String(fn).count + String(fd).count
-            if len <= available {
-                return (whole, fn, fd)
-            } else {
-                currentMaxDenom = fd - 1
-            }
+            if String(fn).count + String(fd).count <= available { return (whole, fn, fd) }
+            currentMaxDenom = fd - 1
         }
         return nil
     }
+
+
 
 
 
