@@ -1276,8 +1276,21 @@ public class CalculatorEngine {
                     currentInputBuffer[0] = 48
                     currentInputLength = 1
                     isBuildingNumber = false
+                    
+                    // HP32SII Parity: When you completely cancel a number entry
+                    // by backspacing the last character, the stack should drop
+                    // to reverse the stack lift that occurred when you started typing.
+                    if stackLiftEnabled == true {
+                        // We must have pushed the stack when we started building.
+                        // Undo the push (drop the stack).
+                        for i in 0..<(stackSizeLimit - 1) {
+                            stack[i] = stack[i+1]
+                        }
+                        stack[stackSizeLimit - 1] = CalculatorValue()
+                    } else {
+                        stack[0] = CalculatorValue()
+                    }
                     stackLiftEnabled = false
-                    stack[0] = CalculatorValue()
                 }
             }
             if isBuildingNumber {

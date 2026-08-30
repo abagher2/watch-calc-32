@@ -34,9 +34,12 @@ class ContinuousFuzzTests: XCTestCase {
                 } else if app.staticTexts[key].exists {
                     app.staticTexts[key].firstMatch.tap()
                 } else {
-                    if app.buttons["func_<-"].exists {
-                        app.buttons["func_<-"].firstMatch.tap()
-                    }
+                    // Try to swipe!
+                    app.swipeLeft()
+                    if app.buttons[key].exists { app.buttons[key].firstMatch.tap() }
+                    else { app.swipeRight(); app.swipeRight() }
+                    if app.buttons[key].exists { app.buttons[key].firstMatch.tap() }
+                    else { app.swipeLeft() }
                 }
             }
             
@@ -92,9 +95,11 @@ class ContinuousFuzzTests: XCTestCase {
                 print("✅ Parity Match (LCD, Annunciators, Stack & Plots): \(lcd) for \(seq)")
             }
             
-            if app.buttons["func_<-"].exists {
-                app.buttons["func_<-"].firstMatch.tap()
-            }
+            
+            app.terminate()
+            app.launch()
+            _ = app.staticTexts["lcd_display"].waitForExistence(timeout: 10)
+
         }
     }
     func mapOpToIdentifier(_ op: String) -> String {

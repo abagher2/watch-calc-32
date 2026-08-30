@@ -25,12 +25,10 @@ public struct LCDDisplayView: View {
                 Text(prompt)
                   .accessibilityIdentifier("lcd_display")
                   .lineLimit(1)
-                  .minimumScaleFactor(0.5)
               } else {
                 Text(engine.displayX)
                   .accessibilityIdentifier("lcd_display")
                   .lineLimit(1)
-                  .minimumScaleFactor(0.5)
               }
               Text("_")
                 .id("cursor")
@@ -51,7 +49,7 @@ public struct LCDDisplayView: View {
             Text(status)
               .accessibilityIdentifier("lcd_display")
               .lineLimit(1)
-              .minimumScaleFactor(0.5)
+              
               .bold()
             Spacer(minLength: 0)
           }
@@ -63,7 +61,7 @@ public struct LCDDisplayView: View {
             Text(error)
               .accessibilityIdentifier("lcd_display")
               .lineLimit(1)
-              .minimumScaleFactor(0.5)
+              
               .bold()
             Spacer(minLength: 0)
           }
@@ -77,7 +75,7 @@ public struct LCDDisplayView: View {
             Text(transient)
               .accessibilityIdentifier("lcd_display")
               .lineLimit(1)
-              .minimumScaleFactor(0.5)
+              
               .bold()
               .fixedSize(horizontal: true, vertical: false)
           }
@@ -89,7 +87,7 @@ public struct LCDDisplayView: View {
             Text(prompt)
               .accessibilityIdentifier("lcd_display")
               .lineLimit(1)
-              .minimumScaleFactor(0.5)
+              
             Spacer(minLength: 0)
           }
           .id("lcd_content")
@@ -100,7 +98,7 @@ public struct LCDDisplayView: View {
             Text(engine.displayX)
               .accessibilityIdentifier("lcd_display")
               .lineLimit(1)
-              .minimumScaleFactor(0.5)
+              
             Spacer(minLength: 0)
           }
           .id("lcd_content")
