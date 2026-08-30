@@ -28,7 +28,7 @@ public extension CalculatorEngine {
         if !autoReturnToMainPad { list.append(.stay) }
         if isHypPending { list.append(.hyp) }
         if hasStackData { list.append(.stack) }
-        if isProgrammingMode { list.append(.eqn) }
+        if isEquationEditMode { list.append(.eqn) }
         if baseMode == .hex { list.append(.hex) }
         else if baseMode == .oct { list.append(.oct) }
         else if baseMode == .bin { list.append(.bin) }

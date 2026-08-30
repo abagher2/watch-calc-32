@@ -6,13 +6,13 @@ struct SolvePromptView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var variables: [String] = []
-    @State private var selectedProgramLabel = ""
+    @State private var selectedEquationLabel = ""
     @State private var selectedVar = ""
     @State private var targetSelection = "0"
     
     private func updateVariables() {
-        if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
-            variables = program.extractVariables()
+        if let equation = engine.equations.first(where: { $0.label == selectedEquationLabel }) {
+            variables = equation.extractVariables()
         } else {
             variables = []
         }
@@ -21,15 +21,15 @@ struct SolvePromptView: View {
     var body: some View {
         NavigationStack {
             List {
-                if engine.programs.isEmpty {
+                if engine.equations.isEmpty {
                     Text("No equations available.")
                 } else {
-                    Picker("Equation", selection: $selectedProgramLabel) {
-                        ForEach(engine.programs) { program in
-                            Text(program.label).tag(program.label)
+                    Picker("Equation", selection: $selectedEquationLabel) {
+                        ForEach(engine.equations) { equation in
+                            Text(equation.label).tag(equation.label)
                         }
                     }
-                    .onChange(of: selectedProgramLabel) { _, _ in updateVariables() }
+                    .onChange(of: selectedEquationLabel) { _, _ in updateVariables() }
                     
                     if variables.isEmpty {
                         Text("No variables found in equation")
@@ -65,14 +65,14 @@ struct SolvePromptView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Solve") {
-                        if !selectedProgramLabel.isEmpty {
-                            engine.currentProgramLabel = selectedProgramLabel
+                        if !selectedEquationLabel.isEmpty {
+                            engine.currentEquationLabel = selectedEquationLabel
                         }
-                        if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
+                        if let equation = engine.equations.first(where: { $0.label == selectedEquationLabel }) {
                             engine.statusMessage = "CALCULATING"
                             let targetValue = targetSelection == "X" ? (engine.stack.first?.real ?? 0.0) : 0.0
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                _ = engine.solve(for: selectedVar.uppercased(), program: program, target: targetValue)
+                                _ = engine.solve(for: selectedVar.uppercased(), equation: equation, target: targetValue)
                                 engine.statusMessage = nil
                             }
                         }
@@ -81,11 +81,11 @@ struct SolvePromptView: View {
                 }
             }
             .onAppear {
-                if let label = engine.currentProgramLabel.isEmpty ? nil : engine.currentProgramLabel,
-                   engine.programs.contains(where: { $0.label == label }) {
-                    selectedProgramLabel = label
-                } else if let first = engine.programs.first {
-                    selectedProgramLabel = first.label
+                if let label = engine.currentEquationLabel.isEmpty ? nil : engine.currentEquationLabel,
+                   engine.equations.contains(where: { $0.label == label }) {
+                    selectedEquationLabel = label
+                } else if let first = engine.equations.first {
+                    selectedEquationLabel = first.label
                 }
                 updateVariables()
             }
@@ -96,17 +96,17 @@ struct XEQPromptView: View {
     @Environment(CalculatorEngine.self) var engine
     @Environment(\.dismiss) var dismiss
     
-    @State private var selectedProgramLabel = ""
+    @State private var selectedEquationLabel = ""
     
     var body: some View {
         NavigationStack {
             List {
-                if engine.programs.isEmpty {
+                if engine.equations.isEmpty {
                     Text("No equations available.")
                 } else {
-                    Picker("Equation", selection: $selectedProgramLabel) {
-                        ForEach(engine.programs) { program in
-                            Text(program.label).tag(program.label)
+                    Picker("Equation", selection: $selectedEquationLabel) {
+                        ForEach(engine.equations) { equation in
+                            Text(equation.label).tag(equation.label)
                         }
                     }
                     
@@ -119,12 +119,12 @@ struct XEQPromptView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Evaluate") {
-                        if !selectedProgramLabel.isEmpty {
-                            engine.currentProgramLabel = selectedProgramLabel
+                        if !selectedEquationLabel.isEmpty {
+                            engine.currentEquationLabel = selectedEquationLabel
                         }
-                        if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
-                            engine.currentEvaluatingProgram = program
-                            engine.pendingEquationVars = program.extractVariables()
+                        if let equation = engine.equations.first(where: { $0.label == selectedEquationLabel }) {
+                            engine.currentEvaluatingEquation = equation
+                            engine.pendingEquationVars = equation.extractVariables()
                             engine.promptNextEquationVar()
                         }
                         dismiss()
@@ -132,11 +132,11 @@ struct XEQPromptView: View {
                 }
             }
             .onAppear {
-                if let label = engine.currentProgramLabel.isEmpty ? nil : engine.currentProgramLabel,
-                   engine.programs.contains(where: { $0.label == label }) {
-                    selectedProgramLabel = label
-                } else if let first = engine.programs.first {
-                    selectedProgramLabel = first.label
+                if let label = engine.currentEquationLabel.isEmpty ? nil : engine.currentEquationLabel,
+                   engine.equations.contains(where: { $0.label == label }) {
+                    selectedEquationLabel = label
+                } else if let first = engine.equations.first {
+                    selectedEquationLabel = first.label
                 }
             }
         }

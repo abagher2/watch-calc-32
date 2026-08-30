@@ -65,12 +65,12 @@ public struct RetroLCDView: View {
 struct RetroLCDMultiLinePreview: PreviewProvider {
     static var previews: some View {
         let engine = CalculatorEngine()
-        engine.isProgrammingMode = true
-        engine.currentProgramLabel = "NPDF"
-        if let p = engine.programs.first(where: { $0.label == "NPDF" }) {
-            engine.currentProgramSteps = p.steps.map { $0.stringValue }
+        engine.isEquationEditMode = true
+        engine.currentEquationLabel = "NPDF"
+        if let p = engine.equations.first(where: { $0.label == "NPDF" }) {
+            engine.currentEquationSteps = p.steps.map { $0.stringValue }
         }
-        engine.currentProgramStepIndex = 5 // Focus on e^x step
+        engine.currentEquationStepIndex = 5 // Focus on e^x step
         
         return ZStack {
             Color.black.edgesIgnoringSafeArea(.all)

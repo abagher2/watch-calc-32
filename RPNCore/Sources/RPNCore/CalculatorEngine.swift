@@ -348,7 +348,7 @@ public class CalculatorEngine {
             toggleExamMode()
         }
     }
-    private var stashedPrograms: [Program] = []
+    private var stashedPrograms: [Equation] = []
     private var stashedVariables: [String: CalculatorValue] = [:]
     
     // Shift State: 0=None, 1=Yellow(f), 2=Blue(g)
@@ -406,7 +406,7 @@ public class CalculatorEngine {
     public var variables: [String: CalculatorValue] = [:]
     
     #if !hasFeature(Embedded)
-    public struct Program: Codable, Identifiable {
+    public struct Equation: Codable, Identifiable {
         public var id: String { label }
         public var label: String
         public var steps: [Instruction]
@@ -466,7 +466,7 @@ public class CalculatorEngine {
         }
     }
     #else
-    public struct Program: Identifiable {
+    public struct Equation: Identifiable {
         public var id: String { label }
         public var label: String
         public var steps: [Instruction]
@@ -508,10 +508,10 @@ public class CalculatorEngine {
         }
     }
     #endif
-    public var programs: [Program] = [] {
+    public var equations: [Equation] = [] {
         didSet {
             #if !hasFeature(Embedded)
-            if let data = try? JSONEncoder().encode(programs) {
+            if let data = try? JSONEncoder().encode(equations) {
                 UserDefaults.standard.set(data, forKey: "saved_programs")
             }
             #endif
@@ -521,50 +521,50 @@ public class CalculatorEngine {
     public init() {
         #if !hasFeature(Embedded)
         if let data = UserDefaults.standard.data(forKey: "saved_programs"),
-           let savedPrograms = try? JSONDecoder().decode([Program].self, from: data) {
-            self.programs = savedPrograms
+           let savedPrograms = try? JSONDecoder().decode([Equation].self, from: data) {
+            self.equations = savedPrograms
         }
         #endif
         
         let pdfSteps = ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"]
-        let normalPDF = Program(label: "NPDF", steps: pdfSteps.compactMap { Instruction(fromString: $0) })
-        if !programs.contains(where: { $0.label == "NPDF" }) {
-            programs.append(normalPDF)
+        let normalPDF = Equation(label: "NPDF", steps: pdfSteps.compactMap { Instruction(fromString: $0) })
+        if !equations.contains(where: { $0.label == "NPDF" }) {
+            equations.append(normalPDF)
         }
         updateDisplay()
     }
-    public var currentProgramLabel: String = ""
-    public var currentProgramSteps: [String] = []
-    public var currentProgramStepIndex: Int = 0
-    public var isProgrammingMode: Bool = false
+    public var currentEquationLabel: String = ""
+    public var currentEquationSteps: [String] = []
+    public var currentEquationStepIndex: Int = 0
+    public var isEquationEditMode: Bool = false
     public var isEquationListMode: Bool = false
     public var currentEquationListIndex: Int = 0
     public var lastCrownValue: Double = 0.0
     
     public func scrollUp() {
         if isEquationListMode {
-            if !programs.isEmpty {
+            if !equations.isEmpty {
                 currentEquationListIndex = max(0, currentEquationListIndex - 1)
                 updateDisplay()
             }
-        } else if isProgrammingMode {
-            if currentProgramStepIndex > 0 {
-                currentProgramStepIndex -= 1
-                updateProgramDisplay()
+        } else if isEquationEditMode {
+            if currentEquationStepIndex > 0 {
+                currentEquationStepIndex -= 1
+                updateEquationDisplay()
             }
         }
     }
     
     public func scrollDown() {
         if isEquationListMode {
-            if !programs.isEmpty {
-                currentEquationListIndex = min(programs.count - 1, currentEquationListIndex + 1)
+            if !equations.isEmpty {
+                currentEquationListIndex = min(equations.count - 1, currentEquationListIndex + 1)
                 updateDisplay()
             }
-        } else if isProgrammingMode {
-            if currentProgramStepIndex < currentProgramSteps.count {
-                currentProgramStepIndex += 1
-                updateProgramDisplay()
+        } else if isEquationEditMode {
+            if currentEquationStepIndex < currentEquationSteps.count {
+                currentEquationStepIndex += 1
+                updateEquationDisplay()
             }
         }
     }
@@ -580,11 +580,11 @@ public class CalculatorEngine {
         promptString = "LBL "
     }
     
-    public func editEquation(_ program: Program) {
-        isProgrammingMode = true
-        currentProgramLabel = program.label
-        currentProgramSteps = program.steps.map { $0.stringValue }
-        updateProgramDisplay()
+    public func editEquation(_ equation: Equation) {
+        isEquationEditMode = true
+        currentEquationLabel = equation.label
+        currentEquationSteps = equation.steps.map { $0.stringValue }
+        updateEquationDisplay()
     }
     
     // Modes
@@ -592,7 +592,7 @@ public class CalculatorEngine {
     public var alphaAction: AlphaAction = .none
     public var alphaPrompt: String = "Variable"
     public var pendingEquationVars: [String] = []
-    public var currentEvaluatingProgram: Program? = nil
+    public var currentEvaluatingEquation: Equation? = nil
     
     public var angleMode: AngleMode = .deg
     public var displayMode: DisplayMode = .all
@@ -612,7 +612,6 @@ public class CalculatorEngine {
         case sci(Int)
         case eng(Int)
         case all
-        case sig(Int)
     }
 
     public enum BaseMode: Equatable { case dec, hex, oct, bin }
@@ -623,10 +622,10 @@ public class CalculatorEngine {
     
     public enum ResumeAction {
         case none
-        case eval(Program)
-        case solve(variable: String, program: Program)
-        case integrate(variable: String, lower: Double, upper: Double, program: Program, requestPlotAfter: Bool = false)
-        case plot(variable: String, lower: Double, upper: Double, program: Program)
+        case eval(Equation)
+        case solve(variable: String, equation: Equation)
+        case integrate(variable: String, lower: Double, upper: Double, equation: Equation, requestPlotAfter: Bool = false)
+        case plot(variable: String, lower: Double, upper: Double, equation: Equation)
     }
     public var currentResumeAction: ResumeAction = .none
     
@@ -636,19 +635,19 @@ public class CalculatorEngine {
     
 
     public func clearPrograms() {
-        programs.removeAll()
-        currentProgramSteps.removeAll()
-        currentProgramLabel = ""
-        isProgrammingMode = false
+        equations.removeAll()
+        currentEquationSteps.removeAll()
+        currentEquationLabel = ""
+        isEquationEditMode = false
         isEquationListMode = false
         updateDisplay()
     }
     
-    private func saveProgram() {
-        if let idx = programs.firstIndex(where: { $0.label == currentProgramLabel }) {
-            programs[idx] = Program(label: currentProgramLabel, steps: currentProgramSteps.compactMap { Instruction(fromString: $0) })
+    private func saveEquation() {
+        if let idx = equations.firstIndex(where: { $0.label == currentEquationLabel }) {
+            equations[idx] = Equation(label: currentEquationLabel, steps: currentEquationSteps.compactMap { Instruction(fromString: $0) })
         } else {
-            programs.append(Program(label: currentProgramLabel, steps: currentProgramSteps.compactMap { Instruction(fromString: $0) }))
+            equations.append(Equation(label: currentEquationLabel, steps: currentEquationSteps.compactMap { Instruction(fromString: $0) }))
         }
     }
     
@@ -699,18 +698,18 @@ public class CalculatorEngine {
     private func toggleExamMode() {
         if isExamMode {
             // Turning ON: Stash data and clear active memory
-            stashedPrograms = programs
+            stashedPrograms = equations
             stashedVariables = variables
             
-            programs.removeAll()
+            equations.removeAll()
             variables.removeAll()
             
             // Clear all active state to prevent smuggling values
             stack = [CalculatorValue(), CalculatorValue(), CalculatorValue(), CalculatorValue()]
             lastX = CalculatorValue()
             clearStats()
-            isProgrammingMode = false
-                currentProgramSteps.removeAll()
+            isEquationEditMode = false
+                currentEquationSteps.removeAll()
             currentInputLength = 0
             isBuildingNumber = false
             shiftState = 0
@@ -719,7 +718,7 @@ public class CalculatorEngine {
             errorMessage = "EXAM MODE ON"
         } else {
             // Turning OFF: Restore stashed data (wiping anything entered during the exam)
-            programs = stashedPrograms
+            equations = stashedPrograms
             variables = stashedVariables
             
             stashedPrograms.removeAll()
@@ -733,7 +732,7 @@ public class CalculatorEngine {
     // MARK: - Input
     
     public var stackLiftEnabled: Bool = true
-    public var prgmIsBuildingNumber: Bool = false
+    public var eqnIsBuildingNumber: Bool = false
     
     public func digit(_ d: Int) {
         if isWaitingForLabel { return }
@@ -741,14 +740,14 @@ public class CalculatorEngine {
         if errorMessage != nil { clearError(); return }
         
         if alphaAction != .promptVar {
-            if isProgrammingMode {
-                if let last = currentProgramSteps.last, isProgramNumberStep(last) {
-                    currentProgramSteps[currentProgramSteps.count - 1] = last + "\(d)"
+            if isEquationEditMode {
+                if let last = currentEquationSteps.last, isEquationNumberStep(last) {
+                    currentEquationSteps[currentEquationSteps.count - 1] = last + "\(d)"
                 } else {
-                    currentProgramSteps.append("\(d)")
+                    currentEquationSteps.append("\(d)")
                 }
-                prgmIsBuildingNumber = true
-                updateProgramDisplay()
+                eqnIsBuildingNumber = true
+                updateEquationDisplay()
                 return
             }
         }
@@ -790,9 +789,9 @@ public class CalculatorEngine {
     }
     
     public func letter(_ l: String) {
-        if isProgrammingMode {
-            currentProgramSteps.append(l.uppercased())
-            updateProgramDisplay()
+        if isEquationEditMode {
+            currentEquationSteps.append(l.uppercased())
+            updateEquationDisplay()
         } else if baseMode == .hex {
             if !isBuildingNumber {
                 isBuildingNumber = true
@@ -807,14 +806,14 @@ public class CalculatorEngine {
     public func startExponent() {
         if errorMessage != nil { clearError(); return }
         if alphaAction != .promptVar {
-            if isProgrammingMode {
-                if let last = currentProgramSteps.last, isProgramNumberStep(last) {
-                    currentProgramSteps[currentProgramSteps.count - 1] = last + "E"
+            if isEquationEditMode {
+                if let last = currentEquationSteps.last, isEquationNumberStep(last) {
+                    currentEquationSteps[currentEquationSteps.count - 1] = last + "E"
                 } else {
-                    currentProgramSteps.append("1E")
+                    currentEquationSteps.append("1E")
                 }
-                prgmIsBuildingNumber = true
-                updateProgramDisplay()
+                eqnIsBuildingNumber = true
+                updateEquationDisplay()
                 return
             }
         }
@@ -831,14 +830,14 @@ public class CalculatorEngine {
         if errorMessage != nil { clearError(); return }
         
         if alphaAction != .promptVar {
-            if isProgrammingMode {
-                if let last = currentProgramSteps.last, isProgramNumberStep(last) {
-                    currentProgramSteps[currentProgramSteps.count - 1] = last + "."
+            if isEquationEditMode {
+                if let last = currentEquationSteps.last, isEquationNumberStep(last) {
+                    currentEquationSteps[currentEquationSteps.count - 1] = last + "."
                 } else {
-                    currentProgramSteps.append(".")
+                    currentEquationSteps.append(".")
                 }
-                prgmIsBuildingNumber = true
-                updateProgramDisplay()
+                eqnIsBuildingNumber = true
+                updateEquationDisplay()
                 return
             }
         }
@@ -881,8 +880,8 @@ public class CalculatorEngine {
     public func toggleSign() {
         if errorMessage != nil { clearError(); return }
         if alphaAction != .promptVar {
-            if isProgrammingMode {
-                if let last = currentProgramSteps.last, isProgramNumberStep(last) {
+            if isEquationEditMode {
+                if let last = currentEquationSteps.last, isEquationNumberStep(last) {
                     if let eIndex = last.lastIndex(of: "E") {
                         let base = last[..<eIndex]
                         var exp = String(last[last.index(after: eIndex)...])
@@ -891,19 +890,19 @@ public class CalculatorEngine {
                         } else {
                             exp = "-" + exp
                         }
-                        currentProgramSteps[currentProgramSteps.count - 1] = base + "E" + exp
+                        currentEquationSteps[currentEquationSteps.count - 1] = base + "E" + exp
                     } else {
                         if last.hasPrefix("-") {
-                            currentProgramSteps[currentProgramSteps.count - 1] = String(last.dropFirst())
+                            currentEquationSteps[currentEquationSteps.count - 1] = String(last.dropFirst())
                         } else {
-                            currentProgramSteps[currentProgramSteps.count - 1] = "-" + last
+                            currentEquationSteps[currentEquationSteps.count - 1] = "-" + last
                         }
                     }
                 } else {
-                    currentProgramSteps.append("+/-")
+                    currentEquationSteps.append("+/-")
                 }
-                prgmIsBuildingNumber = true
-                updateProgramDisplay()
+                eqnIsBuildingNumber = true
+                updateEquationDisplay()
                 return
             }
         }
@@ -1148,13 +1147,13 @@ public class CalculatorEngine {
             return
         }
         
-        if isProgrammingMode {
-            if prgmIsBuildingNumber {
-                prgmIsBuildingNumber = false
+        if isEquationEditMode {
+            if eqnIsBuildingNumber {
+                eqnIsBuildingNumber = false
             } else {
-                currentProgramSteps.append("ENTER")
+                currentEquationSteps.append("ENTER")
             }
-            updateProgramDisplay()
+            updateEquationDisplay()
             return
         }
         
@@ -1183,9 +1182,9 @@ public class CalculatorEngine {
     
     public func clearX() {
         if clearError() { return }
-        if isProgrammingMode {
-            currentProgramSteps.removeAll()
-            updateProgramDisplay()
+        if isEquationEditMode {
+            currentEquationSteps.removeAll()
+            updateEquationDisplay()
             return
         }
         if !stack.isEmpty {
@@ -1203,10 +1202,10 @@ public class CalculatorEngine {
         if clearError() { return }
 
         if alphaAction != .promptVar {
-            if isProgrammingMode {
-                if !currentProgramSteps.isEmpty {
-                    currentProgramSteps.removeLast()
-                    updateProgramDisplay()
+            if isEquationEditMode {
+                if !currentEquationSteps.isEmpty {
+                    currentEquationSteps.removeLast()
+                    updateEquationDisplay()
                 }
                 return
             }
@@ -1296,7 +1295,7 @@ public class CalculatorEngine {
     // MARK: - Math Operations
     
     private func performTest(_ result: Bool) {
-        if isProgrammingMode {
+        if isEquationEditMode {
             commitInput()
             pushToStack(CalculatorValue(real: result ? 1.0 : 0.0))
             updateDisplay()
@@ -1346,7 +1345,7 @@ public class CalculatorEngine {
         }
         
         // Forward all remaining logic directly via the stringValue to the existing handleCommand block.
-        // This is safe since we eliminated strings from the *Program* evaluator!
+        // This is safe since we eliminated strings from the *Equation* evaluator!
         handleCommand(instruction.stringValue)
     }
     
@@ -1368,6 +1367,15 @@ public class CalculatorEngine {
             return
         }
         
+        if operation == "↑" {
+            scrollUp()
+            return
+        }
+        if operation == "↓" {
+            scrollDown()
+            return
+        }
+
         if isWaitingForFlag {
             handleCommand(operation)
             return
@@ -1413,6 +1421,15 @@ public class CalculatorEngine {
             return
         }
         
+        if operation == "↑" {
+            scrollUp()
+            return
+        }
+        if operation == "↓" {
+            scrollDown()
+            return
+        }
+
         if isWaitingForFlag {
             if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
                 isWaitingForFlag = false
@@ -1528,66 +1545,66 @@ public class CalculatorEngine {
         }
         
         if operation == "PRGM" {
-            if isProgrammingMode {
-                saveProgram()
-                isProgrammingMode = false
+            if isEquationEditMode {
+                saveEquation()
+                isEquationEditMode = false
                 isWaitingForLabel = false
-                prgmIsBuildingNumber = false
+                eqnIsBuildingNumber = false
                 promptString = nil
                 updateDisplay()
                 return
             }
-            isProgrammingMode = true
-            updateProgramDisplay()
+            isEquationEditMode = true
+            updateEquationDisplay()
             return
         }
         
-        // Intercept inputs when building a program or equation
-        if isProgrammingMode && !isWaitingForAlpha {
+        // Intercept inputs when building a equation or equation
+        if isEquationEditMode && !isWaitingForAlpha {
             if ["STO", "RCL", "LBL", "GTO", "XEQ", "VIEW"].contains(operation) {
                 // Let these fall through to prompt for alpha
-                prgmIsBuildingNumber = false
+                eqnIsBuildingNumber = false
             } else if operation == "C" || operation == "CLEAR" {
-                saveProgram()
-                isProgrammingMode = false
+                saveEquation()
+                isEquationEditMode = false
                 isWaitingForLabel = false
-                prgmIsBuildingNumber = false
+                eqnIsBuildingNumber = false
                 promptString = nil
                 updateDisplay()
                 return
             } else if let p = parseInt(operation) {
-                currentProgramSteps.append("\(p)")
-                prgmIsBuildingNumber = true
-                updateProgramDisplay()
+                currentEquationSteps.append("\(p)")
+                eqnIsBuildingNumber = true
+                updateEquationDisplay()
                 return
             } else if operation == "BACKSPACE" {
-                if !currentProgramSteps.isEmpty {
-                    currentProgramSteps.removeLast()
+                if !currentEquationSteps.isEmpty {
+                    currentEquationSteps.removeLast()
                 }
-                prgmIsBuildingNumber = false
-                updateProgramDisplay()
+                eqnIsBuildingNumber = false
+                updateEquationDisplay()
                 return
             } else if operation == "CLEAR" {
-                currentProgramSteps.removeAll()
-                prgmIsBuildingNumber = false
-                updateProgramDisplay()
+                currentEquationSteps.removeAll()
+                eqnIsBuildingNumber = false
+                updateEquationDisplay()
                 return
             } else if operation == "RTN" {
-                currentProgramSteps.append("RTN")
-                saveProgram()
-                isProgrammingMode = false
+                currentEquationSteps.append("RTN")
+                saveEquation()
+                isEquationEditMode = false
                         isWaitingForLabel = false
-                prgmIsBuildingNumber = false
+                eqnIsBuildingNumber = false
                 promptString = nil
                 updateDisplay()
                 return
             } else if operation == "ENTER" {
-                if prgmIsBuildingNumber {
-                    prgmIsBuildingNumber = false // Just terminate the number, don't append ENTER
+                if eqnIsBuildingNumber {
+                    eqnIsBuildingNumber = false // Just terminate the number, don't append ENTER
                 } else {
-                    currentProgramSteps.append("ENTER")
+                    currentEquationSteps.append("ENTER")
                 }
-                updateProgramDisplay()
+                updateEquationDisplay()
                 return
             } else if operation == "↑" {
                 scrollUp()
@@ -1611,9 +1628,9 @@ public class CalculatorEngine {
                 alphaPrompt = "GTO _"
                 return
             } else {
-                currentProgramSteps.append(operation)
-                prgmIsBuildingNumber = false
-                updateProgramDisplay()
+                currentEquationSteps.append(operation)
+                eqnIsBuildingNumber = false
+                updateEquationDisplay()
                 return
             }
         }
@@ -1640,11 +1657,11 @@ public class CalculatorEngine {
 
         
         if operation == "EQN" {
-            if isProgrammingMode {
-                saveProgram()
-                isProgrammingMode = false
+            if isEquationEditMode {
+                saveEquation()
+                isEquationEditMode = false
                 isWaitingForLabel = false
-                prgmIsBuildingNumber = false
+                eqnIsBuildingNumber = false
                 promptString = nil
                 updateDisplay()
                 return
@@ -1666,7 +1683,7 @@ public class CalculatorEngine {
         if operation.hasPrefix("EQN_EDIT_") {
             isEquationListMode = false
             let lbl = String(operation.dropFirst(9))
-            if let existing = programs.first(where: { $0.label == lbl }) {
+            if let existing = equations.first(where: { $0.label == lbl }) {
                 editEquation(existing)
             }
             updateDisplay()
@@ -1675,8 +1692,8 @@ public class CalculatorEngine {
         
         if operation == "EQN_EDIT" {
             isEquationListMode = false
-            if !programs.isEmpty && currentEquationListIndex < programs.count {
-                editEquation(programs[currentEquationListIndex])
+            if !equations.isEmpty && currentEquationListIndex < equations.count {
+                editEquation(equations[currentEquationListIndex])
             }
             updateDisplay()
             return
@@ -1691,7 +1708,7 @@ public class CalculatorEngine {
         }
         
         if operation == "SOLVE" {
-            if programs.isEmpty {
+            if equations.isEmpty {
                 errorMessage = "NO EQN"
                 updateDisplay()
                 return
@@ -1704,7 +1721,7 @@ public class CalculatorEngine {
         }
         
         if operation == "∫" {
-            if programs.isEmpty {
+            if equations.isEmpty {
                 errorMessage = "NO EQN"
                 updateDisplay()
                 return
@@ -1762,12 +1779,6 @@ public class CalculatorEngine {
         }
         if operation.hasPrefix("ENG ") {
             if let p = parseInt(_substringToString(operation.dropFirst(4))) { displayMode = .eng(p) }
-            isFractionMode = false
-            updateDisplay()
-            return
-        }
-        if operation.hasPrefix("SIG ") {
-            if let p = parseInt(_substringToString(operation.dropFirst(4))) { displayMode = .sig(p) }
             isFractionMode = false
             updateDisplay()
             return
@@ -1895,8 +1906,8 @@ public class CalculatorEngine {
             baseMode = .bin
 
         case "C":
-            let wasProgramming = isProgrammingMode
-            isProgrammingMode = false
+            let wasProgramming = isEquationEditMode
+            isEquationEditMode = false
             isEquationListMode = false
             isWaitingForLabel = false
             alphaAction = .none
@@ -1927,7 +1938,7 @@ public class CalculatorEngine {
         case "CLSTK":
             clearStack()
             return
-        case "CLPRGM":
+        case "CLEQN":
             clearPrograms()
             return
         case "CLΣ":
@@ -1938,9 +1949,9 @@ public class CalculatorEngine {
             updateDisplay()
             return
         case "RTN":
-            if isProgrammingMode {
-                currentProgramSteps.append("RTN")
-                updateProgramDisplay()
+            if isEquationEditMode {
+                currentEquationSteps.append("RTN")
+                updateEquationDisplay()
             }
             return
         case "SCRL":
@@ -1984,18 +1995,18 @@ public class CalculatorEngine {
             }
             unaryOp { CalculatorValue(real: _log10($0.real)) }
         case "10ˣ": unaryOp { CalculatorValue(real: _pow(10.0, $0.real)) }
-        case "x=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real == $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real == stack[1].real) }; return
-        case "x≠y", "x!=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real != $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real != stack[1].real) }; return
-        case "x>y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real > $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real > stack[1].real) }; return
-        case "x<y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real < $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real < stack[1].real) }; return
-        case "x≥y", "x>=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real >= $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real >= stack[1].real) }; return
-        case "x≤y", "x<=y": if currentEvaluatingProgram != nil { binaryOp { CalculatorValue(real: $1.real <= $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real <= stack[1].real) }; return
-        case "x=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real == 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real == 0) }; return
-        case "x≠0", "x!=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real != 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real != 0) }; return
-        case "x>0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real > 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real > 0) }; return
-        case "x<0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real < 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real < 0) }; return
-        case "x≥0", "x>=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real >= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real >= 0) }; return
-        case "x≤0", "x<=0": if currentEvaluatingProgram != nil { unaryOp { CalculatorValue(real: $0.real <= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real <= 0) }; return
+        case "x=y": if currentEvaluatingEquation != nil { binaryOp { CalculatorValue(real: $1.real == $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real == stack[1].real) }; return
+        case "x≠y", "x!=y": if currentEvaluatingEquation != nil { binaryOp { CalculatorValue(real: $1.real != $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real != stack[1].real) }; return
+        case "x>y": if currentEvaluatingEquation != nil { binaryOp { CalculatorValue(real: $1.real > $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real > stack[1].real) }; return
+        case "x<y": if currentEvaluatingEquation != nil { binaryOp { CalculatorValue(real: $1.real < $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real < stack[1].real) }; return
+        case "x≥y", "x>=y": if currentEvaluatingEquation != nil { binaryOp { CalculatorValue(real: $1.real >= $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real >= stack[1].real) }; return
+        case "x≤y", "x<=y": if currentEvaluatingEquation != nil { binaryOp { CalculatorValue(real: $1.real <= $0.real ? 1.0 : 0.0) } } else { performTest(stack[0].real <= stack[1].real) }; return
+        case "x=0": if currentEvaluatingEquation != nil { unaryOp { CalculatorValue(real: $0.real == 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real == 0) }; return
+        case "x≠0", "x!=0": if currentEvaluatingEquation != nil { unaryOp { CalculatorValue(real: $0.real != 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real != 0) }; return
+        case "x>0": if currentEvaluatingEquation != nil { unaryOp { CalculatorValue(real: $0.real > 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real > 0) }; return
+        case "x<0": if currentEvaluatingEquation != nil { unaryOp { CalculatorValue(real: $0.real < 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real < 0) }; return
+        case "x≥0", "x>=0": if currentEvaluatingEquation != nil { unaryOp { CalculatorValue(real: $0.real >= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real >= 0) }; return
+        case "x≤0", "x<=0": if currentEvaluatingEquation != nil { unaryOp { CalculatorValue(real: $0.real <= 0 ? 1.0 : 0.0) } } else { performTest(stack[0].real <= 0) }; return
         case "𝑥!", "n!": 
             if stack.count > 0 {
                 if stack[0].real < 0 && stack[0].real == floor(stack[0].real) { errorMessage = "INVALID DATA"; return }
@@ -2062,17 +2073,11 @@ public class CalculatorEngine {
         case "NOT": unaryOp { CalculatorValue(real: Double(~Int64($0.real))) }
             
         case "R↓":
-            if stack.count > 1 {
-                let first = stack[0]
-                for i in 0..<(stackSizeLimit - 1) { stack[i] = stack[i+1] }
-                stack[stackSizeLimit - 1] = CalculatorValue()
-                stack.append(first)
-            }
+            rollDown()
+            return
         case "R↑":
-            if stack.count > 1 {
-                let last = stack.removeLast()
-                pushToStack(last)
-            }
+            rollUp()
+            return
 
         case "Σ+": addStat()
         case "Σ-": removeStat()
@@ -2345,21 +2350,21 @@ public class CalculatorEngine {
             plotMarkers.reserveCapacity(10)
             self.isSilent = true
             
-            let prog: Program?
-            if let label = currentProgramLabel.isEmpty ? nil : currentProgramLabel,
-               let p = programs.first(where: { $0.label == label }) {
+            let prog: Equation?
+            if let label = currentEquationLabel.isEmpty ? nil : currentEquationLabel,
+               let p = equations.first(where: { $0.label == label }) {
                 prog = p
-            } else if let firstProgram = programs.first {
+            } else if let firstProgram = equations.first {
                 prog = firstProgram
             } else {
                 prog = nil
             }
             
             let evalFunc: (Double) -> Double? = { xVal in
-                if let program = prog {
+                if let equation = prog {
                     let oldVal = self.variables[variable]
                     self.variables[variable] = CalculatorValue(real: xVal)
-                    let result = self.evaluateProgram(program)?.real
+                    let result = self.evaluateEquation(equation)?.real
                     self.variables[variable] = oldVal // Restore directly to avoid dictionary copies
                     return result
                 } else {
@@ -2474,7 +2479,7 @@ public class CalculatorEngine {
         return name
     }
 
-    public func evaluateProgram(_ program: Program, clearStack: Bool = true) -> CalculatorValue? {
+    public func evaluateEquation(_ equation: Equation, clearStack: Bool = true) -> CalculatorValue? {
         // Save state
         var savedStack = Array(repeating: CalculatorValue(), count: self.stackSizeLimit)
         for i in 0..<self.stack.count { savedStack[i] = self.stack[i] }
@@ -2483,7 +2488,7 @@ public class CalculatorEngine {
         var savedPrompt = self.isSilent ? nil : self.promptString
         var savedDisplayXBuffer = self.isSilent ? [] : self.displayXBuffer
         var savedDisplayXLength = self.displayXLength
-        var savedProgMode = self.isProgrammingMode
+        var savedProgMode = self.isEquationEditMode
         var savedInputBuffer = self.isSilent ? [] : self.currentInputBuffer
         var savedInputLength = self.currentInputLength
         var savedIsBuildingNum = self.isBuildingNumber
@@ -2495,12 +2500,12 @@ public class CalculatorEngine {
             savedStackStrings = []
                     }
         
-                self.isProgrammingMode = false
+                self.isEquationEditMode = false
         self.isBuildingNumber = false
         self.stackLiftEnabled = true
-        self.currentEvaluatingProgram = program
+        self.currentEvaluatingEquation = equation
         
-        // Clear stack for the program
+        // Clear stack for the equation
         // Reuse existing stack array to prevent memory allocation in loops
         if clearStack {
             if self.stack.count != self.stackSizeLimit {
@@ -2517,7 +2522,7 @@ public class CalculatorEngine {
         // Execute steps
         var i = 0
         var cycleCount = 0
-        while i < program.steps.count {
+        while i < equation.steps.count {
             if let check = isInterrupted, check() {
                 errorMessage = "INTERRUPTED"
                 break
@@ -2527,7 +2532,7 @@ public class CalculatorEngine {
                 errorMessage = "TIMEOUT"
                 break
             }
-            let step = program.steps[i]
+            let step = equation.steps[i]
             if skipNextInstruction {
                 skipNextInstruction = false
                 i += 1
@@ -2584,12 +2589,12 @@ public class CalculatorEngine {
                     self.stackLiftEnabled = true
                 }
             case .xeq(let label):
-                var subProgram: Program? = nil
-                for p in programs {
+                var subProgram: Equation? = nil
+                for p in equations {
                     if p.label == label { subProgram = p; break }
                 }
                 if let sub = subProgram {
-                    if let res = evaluateProgram(sub, clearStack: false) {
+                    if let res = evaluateEquation(sub, clearStack: false) {
                         // For subprograms, it operates on the live stack now. No need to push.
                         self.stackLiftEnabled = true
                     }
@@ -2639,7 +2644,7 @@ public class CalculatorEngine {
             self.displayXLength = savedDisplayXLength
                     }
         
-        self.isProgrammingMode = savedProgMode
+        self.isEquationEditMode = savedProgMode
         self.currentInputLength = savedInputLength
         if !self.isSilent {
             for j in 0..<savedInputLength {
@@ -2649,13 +2654,13 @@ public class CalculatorEngine {
         self.isBuildingNumber = savedIsBuildingNum
         self.shiftState = savedShift
         self.stackLiftEnabled = savedLiftEnabled
-        self.currentEvaluatingProgram = nil
+        self.currentEvaluatingEquation = nil
         self.updateDisplay()
         
         return result
     }
     
-    private func isProgramNumberStep(_ step: String) -> Bool {
+    private func isEquationNumberStep(_ step: String) -> Bool {
         if step == "-" { return false }
         if step == "E" { return false }
         let allowedCharacters = "0123456789.-E"
@@ -2855,8 +2860,8 @@ public class CalculatorEngine {
         isWaitingForAlpha = true
         alphaAction = action
         
-        if isProgrammingMode {
-            let stepNum = currentProgramSteps.count + 1
+        if isEquationEditMode {
+            let stepNum = currentEquationSteps.count + 1
             let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
             promptString = "\(paddedStep) \(promptBase)"
         } else {
@@ -2892,7 +2897,7 @@ public class CalculatorEngine {
         
         let initialChar = key
         
-        if baseMode == .hex && alphaAction == .none && !isProgrammingMode && !isWaitingForLabel && ["A", "B", "C", "D", "E", "F"].contains(initialChar) {
+        if baseMode == .hex && alphaAction == .none && !isEquationEditMode && !isWaitingForLabel && ["A", "B", "C", "D", "E", "F"].contains(initialChar) {
             letter(initialChar)
             return
         }
@@ -2921,8 +2926,8 @@ public class CalculatorEngine {
                 case "÷": alphaAction = .stoDiv
                 default: break
                 }
-                if isProgrammingMode {
-                    let stepNum = currentProgramSteps.count + 1
+                if isEquationEditMode {
+                    let stepNum = currentEquationSteps.count + 1
                     let paddedStep = stepNum < 10 ? "0\(stepNum)" : "\(stepNum)"
                     promptString = "\(paddedStep) STO \(initialChar)"
                 } else {
@@ -2942,84 +2947,84 @@ public class CalculatorEngine {
             if requestXEQ {
                 print("DEBUG: Inside requestXEQ block in submitAlpha")
                 requestXEQ = false
-                if isProgrammingMode {
-                    currentProgramSteps.append("XEQ \(initialChar)")
-                    updateProgramDisplay()
+                if isEquationEditMode {
+                    currentEquationSteps.append("XEQ \(initialChar)")
+                    updateEquationDisplay()
                     return
                 } else {
-                    isProgrammingMode = false
-                    if let program = programs.first(where: { $0.label == initialChar }) {
-                        currentResumeAction = .eval(program)
-                        pendingEquationVars = program.extractVariables()
+                    isEquationEditMode = false
+                    if let equation = equations.first(where: { $0.label == initialChar }) {
+                        currentResumeAction = .eval(equation)
+                        pendingEquationVars = equation.extractVariables()
                         promptNextEquationVar()
                     }
                 }
             } else {
-                isProgrammingMode = true
-                currentProgramLabel = initialChar
-                if let existing = programs.first(where: { $0.label == currentProgramLabel }) {
-                    currentProgramSteps = existing.steps.map { $0.stringValue }
+                isEquationEditMode = true
+                currentEquationLabel = initialChar
+                if let existing = equations.first(where: { $0.label == currentEquationLabel }) {
+                    currentEquationSteps = existing.steps.map { $0.stringValue }
                 } else {
-                    currentProgramSteps = []
+                    currentEquationSteps = []
                 }
-                updateProgramDisplay()
+                updateEquationDisplay()
             }
         } else if alphaAction == .evalEquation {
             isEquationListMode = false
             requestEqn = false
-            if let program = programs.first(where: { $0.label == initialChar }) {
-                currentResumeAction = .eval(program)
-                pendingEquationVars = program.extractVariables()
+            if let equation = equations.first(where: { $0.label == initialChar }) {
+                currentResumeAction = .eval(equation)
+                pendingEquationVars = equation.extractVariables()
                 
                 promptNextEquationVar()
             }
         } else if alphaAction == .solve {
-            if let program = currentEvaluatingProgram {
-                currentResumeAction = .solve(variable: initialChar, program: program)
-                pendingEquationVars = program.extractVariables().filter { $0 != initialChar && variables[$0] == nil }
+            if let equation = currentEvaluatingEquation {
+                currentResumeAction = .solve(variable: initialChar, equation: equation)
+                pendingEquationVars = equation.extractVariables().filter { $0 != initialChar && variables[$0] == nil }
                 promptNextEquationVar()
             }
         } else if alphaAction == .integrate {
-            if let program = currentEvaluatingProgram {
+            if let equation = currentEvaluatingEquation {
                 let lower = stack.count > 1 ? stack[1].real : 0.0
                 let upper = stack.count > 0 ? stack[0].real : 0.0
-                currentResumeAction = .integrate(variable: initialChar, lower: lower, upper: upper, program: program, requestPlotAfter: true)
-                pendingEquationVars = program.extractVariables().filter { $0 != initialChar && variables[$0] == nil }
+                currentResumeAction = .integrate(variable: initialChar, lower: lower, upper: upper, equation: equation, requestPlotAfter: true)
+                pendingEquationVars = equation.extractVariables().filter { $0 != initialChar && variables[$0] == nil }
                 promptNextEquationVar()
             }
         } else if alphaAction == .fnEq {
-            if let program = programs.first(where: { $0.label == initialChar }) {
-                currentEvaluatingProgram = program
-                currentProgramLabel = initialChar
+            if let equation = equations.first(where: { $0.label == initialChar }) {
+                currentEvaluatingEquation = equation
+                currentEquationLabel = initialChar
             }
             alphaAction = .none
             updateDisplay()
-        } else if isProgrammingMode {
+        } else if isEquationEditMode {
             if alphaAction == .sto {
-                currentProgramSteps.append("STO \(initialChar)")
+                currentEquationSteps.append("STO \(initialChar)")
             } else if alphaAction == .stoAdd {
-                currentProgramSteps.append("STO + \(initialChar)")
+                currentEquationSteps.append("STO + \(initialChar)")
             } else if alphaAction == .stoSub {
-                currentProgramSteps.append("STO - \(initialChar)")
+                currentEquationSteps.append("STO - \(initialChar)")
             } else if alphaAction == .stoMul {
-                currentProgramSteps.append("STO × \(initialChar)")
+                currentEquationSteps.append("STO × \(initialChar)")
             } else if alphaAction == .stoDiv {
-                currentProgramSteps.append("STO ÷ \(initialChar)")
+                currentEquationSteps.append("STO ÷ \(initialChar)")
             } else if alphaAction == .rcl {
-                currentProgramSteps.append("RCL \(initialChar)")
+                currentEquationSteps.append("RCL \(initialChar)")
             } else if alphaAction == .evalEquation {
-                currentProgramSteps.append("XEQ \(initialChar)")
+                currentEquationSteps.append("XEQ \(initialChar)")
             } else if alphaAction == .view {
-                currentProgramSteps.append("VIEW \(initialChar)")
+                currentEquationSteps.append("VIEW \(initialChar)")
             } else {
                 // If it's LBL, GTO, or just raw alpha fallback
                 if isWaitingForLabel {
                     // Handled above usually, but fallback just in case
                 } else {
-                    currentProgramSteps.append(initialChar)
+                    currentEquationSteps.append(initialChar)
                 }
             }
-            updateProgramDisplay()
+            updateEquationDisplay()
         } else if alphaAction == .sto {
             setVar(initialChar, stack.count > 0 ? stack[0] : CalculatorValue())
         } else if alphaAction == .stoAdd {
@@ -3064,7 +3069,7 @@ public class CalculatorEngine {
         }
         isBuildingNumber = false
         isWaitingForAlpha = false
-        if !isProgrammingMode {
+        if !isEquationEditMode {
             promptString = nil
         }
         updateDisplay()
@@ -3072,18 +3077,18 @@ public class CalculatorEngine {
     
     public func startPlot(variable: String, lower: Double, upper: Double) {
         if isBuildingNumber { commitInput() }
-        if let program = programs.first(where: { $0.label == currentProgramLabel }) {
-            currentResumeAction = .plot(variable: variable, lower: lower, upper: upper, program: program)
-            pendingEquationVars = program.extractVariables().filter { $0 != variable && variables[$0] == nil }
+        if let equation = equations.first(where: { $0.label == currentEquationLabel }) {
+            currentResumeAction = .plot(variable: variable, lower: lower, upper: upper, equation: equation)
+            pendingEquationVars = equation.extractVariables().filter { $0 != variable && variables[$0] == nil }
             promptNextEquationVar()
         }
     }
     
     public func startIntegrate(variable: String, lower: Double, upper: Double, requestPlotAfter: Bool = false) {
         if isBuildingNumber { commitInput() }
-        if let program = programs.first(where: { $0.label == currentProgramLabel }) {
-            currentResumeAction = .integrate(variable: variable, lower: lower, upper: upper, program: program, requestPlotAfter: requestPlotAfter)
-            pendingEquationVars = program.extractVariables().filter { $0 != variable && variables[$0] == nil }
+        if let equation = equations.first(where: { $0.label == currentEquationLabel }) {
+            currentResumeAction = .integrate(variable: variable, lower: lower, upper: upper, equation: equation, requestPlotAfter: requestPlotAfter)
+            pendingEquationVars = equation.extractVariables().filter { $0 != variable && variables[$0] == nil }
             promptNextEquationVar()
         }
     }
@@ -3104,26 +3109,26 @@ public class CalculatorEngine {
         // All variables bound, evaluate
         isWaitingForAlpha = false
         alphaAction = .none
-        currentEvaluatingProgram = nil
+        currentEvaluatingEquation = nil
         
         switch currentResumeAction {
-        case .eval(let program):
-            if let result = evaluateProgram(program) {
+        case .eval(let equation):
+            if let result = evaluateEquation(equation) {
                 push(result)
             }
-        case .solve(let variable, let program):
-            if let ans = solve(for: variable, program: program) {
+        case .solve(let variable, let equation):
+            if let ans = solve(for: variable, equation: equation) {
                 pushToStack(CalculatorValue(real: ans))
             }
-        case .integrate(let variable, let lower, let upper, let program, let requestPlotAfter):
-            let ans = integrate(variable: variable, lower: lower, upper: upper, program: program)
+        case .integrate(let variable, let lower, let upper, let equation, let requestPlotAfter):
+            let ans = integrate(variable: variable, lower: lower, upper: upper, equation: equation)
             pushToStack(CalculatorValue(real: ans))
             if requestPlotAfter {
                 self.isPlotSRequested = false
                 self.requestPlot = true
         print("DEBUG: requestPlot SET TO TRUE by generatePlot")
             }
-        case .plot(let variable, let lower, let upper, let program):
+        case .plot(let variable, let lower, let upper, let equation):
             self.generatePlot(variable: variable, explicitMin: lower, explicitMax: upper)
         case .none:
             break
@@ -3162,14 +3167,14 @@ public class CalculatorEngine {
             // Bypass alpha entry in UI tests to avoid watchOS keyboard issues
             if isWaitingForLabel {
                 isWaitingForLabel = false
-                isProgrammingMode = true
-                currentProgramLabel = "P" // default to P for testing
-                if let existing = programs.first(where: { $0.label == currentProgramLabel }) {
-                    currentProgramSteps = existing.steps.map { $0.stringValue }
+                isEquationEditMode = true
+                currentEquationLabel = "P" // default to P for testing
+                if let existing = equations.first(where: { $0.label == currentEquationLabel }) {
+                    currentEquationSteps = existing.steps.map { $0.stringValue }
                 } else {
-                    currentProgramSteps = []
+                    currentEquationSteps = []
                 }
-                updateProgramDisplay()
+                updateEquationDisplay()
             } else if alphaAction == .evalEquation {
                 submitAlpha("P")
             } else if alphaAction == .promptVar {
@@ -3189,15 +3194,15 @@ public class CalculatorEngine {
     public func cancelAlpha() {
         if isWaitingForLabel {
             isWaitingForLabel = false
-            if isProgrammingMode && currentProgramSteps.isEmpty {
-                isProgrammingMode = false
+            if isEquationEditMode && currentEquationSteps.isEmpty {
+                isEquationEditMode = false
             }
         }
         isWaitingForAlpha = false
         promptString = nil
         alphaAction = .none
         pendingEquationVars = []
-        currentEvaluatingProgram = nil
+        currentEvaluatingEquation = nil
         updateDisplay()
     }
     
@@ -3327,7 +3332,6 @@ public class CalculatorEngine {
         case .fix(let p): cMode = 1; cPlaces = Int32(p)
         case .sci(let p): cMode = 2; cPlaces = Int32(p)
         case .eng(let p): cMode = 3; cPlaces = Int32(p)
-        case .sig(let p): cMode = 4; cPlaces = Int32(p)
         case .all: cMode = 0; cPlaces = 0
         }
         
@@ -3342,25 +3346,7 @@ public class CalculatorEngine {
     
     public func formatValue(_ cv: CalculatorValue) -> String {
         let val = cv.real
-        if case .sig(let p) = displayMode {
-            // Cap the auto sig figs to the user's requested parameter `p`
-            let sf = min(p, cv.effectiveSigFigs)
-            
-            #if hasFeature(Embedded)
-            let bufLen = 64
-            var buffer = [UInt8](repeating: 0, count: bufLen)
-            buffer.withUnsafeMutableBufferPointer { ptr in
-                // mode 3 is %G in format_double_c which is ideal for standard sig-fig formatting
-                format_double_c(val, ptr.baseAddress!, 13, 3, Int32(sf), useCommaForDecimal ? 1 : 0)
-            }
-            var len = 0
-            while len < bufLen && buffer[len] != 0 { len += 1 }
-            return String(decoding: buffer[0..<len], as: UTF8.self)
-            #else
-            // In swift, %g uses `sf` significant digits
-            return String(format: "%.*g", sf, val)
-            #endif
-        }
+
         return formatNumber(val)
     }
 
@@ -3429,7 +3415,6 @@ public class CalculatorEngine {
         case .fix(let p): cMode = 1; cPlaces = Int32(p)
         case .sci(let p): cMode = 2; cPlaces = Int32(p)
         case .eng(let p): cMode = 3; cPlaces = Int32(p)
-        case .sig(let p): cMode = 4; cPlaces = Int32(p)
         case .all: cMode = 0; cPlaces = 0
         }
         
@@ -3446,12 +3431,12 @@ public class CalculatorEngine {
         return String(decoding: buffer[0..<len], as: UTF8.self)
     }
     
-    public func updateProgramDisplay() {
-        if currentProgramSteps.isEmpty {
-            promptString = "00 LBL \(currentProgramLabel)"
+    public func updateEquationDisplay() {
+        if currentEquationSteps.isEmpty {
+            promptString = "00 LBL \(currentEquationLabel)"
         } else {
-            let stepNum = currentProgramSteps.count < 10 ? "0\(currentProgramSteps.count)" : "\(currentProgramSteps.count)"
-            promptString = "\(stepNum) \(currentProgramSteps.last!)"
+            let stepNum = currentEquationSteps.count < 10 ? "0\(currentEquationSteps.count)" : "\(currentEquationSteps.count)"
+            promptString = "\(stepNum) \(currentEquationSteps.last!)"
         }
         updateDisplay()
     }
@@ -3478,19 +3463,19 @@ public class CalculatorEngine {
             return
         }
         if isEquationListMode {
-            if programs.isEmpty {
+            if equations.isEmpty {
                 displayX = "NO EQN"
                 promptString = "NO EQN"
             } else {
-                let prog = programs[currentEquationListIndex]
+                let prog = equations[currentEquationListIndex]
                 displayX = "\(prog.label): \(prog.steps.map { $0.stringValue }.joined(separator: " "))"
                 promptString = displayX
             }
             _populateBufferWithString(displayX)
             return
         }
-        if isProgrammingMode {
-            displayX = promptString ?? "00 LBL \(currentProgramLabel)"
+        if isEquationEditMode {
+            displayX = promptString ?? "00 LBL \(currentEquationLabel)"
             _populateBufferWithString(displayX)
             return
         }
@@ -3542,7 +3527,7 @@ public class CalculatorEngine {
     
     // MARK: - Calculus and Advanced Math
     
-    public func integrate(variable: String, lower: Double, upper: Double, program: Program) -> Double {
+    public func integrate(variable: String, lower: Double, upper: Double, equation: Equation) -> Double {
         // HP-32SII nuance: Integration accuracy dynamically adjusts based on current display mode
         var n = 30
         switch displayMode {
@@ -3550,7 +3535,7 @@ public class CalculatorEngine {
         case .sci(let places): n = 30 + (places * 10)
         case .eng(let places): n = 30 + (places * 10)
         case .all: n = 100
-        case .sig(let sigFigs): n = 30 + (sigFigs * 15)
+
         }
         // Cap to prevent excessive lag on devices
         n = min(n, 200)
@@ -3575,7 +3560,7 @@ public class CalculatorEngine {
             
             let oldVal = self.variables[variable]
             self.variables[variable] = CalculatorValue(real: x)
-            let f = evaluateProgram(program)?.real ?? 0.0
+            let f = evaluateEquation(equation)?.real ?? 0.0
             self.variables[variable] = oldVal
             
             self.plotData.append((x, f))
@@ -3593,14 +3578,14 @@ public class CalculatorEngine {
         return result
     }
 
-    public func derive(variable: String, at: Double, program: Program) -> Double? {
+    public func derive(variable: String, at: Double, equation: Equation) -> Double? {
         let h = 1e-5
         var vars = variables
         
         vars[variable] = CalculatorValue(real: at + h)
-        self.variables = vars; let fPlus = evaluateProgram(program)?.real ?? 0.0
+        self.variables = vars; let fPlus = evaluateEquation(equation)?.real ?? 0.0
         vars[variable] = CalculatorValue(real: at - h)
-        self.variables = vars; let fMinus = evaluateProgram(program)?.real ?? 0.0
+        self.variables = vars; let fMinus = evaluateEquation(equation)?.real ?? 0.0
         
         let derivative = (fPlus - fMinus) / (2 * h)
         self.pushToStack(CalculatorValue(real: derivative))
@@ -3608,7 +3593,7 @@ public class CalculatorEngine {
         return derivative
     }
 
-    public func solve(for variable: String, program: Program, target: Double = 0.0) -> Double? {
+    public func solve(for variable: String, equation: Equation, target: Double = 0.0) -> Double? {
         let maxIterations = 100
         let tolerance = 1e-7
         var x0 = variables[variable]?.real ?? 0.0
@@ -3617,10 +3602,10 @@ public class CalculatorEngine {
         let oldVal = self.variables[variable]
         
         self.variables[variable] = CalculatorValue(real: x0)
-        var f0 = (evaluateProgram(program)?.real ?? 0.0) - target
+        var f0 = (evaluateEquation(equation)?.real ?? 0.0) - target
         
         self.variables[variable] = CalculatorValue(real: x1)
-        var f1 = (evaluateProgram(program)?.real ?? 0.0) - target
+        var f1 = (evaluateEquation(equation)?.real ?? 0.0) - target
         
         for _ in 0..<maxIterations {
             if let check = isInterrupted, check() {
@@ -3640,7 +3625,7 @@ public class CalculatorEngine {
             x1 = x2
             
             self.variables[variable] = CalculatorValue(real: x1)
-            f1 = (evaluateProgram(program)?.real ?? 0.0) - target
+            f1 = (evaluateEquation(equation)?.real ?? 0.0) - target
         }
         
         self.variables[variable] = oldVal

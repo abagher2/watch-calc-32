@@ -56,7 +56,7 @@ The following menus are present on all surfaces with **no functional deviation**
 | **DISP** | `YELLOW + E` | `FIX n`, `SCI n`, `ENG n`, `ALL` | — |
 | **MODES** | `YELLOW + +/-` | `DEG`, `RAD`, `GRAD` | — |
 | **BASE** | `YELLOW + ×` | `HEX`, `DEC`, `OCT`, `BIN` | — |
-| **CLEAR** | `YELLOW + <-` | `CLx`, `CLVARS`, `CLΣ`, `ALL` *(PGM only in PRGM mode)* | `CLPRGM`, `CLREGS`, `CLSTK` added as always-visible items |
+| **CLEAR** | `YELLOW + <-` | `CLx`, `CLVARS`, `CLΣ`, `ALL` *(PGM only in PRGM mode)* | `CLEQN`, `CLREGS`, `CLSTK` added as always-visible items |
 | **FLAGS** | `BLUE + ×` | `SF n`, `CF n`, `FS? n`, `FC? n` | `4-LVL`, `8-LVL`, `INF` stack-size options |
 | **MEM** | `YELLOW + x≷y` | `VARS`, `PRGM`, `REGS` | — |
 | **PARTS** | `BLUE + √𝑥` | `IP`, `FP`, `ABS` | `SGN` added |
@@ -77,7 +77,7 @@ The following menus are present on all surfaces with **no functional deviation**
 > [!IMPORTANT]
 > This is the **largest intentional deviation** from the HP32SII.
 
-The HP32SII uses **algebraic entry** for equations (e.g., `SIN(X) + 1`). StackCalc32 intentionally deviates: all equation programs use **RPN instruction entry** (appending steps like `SIN`, `1`, `+`). This creates a unified execution model across the physical device, iOS, and watchOS.
+The HP32SII uses **algebraic entry** for equations (e.g., `SIN(X) + 1`). StackCalc32 intentionally deviates: all equation equations use **RPN instruction entry** (appending steps like `SIN`, `1`, `+`). This creates a unified execution model across the physical device, iOS, and watchOS.
 
 | Button / Combo | HP32SII Original | StackCalc32 |
 |---|---|---|
@@ -124,7 +124,7 @@ The Alpha entry mode (triggered by `STO _`, `RCL _`, `XEQ _`, etc.) behaves iden
 | Register Viewer (`REGS`) | `YELLOW + 0` | `INPUT` (program input prompt) | Repurposes a programming-only key |
 | Absolute Value (`\|x\|`) | `BLUE + +/-` | `(` (open parenthesis for EQN) | Parentheses less useful in RPN direct mode |
 | Integer Division (`÷R`) | `BLUE + E` | `)` (close parenthesis for EQN) | Parentheses less useful in RPN direct mode |
-| `CLPRGM`, `CLREGS`, `CLSTK` | Inside `CLEAR` menu | Not in HP32SII CLEAR menu | HP32SII CLEAR has: `CLx`, `CLVARS`, `CLΣ`, `ALL` |
+| `CLEQN`, `CLREGS`, `CLSTK` | Inside `CLEAR` menu | Not in HP32SII CLEAR menu | HP32SII CLEAR has: `CLx`, `CLVARS`, `CLΣ`, `ALL` |
 | `SGN` | Inside `PARTS` menu | Not in HP32SII PARTS menu | HP32SII PARTS has: `IP`, `FP`, `ABS` |
 | Stack Size Flags (`4-LVL`, `8-LVL`, `INF`) | Inside `FLAGS` menu | HP32SII has a fixed 4-level stack | |
 | `EQN_NEW`, `EQN_EDIT` softkeys | LFU row in EQN List | *(no softkeys in EQN list)* | HP32SII navigates equations with `↓`/`↑` only |

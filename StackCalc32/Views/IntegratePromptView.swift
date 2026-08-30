@@ -6,15 +6,15 @@ struct IntegratePromptView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var variables: [String] = []
-    @State private var selectedProgramLabel = ""
+    @State private var selectedEquationLabel = ""
     @State private var selectedVar = ""
     @State private var lowerLimit = "0"
     @State private var upperLimit = "1"
     @State private var shouldEvaluate = false
     
     private func updateVariables() {
-        if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
-            variables = program.extractVariables()
+        if let equation = engine.equations.first(where: { $0.label == selectedEquationLabel }) {
+            variables = equation.extractVariables()
             if let first = variables.first {
                 selectedVar = first
             }
@@ -26,30 +26,30 @@ struct IntegratePromptView: View {
     var body: some View {
         NavigationStack {
             Form {
-                if engine.programs.isEmpty {
+                if engine.equations.isEmpty {
                     Text("No equations available.")
                 } else {
                     Section("Equation") {
-                        ForEach(engine.programs) { program in
+                        ForEach(engine.equations) { equation in
                             Button {
-                                selectedProgramLabel = program.label
+                                selectedEquationLabel = equation.label
                                 updateVariables()
                             } label: {
                                 HStack {
-                                    if program.label.isEmpty {
+                                    if equation.label.isEmpty {
                                         Text("Equation")
                                             .foregroundColor(.white)
                                     } else {
-                                        Text(program.label)
+                                        Text(equation.label)
                                             .foregroundColor(.white)
                                     }
                                     Spacer()
-                                    Text(program.steps.map { $0.stringValue }.joined(separator: " "))
+                                    Text(equation.steps.map { $0.stringValue }.joined(separator: " "))
                                         .lineLimit(1)
                                         .truncationMode(.tail)
                                         .foregroundColor(.secondary)
                                         .layoutPriority(-1)
-                                    if selectedProgramLabel == program.label {
+                                    if selectedEquationLabel == equation.label {
                                         Image(systemName: "checkmark")
                                             .foregroundColor(.blue)
                                     }
@@ -87,8 +87,8 @@ struct IntegratePromptView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Evaluate") {
-                        if !selectedProgramLabel.isEmpty {
-                            engine.currentProgramLabel = selectedProgramLabel
+                        if !selectedEquationLabel.isEmpty {
+                            engine.currentEquationLabel = selectedEquationLabel
                         }
                         shouldEvaluate = true
                         dismiss()
@@ -102,17 +102,17 @@ struct IntegratePromptView: View {
                     lowerLimit = String(format: "%g", y)
                     upperLimit = String(format: "%g", x)
                 }
-                if let label = engine.currentProgramLabel.isEmpty ? nil : engine.currentProgramLabel,
-                   engine.programs.contains(where: { $0.label == label }) {
-                    selectedProgramLabel = label
-                } else if let first = engine.programs.first {
-                    selectedProgramLabel = first.label
+                if let label = engine.currentEquationLabel.isEmpty ? nil : engine.currentEquationLabel,
+                   engine.equations.contains(where: { $0.label == label }) {
+                    selectedEquationLabel = label
+                } else if let first = engine.equations.first {
+                    selectedEquationLabel = first.label
                 }
                 updateVariables()
             }
             .onDisappear {
                 if shouldEvaluate {
-                    if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }),
+                    if let equation = engine.equations.first(where: { $0.label == selectedEquationLabel }),
                        let low = Double(lowerLimit),
                        let up = Double(upperLimit) {
                         if engine.stack.count >= 2 {
@@ -121,7 +121,7 @@ struct IntegratePromptView: View {
                         }
                         engine.statusMessage = "INTEGRATING"
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            _ = engine.integrate(variable: selectedVar, lower: low, upper: up, program: program)
+                            _ = engine.integrate(variable: selectedVar, lower: low, upper: up, equation: equation)
                             if engine.isPlotSRequested {
                                 engine.isPlotSRequested = false
                                 engine.integrationLimits = (min(low, up), max(low, up))

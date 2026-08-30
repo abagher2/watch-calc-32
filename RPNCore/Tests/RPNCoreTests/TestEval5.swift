@@ -5,7 +5,7 @@ final class TestEval5: XCTestCase {
     func testFirmwareTrace() {
         let engine = CalculatorEngine()
         let controller = RetroUIController(engine: engine)
-        engine.programs.removeAll()
+        engine.equations.removeAll()
         
         // 1. Enter Equation Mode
         controller.processAction(.shiftYellow); controller.processAction(.prgm) // LBL
@@ -29,12 +29,12 @@ final class TestEval5: XCTestCase {
         // 4. Exit Equation Mode
         controller.processAction(.prgm)
         
-        let steps = engine.programs.first(where: { $0.label == "N" })?.steps.map { $0.stringValue } ?? []
+        let steps = engine.equations.first(where: { $0.label == "N" })?.steps.map { $0.stringValue } ?? []
         print("FIRMWARE STEPS: \(steps)")
         
         // 5. Evaluate the function using XEQ 'N' via softkeys
         controller.processAction(.xeq)
-        controller.processAction(.lfu0) // Softkey 0 is program "N"
+        controller.processAction(.lfu0) // Softkey 0 is equation "N"
         
         // Set X = 0
         controller.processAction(.digit0)
@@ -42,7 +42,7 @@ final class TestEval5: XCTestCase {
         
         print("VARS: \(engine.variables)")
         
-        // Execute the program
+        // Execute the equation
         controller.processAction(.lfu1) // EXEC
         
         print("STACK AFTER FIRMWARE: \(engine.stack.map { $0.real })")

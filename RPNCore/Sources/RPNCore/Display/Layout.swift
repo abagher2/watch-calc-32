@@ -654,7 +654,7 @@ public struct MainDisplayNumberView: FirmwareView {
                 textW += renderer.getCharWidth(UInt32(ptr[i]), size: .large)
             }
             
-            let hasCursor = engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha
+            let hasCursor = engine.isBuildingNumber || engine.eqnIsBuildingNumber || engine.isWaitingForAlpha
             
             // HP-32S II is always left-justified
             currentX = x + 2

@@ -16,7 +16,7 @@ public class RetroUI {
     
     public enum SoftkeyMode { case none, solve, integrate, plot, xeq, plotOptions }
     public var softkeyMode: SoftkeyMode = .none
-    public var softkeyProgram: CalculatorEngine.Program? = nil
+    public var softkeyProgram: CalculatorEngine.Equation? = nil
     public var softkeySelectedVar: String = "X"
     
     public var doubleFormatter: ((Double, CalculatorEngine.DisplayMode) -> String)?
@@ -101,8 +101,8 @@ public struct RetroUIBodyView: FirmwareView {
             
         } else if engine.isEquationListMode {
             var startY = y
-            for i in 0..<engine.programs.count {
-                let prog = engine.programs[i]
+            for i in 0..<engine.equations.count {
+                let prog = engine.equations[i]
                 let summary = prog.steps.map { $0.stringValue }.joined(separator: " ")
                 
                 let view = FirmwarePadding(leading: 6) {
@@ -144,21 +144,21 @@ public struct RetroUIBodyView: FirmwareView {
             
             var tangentPoints: [(Double, Double)]? = nil
             if let rootX = engine.selectedPlotX {
-                if let p = engine.programs.first(where: { $0.label == (engine.currentProgramLabel.isEmpty ? nil : engine.currentProgramLabel) }) ?? engine.programs.first {
+                if let p = engine.equations.first(where: { $0.label == (engine.currentEquationLabel.isEmpty ? nil : engine.currentEquationLabel) }) ?? engine.equations.first {
                     let h = 1e-5
                     var vars = engine.variables
                     let eqVar = "X".split(separator: "=").first.map(String.init) ?? "X"
                     vars[eqVar] = CalculatorValue(real: rootX + h)
                     engine.variables = vars
-                    let fPlus = engine.evaluateProgram(p)?.real ?? 0.0
+                    let fPlus = engine.evaluateEquation(p)?.real ?? 0.0
                     vars[eqVar] = CalculatorValue(real: rootX - h)
                     engine.variables = vars
-                    let fMinus = engine.evaluateProgram(p)?.real ?? 0.0
+                    let fMinus = engine.evaluateEquation(p)?.real ?? 0.0
                     let slope = (fPlus - fMinus) / (2 * h)
                     
                     vars[eqVar] = CalculatorValue(real: rootX)
                     engine.variables = vars
-                    let rootY = engine.evaluateProgram(p)?.real ?? 0.0
+                    let rootY = engine.evaluateEquation(p)?.real ?? 0.0
                     let intercept = rootY - slope * rootX
                     
                     var pMinX = Double.greatestFiniteMagnitude
@@ -294,7 +294,7 @@ public struct RetroUIFooterView: FirmwareView {
             } else if retroUI.softkeyMode != .none {
                 var items: [MenuItem] = []
                 if retroUI.softkeyProgram == nil {
-                    for prog in engine.programs {
+                    for prog in engine.equations {
                         items.append(MenuItem(label: prog.label, action: "SOFTKEY_PRG_\(prog.label)"))
                     }
                 } else {
@@ -312,7 +312,7 @@ public struct RetroUIFooterView: FirmwareView {
                 
             } else if engine.alphaAction == .fnEq {
                 var items: [MenuItem] = []
-                for prog in engine.programs {
+                for prog in engine.equations {
                     items.append(MenuItem(label: prog.label, action: prog.label))
                 }
                 MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)
@@ -320,7 +320,7 @@ public struct RetroUIFooterView: FirmwareView {
             } else if engine.isEquationListMode {
                 var items: [MenuItem] = []
                 items.append(MenuItem(label: "NEW", action: "EQN_NEW"))
-                if !engine.programs.isEmpty {
+                if !engine.equations.isEmpty {
                     items.append(MenuItem(label: "EDIT", action: "EQN_EDIT"))
                 }
                 MenuSoftkeyRowView(items: items, offset: retroUI.menuOffset).draw(in: renderer, x: x, y: y, engine: engine)

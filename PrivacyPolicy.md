@@ -8,7 +8,7 @@ StackCalc32 ("the App") is designed with your privacy in mind. This policy expla
 StackCalc32 operates entirely locally on your device (iPhone, iPad, or Apple Watch). 
 We do not collect, transmit, store, or share any personal information, usage data, or calculations.
 
-All calculator states, memory registers, user programs, and settings are stored locally on your device using standard Apple frameworks (such as UserDefaults) and are never shared.
+All calculator states, memory registers, user equations, and settings are stored locally on your device using standard Apple frameworks (such as UserDefaults) and are never shared.
 
 ### Third-Party Services
 The App does not integrate with any third-party analytics or advertising services. 

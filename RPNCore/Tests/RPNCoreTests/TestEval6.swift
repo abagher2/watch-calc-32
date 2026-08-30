@@ -5,7 +5,7 @@ import XCTest
 final class TestEval6: XCTestCase {
     func testEval6() {
         let engine = CalculatorEngine()
-        engine.programs.removeAll()
+        engine.equations.removeAll()
         
         // 1. User taps "New Equation" (+ button) in SwiftUI List
         engine.isWaitingForLabel = true

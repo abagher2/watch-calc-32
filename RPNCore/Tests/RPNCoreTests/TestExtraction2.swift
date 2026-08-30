@@ -4,16 +4,16 @@ import XCTest
 final class TestExtraction2: XCTestCase {
     func testEval() {
         let engine = CalculatorEngine()
-        engine.programs.removeAll()
+        engine.equations.removeAll()
         
         let stepsStr = ["X", "𝑥²", "2", "÷", "+/-", "𝑒ˣ", "2", "π", "×", "√𝑥", "÷"]
         let steps = stepsStr.compactMap { Instruction(fromString: $0) }
-        let program = CalculatorEngine.Program(label: "N", steps: steps)
+        let equation = CalculatorEngine.Equation(label: "N", steps: steps)
         
         engine.variables["X"] = CalculatorValue(real: 0.0)
         
-        // Emulate evaluateProgram loop with prints
-        engine.isProgrammingMode = false
+        // Emulate evaluateEquation loop with prints
+        engine.isEquationEditMode = false
         engine.isBuildingNumber = false
         engine.stackLiftEnabled = true
         engine.stack = Array(repeating: CalculatorValue(), count: 4)

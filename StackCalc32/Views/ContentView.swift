@@ -81,7 +81,7 @@ struct ContentView: View {
                         .onChange(of: crownValue) { new in
                             let delta = new - engine.lastCrownValue
                             if abs(delta) > 0.5 {
-                                if engine.isProgrammingMode {
+                                if engine.isEquationEditMode || engine.isEquationListMode {
                                     if delta > 0 {
                                         engine.scrollDown()
                                     } else {
@@ -337,7 +337,7 @@ struct WatchMenuModifier: ViewModifier {
     @State private var showXEQ = false
     @State private var showIntegrate = false
     @State private var showShow = false
-    @State private var showProgramEditor = false
+    @State private var showEquationEditor = false
 
     func body(content: Content) -> some View {
         @Bindable var bindableEngine = engine
@@ -348,10 +348,10 @@ struct WatchMenuModifier: ViewModifier {
             .sheet(isPresented: $showXEQ) { XEQPromptView().environment(engine) }
             .sheet(isPresented: $showIntegrate) { IntegratePromptView().environment(engine) }
             .sheet(isPresented: $showShow) { ShowView(rawValue: engine.stack.first?.real ?? 0) }
-            .sheet(isPresented: $showProgramEditor) { EquationEditorView() }
+            .sheet(isPresented: $showEquationEditor) { EquationEditorView() }
             .sheet(isPresented: Binding(
-                get: { bindableEngine.currentEvaluatingProgram != nil },
-                set: { if !$0 { bindableEngine.currentEvaluatingProgram = nil } }
+                get: { bindableEngine.currentEvaluatingEquation != nil },
+                set: { if !$0 { bindableEngine.currentEvaluatingEquation = nil } }
             )) { VariablePromptView() }
             // All CalculatorMenu menus (disp, modes, base, clear, flags, mem, const, etc.)
             // route through engine.activeMenu → CalculatorMenuPresenter.
@@ -365,8 +365,8 @@ struct WatchMenuModifier: ViewModifier {
                 ))
                 .environment(engine)
             }
-            .onChange(of: bindableEngine.isProgrammingMode) { _, newValue in
-                if !newValue { showProgramEditor = false }
+            .onChange(of: bindableEngine.isEquationEditMode) { _, newValue in
+                if !newValue { showEquationEditor = false }
             }
             .onChange(of: bindableEngine.requestPlot) { _, newValue in
                 if newValue {
@@ -442,12 +442,12 @@ struct WatchMenuModifier: ViewModifier {
 struct WatchContentView_Previews: PreviewProvider {
     static var previews: some View {
         let engine = CalculatorEngine()
-        engine.isProgrammingMode = true
-        engine.currentProgramLabel = "NPDF"
-        if let p = engine.programs.first(where: { $0.label == "NPDF" }) {
-            engine.currentProgramSteps = p.steps.map { $0.stringValue }
+        engine.isEquationEditMode = true
+        engine.currentEquationLabel = "NPDF"
+        if let p = engine.equations.first(where: { $0.label == "NPDF" }) {
+            engine.currentEquationSteps = p.steps.map { $0.stringValue }
         }
-        engine.currentProgramStepIndex = 5
+        engine.currentEquationStepIndex = 5
         
         return ContentView()
             .environment(engine)

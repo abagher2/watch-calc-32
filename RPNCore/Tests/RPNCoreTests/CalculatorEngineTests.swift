@@ -6,7 +6,7 @@ final class CalculatorEngineTests: XCTestCase {
     func testStackPush() {
         let engine = CalculatorEngine()
         let steps = ["X", "𝑥²", "4", "-"].compactMap { Instruction(fromString: $0) }
-        let program = CalculatorEngine.Program(label: "ROOT", steps: steps)
+        let equation = CalculatorEngine.Equation(label: "ROOT", steps: steps)
         engine.digit(1)
         engine.enter()
         engine.digit(2)

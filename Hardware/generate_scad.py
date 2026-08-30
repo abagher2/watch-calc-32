@@ -538,7 +538,6 @@ translate([{fp_w:.3f}, 0, {pt:.3f}]) rotate([0, 180, 0]) faceplate_assembly();
     # --- FACEPLATE TAPERED ---
     # Replace faceplate_body with bezel
     fp_tapered = faceplate
-    
     fp_body_orig = "cube([fp_w, fp_h, pt]);"
     fp_body_new = """cube([fp_w, fp_h, pt]);
         bz_w_base = 64.0;
@@ -578,118 +577,8 @@ translate([{fp_w:.3f}, 0, {pt:.3f}]) rotate([0, 180, 0]) faceplate_assembly();
     FP_CLR = 0.1
     
     unibody_scad = f"""
-use <sf_glyphs.scad>;
+use <buttons.scad>;
 
-
-module spiral_arm(r1, r2, w, a) {{
-    polygon([
-        for (i=[0:15]) [ (r1 + (r2-r1)*(i/15)) * cos(a*(i/15)), (r1 + (r2-r1)*(i/15)) * sin(a*(i/15)) ],
-        for (i=[15:-1:0]) [ (r1+w + (r2-r1)*(i/15)) * cos(a*(i/15)), (r1+w + (r2-r1)*(i/15)) * sin(a*(i/15)) ]
-    ]);
-}}
-
-module button_cavity(w, h) {{
-    cavity_w = w - 0.4;
-    cavity_h = h - 0.4;
-    z_faceplate = 2.5;
-    
-    top_w = (w > 15) ? w - 1.0 : w - 1.0;
-    top_h = h - 1.0;
-    hole_top_w = top_w + 0.4; 
-    hole_top_h = top_h + 0.4;
-    
-    // Tapered hole
-    hull() {{
-        translate([0, 0, 0.0]) squircle_centered(cavity_w, cavity_h, 0.01, 1.5);
-        translate([0, 0, z_faceplate]) squircle_centered(hole_top_w, hole_top_h, 0.01, 1.5);
-    }}
-    translate([0, 0, z_faceplate - 0.01]) squircle_centered(hole_top_w, hole_top_h, 10.0, 1.5);
-}}
-
-module button_solid(w, h, label="", label_left="", label_right="", label_alpha="") {{
-    arm_w = 0.5; // Spring width
-    z_spring_top = 0.4; // 2 FDM layers thick
-    z_faceplate = 2.5; 
-    z_top = 5.6; 
-    
-    // Top exposed chiclet
-    top_w = (w > 15) ? w - 1.0 : w - 1.0;
-    top_h = h - 1.0;
-    
-    // Bottom narrow base for springs and switch
-    base_w = 6.0;
-    base_h = 6.0;
-    
-    cavity_w = w - 0.4;
-    cavity_h = h - 0.4;
-    
-    render() difference() {{ 
-        union() {{
-            // Narrow base (Z = 0.0 to 1.5)
-            squircle_centered(base_w, base_h, 1.5, 1.0);
-            
-            // 45-degree chamfer expansion (Z = 1.5 to 2.9)
-            // (top_w - base_w)/2 = (8.8 - 6.0)/2 = 1.4mm. So height needed is 1.4mm for 45 deg.
-            translate([0, 0, 1.5])
-                hull() {{
-                    squircle_centered(base_w, base_h, 0.01, 1.0);
-                    translate([0, 0, 1.4]) squircle_centered(top_w, top_h, 0.01, 1.0);
-                }}
-                
-            // Straight shaft (Z = 2.9 to 5.6)
-            translate([0, 0, 2.9])
-                squircle_centered(top_w, top_h, z_top - 2.9, 1.0);
-            
-            // Spiral Springs connecting the narrow base to the cavity walls
-            intersection() {{
-                for(i=[0:2]) rotate([0, 0, i*120]) linear_extrude(z_spring_top) spiral_arm(3.2, cavity_w/2 + 0.1, arm_w, 180);
-                squircle_centered(cavity_w + 0.2, cavity_h + 0.2, z_spring_top + 0.1, 1.5);
-            }}
-        }} 
-        
-        // Engraved Top Label
-        if (label != "") {{
-            translate([0, 0, z_top - 0.4]) 
-                linear_extrude(1.0) {{
-                    offset(delta=0.01) offset(delta=-0.01) sf_word(label, top_w - 1.5, min(top_w*0.3, top_h*0.35));
-                }}
-        }}
-        
-        // Engraved Side Labels (Front, Left, Right) - on the straight shaft section
-        mid_z = 2.9 + (z_top - 2.9)/2; 
-        
-        if (label_alpha != "") {{
-            translate([0, -top_h/2 + 0.4, mid_z])
-                rotate([90, 0, 0])
-                linear_extrude(1.0) {{
-                    offset(delta=0.01) offset(delta=-0.01) sf_word(label_alpha, top_w - 2.0, min(top_w*0.16, top_h*0.18));
-                }}
-        }}
-        
-        if (label_left != "") {{
-            translate([-top_w/2 + 0.4, 0, mid_z])
-                rotate([0, -90, 0])
-                rotate([0, 0, -90]) // Flipped 180 degrees
-                linear_extrude(1.0) {{
-                    offset(delta=0.01) offset(delta=-0.01) sf_word(label_left, top_h - 2.0, min(top_w*0.13, top_h*0.16));
-                }}
-        }}
-        
-        if (label_right != "") {{
-            translate([top_w/2 - 0.4, 0, mid_z])
-                rotate([0, 90, 0])
-                rotate([0, 0, 90]) // Flipped 180 degrees
-                linear_extrude(1.0) {{
-                    offset(delta=0.01) offset(delta=-0.01) sf_word(label_right, top_h - 2.0, min(top_w*0.13, top_h*0.16));
-                }}
-        }}
-        
-        // Pocket to clear 1.5mm tall tactile switch body (SKQGABE010 is 5.2x5.2mm)
-        // 5.2 x 5.2mm pocket inside the 6.0x6.0 base leaves 0.4mm walls for the springs to attach!
-        translate([0, 0, 1.6/2 - 0.1])
-            cube([5.2, 5.2, 1.6], center=true);
-    }}
-}}
 FP_CLR = 0.1;
 module button_faceplate() {{
     union() {{
@@ -708,7 +597,7 @@ module button_faceplate() {{
         for b in row:
             ox = pad_left + b['x']
             oy = pad_bottom + b['y']
-            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_cavity({b['w']}, {b['h']});\n"
+            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_cavity({b['w']});\n"
 
     unibody_scad += "    }\n"
     
@@ -721,7 +610,7 @@ module button_faceplate() {{
             lbl_l = b.get('label_left', '').replace('"', '\\"')
             lbl_r = b.get('label_right', '').replace('"', '\\"')
             lbl_a = b.get('label_alpha', '').replace('"', '\\"')
-            unibody_scad += f'        translate([{ox:.3f}, {oy:.3f}, 0]) button_solid({b["w"]}, {b["h"]}, "{lbl}", "{lbl_l}", "{lbl_r}", "{lbl_a}");\n'
+            unibody_scad += f'        translate([{ox:.3f}, {oy:.3f}, 0]) button_labeled({b["w"]}, {b["w"]}, 0.5, "{lbl_a}", "{lbl_l}", "{lbl_r}");\n'
     unibody_scad += f"""
     }}
 }}
@@ -1384,7 +1273,7 @@ if __name__ == "__main__":
     import shutil
     openscad_bin = shutil.which("openscad") or "/usr/local/bin/openscad"
 
-    for label, src, dst in tasks:
+    if False:
         print(f"  Building {label} ...")
         res = subprocess.run([openscad_bin, "-o", dst, src],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

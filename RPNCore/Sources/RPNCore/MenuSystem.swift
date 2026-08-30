@@ -52,6 +52,7 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
     case lr = "L.R."
     case stack = "STACK"
     case eqn = "EQN"
+    case regs = "REGS"
     
     public init?(rawValue: String) {
         if rawValue == "DISP" { self = .disp }
@@ -87,7 +88,6 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         MenuItem(label: "FIX", requiresDigit: true, description: "Fixed decimal places"),
         MenuItem(label: "SCI", requiresDigit: true, description: "Scientific notation"),
         MenuItem(label: "ENG", requiresDigit: true, description: "Engineering notation"),
-        MenuItem(label: "SIG", requiresDigit: true, description: "Significant figures"),
         MenuItem(label: "ALL", description: "Show all trailing digits")
     ]
     public static let baseItems: [MenuItem] = [
@@ -148,11 +148,11 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
     public static let clearItems: [MenuItem] = [
         MenuItem(label: "x", action: "CLx", description: "Clear X register"),
         MenuItem(label: "VARS", action: "CLVARS", description: "Clear all variables"),
-        MenuItem(label: "ALL", action: "CLALL", description: "Clear variables and programs"),
+        MenuItem(label: "ALL", action: "CLALL", description: "Clear variables and equations"),
         MenuItem(label: "Σ", action: "CLΣ", description: "Clear sum/statistical registers"),
         MenuItem(label: "REGS", action: "CLREGS", description: "Clear storage registers"),
         MenuItem(label: "STK", action: "CLSTK", description: "Clear stack"),
-        MenuItem(label: "PGM", action: "CLPRGM", description: "Clear programs")
+        MenuItem(label: "EQN", action: "CLEQN", description: "Clear equations")
     ]
     public static let partsItems: [MenuItem] = [
         MenuItem(label: "INT", action: "INTG", description: "Integer part"),
@@ -183,7 +183,7 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
     ]
     public static let memItems: [MenuItem] = [
         MenuItem(label: "VARS", description: "Used variables memory"),
-        MenuItem(label: "PRGM", description: "Programs memory"),
+        MenuItem(label: "EQN", description: "Equations memory"),
         MenuItem(label: "REGS", description: "Registers memory")
     ]
     public static let testXYItems: [MenuItem] = [
@@ -240,14 +240,34 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         case .statStdDev: return CalculatorMenu.statStdDevItems
         case .lr: return CalculatorMenu.lrItems
         case .testX0: return CalculatorMenu.testX0Items
-        case .eqn:
-            var eqnItems: [MenuItem] = []
+                case .regs:
+            var items: [MenuItem] = []
+            let stackLabels = ["X", "Y", "Z", "T"]
+            if let engine = engine {
+                for i in 0..<min(4, engine.stack.count) {
+                    let val = engine.stack[i].real
+                    items.append(MenuItem(label: "\(stackLabels[i])=\(engine.formatNumber(val))", requiresDigit: false, description: "Stack \(stackLabels[i])"))
+                }
+                items.append(MenuItem(label: "LAST X=\(engine.formatNumber(engine.lastX.real))", requiresDigit: false, description: "Last X"))
+                
+                let sortedVars = engine.variables.keys.sorted()
+                for key in sortedVars {
+                    if let val = engine.variables[key]?.real {
+                        items.append(MenuItem(label: "\(key)=\(engine.formatNumber(val))", requiresDigit: false, description: "Variable \(key)"))
+                    }
+                }
+            }
+            if items.isEmpty {
+                items.append(MenuItem(label: "EMPTY", requiresDigit: false, description: "No variables"))
+            }
+            return items
+        case .eqn:            var eqnItems: [MenuItem] = []
             if engine?.alphaAction != .fnEq {
                 eqnItems.append(MenuItem(label: "NEW", action: "EQN_NEW"))
             }
             
             if let engine = engine {
-                for prog in engine.programs {
+                for prog in engine.equations {
                     let label = prog.label.isEmpty ? "EQN" : prog.label
                     if engine.alphaAction == .fnEq {
                         eqnItems.append(MenuItem(label: label, action: label, description: prog.steps.map { $0.stringValue }.joined(separator: " ")))
@@ -280,6 +300,7 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         case .const:       return "Constants"
         case .stack:       return "Stack Size"
         case .eqn:         return "Equations"
+        case .regs:        return "Registers"
         }
     }
 }

@@ -81,9 +81,9 @@ private struct GenericMenuPresenterView: View {
                             let item = items[idx]
                             if item.action.hasPrefix("EQN_EDIT_") {
                                 let lbl = String(item.action.dropFirst(9))
-                                engine.programs.removeAll(where: { $0.label == lbl })
+                                engine.equations.removeAll(where: { $0.label == lbl })
                             } else if item.action == item.label, engine.alphaAction == .fnEq {
-                                engine.programs.removeAll(where: { $0.label == item.action })
+                                engine.equations.removeAll(where: { $0.label == item.action })
                             }
                         }
                     }
@@ -253,8 +253,8 @@ private struct ClearMenuPresenterView: View {
                     engine.executeMath("CLSTK"); isPresented = false
                 }
                 .accessibilityIdentifier("clear_menu_clstk")
-                Button("CLPRGM — Clear Programs") {
-                    engine.executeMath("CLPRGM"); isPresented = false
+                Button("CLEQN — Clear Programs") {
+                    engine.executeMath("CLEQN"); isPresented = false
                 }
                 .accessibilityIdentifier("clear_menu_clprgm")
                 Button("CLALL — Clear Everything", role: .destructive) {
@@ -288,7 +288,7 @@ private struct MemMenuPresenterView: View {
 
     var statBytes:    Int { engine.statPoints.count * 48 }
     var varBytes:     Int { engine.variables.count * 8 }
-    var programBytes: Int { engine.programs.reduce(0) { $0 + ($1.steps.count * 2) } }
+    var programBytes: Int { engine.equations.reduce(0) { $0 + ($1.steps.count * 2) } }
     var totalUsed:    Int { statBytes + varBytes + programBytes }
 
     var body: some View {
@@ -298,7 +298,7 @@ private struct MemMenuPresenterView: View {
                     HStack { Text("Total Used"); Spacer(); Text("\(totalUsed) B") }
                     HStack { Text("STAT (\(engine.statPoints.count))"); Spacer(); Text("\(statBytes) B") }
                     HStack { Text("VARS (\(engine.variables.count))"); Spacer(); Text("\(varBytes) B") }
-                    HStack { Text("PRGM (\(engine.programs.count))"); Spacer(); Text("\(programBytes) B") }
+                    HStack { Text("PRGM (\(engine.equations.count))"); Spacer(); Text("\(programBytes) B") }
                 }
                 Section("Navigate") {
                     Button("VARS \u{2014} View Variables") {

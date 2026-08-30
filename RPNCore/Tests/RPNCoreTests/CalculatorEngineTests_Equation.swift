@@ -27,7 +27,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         engine.digit(3) // 56 * X + 3
         
         let expectedSteps = ["56", "×", "RCL X", "+", "3"]
-        XCTAssertEqual(engine.currentProgramSteps, expectedSteps)
+        XCTAssertEqual(engine.currentEquationSteps, expectedSteps)
     }
 
     func testNormalPDFEntry() {
@@ -79,12 +79,12 @@ final class CalculatorEngineTests_Equation: XCTestCase {
             "𝑒ˣ", "×"
         ]
         
-        XCTAssertEqual(engine.currentProgramSteps, expectedSteps)
+        XCTAssertEqual(engine.currentEquationSteps, expectedSteps)
     }
 
     func testEquationModeBlacklist() {
         engine.executeMath("PRGM")
-        XCTAssertTrue(engine.isProgrammingMode)
+        XCTAssertTrue(engine.isEquationEditMode)
         
         // Allowed commands
         engine.digit(5)
@@ -112,7 +112,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         XCTAssertEqual(engine.errorMessage, "INVALID DATA")
         engine.errorMessage = nil
         
-        XCTAssertEqual(engine.currentProgramSteps.joined(separator: " "), "5 ENTER +")
+        XCTAssertEqual(engine.currentEquationSteps.joined(separator: " "), "5 ENTER +")
     }
     
     func testEquationDeltaFunctions() {
@@ -126,12 +126,12 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         engine.executeMath("×")
         
         engine.executeMath("ENTER") // Commit equation? 
-        let program = CalculatorEngine.Program(label: "A", steps: ["5", "RCL X", "x>0", "×"].compactMap { Instruction(fromString: $0) })
-        engine.programs.append(program)
+        let equation = CalculatorEngine.Equation(label: "A", steps: ["5", "RCL X", "x>0", "×"].compactMap { Instruction(fromString: $0) })
+        engine.equations.append(equation)
         
         // Case 1: X = 10 -> (10 > 0) is 1.0 -> 5 * 1.0 = 5.0
         engine.variables["X"] = CalculatorValue(real: 10.0)
-        if let result1 = engine.evaluateProgram(program) {
+        if let result1 = engine.evaluateEquation(equation) {
             engine.push(result1)
         }
         print("STACK POST EVAL 1: \(engine.stack[0].real), \(engine.stack[1].real), \(engine.stack[2].real)")
@@ -139,7 +139,7 @@ final class CalculatorEngineTests_Equation: XCTestCase {
         
         // Case 2: X = -5 -> (-5 > 0) is 0.0 -> 5 * 0.0 = 0.0
         engine.variables["X"] = CalculatorValue(real: -5.0)
-        if let result2 = engine.evaluateProgram(program) {
+        if let result2 = engine.evaluateEquation(equation) {
             engine.push(result2)
         }
         print("STACK POST EVAL 2: \(engine.stack[0].real), \(engine.stack[1].real), \(engine.stack[2].real)")

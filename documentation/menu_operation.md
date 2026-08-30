@@ -26,7 +26,7 @@ This document defines the **intended operation** of every menu and prompt across
 | **iOS** | `RCL` opens the alpha keyboard sheet. |
 | **watchOS** | Full-screen A–Z picker. |
 
-### XEQ — Execute Program
+### XEQ — Execute Equation
 | Surface | Operation |
 |---|---|
 | **HP32SII** | Press `XEQ`. LCD shows `XEQ _`. Press alpha label (A–Z) to run program from that label. |
@@ -42,7 +42,7 @@ This document defines the **intended operation** of every menu and prompt across
 | **iOS** | Opens alpha keyboard sheet. |
 | **watchOS** | Full-screen A–Z picker. |
 
-### LBL — Define Program Label
+### LBL — Define Equation Label
 | Surface | Operation |
 |---|---|
 | **HP32SII** | In program mode, press `YELLOW + +`. LCD shows `LBL _`. Press alpha to set the label. |
@@ -103,7 +103,7 @@ This document defines the **intended operation** of every menu and prompt across
 
 ### CLEAR — Clear Options (`YELLOW + <-`)
 **HP32SII items:** `CLx`, `CLVARS`, `CLΣ`, `ALL` *(PGM only in PRGM mode)*
-**StackCalc32 adds:** `CLPRGM`, `CLREGS`, `CLSTK` as always-visible items
+**StackCalc32 adds:** `CLEQN`, `CLREGS`, `CLSTK` as always-visible items
 
 | Surface | Operation |
 |---|---|

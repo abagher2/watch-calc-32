@@ -236,7 +236,7 @@ final class FirmwareHILTests: XCTestCase {
         Thread.sleep(forTimeInterval: 0.5) // waiting for plot variable prompt
         sendCommand("X") // var X
         
-        // Let plot run, it evaluates program or equation
+        // Let plot run, it evaluates equation or equation
         Thread.sleep(forTimeInterval: 1.0)
         
         takeScreenshot(name: "testFirmwarePlotting_Screen")
@@ -260,7 +260,7 @@ final class FirmwareHILTests: XCTestCase {
     func testFirmwareNormalPDFPlots() {
         sendCommand("C")
         sendCommand("C")
-        sendCommand("CLALL") // Clear all programs from previous tests to prevent OOM
+        sendCommand("CLALL") // Clear all equations from previous tests to prevent OOM
         Thread.sleep(forTimeInterval: 0.5)
         
         // Set M=0, S=1
@@ -289,7 +289,7 @@ final class FirmwareHILTests: XCTestCase {
         // 1. Plot Normal PDF
         sendCommand("PLOT")
         Thread.sleep(forTimeInterval: 0.5)
-        sendCommand("LFU_0") // Select program N
+        sendCommand("LFU_0") // Select equation N
         Thread.sleep(forTimeInterval: 0.5)
         sendCommand("LFU_2") // Select variable X (M, S, X) -> sorted is M(0), S(1), X(2)
         Thread.sleep(forTimeInterval: 0.5)
@@ -310,7 +310,7 @@ final class FirmwareHILTests: XCTestCase {
         // 2. Plot Derivative
         sendCommand("PLOT")
         Thread.sleep(forTimeInterval: 0.5)
-        sendCommand("LFU_1") // Select program D
+        sendCommand("LFU_1") // Select equation D
         Thread.sleep(forTimeInterval: 0.5)
         sendCommand("LFU_2") // Select variable X
         Thread.sleep(forTimeInterval: 0.5)
@@ -335,7 +335,7 @@ final class FirmwareHILTests: XCTestCase {
         
         sendCommand("PLOT")
         Thread.sleep(forTimeInterval: 0.5)
-        sendCommand("LFU_0") // Select program N
+        sendCommand("LFU_0") // Select equation N
         Thread.sleep(forTimeInterval: 0.5)
         sendCommand("LFU_2") // Select variable X
         Thread.sleep(forTimeInterval: 0.5)

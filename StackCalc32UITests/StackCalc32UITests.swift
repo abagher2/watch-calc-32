@@ -247,7 +247,7 @@ import RPNCore
     
     Thread.sleep(forTimeInterval: 0.5)
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap() // This is the first step of the program
+    app.buttons["func_X"].tap() // This is the first step of the equation
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
@@ -821,7 +821,7 @@ import RPNCore
     app.buttons["C"].tap()
     app.buttons["C"].tap()
     app.buttons["C"].tap()
-    // Setup equation NPDF (it is a built in program usually or we can just integrate our X^2)
+    // Setup equation NPDF (it is a built in equation usually or we can just integrate our X^2)
     // Since X^2 is already in EQN, we can evaluate it
     // FN= 
     navigateToLFUPad(app: app)

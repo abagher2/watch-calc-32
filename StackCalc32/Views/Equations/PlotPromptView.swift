@@ -7,7 +7,7 @@ struct PlotPromptView: View {
     
     @State private var plotSource = "Equation"
     @State private var variables: [String] = []
-    @State private var selectedProgramLabel = ""
+    @State private var selectedEquationLabel = ""
     @State private var selectedVar = ""
     @State private var lowerLimit = "-3"
     @State private var upperLimit = "3"
@@ -15,8 +15,8 @@ struct PlotPromptView: View {
     @State private var actionToExecute: String? = nil
     
     private func updateVariables() {
-        if let program = engine.programs.first(where: { $0.label == selectedProgramLabel }) {
-            variables = program.extractVariables()
+        if let equation = engine.equations.first(where: { $0.label == selectedEquationLabel }) {
+            variables = equation.extractVariables()
             if let first = variables.first {
                 selectedVar = first
             }
@@ -43,30 +43,30 @@ struct PlotPromptView: View {
                 }
                 
                 if plotSource == "Equation" {
-                    if engine.programs.isEmpty {
+                    if engine.equations.isEmpty {
                         Text("No equations available.")
                     } else {
                         Section("Equation") {
-                            ForEach(engine.programs) { program in
+                            ForEach(engine.equations) { equation in
                                 Button {
-                                    selectedProgramLabel = program.label
+                                    selectedEquationLabel = equation.label
                                     updateVariables()
                                 } label: {
                                     HStack {
-                                        if program.label.isEmpty {
+                                        if equation.label.isEmpty {
                                             Text("Equation")
                                                 .foregroundColor(.white)
                                         } else {
-                                            Text(program.label)
+                                            Text(equation.label)
                                                 .foregroundColor(.white)
                                         }
                                         Spacer()
-                                        Text(program.steps.map { $0.stringValue }.joined(separator: " "))
+                                        Text(equation.steps.map { $0.stringValue }.joined(separator: " "))
                                             .lineLimit(1)
                                             .truncationMode(.tail)
                                             .foregroundColor(.secondary)
                                             .layoutPriority(-1)
-                                        if selectedProgramLabel == program.label {
+                                        if selectedEquationLabel == equation.label {
                                             Image(systemName: "checkmark")
                                                 .foregroundColor(.blue)
                                         }
@@ -136,7 +136,7 @@ struct PlotPromptView: View {
                 }
             }
             .onAppear {
-                print("PLOT_PROMPT_DEBUG: programs = \(engine.programs.map { "\($0.label):\($0.steps)" })")
+                print("PLOT_PROMPT_DEBUG: equations = \(engine.equations.map { "\($0.label):\($0.steps)" })")
                 if engine.isBuildingNumber {
                     engine.commitInput()
                 }
@@ -148,11 +148,11 @@ struct PlotPromptView: View {
                     upperLimit = String(format: "%g", x)
                 }
                 
-                if let label = engine.currentProgramLabel.isEmpty ? nil : engine.currentProgramLabel,
-                   engine.programs.contains(where: { $0.label == label }) {
-                    selectedProgramLabel = label
-                } else if let first = engine.programs.first {
-                    selectedProgramLabel = first.label
+                if let label = engine.currentEquationLabel.isEmpty ? nil : engine.currentEquationLabel,
+                   engine.equations.contains(where: { $0.label == label }) {
+                    selectedEquationLabel = label
+                } else if let first = engine.equations.first {
+                    selectedEquationLabel = first.label
                 }
                 updateVariables()
             }
@@ -165,16 +165,16 @@ struct PlotPromptView: View {
                             engine.statusMessage = nil
                         }
                     } else {
-                        if !selectedProgramLabel.isEmpty {
-                            engine.currentProgramLabel = selectedProgramLabel
+                        if !selectedEquationLabel.isEmpty {
+                            engine.currentEquationLabel = selectedEquationLabel
                         }
                         if let low = Double(lowerLimit), let up = Double(upperLimit) {
                             engine.startPlot(variable: selectedVar, lower: low, upper: up)
                         }
                     }
                 } else if actionToExecute == "integrate" {
-                    if !selectedProgramLabel.isEmpty {
-                        engine.currentProgramLabel = selectedProgramLabel
+                    if !selectedEquationLabel.isEmpty {
+                        engine.currentEquationLabel = selectedEquationLabel
                     }
                     if let low = Double(lowerLimit), let up = Double(upperLimit) {
                         engine.startIntegrate(variable: selectedVar, lower: low, upper: up, requestPlotAfter: true)

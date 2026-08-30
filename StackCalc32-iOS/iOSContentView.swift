@@ -384,7 +384,7 @@ struct AlphaPromptModifier: ViewModifier {
         }
         return AnyView(content
             .sheet(isPresented: Binding(
-                get: { engine.isWaitingForAlpha && !engine.usesContextualAlphaPad && !engine.isProgrammingMode && themeManager.activeThemeType != .retro },
+                get: { engine.isWaitingForAlpha && !engine.usesContextualAlphaPad && !engine.isEquationEditMode && themeManager.activeThemeType != .retro },
                 set: { if !$0 { engine.cancelAlpha() } }
             )) {
                 NavigationStack {
@@ -478,7 +478,7 @@ class KeyCommandViewController: UIViewController {
 }
 
 enum ActiveMenu: String, Identifiable {
-    case base, testXY, testX0, mean, sums, stdDev, lr, parts, prob, clear, flags, regs, mem, const, disp, modes, eqn, plot, show, integrate, solve, xeq
+    case base, testXY, testX0, mean, sums, stdDev, lr, parts, prob, clear, flags, regs, mem, const, disp, modes, eqn, show, integrate, solve
     var id: String { self.rawValue }
 
     /// Maps this ActiveMenu to the corresponding RPNCore CalculatorMenu, if one exists.
@@ -569,15 +569,10 @@ struct iOSMenuModifier: ViewModifier {
                 .environment(engine)
                 .environmentObject(themeManager)
             })
-        case .plot:
-            // PlotPromptView (from Watch target, compiled into iOS via shared Sources)
-            return AnyView(PlotPromptView().environment(engine))
         case .integrate:
             return AnyView(IntegratePromptView().environment(engine))
         case .solve:
             return AnyView(SolvePromptView().environment(engine))
-        case .xeq:
-            return AnyView(XEQPromptView().environment(engine))
         default:
             // Generic menus — delegate to shared CalculatorMenuPresenter
             if let calcMenu = menu.calculatorMenu {
@@ -624,11 +619,9 @@ struct iOSMenuModifier: ViewModifier {
         case .modes: activeMenu = .modes
         case .eqn: activeMenu = .eqn
         case .fnEq: activeMenu = .eqn
-        case .plot: activeMenu = .plot
         case .show: activeMenu = .show
         case .integrate: activeMenu = .integrate
         case .solve: activeMenu = .solve
-        case .xeq: activeMenu = .xeq
         case .lfu0, .lfu1, .lfu2, .lfu3, .lfu4, .lfu5:
             let index = command.rawValue - CalculatorOperation.lfu0.rawValue
             let funcStr = engine.lfuManager.getFunction(for: index)

@@ -213,8 +213,8 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
 
     // MARK: - 5. Exhaustive Programming & Equation Mode Test
     func testExhaustiveProgrammingAndEquationMode() {
-        engine.isProgrammingMode = true
-        engine.currentProgramSteps = ["LBL A", "12", "ENTER", "34", "×", "RTN"]
+        engine.isEquationEditMode = true
+        engine.currentEquationSteps = ["LBL A", "12", "ENTER", "34", "×", "RTN"]
         
         controller.render()
         
@@ -231,21 +231,21 @@ final class ExhaustiveRetroUIParityTests: XCTestCase {
         engine.setShift(1)
         controller.processAction(.digit8) // Up arrow scroll
         // Removed unused programScrollOffset check
-        engine.isProgrammingMode = false
+        engine.isEquationEditMode = false
     }
 
     // MARK: - 6. Exhaustive Advanced Solver / Integrator Emulation Test
     func testExhaustiveSolverAndIntegratorEmulation() {
-        // Add test program
-        let prog = CalculatorEngine.Program(label: "F", steps: ["X", "2", "^", "1", "-"].compactMap { Instruction(fromString: $0) })
-        engine.programs = [prog]
+        // Add test equation
+        let prog = CalculatorEngine.Equation(label: "F", steps: ["X", "2", "^", "1", "-"].compactMap { Instruction(fromString: $0) })
+        engine.equations = [prog]
         
         // Trigger SOLVE mode
         controller.processAction(.solve)
         XCTAssertEqual(controller.retroUI.softkeyMode, .solve)
         controller.render()
         
-        // Manually select program for Advanced emulation test
+        // Manually select equation for Advanced emulation test
         controller.retroUI.softkeyProgram = prog
         XCTAssertEqual(controller.retroUI.softkeyProgram?.label, "F")
         

@@ -91,7 +91,7 @@ public enum CalculatorOperation: Int, CaseIterable, Equatable, Hashable {
     case or = 85
     case parts = 86
     case plot = 87
-    case prgm = 88
+    case _prgm = 88
     case prob = 89
     case nPr = 135
     case nCr = 136
@@ -243,7 +243,7 @@ public enum CalculatorOperation: Int, CaseIterable, Equatable, Hashable {
         case .or: return "OR"
         case .parts: return "PARTS"
         case .plot: return "PLOT"
-        case .prgm: return "PRGM"
+        case ._prgm: return "PRGM"
         case .prob: return "PROB"
         case .nPr: return "nPr"
         case .nCr: return "nCr"
@@ -326,6 +326,8 @@ public enum CalculatorOperation: Int, CaseIterable, Equatable, Hashable {
         case .digit2: return "X"
         case .digit3: return "Y"
         case .digit0: return "Z"
+        case .decimal: return "i"
+        case .plot: return "(i)"
         default: return nil
         }
     }

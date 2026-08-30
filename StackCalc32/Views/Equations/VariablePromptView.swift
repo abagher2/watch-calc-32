@@ -27,23 +27,23 @@ struct VariablePromptView: View {
                 }
                 
             }
-            .navigationTitle(engine.currentEvaluatingProgram?.label ?? "Variables")
+            .navigationTitle(engine.currentEvaluatingEquation?.label ?? "Variables")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
-                        engine.currentEvaluatingProgram = nil
+                        engine.currentEvaluatingEquation = nil
                         dismiss()
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Execute") {
-                        executeProgram()
+                        executeEquation()
                     }
                 }
             }
             .onAppear {
-                if let program = engine.currentEvaluatingProgram {
-                    variables = program.extractVariables()
+                if let equation = engine.currentEvaluatingEquation {
+                    variables = equation.extractVariables()
                     
                     for v in variables {
                         if let stored = engine.variables[v] {
@@ -57,8 +57,8 @@ struct VariablePromptView: View {
         }
     }
     
-    private func executeProgram() {
-        guard let program = engine.currentEvaluatingProgram else { return }
+    private func executeEquation() {
+        guard let equation = engine.currentEvaluatingEquation else { return }
         
         // Update stored variables in engine
         for (varName, valString) in values {
@@ -67,11 +67,11 @@ struct VariablePromptView: View {
             }
         }
         
-        if let result = engine.evaluateProgram(program, variables: engine.variables) {
+        if let result = engine.evaluateEquation(equation) {
             engine.push(result)
         }
         
-        engine.currentEvaluatingProgram = nil
+        engine.currentEvaluatingEquation = nil
         dismiss()
     }
 }

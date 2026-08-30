@@ -217,7 +217,7 @@ public class RetroUIController {
                 
                 var items: [MenuItem] = []
                 if retroUI.softkeyProgram == nil {
-                    for prog in engine.programs {
+                    for prog in engine.equations {
                         items.append(MenuItem(label: prog.label, action: "SOFTKEY_PRG_\(prog.label)"))
                     }
                 } else {
@@ -239,7 +239,7 @@ public class RetroUIController {
             
             if softkeyActionStr.hasPrefix("SOFTKEY_PRG_") {
                 let progLabel = String(softkeyActionStr.dropFirst(12))
-                retroUI.softkeyProgram = engine.programs.first(where: { $0.label == progLabel })
+                retroUI.softkeyProgram = engine.equations.first(where: { $0.label == progLabel })
                 return
             }
             
@@ -252,17 +252,17 @@ public class RetroUIController {
                     if retroUI.softkeyMode == .solve, let prog = retroUI.softkeyProgram {
                         let target = engine.stack.first?.real ?? 0.0
                         engine.statusMessage = "CALCULATING"
-                        _ = engine.solve(for: varName, program: prog, target: target)
+                        _ = engine.solve(for: varName, equation: prog, target: target)
                         engine.statusMessage = nil
                         retroUI.softkeyMode = .none
                         retroUI.softkeyProgram = nil
                     } else if retroUI.softkeyMode == .integrate, let prog = retroUI.softkeyProgram {
-                        engine.currentProgramLabel = prog.label
+                        engine.currentEquationLabel = prog.label
                         let upper = engine.stack.count > 0 ? engine.stack[0].real : 0.0
                         let lower = engine.stack.count > 1 ? engine.stack[1].real : 0.0
                         engine.statusMessage = "CALCULATING"
-                        _ = engine.integrate(variable: varName, lower: lower, upper: upper, program: prog)
-                        engine.currentResumeAction = .integrate(variable: varName, lower: lower, upper: upper, program: prog, requestPlotAfter: true)
+                        _ = engine.integrate(variable: varName, lower: lower, upper: upper, equation: prog)
+                        engine.currentResumeAction = .integrate(variable: varName, lower: lower, upper: upper, equation: prog, requestPlotAfter: true)
                         engine.generatePlot(variable: varName, explicitMin: lower, explicitMax: upper)
                         engine.requestPlot = true
                         engine.statusMessage = nil
@@ -280,15 +280,15 @@ public class RetroUIController {
             if softkeyActionStr == "SOFTKEY_EXEC" {
                 if retroUI.softkeyMode == .plot {
                     if let prog = retroUI.softkeyProgram {
-                        engine.currentProgramLabel = prog.label
+                        engine.currentEquationLabel = prog.label
                     }
                     engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
                     // print("DEBUG: requestPlot SET TO TRUE by RetroUIController")
                     engine.updateDisplay()
                 } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
-                    engine.currentProgramLabel = prog.label
-                    if let result = engine.evaluateProgram(prog) {
+                    engine.currentEquationLabel = prog.label
+                    if let result = engine.evaluateEquation(prog) {
                         engine.pushToStack(result)
                         engine.updateDisplay()
                     }
@@ -333,7 +333,7 @@ public class RetroUIController {
             
             var items: [MenuItem] = []
             items.append(MenuItem(label: "NEW", action: "EQN_NEW"))
-            if !engine.programs.isEmpty {
+            if !engine.equations.isEmpty {
                 items.append(MenuItem(label: "EDIT", action: "EQN_EDIT"))
             }
             
@@ -349,7 +349,7 @@ public class RetroUIController {
             let index = parseInteger(suffix) ?? 0
             
             var items: [MenuItem] = []
-            for prog in engine.programs {
+            for prog in engine.equations {
                 items.append(MenuItem(label: prog.label.isEmpty ? "EQN" : prog.label, action: prog.label))
             }
             
@@ -390,10 +390,14 @@ public class RetroUIController {
         
         if let pendingItem = retroUI.waitingForMenuDigit {
             if let digit = parseInteger(finalOp.stringValue) {
+                engine.promptString = nil // Clear prompt
                 engine.executeMath("\(pendingItem.action) \(digit)")
+            } else if finalOp == .c || finalOp == .clear || finalOp == .backspace {
+                engine.promptString = nil
             }
             retroUI.waitingForMenuDigit = nil
             engine.activeMenu = nil
+            engine.updateDisplay()
             return
         }
         
@@ -439,6 +443,9 @@ public class RetroUIController {
                     if selected.requiresDigit {
                         retroUI.waitingForMenuDigit = selected
                         engine.activeMenu = nil
+                        engine.promptString = "\(selected.label) _"
+                        engine.isSilent = false
+                        engine.updateDisplay() // Trigger redraw with promptString
                         retroUI.menuOffset = 0
                     } else {
                         // Sub-menu navigation actions open a child menu rather than

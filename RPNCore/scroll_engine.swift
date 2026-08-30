@@ -1,30 +1,30 @@
     public var currentEquationIndex: Int = 0
     
     public func scrollUp() {
-        if isProgrammingMode {
-            if currentProgramStepIndex > 0 {
-                currentProgramStepIndex -= 1
-                updateProgramDisplay()
+        if isEquationEditMode {
+            if currentEquationStepIndex > 0 {
+                currentEquationStepIndex -= 1
+                updateEquationDisplay()
             }
         } else if isEquationMode {
-            if !programs.isEmpty {
+            if !equations.isEmpty {
                 currentEquationIndex = max(0, currentEquationIndex - 1)
-                currentEquation = programs[currentEquationIndex].steps.joined(separator: " ")
+                currentEquation = equations[currentEquationIndex].steps.joined(separator: " ")
                 updateDisplay()
             }
         }
     }
     
     public func scrollDown() {
-        if isProgrammingMode {
-            if currentProgramStepIndex < currentProgramSteps.count {
-                currentProgramStepIndex += 1
-                updateProgramDisplay()
+        if isEquationEditMode {
+            if currentEquationStepIndex < currentEquationSteps.count {
+                currentEquationStepIndex += 1
+                updateEquationDisplay()
             }
         } else if isEquationMode {
-            if !programs.isEmpty {
-                currentEquationIndex = min(programs.count - 1, currentEquationIndex + 1)
-                currentEquation = programs[currentEquationIndex].steps.joined(separator: " ")
+            if !equations.isEmpty {
+                currentEquationIndex = min(equations.count - 1, currentEquationIndex + 1)
+                currentEquation = equations[currentEquationIndex].steps.joined(separator: " ")
                 updateDisplay()
             }
         }

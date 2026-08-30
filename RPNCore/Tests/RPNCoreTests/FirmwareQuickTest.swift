@@ -28,7 +28,7 @@ final class FirmwareQuickTest: XCTestCase {
     func testQuick() {
         Thread.sleep(forTimeInterval: 2.0)
         
-        // Enter '1' as program
+        // Enter '1' as equation
         sendCommand("PRGM")
         sendCommand("1")
         sendCommand("ENTER")

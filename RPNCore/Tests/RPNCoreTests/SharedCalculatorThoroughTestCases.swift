@@ -112,7 +112,7 @@ public struct SharedCalculatorThoroughTestCases {
         ))
 
         // --- 4. CALCULUS & EQUATIONS ---
-        // Program 1: X^2 (Evaluate, Plot, Integrate)
+        // Equation 1: X^2 (Evaluate, Plot, Integrate)
         // LBL A
         // RCL X
         // x^2

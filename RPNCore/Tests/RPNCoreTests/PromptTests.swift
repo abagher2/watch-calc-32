@@ -30,8 +30,8 @@ final class PromptTests: XCTestCase {
         }
         
         // Execute N
-        print("STEPS:", engine.programs.first?.steps.map { $0.stringValue } ?? [])
-        print("VARS:", engine.programs.first?.extractVariables() ?? [])
+        print("STEPS:", engine.equations.first?.steps.map { $0.stringValue } ?? [])
+        print("VARS:", engine.equations.first?.extractVariables() ?? [])
         engine.executeMath("XEQ")
         engine.submitAlpha("N")
         
@@ -67,7 +67,7 @@ final class PromptTests: XCTestCase {
     func testSolvePromptsForMissingVars() throws {
         let engine = CalculatorEngine()
         engine.clearPrograms()
-        engine.programs.append(CalculatorEngine.Program(label: "A", steps: [
+        engine.equations.append(CalculatorEngine.Equation(label: "A", steps: [
             Instruction(fromString: "RCL X")!,
             Instruction(fromString: "RCL Y")!,
             Instruction(fromString: "+")!
@@ -96,7 +96,7 @@ final class PromptTests: XCTestCase {
     func testIntegratePromptsForMissingVars() throws {
         let engine = CalculatorEngine()
         engine.clearPrograms()
-        engine.programs.append(CalculatorEngine.Program(label: "A", steps: [
+        engine.equations.append(CalculatorEngine.Equation(label: "A", steps: [
             Instruction(fromString: "RCL X")!,
             Instruction(fromString: "RCL M")!,
             Instruction(fromString: "+")!

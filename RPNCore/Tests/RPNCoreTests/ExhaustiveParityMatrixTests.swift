@@ -72,17 +72,17 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
     
     func testFNEquationMenuPaginationAndAlpha() {
         let engine = CalculatorEngine()
-        engine.programs.removeAll()
+        engine.equations.removeAll()
         let controller = RetroUIController(engine: engine)
         
         // Populate 10 equations
         for i in 0..<10 {
-            engine.isProgrammingMode = true
-            engine.currentProgramLabel = "A\(i)"
+            engine.isEquationEditMode = true
+            engine.currentEquationLabel = "A\(i)"
             let steps = ["1", "+", "2"].compactMap { Instruction(fromString: $0) }
-            engine.programs.append(CalculatorEngine.Program(label: "A\(i)", steps: steps))
+            engine.equations.append(CalculatorEngine.Equation(label: "A\(i)", steps: steps))
         }
-        engine.isProgrammingMode = false
+        engine.isEquationEditMode = false
         
         // Press FN=
         controller.processAction(.fnEq)
@@ -103,8 +103,8 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
         // Press LFU_0 (First item on second page, which is A5)
         controller.processAction(.lfu0)
         
-        XCTAssertEqual(engine.currentEvaluatingProgram?.label, "A5")
-        XCTAssertEqual(engine.currentProgramLabel, "A5")
+        XCTAssertEqual(engine.currentEvaluatingEquation?.label, "A5")
+        XCTAssertEqual(engine.currentEquationLabel, "A5")
         XCTAssertFalse(engine.isWaitingForAlpha)
         XCTAssertEqual(engine.alphaAction, .none)
     }
@@ -119,22 +119,22 @@ final class ExhaustiveParityMatrixTests: XCTestCase {
         
         for config in modes {
             let engine = CalculatorEngine()
-            engine.programs.removeAll()
+            engine.equations.removeAll()
             let controller = RetroUIController(engine: engine)
             
             controller.processAction(config.op)
             XCTAssertEqual(controller.retroUI.softkeyMode, config.mode)
             
-            // Create a dummy program
-            engine.isProgrammingMode = true
+            // Create a dummy equation
+            engine.isEquationEditMode = true
             let steps = ["STO A", "RCL B"].compactMap { Instruction(fromString: $0) }
-            engine.programs.append(CalculatorEngine.Program(label: "X", steps: steps))
-            engine.isProgrammingMode = false
+            engine.equations.append(CalculatorEngine.Equation(label: "X", steps: steps))
+            engine.isEquationEditMode = false
             
-            // Simulate LFU press for Program X (which is the first one, index 0)
+            // Simulate LFU press for Equation X (which is the first one, index 0)
             let lfu0 = CalculatorOperation.lfu0
             controller.render()
-            print("DEBUG: programs=(engine.programs)"); controller.processAction(lfu0) // Selects SOFTKEY_PRG_X
+            print("DEBUG: equations=(engine.equations)"); controller.processAction(lfu0) // Selects SOFTKEY_PRG_X
             
             // XCTAssertEqual(controller.retroUI.softkeyProgram?.label, "X")
             

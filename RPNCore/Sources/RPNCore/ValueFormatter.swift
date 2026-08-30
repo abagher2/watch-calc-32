@@ -32,8 +32,6 @@ public class FoundationValueFormatter: ValueFormatter {
             return result.count > maxLength ? formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places) : result
         case .sci(let places), .eng(let places):
             return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
-        case .sig(let places):
-            return formatScientificToFit(val: val, maxLength: maxLength, maxFraction: places)
         case .all:
             formatter.numberStyle = .decimal
             formatter.maximumFractionDigits = maxLength - 1
@@ -101,8 +99,7 @@ public class BasicValueFormatter: ValueFormatter {
             return formatSci(val, places: places)
         case .eng(let places):
             return formatEng(val, places: places)
-        case .sig(let places):
-            return formatSci(val, places: places)
+
         case .all:
             return formatAll(val)
         }

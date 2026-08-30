@@ -1967,7 +1967,7 @@ import XCTest
         app.buttons["NEW"].tap()
         Thread.sleep(forTimeInterval: 1.0)
         
-        // Tapping the display should bring up the Program Editor
+        // Tapping the display should bring up the Equation Editor
         display.tap()
         Thread.sleep(forTimeInterval: 2.0)
         

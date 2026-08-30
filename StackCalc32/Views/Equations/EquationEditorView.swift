@@ -27,12 +27,12 @@ struct EquationEditorView: View {
                 }
                 .accessibilityIdentifier("btn_add_eqn")
                 
-                ForEach(engine.programs) { program in
+                ForEach(engine.equations) { equation in
                     Button {
                         if isFNMode {
-                            engine.currentProgramLabel = program.label
+                            engine.currentEquationLabel = equation.label
                         } else {
-                            engine.editEquation(program)
+                            engine.editEquation(equation)
                         }
                         if let isPresented {
                             isPresented.wrappedValue = false
@@ -41,10 +41,10 @@ struct EquationEditorView: View {
                         }
                     } label: {
                         HStack {
-                            Text(program.label)
+                            Text(equation.label)
                                 .font(.headline)
                             Spacer()
-                            Text(program.steps.map { $0.stringValue }.joined(separator: " "))
+                            Text(equation.steps.map { $0.stringValue }.joined(separator: " "))
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                                 .foregroundColor(.secondary)
@@ -52,7 +52,7 @@ struct EquationEditorView: View {
                     }
                 }
                 .onDelete { indexSet in
-                    engine.programs.remove(atOffsets: indexSet)
+                    engine.equations.remove(atOffsets: indexSet)
                 }
             }
             .navigationTitle("Equations")

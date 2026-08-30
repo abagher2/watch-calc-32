@@ -142,7 +142,7 @@ final class RetroUIParityTests: XCTestCase {
             ({ $0.autoReturnToMainPad = false }, "STAY"),
             ({ $0.isHypPending = true }, "HYP"),
             ({ $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)); $0.stack.append(CalculatorValue(real: 1)) }, "↑"),
-            ({ $0.isProgrammingMode = true }, "EQN"),
+            ({ $0.isEquationEditMode = true }, "EQN"),
             ({ $0.baseMode = .hex }, "HEX"),
             ({ $0.baseMode = .oct }, "OCT"),
             ({ $0.baseMode = .bin }, "BIN"),
@@ -229,10 +229,10 @@ final class RetroUIParityTests: XCTestCase {
     }
 
     func testPlotRendering() {
-        engine.programs = [] // clear programs
-        let p = CalculatorEngine.Program(label: "A", steps: [Instruction(fromString: "𝑥²")!])
-        engine.programs.append(p)
-        engine.currentProgramLabel = "A"
+        engine.equations = [] // clear equations
+        let p = CalculatorEngine.Equation(label: "A", steps: [Instruction(fromString: "𝑥²")!])
+        engine.equations.append(p)
+        engine.currentEquationLabel = "A"
         
         engine.digit(1)
         engine.enter()

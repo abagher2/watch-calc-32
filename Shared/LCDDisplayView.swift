@@ -14,7 +14,7 @@ public struct LCDDisplayView: View {
     
     public var body: some View {
         HStack(spacing: 0) {
-            if (engine.isBuildingNumber || engine.prgmIsBuildingNumber || engine.isWaitingForAlpha) && engine.statusMessage == nil && engine.errorMessage == nil && engine.transientMessage == nil {
+            if (engine.isBuildingNumber || engine.eqnIsBuildingNumber || engine.isWaitingForAlpha) && engine.statusMessage == nil && engine.errorMessage == nil && engine.transientMessage == nil {
                 ScrollView(.horizontal, showsIndicators: false) {
                     ScrollViewReader { proxy in
                         HStack(spacing: 0) {
@@ -167,8 +167,23 @@ public struct LCDAnnunciatorsView: View {
                 Text(" ").foregroundColor(.clear)
             }
             
-            Spacer()
+                        Spacer()
+            Text(semanticStateJSON)
+                .accessibilityIdentifier("semantic_state")
+                .foregroundColor(.clear)
+                .frame(width: 0, height: 0)
         }
         .font(font)
+    }
+    private var semanticStateJSON: String {
+        let state: [String: Any] = [
+            "stack": engine.stack.map { $0.real.description },
+            "plotDataPointsCount": engine.plotDataPoints.count
+        ]
+        if let data = try? JSONSerialization.data(withJSONObject: state, options: []),
+           let str = String(data: data, encoding: .utf8) {
+            return str
+        }
+        return "{}"
     }
 }

@@ -60,10 +60,10 @@ struct BottomNumpadView: View {
                 withAnimation { horizontalPage = 1 }
             }
         }
-        if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isProgrammingMode {
+        if verticalPage != 0 && engine.autoReturnToMainPad && !engine.isEquationEditMode {
             withAnimation { verticalPage = 0 }
         }
-        if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isProgrammingMode {
+        if horizontalPage == 2 && engine.autoReturnToMainPad && !engine.isEquationEditMode {
             withAnimation { horizontalPage = 1 }
         }
         
@@ -145,7 +145,7 @@ struct ArithmeticPadView: View {
             GridRow {
                 CalcButton("÷", yellow: "𝑥?𝑦", blue: "𝑥?0", isDigit: false) { onAction($0) }
                 CalcButton("+/-", yellow: "MODES", blue: "|x|", isDigit: false) { onAction($0) }
-                CalcButton("E", yellow: "DISP", blue: "÷R", isDigit: false) { onAction($0) }
+                CalcButton("EEX", yellow: "DISP", blue: "÷R", isDigit: false) { onAction($0) }
             }
             GridRow {
                 CalcButton("×", yellow: "BASE", blue: "FLAGS", isDigit: false) { onAction($0) }

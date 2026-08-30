@@ -2,6 +2,7 @@
 
 public func mapOp(_ opToExecute: String) -> CalculatorOperation {
     switch opToExecute {
+    case "EEX":             return .e
     case "<-":              return .backspace
     case "▸km":            return .toKm
     case "▸mi":            return .toMi
@@ -66,9 +67,9 @@ public func mapOp(_ opToExecute: String) -> CalculatorOperation {
 /// The complete set of mapped operations that should be routed to the
 /// platform menu handler rather than passed to engine.executeMath().
 public let menuCommands: Set<CalculatorOperation> = [
-    .disp, .modes, .lr, .sums, .fnEq, .eqn, .prgm,
-    .solve, .integrate, .show, .plot, .view, .clear,
-    .testXY, .testX0, .base, .flags, .xeq,
+    .disp, .modes, .lr, .sums, .fnEq, .eqn,
+    .solve, .integrate, .show, .view, .clear,
+    .testXY, .testX0, .base, .flags,
     .prob, .parts, .mem, .regs, .statMean, .statStdDev, .const,
     .lfu0, .lfu1, .lfu2, .lfu3, .lfu4, .lfu5
 ]
@@ -81,11 +82,17 @@ public func dispatchKey(
     engine: CalculatorEngine,
     onMenuAction: ((CalculatorOperation) -> Void)?
 ) {
+    if engine.transientMessage != nil {
+        engine.transientMessage = nil
+        engine.updateDisplay()
+    }
     if engine.isWaitingForAlpha {
         if command == .backspace {
             engine.submitAlpha("<-")
         } else if command == .enter {
             engine.submitAlpha("ENTER")
+        } else if command == .c {
+            engine.cancelAlpha()
         } else {
             if [.add, .subtract, .multiply, .divide].contains(command) {
                 engine.submitAlpha(command.stringValue)
