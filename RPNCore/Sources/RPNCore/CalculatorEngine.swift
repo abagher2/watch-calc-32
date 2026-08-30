@@ -272,6 +272,59 @@ func format_double_c(_ val: Double, _ buffer: UnsafeMutablePointer<UInt8>, _ max
 #endif
 public class CalculatorEngine {
 
+    private func computeFractionToFit(valAbs: Double, sign: Double) -> (whole: Int64, num: Int64, den: Int64)? {
+        var whole = Int64(valAbs)
+        let remainder = valAbs - Double(whole)
+        if remainder <= 1e-6 {
+            return (whole, 0, 1) // Just integer
+        }
+        
+        let signLen = (sign < 0) ? 1 : 0
+        let wholeLen = (whole == 0) ? 0 : String(whole).count
+        let spaceLen = (whole == 0) ? 0 : 1
+        let slashLen = 1
+        let available = 12 - signLen - wholeLen - spaceLen - slashLen
+        
+        if available < 2 { return nil } // Cannot fit
+        
+        if flags[8] {
+            let targetDen = Int64(maxDenominator)
+            let targetNum = Int64(round(remainder * Double(targetDen)))
+            var fn = targetNum
+            var fd = targetDen
+            if !flags[9] {
+                let d = engineGcd(targetNum, targetDen)
+                fn = targetNum / d; fd = targetDen / d
+            }
+            if fn == fd && fd > 0 { fn = 0; whole += 1 }
+            if fn == 0 { return (whole, 0, 1) }
+            let len = String(fn).count + String(fd).count
+            if len <= available { return (whole, fn, fd) }
+            return nil
+        }
+        
+        let num = Int64(round(remainder * 1_000_000))
+        let den = Int64(1_000_000)
+        var currentMaxDenom = Int64(maxDenominator)
+        
+        while currentMaxDenom >= 2 {
+            let frac = Rational<Int64>(num, den).limitDenominator(to: currentMaxDenom)
+            var fn = frac.numerator
+            var fd = frac.denominator
+            if fn == fd && fd > 0 { fn = 0; whole += 1 }
+            if fn == 0 { return (whole, 0, 1) }
+            
+            let len = String(fn).count + String(fd).count
+            if len <= available {
+                return (whole, fn, fd)
+            } else {
+                currentMaxDenom = fd - 1
+            }
+        }
+        return nil
+    }
+
+
 
 
     public let lfuManager = LFUManager()
@@ -1865,30 +1918,15 @@ public class CalculatorEngine {
             if stack.count > 0 {
                 if isFractionMode {
                     let val = stack[0].real
-                    let valAbs = abs(val)
-                    var whole = Int64(valAbs)
-                    let remainder = valAbs - Double(whole)
                     let sign = val < 0 ? -1.0 : 1.0
-                    
-                    var fnum: Int64 = 0
-                    var fden: Int64 = 1
-                    
-                    if flags[8] {
-                        let targetDen = Int64(maxDenominator)
-                        let targetNum = Int64(round(remainder * Double(targetDen)))
-                        fnum = targetNum
-                        fden = targetDen
+                    if let f = computeFractionToFit(valAbs: abs(val), sign: sign) {
+                        stack[0].real = (Double(f.whole) + Double(f.num) / Double(f.den)) * sign
                     } else {
-                        let num = Int64(round(remainder * 1_000_000))
-                        let den = Int64(1_000_000)
-                        let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
-                        fnum = frac.numerator
-                        fden = frac.denominator
+                        let str = formatNumber(stack[0].real, ignoreFractionMode: true)
+                        if let rounded = parseDouble(str) { stack[0].real = rounded }
                     }
-                    
-                    stack[0].real = (Double(whole) + Double(fnum) / Double(fden)) * sign
                 } else {
-                    let str = formatNumber(stack[0].real)
+                    let str = formatNumber(stack[0].real, ignoreFractionMode: true)
                     if let rounded = parseDouble(str) {
                         stack[0].real = rounded
                     }
@@ -3277,45 +3315,24 @@ public class CalculatorEngine {
         }
         
         if isFractionMode {
-            let valAbs = abs(val)
-            var whole = Int64(valAbs)
-            let remainder = valAbs - Double(whole)
-            let sign = val < 0 ? -1 : 1
-            
-            if remainder > 1e-6 {
-                var fnum: Int64 = 0
-                var fden: Int64 = 1
-                
-                if flags[8] {
-                    let targetDen = Int64(maxDenominator)
-                    let targetNum = Int64(round(remainder * Double(targetDen)))
-                    if flags[9] {
-                        fnum = targetNum; fden = targetDen
-                    } else {
-                        let d = engineGcd(targetNum, targetDen)
-                        fnum = targetNum / d; fden = targetDen / d
-                    }
-                } else {
-                    let num = Int64(round(remainder * 1_000_000))
-                    let den = Int64(1_000_000)
-                    let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
-                    fnum = frac.numerator; fden = frac.denominator
-                }
-                
-                if fnum == fden && fden > 0 { fnum = 0; whole += 1 }
+            let sign = val < 0 ? -1.0 : 1.0
+            if let f = computeFractionToFit(valAbs: abs(val), sign: sign) {
+                let whole = f.whole
+                let fnum = f.num
+                let fden = f.den
                 
                 if fnum == 0 {
-                    return intToBuffer(sign < 0 ? -whole : whole, buffer: &buffer, offset: 0)
+                    return intToBuffer(val < 0 ? -whole : whole, buffer: &buffer, offset: 0)
                 } else if whole == 0 {
                     var off = 0
-                    if sign < 0 { buffer[off] = 45; off += 1 }
+                    if val < 0 { buffer[off] = 45; off += 1 }
                     off += intToBuffer(fnum, buffer: &buffer, offset: off)
                     buffer[off] = 47; off += 1 // '/'
                     off += intToBuffer(fden, buffer: &buffer, offset: off)
                     return off
                 } else {
                     var off = 0
-                    if sign < 0 { buffer[off] = 45; off += 1 }
+                    if val < 0 { buffer[off] = 45; off += 1 }
                     off += intToBuffer(whole, buffer: &buffer, offset: off)
                     buffer[off] = 32; off += 1 // ' '
                     off += intToBuffer(fnum, buffer: &buffer, offset: off)
@@ -3350,7 +3367,7 @@ public class CalculatorEngine {
         return formatNumber(val)
     }
 
-    public func formatNumber(_ val: Double) -> String {
+    public func formatNumber(_ val: Double, ignoreFractionMode: Bool = false) -> String {
         if baseMode != .dec {
             let intVal = Int64(val)
             switch baseMode {
@@ -3361,50 +3378,19 @@ public class CalculatorEngine {
             }
         }
         
-        if isFractionMode {
-            let valAbs = abs(val)
-            var whole = Int64(valAbs)
-            let remainder = valAbs - Double(whole)
-            let sign = val < 0 ? -1 : 1
-            
-            if remainder > 1e-6 {
-                var fnum: Int64 = 0
-                var fden: Int64 = 1
-                
-                if flags[8] {
-                    // Denominator = /c
-                    let targetDen = Int64(maxDenominator)
-                    let targetNum = Int64(round(remainder * Double(targetDen)))
-                    if flags[9] {
-                        // Denominator is always = /c
-                        fnum = targetNum
-                        fden = targetDen
-                    } else {
-                        // Fraction is reduced
-                        let d = engineGcd(targetNum, targetDen)
-                        fnum = targetNum / d
-                        fden = targetDen / d
-                    }
-                } else {
-                    // Optimal denominator <= /c
-                    let num = Int64(round(remainder * 1_000_000))
-                    let den = Int64(1_000_000)
-                    let frac = Rational<Int64>(num, den).limitDenominator(to: Int64(maxDenominator))
-                    fnum = frac.numerator
-                    fden = frac.denominator
-                }
-                
-                if fnum == fden && fden > 0 {
-                    fnum = 0
-                    whole += 1
-                }
+        if isFractionMode && !ignoreFractionMode {
+            let sign = val < 0 ? -1.0 : 1.0
+            if let f = computeFractionToFit(valAbs: abs(val), sign: sign) {
+                let whole = f.whole
+                let fnum = f.num
+                let fden = f.den
                 
                 if fnum == 0 {
-                    return sign < 0 ? "-\(whole)" : "\(whole)"
+                    return val < 0 ? "-\(whole)" : "\(whole)"
                 } else if whole == 0 {
-                    return sign < 0 ? "-\(fnum)/\(fden)" : "\(fnum)/\(fden)"
+                    return val < 0 ? "-\(fnum)/\(fden)" : "\(fnum)/\(fden)"
                 } else {
-                    return sign < 0 ? "-\(whole) \(fnum)/\(fden)" : "\(whole) \(fnum)/\(fden)"
+                    return val < 0 ? "-\(whole) \(fnum)/\(fden)" : "\(whole) \(fnum)/\(fden)"
                 }
             }
         }

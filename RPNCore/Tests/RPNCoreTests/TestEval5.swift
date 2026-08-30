@@ -8,7 +8,7 @@ final class TestEval5: XCTestCase {
         engine.equations.removeAll()
         
         // 1. Enter Equation Mode
-        controller.processAction(.shiftYellow); controller.processAction(.prgm) // LBL
+        controller.processAction(.shiftYellow); controller.processAction(.c) // LBL
         
         // 2. Type 'N'
         controller.processAction(.swapXY) // Alpha 'N'
@@ -27,7 +27,7 @@ final class TestEval5: XCTestCase {
         controller.processAction(.divide)
         
         // 4. Exit Equation Mode
-        controller.processAction(.prgm)
+        controller.processAction(.c)
         
         let steps = engine.equations.first(where: { $0.label == "N" })?.steps.map { $0.stringValue } ?? []
         print("FIRMWARE STEPS: \(steps)")

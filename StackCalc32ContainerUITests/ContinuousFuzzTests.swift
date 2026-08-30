@@ -12,7 +12,9 @@ class ContinuousFuzzTests: XCTestCase {
     }
 
     func testParityFuzzing() throws {
-        XCTAssertTrue(app.staticTexts["LCD"].waitForExistence(timeout: 10), "LCD did not appear in time")
+        print(app.debugDescription)
+
+        XCTAssertTrue(app.staticTexts["lcd_display"].waitForExistence(timeout: 10), "LCD did not appear in time")
 
         let jsonPath = "/Users/abagher/Documents/GitHub/watch-calc-32/scratch/fuzz_expected.json"
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: jsonPath)),
@@ -34,14 +36,14 @@ class ContinuousFuzzTests: XCTestCase {
                 } else if app.staticTexts[key].exists {
                     app.staticTexts[key].firstMatch.tap()
                 } else {
-                    if app.buttons["func_←"].exists {
-                        app.buttons["func_←"].firstMatch.tap()
+                    if app.buttons["func_<-"].exists {
+                        app.buttons["func_<-"].firstMatch.tap()
                     }
                 }
             }
             
             let deviceName = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] ?? "Unknown"
-            let lcd = app.staticTexts["LCD"].label
+            let lcd = app.staticTexts["lcd_display"].label
             var mismatch = false
             
             if lcd != expected {
@@ -92,19 +94,19 @@ class ContinuousFuzzTests: XCTestCase {
                 print("✅ Parity Match (LCD, Annunciators, Stack & Plots): \(lcd) for \(seq)")
             }
             
-            if app.buttons["func_←"].exists {
-                app.buttons["func_←"].firstMatch.tap()
+            if app.buttons["func_<-"].exists {
+                app.buttons["func_<-"].firstMatch.tap()
             }
         }
     }
     func mapOpToIdentifier(_ op: String) -> String {
         switch op {
-        case "0"..."9": return "btn_\\(op)"
+        case "0"..."9": return "btn_\(op)"
         case ".": return "btn_."
         case "ENTER": return "func_ENTER"
-        case "C": return "func_←"
+        case "C": return "func_<-"
         case "SQRT": return "func_√𝑥"
-        default: return "func_\\(op)"
+        default: return "func_\(op)"
         }
     }
 }

@@ -49,7 +49,7 @@ final class NDFEquationTests: XCTestCase {
         }
         
         // Exit programming mode by pressing PRGM
-        controller.processAction(.prgm)
+        controller.processAction(.c)
         XCTAssertFalse(engine.isEquationEditMode)
         
         // Print steps to debug
@@ -103,7 +103,7 @@ final class NDFEquationTests: XCTestCase {
         engine.executeOp(.divide)
         
         // 4. User exits programming mode
-        engine.executeOp(.prgm)
+        engine.executeOp(.c)
         
         let steps2 = engine.equations.first(where: { $0.label == "N" })?.steps.map { $0.stringValue } ?? []
         print("IOS STEPS: \(steps2)")

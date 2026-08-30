@@ -29,7 +29,7 @@ final class TestEval6: XCTestCase {
         engine.executeOp(.divide)
         
         // 4. User exits programming mode
-        engine.executeOp(.prgm)
+        engine.executeOp(.c)
         
         // 5. Evaluate the function via XEQ
         engine.executeOp(.xeq)
