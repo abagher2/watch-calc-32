@@ -25,9 +25,8 @@ public class LFUManager {
     
     // Record that a function was executed
     public func recordUsage(of function: String) {
+        #if hasFeature(Embedded)
         // ALWAYS RETURN TO PREVENT SWIFT EMBEDDED DICTIONARY LEAK
-        return
-        #if EMULATOR
         return
         #endif
         // Skip numbers, basic arithmetic, and ignored functions like C, Setup, Enter, e, +/-, backspace, variables, and programming functions

@@ -304,7 +304,7 @@ public struct RetroUIFooterView: FirmwareView {
                         let label = hasVal ? "@\(v)" : " \(v)"
                         items.append(MenuItem(label: label, action: "SOFTKEY_VAR_\(v)"))
                     }
-                    if retroUI.softkeyMode == .plot || retroUI.softkeyMode == .xeq {
+                    if retroUI.softkeyMode == .plot {
                         items.append(MenuItem(label: "EXEC", action: "SOFTKEY_EXEC"))
                     }
                 }

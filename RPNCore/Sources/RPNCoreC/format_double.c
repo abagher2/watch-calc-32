@@ -29,8 +29,8 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
         if (needed + commas <= max_len - 1) {
             snprintf((char*)buffer, max_len, "%.*f", places, val);
         } else {
-            // Fallback to ALL mode behavior if it doesn't fit
-            mode = 0; 
+            // Fallback to SCI mode if it doesn't fit, but KEEP the number of places!
+            mode = 2; 
         }
     }
     
@@ -151,6 +151,11 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
     }
 
     if (mode == 0 || mode == 1) {
+        char* orig_dp = strchr((char*)buffer, '.');
+        if (orig_dp) {
+            *orig_dp = use_comma ? ',' : '.';
+        }
+        
         char dec_char = use_comma ? ',' : '.';
         char* dp = strchr((char*)buffer, dec_char);
         if (!dp) dp = (char*)buffer + strlen((char*)buffer);
@@ -174,6 +179,13 @@ void format_double_c(double val, uint8_t* buffer, int max_len, int mode, int pla
                     count = 0;
                 }
             }
+        }
+    }
+    
+    if (mode == 2 || mode == 3 || mode == 4) {
+        char* orig_dp = strchr((char*)buffer, '.');
+        if (orig_dp) {
+            *orig_dp = use_comma ? ',' : '.';
         }
     }
 }

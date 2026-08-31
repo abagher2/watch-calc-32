@@ -11,12 +11,40 @@ class ContinuousFuzzTests: XCTestCase {
         app.launch()
     }
 
+    
+    func clearApp() {
+        if app.buttons["op_shiftYellow"].exists { app.buttons["op_shiftYellow"].firstMatch.tap() }
+        if app.buttons["op_backspace"].exists { app.buttons["op_backspace"].firstMatch.tap() }
+        
+        let allBtn = app.buttons["ALL"]
+        let clearAllBtn = app.buttons["Clear ALL"]
+        
+        if clearAllBtn.exists { clearAllBtn.firstMatch.tap() }
+        else if allBtn.exists { allBtn.firstMatch.tap() }
+        else {
+            app.swipeDown()
+            if clearAllBtn.exists { clearAllBtn.firstMatch.tap() }
+            else if allBtn.exists { allBtn.firstMatch.tap() }
+        }
+    }
+
     func testParityFuzzing() throws {
         XCTAssertTrue(app.staticTexts["lcd_display"].waitForExistence(timeout: 10), "LCD did not appear in time")
 
         for _ in 0..<20 {
-            guard let url = URL(string: "http://127.0.0.1:8181/next"),
-                  let data = try? Data(contentsOf: url),
+            let deviceName = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] ?? "Unknown"
+            var request = URLRequest(url: URL(string: "http://127.0.0.1:8181/next")!)
+            request.setValue(deviceName, forHTTPHeaderField: "X-Device-Name")
+            
+            let semFetch = DispatchSemaphore(value: 0)
+            var fetchedData: Data? = nil
+            URLSession.shared.dataTask(with: request) { data, _, _ in
+                fetchedData = data
+                semFetch.signal()
+            }.resume()
+            semFetch.wait()
+            
+            guard let data = fetchedData,
                   let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                   let seq = json["sequence"] as? [String],
                   let expected = json["expected"] as? String else { continue }
@@ -39,7 +67,6 @@ class ContinuousFuzzTests: XCTestCase {
                 }
             }
             
-            let deviceName = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] ?? "Unknown"
             let lcd = app.staticTexts["lcd_display"].label
             var mismatch = false
             func reportResult(device: String, seq: [String], expected: String, got: String, match: Bool, errorType: String = "") {
@@ -108,9 +135,7 @@ class ContinuousFuzzTests: XCTestCase {
             }
             
             
-            app.terminate()
-            app.launch()
-            _ = app.staticTexts["lcd_display"].waitForExistence(timeout: 10)
+            clearApp()
 
         }
     }

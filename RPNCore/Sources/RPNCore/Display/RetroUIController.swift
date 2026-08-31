@@ -190,14 +190,13 @@ public class RetroUIController {
         }
         
         // Advanced Modes
-        if finalOp == .solve || finalOp == .integrate || finalOp == .plot || finalOp == .xeq {
+        if finalOp == .solve || finalOp == .integrate || finalOp == .plot {
             if finalOp == .solve { retroUI.softkeyMode = .solve }
             if finalOp == .integrate { retroUI.softkeyMode = .integrate }
             if finalOp == .plot { retroUI.softkeyMode = .plot }
-            if finalOp == .xeq { retroUI.softkeyMode = .xeq }
             retroUI.softkeyProgram = nil
             engine.activeMenu = nil
-            if finalOp == .xeq || finalOp == .solve || finalOp == .integrate {
+            if finalOp == .solve || finalOp == .integrate {
                 engine.executeMath(finalOp.stringValue)
             }
             return
@@ -227,7 +226,7 @@ public class RetroUIController {
                         let label = hasVal ? "@\(v)" : " \(v)"
                         items.append(MenuItem(label: label, action: "SOFTKEY_VAR_\(v)"))
                     }
-                    if retroUI.softkeyMode == .plot || retroUI.softkeyMode == .xeq {
+                    if retroUI.softkeyMode == .plot {
                         items.append(MenuItem(label: "EXEC", action: "SOFTKEY_EXEC"))
                     }
                 }
@@ -279,25 +278,26 @@ public class RetroUIController {
             
             if softkeyActionStr == "SOFTKEY_EXEC" {
                 if retroUI.softkeyMode == .plot {
+                    if retroUI.softkeySelectedVar == nil {
+                        // HP32SII behavior: ignore invalid keys in plot menu. C is used to exit.
+                        return
+                    }
                     if let prog = retroUI.softkeyProgram {
                         engine.currentEquationLabel = prog.label
                     }
                     engine.generatePlot(variable: retroUI.softkeySelectedVar, explicitMin: -10, explicitMax: 10)
                     engine.requestPlot = true
-                    // print("DEBUG: requestPlot SET TO TRUE by RetroUIController")
                     engine.updateDisplay()
-                } else if retroUI.softkeyMode == .xeq, let prog = retroUI.softkeyProgram {
-                    engine.currentEquationLabel = prog.label
-                    if let result = engine.evaluateEquation(prog) {
-                        engine.pushToStack(result)
-                        engine.updateDisplay()
-                    }
-                }
+
                 retroUI.softkeyMode = .none
                 retroUI.softkeyProgram = nil
                 engine.cancelAlpha()
                 return
             }
+            
+            // HP32SII behavior: Ignore any other key presses while a menu is open
+            // (Unless it's an advanced function that expects number entry, but plot/xeq don't)
+            return
         }
         
         if finalOp == .shiftYellow {
