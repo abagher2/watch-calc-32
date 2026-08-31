@@ -169,30 +169,29 @@ if len(rows) >= 3 and len(rows[2]) >= 2:
 # Global constants & Component Geometry
 # ─────────────────────────────────────────────────────────
 WALL   = 1.4   # Base wall thickness (slimmed down for premium look)
-# Target Assembled Width = 80.0mm. TPU cover adds 2.4mm, so bare chassis must be 77.6mm.
-cw = 74.4
+# Target Assembled Width = 76.0mm.
+cw = 76.0
 fp_w = pcb_width
 
-# The PCB should have a 5mm border from the outer chassis wall.
-# That means pcb_width should ideally be 70.0mm (80.0 - 10.0).
+# The PCB should have a border from the outer chassis wall.
 # pad_left is the distance from fp_w to pcb_width.
 pad_left = (fp_w - pcb_width) / 2
 pad_right = pad_left
 
-# Target Assembled Length = 148.0mm. TPU bottom adds 1.2mm. Bare chassis = 146.8mm.
-# Bare chassis = ch + cap_t_val = (fp_h + WALL) + 2.0 = fp_h + 1.4 + 2.0 = fp_h + 3.4.
-# 146.8 = fp_h + 3.4 -> fp_h = 143.4mm.
-fp_h = 143.4
+# Target Assembled Length = 148.0mm. 
+# Bare chassis = ch + cap_t_val = (fp_h + 0.85) + 2.0 = fp_h + 2.85.
+# 148.0 = fp_h + 2.85 -> fp_h = 145.15mm.
+fp_h = 145.15
 
-# pcb_height is 137.0mm. Total padding = 143.4 - 137.0 = 6.4mm.
-pad_bottom = 3.2
+# Total vertical padding
+pad_bottom = (fp_h - pcb_height) / 2
 
 J1_Y_OFFSET = 17.4
 
 corner = 6.0
 
 # Internal Component Heights (mm)
-TACTILE_H = 1.7   # 1.5mm switches + 0.2mm gap for sliding clearance
+TACTILE_H = 1.6   # 1.5mm switches + 0.1mm clearance (PCB to faceplate gap)
 PCB_T     = 1.6   # PCB thickness
 BATT_H    = 4.0   # Clearance for CR2032 battery holder
 plate_t   = 2.0   # Faceplate base thickness (Reduced for slim profile)
@@ -254,6 +253,7 @@ def generate_scad():
 
     faceplate = f"""
 use <sf_glyphs.scad>;
+use <buttons.scad>;
 
 // WatchCalc 32 Faceplate — Print FACE-UP on the bed (Z=0 on bed)
 // Front of faceplate is on Z=3.0 (build plate). Keys face down.
@@ -492,11 +492,21 @@ module faceplate() {{
         _enter_btn['w'] = enter_right - enter_left
         # We do NOT set _enter_cx. We just use b['x'] which is already perfectly centered at 13.10.
 
-    for row in rows:
-        for b in row:
+    for r_idx, row in enumerate(rows):
+        for c_idx, b in enumerate(row):
             ox = pad_left + b['x']
             oy = pad_bottom + b['y']
-            faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) button_pocket({b['w']}, {b['h']});\n"
+            
+            real_col = c_idx
+            if r_idx == 3 and c_idx >= 1:
+                real_col += 1
+                
+            if b == _enter_btn:
+                faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) enter_cavity();\n"
+            elif r_idx <= 3:
+                faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) upper_matrix_cavity();\n"
+            else:
+                faceplate += f"        translate([{ox:.3f}, {oy:.3f}, 0]) arithmetic_cavity();\n"
 
 
     # Only generate faceplate holes for bottom screws to avoid hitting the LCD
@@ -561,12 +571,22 @@ translate([{fp_w:.3f}, 0, {pt:.3f}]) rotate([0, 180, 0]) faceplate_assembly();
     fp_tapered = fp_tapered.replace(disp_cut_orig2, disp_cut_new)
     
     faceplate_tapered = fp_tapered
-    for row in rows:
-        for b in row:
+    for r_idx, row in enumerate(rows):
+        for c_idx, b in enumerate(row):
             ox = pad_left + b['x']
             oy = pad_bottom + b['y']
             lbl = b.get('label', '').replace('"', '\\"')
-            btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) key_button({b['w']}, {b['h']}, \"{lbl}\");\n"
+            
+            real_col = c_idx
+            if r_idx == 3 and c_idx >= 1:
+                real_col += 1
+                
+            if b == _enter_btn:
+                btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) enter_button(\"{lbl}\");\n"
+            elif r_idx <= 3:
+                btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) upper_matrix_button(\"{lbl}\");\n"
+            else:
+                btn_str = f"        translate([{ox:.3f}, {oy:.3f}, 0]) arithmetic_button(\"{lbl}\");\n"
             faceplate_tapered += btn_str
     faceplate_tapered += closing_str
 
@@ -589,29 +609,46 @@ module button_faceplate() {{
             
             // Front Solid Block (Z = 1.0 to 2.5) -> Total thickness 2.5mm
             translate([1.5 + FP_CLR, 0, 1.0]) cube([fp_w - 3.0 - 2*FP_CLR, {split_y:.3f} - FP_CLR, 1.5]);
+            
+            // Interlocking Pegs (Tabs) for screen_faceplate
+            translate([15.0, {split_y:.3f} - FP_CLR - 0.1, 1.0]) cube([6.0, 4.0, 1.5]);
+            translate([fp_w - 15.0 - 6.0, {split_y:.3f} - FP_CLR - 0.1, 1.0]) cube([6.0, 4.0, 1.5]);
         }}
         // Button Holes are subtracted here
 """
 
-    for row in rows:
-        for b in row:
-            ox = pad_left + b['x']
-            oy = pad_bottom + b['y']
-            unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) hp32_cavity({b['w'] + 0.4:.3f}, {b['h'] + 0.4:.3f}, 8.4, 2.5);\n"
-
-    
-
-    for row in rows:
-        for b in row:
+    btn_str = ""
+    for r_idx, row in enumerate(rows):
+        for c_idx, b in enumerate(row):
             ox = pad_left + b['x']
             oy = pad_bottom + b['y']
             lbl = b.get('label', '').replace('"', '\\"')
-            lbl_l = b.get('label_left', '').replace('"', '\\"')
-            lbl_r = b.get('label_right', '').replace('"', '\\"')
-            lbl_a = b.get('label_alpha', '').replace('"', '\\"')
             
+            real_col = c_idx
+            if r_idx == 3 and c_idx >= 1:
+                real_col += 1
+                
+            if b == _enter_btn:
+                ox_enter = ox - 5.75
+                unibody_scad += f"        translate([{ox_enter:.3f}, {oy:.3f}, 0]) enter_cavity();\n"
+                btn_str += f"        translate([{ox_enter:.3f}, {oy:.3f}, 0]) enter_button(\"{lbl}\");\n"
+            elif r_idx <= 3:
+                unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) upper_matrix_cavity();\n"
+                btn_str += f"        translate([{ox:.3f}, {oy:.3f}, 0]) upper_matrix_button(\"{lbl}\");\n"
+            else:
+                unibody_scad += f"        translate([{ox:.3f}, {oy:.3f}, 0]) arithmetic_cavity();\n"
+                btn_str += f"        translate([{ox:.3f}, {oy:.3f}, 0]) arithmetic_button(\"{lbl}\");\n"
+
     unibody_scad += f"""
+    }} // end difference
+    
+    // PRINT IN PLACE BUTTONS
+    color("DarkSlateGray") {{
+{btn_str}
     }}
+"""
+
+    unibody_scad += f"""
 }}
 
 FP_CLR = 0.1;
@@ -633,12 +670,16 @@ module screen_faceplate() {{
         translate([{fp_w:.3f}, {fp_h:.3f}, -0.1])
             rotate([0, 0, 45])
                 cube([10, 10, 5.0]);
+                
+        // Slots for Interlocking Pegs
+        translate([15.0 - 0.2, {split_y:.3f} + FP_CLR - 0.1, 1.0 - 0.2]) cube([6.0 + 0.4, 5.0, 1.5 + 0.4]);
+        translate([fp_w - 15.0 - 6.0 - 0.2, {split_y:.3f} + FP_CLR - 0.1, 1.0 - 0.2]) cube([6.0 + 0.4, 5.0, 1.5 + 0.4]);
 
         // Bezel Window
         hull() {{
             translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, -0.1])
                 cube([{DISP_W:.3f}, {DISP_H:.3f}, 0.01]);
-            translate([{disp_x:.3f} - {ACTIVE_W:.3f}/2, {disp_y:.3f} - {ACTIVE_H:.3f}/2, 1.0 + 0.1])
+            translate([{disp_x:.3f} - {ACTIVE_W:.3f}/2, {disp_y:.3f} - {ACTIVE_H:.3f}/2, 4.0])
                 cube([{ACTIVE_W:.3f}, {ACTIVE_H:.3f}, 0.01]);
         }}
     }}
@@ -700,29 +741,28 @@ module chassis_shell() {{
             translate([cw-8, D-3, 0]) cylinder(r=3, h=ch);
         }}
         
-        // Tier 1: Faceplate Cavity — +0.4mm wider (0.2mm/side) for removable faceplate clearance
-        translate([offset_x - 0.2, {FRONT_LIP} - 0.2, wall])
-            cube([fp_w + 0.4, pt + 0.2, ch + 0.1]);
+        // Tier 1: Faceplate Cavity — exactly 0.1mm clearance on all sides
+        translate([offset_x - 0.1, {FRONT_LIP} - 0.1, wall])
+            cube([fp_w + 0.2, pt + 0.2, ch + 0.1]);
             
         // Middle Cavity: Hollows out the center for the Display to slide down!
-        // The display glass is 71.2mm wide, so we need a 72.0mm cavity!
-        translate([(cw - 72.0)/2, {FRONT_LIP} + pt - 0.1, wall])
-            cube([72.0, {TACTILE_H} + 0.2, ch + 0.1]);
+        // The display glass is 71.2mm wide, so we need a 71.4mm cavity (0.1mm/side)!
+        translate([(cw - 71.4)/2, {FRONT_LIP} + pt - 0.1, wall])
+            cube([71.4, {TACTILE_H} + 0.2, ch + 0.1]);
             
-        // Tier 2: PCB Cavity — +0.4mm wider (0.2mm/side) so PCB slides in without sanding.
-        // +0.2mm deeper for top-face clearance.
-        translate([(cw - pcb_w)/2 - 0.2, {FRONT_LIP} + pt + {TACTILE_H} - 0.2, wall])
-            cube([pcb_w + 0.4, {PCB_T} + 0.4, ch + 0.1]);
+        // Tier 2: PCB Cavity — exactly 0.1mm clearance on all sides
+        translate([(cw - pcb_w)/2 - 0.1, {FRONT_LIP} + pt + {TACTILE_H} - 0.1, wall])
+            cube([pcb_w + 0.2, {PCB_T} + 0.2, ch + 0.1]);
             
 
         // Tier 3: Back Components & Trace Clearance (Smooth single cavity without lip)
-        // A continuous smooth wedge from Z=0 to Z=ch.
-        // At Z=0, max Y is 7.5. At Z=ch, max Y is 12.2.
+        // A continuous smooth wedge from Z=wall to Z=ch.
+        // At Z=wall, max Y is 9.5 (leaves 1.5mm from 11.0mm shell). At Z=ch, max Y is 13.5 (leaves 1.5mm from 15.0mm shell).
         hull() {{
-            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, 0.0])
-                cube([pcb_w - 4.0, 7.5 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
-            translate([(cw - pcb_w)/2 + 2.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, ch - 0.1])
-                cube([pcb_w - 4.0, 12.2 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
+            translate([(cw - pcb_w)/2 + 1.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, wall])
+                cube([pcb_w - 2.0, 9.5 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
+            translate([(cw - pcb_w)/2 + 1.0, {FRONT_LIP} + pt + {TACTILE_H} + {PCB_T} - 0.1, ch - 0.1])
+                cube([pcb_w - 2.0, 13.5 - ({FRONT_LIP} + pt + {TACTILE_H} + {PCB_T}), 0.1]);
         }}
     }}
 }}
@@ -805,10 +845,10 @@ chassis();
             
             // Back edge (tapered — shallower at keypad end to save material)
             // Minimum depth at Z=0 must clear all internal cuts:
-            //   The smooth internal cavity starts at Y=7.5mm at Z=0.
-            //   So back wall is set to Y=9.5mm (center at Y=6.5, r=3) to provide exactly 2.0mm solid shell.
-            translate([3, 6.5, 0]) cylinder(r=3, h=0.1);
-            translate([cw-3, 6.5, 0]) cylinder(r=3, h=0.1);
+            //   The smooth internal cavity starts at Y=9.5mm at Z=0.
+            //   So back wall is set to Y=11.0mm (center at Y=8.0, r=3) to provide exactly 1.5mm solid shell.
+            translate([3, 8.0, 0]) cylinder(r=3, h=0.1);
+            translate([cw-3, 8.0, 0]) cylinder(r=3, h=0.1);
             
             // At Z=ch (display end), full depth D (center at Y=D-3)
             translate([3, D-3, ch-0.1]) cylinder(r=3, h=0.1);
@@ -866,6 +906,11 @@ module top_cap() {{
 
         // ── MAIN PLATE (Tiered Plugs, Z=ch-cap_t to Z=ch) ─────────
         // Perfect fit into the chassis cavities!
+        
+        // Tier 1 Faceplate Cavity Plug (Fits perfectly into chassis rails!)
+        translate([{(cw - fp_w)/2 - 0.1:.3f}, {FRONT_LIP - 0.1:.3f}, ch - cap_t])
+            cube([{fp_w + 0.2:.3f}, {pt + 0.2:.3f}, cap_t]);
+
         // Middle Cavity Plug
         translate([{(cw - 66.4)/2:.3f}, {FRONT_LIP} + {pt:.3f}, ch - cap_t])
             cube([66.4, {TACTILE_H:.3f}, cap_t]);
@@ -1109,10 +1154,7 @@ module tpu_stretch_cover() {{
                 cylinder(r=3, h=ch + 0.1);
         }}
         
-        // Cut off the back face so it's a U-shape (Open at Y = D)
-        // We cut from Y = D to Y = D + 10 to ensure it's completely open
-        translate([-cover_t - 5, D, -cover_t - 5])
-            cube([cw + 2*cover_t + 10, 10, ch + cover_t + 10]);
+        // FULL SLEEVE - no back cut!
     }}
 }}
 tpu_stretch_cover();
@@ -1135,12 +1177,22 @@ tpu_stretch_cover();
     # BUTTONS ARRAY 
     # ═══════════════════════════════════════════════════════
     buttons_scad = "use <buttons.scad>;\n\n"
-    for row in rows:
-        for b in row:
+    for r_idx, row in enumerate(rows):
+        for c_idx, b in enumerate(row):
             ox = pad_left + b['x']
             oy = pad_bottom + b['y']
             lbl = b.get('label', '').replace('"', '\\"')
-            buttons_scad += f"translate([{ox:.3f}, {oy:.3f}, 0]) button_hp32({b['w']}, {b['h']}, 5.6, 0.8, \"{lbl}\");\n"
+            
+            real_col = c_idx
+            if r_idx == 3 and c_idx >= 1:
+                real_col += 1
+                
+            if b == _enter_btn:
+                buttons_scad += f"translate([{ox:.3f}, {oy:.3f}, 0]) enter_button(\"{lbl}\");\n"
+            elif r_idx <= 3:
+                buttons_scad += f"translate([{ox:.3f}, {oy:.3f}, 0]) upper_matrix_button(\"{lbl}\");\n"
+            else:
+                buttons_scad += f"translate([{ox:.3f}, {oy:.3f}, 0]) arithmetic_button(\"{lbl}\");\n"
     
     with open("designs/buttons_generated.scad", "w") as f:
         f.write(buttons_scad)
@@ -1187,6 +1239,18 @@ module dummy_pcb_board_local() {{
     }}
 
 
+    // 3D Printed LCD Spacer (so the screen isn't floating in the STL)
+    color("LightBlue") {{
+        difference() {{
+            translate([{disp_x:.3f} - {DISP_W:.3f}/2, {disp_y:.3f} - {DISP_H:.3f}/2, 1.6])
+                cube([{DISP_W:.3f}, {DISP_H:.3f} - 4.0, 3.0]); // 4.0mm shorter to leave room for the ribbon cable
+            
+            // Hollow out the center to save material
+            translate([{disp_x:.3f} - {DISP_W:.3f}/2 + 2.0, {disp_y:.3f} - {DISP_H:.3f}/2 + 2.0, 1.5])
+                cube([{DISP_W:.3f} - 4.0, {DISP_H:.3f} - 8.0, 3.2]);
+        }}
+    }}
+
     // Sharp Memory LCD Base (White)
     color("White") {{
         translate([{disp_x:.3f}, {disp_y:.3f}, 1.6 + 3.0]) 
@@ -1218,11 +1282,11 @@ module dummy_pcb_board_local() {{
     
     // Components on the back (MCU, Connectors, Battery)
     color("DarkSlateGray") {{
-        // Pico (51x21x4mm before rotation)
+        // Pico (21x51x4mm before rotation)
         translate([{mcu_comp['x'] + pad_x:.3f}, {mcu_comp['y'] + pad_y:.3f}, 0]) 
             rotate([0, 0, {mcu_comp['rot']:.3f}])
-            translate([-51.0/2, -21.0/2, -4.0])
-            cube([51.0, 21.0, 4.0]);
+            translate([-21.0/2, -51.0/2, -4.0])
+            cube([21.0, 51.0, 4.0]);
     }}
     
     color("LightGray") {{

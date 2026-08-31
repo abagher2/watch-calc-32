@@ -478,7 +478,7 @@ class KeyCommandViewController: UIViewController {
 }
 
 enum ActiveMenu: String, Identifiable {
-    case base, testXY, testX0, mean, sums, stdDev, lr, parts, prob, clear, flags, regs, mem, const, disp, modes, eqn, show, integrate, solve
+    case base, testXY, testX0, mean, sums, stdDev, lr, parts, prob, clear, flags, regs, mem, const, disp, modes, eqn, show, integrate, solve, plot
     var id: String { self.rawValue }
 
     /// Maps this ActiveMenu to the corresponding RPNCore CalculatorMenu, if one exists.
@@ -573,6 +573,8 @@ struct iOSMenuModifier: ViewModifier {
             return AnyView(IntegratePromptView().environment(engine))
         case .solve:
             return AnyView(SolvePromptView().environment(engine))
+        case .plot:
+            return AnyView(PlotPromptView().environment(engine))
         default:
             // Generic menus — delegate to shared CalculatorMenuPresenter
             if let calcMenu = menu.calculatorMenu {
@@ -622,6 +624,7 @@ struct iOSMenuModifier: ViewModifier {
         case .show: activeMenu = .show
         case .integrate: activeMenu = .integrate
         case .solve: activeMenu = .solve
+        case .plot: activeMenu = .plot
         case .lfu0, .lfu1, .lfu2, .lfu3, .lfu4, .lfu5:
             let index = command.rawValue - CalculatorOperation.lfu0.rawValue
             let funcStr = engine.lfuManager.getFunction(for: index)

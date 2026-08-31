@@ -46,12 +46,12 @@ struct UILBenchmarkData {
         let str = formatter.string(from: NSNumber(value: abs(number))) ?? "0"
         
         var keys = str.compactMap { char -> String? in
-            if char == "." { return "btn_." }
-            if char >= "0" && char <= "9" { return "btn_\(char)" }
+            if char == "." { return "op_decimal" }
+            if char >= "0" && char <= "9" { return "op_digit\(char)" }
             return nil
         }
         if number < 0 {
-            keys.append("btn_+/-")
+            keys.append("op_toggleSign")
         }
         return keys
     }

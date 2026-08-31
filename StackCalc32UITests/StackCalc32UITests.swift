@@ -13,7 +13,7 @@ import RPNCore
       app.buttons["btn_yellow_shift"].tap()
       navigateToArithmeticPad(app: app)
       Thread.sleep(forTimeInterval: 0.1)
-      app.buttons["func_<-"].tap()
+      app.buttons["op_backspace"].tap()
       app.swipeUp()
       app.buttons["Clear ALL"].firstMatch.tap()
       Thread.sleep(forTimeInterval: 1.5)
@@ -21,50 +21,50 @@ import RPNCore
       Thread.sleep(forTimeInterval: 0.1)
   }
   private func navigateToNumericPad(app: XCUIApplication) {
-    if app.buttons["btn_5"].exists { return }
+    if app.buttons["op_digit5"].exists { return }
     
-    if app.buttons["func_A"].exists {
+    if app.buttons["alpha_A"].exists {
         app.buttons["sim_swipe_left"].tap()
         Thread.sleep(forTimeInterval: 0.5)
-    } else if app.buttons["func_×"].exists {
+    } else if app.buttons["op_multiply"].exists {
         app.buttons["sim_swipe_right"].tap()
         Thread.sleep(forTimeInterval: 0.5)
     }
     
-    if app.buttons["func_STO"].exists {
+    if app.buttons["op_sto"].exists {
         app.buttons["sim_swipe_up"].tap()
         Thread.sleep(forTimeInterval: 0.5)
-        if app.buttons["func_STO"].exists {
+        if app.buttons["op_sto"].exists {
             app.buttons["sim_swipe_up"].tap()
             Thread.sleep(forTimeInterval: 0.5)
         }
     }
     
-    let _ = app.buttons["btn_5"].waitForExistence(timeout: 1.5)
+    let _ = app.buttons["op_digit5"].waitForExistence(timeout: 1.5)
   }
 
   private func navigateToArithmeticPad(app: XCUIApplication) {
-    if app.buttons["func_×"].exists { return }
+    if app.buttons["op_multiply"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_left"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    let _ = app.buttons["func_×"].waitForExistence(timeout: 2.0)
+    let _ = app.buttons["op_multiply"].waitForExistence(timeout: 2.0)
   }
 
   private func navigateToUpperMatrixPad(app: XCUIApplication) {
-    if app.buttons["func_STO"].exists { return }
+    if app.buttons["op_sto"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_down"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    let _ = app.buttons["func_STO"].waitForExistence(timeout: 2.0)
+    let _ = app.buttons["op_sto"].waitForExistence(timeout: 2.0)
   }
 
   private func navigateToLFUPad(app: XCUIApplication) {
-    if app.buttons["func_A"].exists { return }
+    if app.buttons["alpha_A"].exists { return }
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_right"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    let _ = app.buttons["func_A"].waitForExistence(timeout: 2.0)
+    let _ = app.buttons["alpha_A"].waitForExistence(timeout: 2.0)
   }
 
   func runSharedTestCase(_ testCase: SharedCalculatorTestCase) {
@@ -96,9 +96,9 @@ import RPNCore
           } else if op == "ENTER" {
               app.otherElements["invisible_ENTER"].tap()
           } else if op == "<-" {
-              app.buttons["func_<-"].tap()
+              app.buttons["op_backspace"].tap()
           } else if ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."].contains(op) {
-              app.buttons["btn_\(op)"].tap()
+              app.buttons["op_digit\(op)"].tap()
           } else if op == "A" {
               let textField = app.textFields.firstMatch
               if textField.waitForExistence(timeout: 2.0) {
@@ -106,13 +106,13 @@ import RPNCore
                   textField.typeText("A\n")
               }
           } else if op == "𝑥≷𝑦" {
-              app.buttons["func_𝑥≷𝑦"].tap()
+              app.buttons["op_swapXY"].tap()
           } else if op == "√𝑥" {
-              app.buttons["func_√𝑥"].tap()
+              app.buttons["op_sqrt"].tap()
           } else if op == "𝑒ˣ" {
-              app.buttons["func_𝑒ˣ"].tap()
+              app.buttons["op_exp"].tap()
           } else if op == "1/𝑥" {
-              app.buttons["func_¹/𝑥"].tap()
+              app.buttons["op_reciprocal"].tap()
           } else if op == "LFU_0" {
               app.buttons["IP (Integer Part)"].tap()
           } else if op == "LFU_1" {
@@ -168,8 +168,8 @@ import RPNCore
     clearAll(app: app)  // yellow shift
 
     navigateToNumericPad(app: app)
-    _ = app.buttons["btn_7"].waitForExistence(timeout: 1.0)
-    app.buttons["btn_7"].tap()  // SOLVE
+    _ = app.buttons["op_digit7"].waitForExistence(timeout: 1.0)
+    app.buttons["op_digit7"].tap()  // SOLVE
 
     XCTAssertTrue(display.exists)
   }
@@ -190,7 +190,7 @@ import RPNCore
     // EQN is Blue Shift + STO
     app.buttons["btn_blue_shift"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_STO"].tap()
+    app.buttons["op_sto"].tap()
     
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["btn_add_eqn"].tap()
@@ -198,13 +198,13 @@ import RPNCore
 
     // RPN sequence: X 2 y^x
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap()
+    app.buttons["alpha_X"].tap()
 
     navigateToNumericPad(app: app)
-    app.buttons["btn_2"].tap()
+    app.buttons["op_digit2"].tap()
 
     navigateToUpperMatrixPad(app: app)
-    app.buttons["func_𝑦ˣ"].tap()
+    app.buttons["op_power"].tap()
 
     // ENTER to save equation
     app.otherElements["invisible_ENTER"].tap()
@@ -212,7 +212,7 @@ import RPNCore
     // Plot it (Yellow Shift +/-)
     navigateToNumericPad(app: app)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_toggleSign"].tap()
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
         if !app.buttons["btn_plot_execute"].isHittable {
             app.swipeUp()
@@ -236,57 +236,57 @@ import RPNCore
     // Enter equation mode using EQN (Blue Shift + STO)
     navigateToUpperMatrixPad(app: app)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_STO"].tap()
+    app.buttons["op_sto"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["btn_add_eqn"].tap()
     Thread.sleep(forTimeInterval: 1.5)
 
     // Sequence: Label 'X', then 'X' 'x^2' '0.5' '+/-' '×' 'e^x' '2' 'π' '×' '√x' '÷'
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap() // This is the label
+    app.buttons["alpha_X"].tap() // This is the label
     
     Thread.sleep(forTimeInterval: 0.5)
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap() // This is the first step of the equation
+    app.buttons["alpha_X"].tap() // This is the first step of the equation
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_√𝑥"].tap()
+    app.buttons["op_sqrt"].tap()
 
     navigateToNumericPad(app: app)
-    app.buttons["btn_0"].tap()
-    app.buttons["btn_."].tap()
-    app.buttons["btn_5"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_digit0"].tap()
+    app.buttons["op_decimal"].tap()
+    app.buttons["op_digit5"].tap()
+    app.buttons["op_toggleSign"].tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_𝑒ˣ"].tap()
+    app.buttons["op_exp"].tap()
 
     navigateToNumericPad(app: app)
-    app.buttons["btn_2"].tap()
+    app.buttons["op_digit2"].tap()
 
     // π is blue shift of SIN in Matrix2View
     navigateToNumericPad(app: app)
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_SIN"].tap()
+    app.buttons["op_sin"].tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
 
     // √𝑥 is in Matrix3View
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_√𝑥"].tap()
+    app.buttons["op_sqrt"].tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_÷"].tap()
+    app.buttons["op_divide"].tap()
 
     // Save equation and exit programming mode by double tapping
     app.descendants(matching: .any)["lcd_display"].doubleTap()
@@ -295,7 +295,7 @@ import RPNCore
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_toggleSign"].tap()
     if app.buttons["btn_integrate_execute"].waitForExistence(timeout: 5.0) {
         app.buttons["btn_integrate_execute"].tap()
     } else {
@@ -319,32 +319,32 @@ import RPNCore
     // Enter equation mode using EQN (Blue Shift + STO)
     navigateToUpperMatrixPad(app: app)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_STO"].tap()
+    app.buttons["op_sto"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["btn_add_eqn"].tap()
     Thread.sleep(forTimeInterval: 1.5)
 
     // Sequence: X +/- e^x 1 + 1/x
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap()
+    app.buttons["alpha_X"].tap()
 
     navigateToNumericPad(app: app)
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_toggleSign"].tap()
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_𝑒ˣ"].tap()
+    app.buttons["op_exp"].tap()
 
     navigateToNumericPad(app: app)
-    app.buttons["btn_1"].tap()
+    app.buttons["op_digit1"].tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_+"].tap()
+    app.buttons["op_add"].tap()
 
     // 1/x is in Matrix3View
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_¹/𝑥"].tap()
+    app.buttons["op_reciprocal"].tap()
 
     // Save equation and exit programming mode by double tapping
     app.descendants(matching: .any)["lcd_display"].doubleTap()
@@ -353,7 +353,7 @@ import RPNCore
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_toggleSign"].tap()
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
         if !app.buttons["btn_plot_execute"].isHittable {
             app.swipeUp()
@@ -376,7 +376,7 @@ import RPNCore
 
     app.buttons["btn_blue_shift"].tap()  // blue shift
     navigateToNumericPad(app: app)
-    app.buttons["btn_0"].tap()  // VIEW
+    app.buttons["op_digit0"].tap()  // VIEW
 
     // The stack view should appear
   }
@@ -394,7 +394,7 @@ import RPNCore
 
     let lcdDisplay = app.descendants(matching: .any)["lcd_display"]
     let btnC = app.buttons["C"]
-    let btnZero = app.buttons["btn_0"]
+    let btnZero = app.buttons["op_digit0"]
 
     let lcdFrame = lcdDisplay.frame
     let cFrame = btnC.frame
@@ -434,20 +434,20 @@ import RPNCore
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_XEQ"].tap()
+    app.buttons["op_xeq"].tap()
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
     app.staticTexts["NPDF"].tap()
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
 
     // Push 1, push 2 (Integration limits)
-    app.buttons["btn_1"].tap()
+    app.buttons["op_digit1"].tap()
     app.otherElements["invisible_ENTER"].tap()  // ENTER
-    app.buttons["btn_2"].tap()
+    app.buttons["op_digit2"].tap()
 
     // Tap integrate (Blue shift + 8)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["btn_8"].tap()
+    app.buttons["op_digit8"].tap()
 
     // Tap Evaluate in the IntegratePromptView
     if app.buttons["Evaluate"].waitForExistence(timeout: 5.0) {
@@ -481,20 +481,20 @@ import RPNCore
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_XEQ"].tap()
+    app.buttons["op_xeq"].tap()
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
     app.staticTexts["NPDF"].tap()
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
 
     // Push 0, push 1
-    app.buttons["btn_0"].tap()
+    app.buttons["op_digit0"].tap()
     app.otherElements["invisible_ENTER"].tap()  // ENTER
-    app.buttons["btn_1"].tap()
+    app.buttons["op_digit1"].tap()
 
     // Integrate (Blue shift + 8)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["btn_8"].tap()
+    app.buttons["op_digit8"].tap()
     
     // Tap Evaluate in the IntegratePromptView
     if app.buttons["Evaluate"].waitForExistence(timeout: 5.0) {
@@ -524,7 +524,7 @@ import RPNCore
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_toggleSign"].tap()
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
         if !app.buttons["btn_plot_execute"].isHittable {
             app.swipeUp()
@@ -551,7 +551,7 @@ import RPNCore
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_XEQ"].tap()
+    app.buttons["op_xeq"].tap()
 
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
   }
@@ -566,7 +566,7 @@ import RPNCore
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_XEQ"].tap()
+    app.buttons["op_xeq"].tap()
 
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
     app.staticTexts["NPDF"].tap()
@@ -588,7 +588,7 @@ import RPNCore
     // EQN is Blue Shift + STO
     app.buttons["btn_blue_shift"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_STO"].tap()
+    app.buttons["op_sto"].tap()
     
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["btn_add_eqn"].tap()
@@ -609,9 +609,9 @@ import RPNCore
     navigateToNumericPad(app: app)
 
     // Input some numbers
-    app.buttons["btn_5"].tap()
+    app.buttons["op_digit5"].tap()
     app.otherElements["invisible_ENTER"].tap()  // ENTER
-    app.buttons["btn_9"].tap()
+    app.buttons["op_digit9"].tap()
     Thread.sleep(forTimeInterval: 1.0)
 
     // Open CLEAR menu (Shift + <-)
@@ -619,7 +619,7 @@ import RPNCore
     Thread.sleep(forTimeInterval: 0.5)
     
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_<-"].tap()
+    app.buttons["op_backspace"].tap()
 
     // Should show Clear Menu
     XCTAssertTrue(app.navigationBars["Clear"].waitForExistence(timeout: 2.0))
@@ -646,7 +646,7 @@ import RPNCore
     XCTAssertFalse(app.staticTexts["stack_indicator"].exists)
 
     // Input 5 ENTER ENTER ENTER ENTER to push stack beyond 4
-    app.buttons["btn_5"].tap()
+    app.buttons["op_digit5"].tap()
     app.otherElements["invisible_ENTER"].tap()
     app.otherElements["invisible_ENTER"].tap()
     app.otherElements["invisible_ENTER"].tap()
@@ -678,7 +678,7 @@ import RPNCore
         if char == "-" {
             if inExponent {
                 navigateToArithmeticPad(app: app)
-                app.buttons["func_+/-"].tap()
+                app.buttons["op_toggleSign"].tap()
             }
             continue
         } else if char == "+" {
@@ -686,13 +686,13 @@ import RPNCore
         } else if char == "e" || char == "E" {
             inExponent = true
             navigateToArithmeticPad(app: app)
-            app.buttons["func_E"].tap()
+            app.buttons["op_e"].tap()
         } else if char == "." {
             navigateToNumericPad(app: app)
-            app.buttons["btn_."].tap()
+            app.buttons["op_decimal"].tap()
         } else {
             navigateToNumericPad(app: app)
-            app.buttons["btn_\(char)"].tap()
+            app.buttons["op_digit\(char)"].tap()
         }
     }
     
@@ -701,7 +701,7 @@ import RPNCore
 
     if negateMantissa {
         navigateToArithmeticPad(app: app)
-        app.buttons["func_+/-"].tap()
+        app.buttons["op_toggleSign"].tap()
     }
   }
 
@@ -723,23 +723,23 @@ import RPNCore
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["btn_blue_shift"].tap()
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["func_STO"].tap()
+    app.buttons["op_sto"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["btn_add_eqn"].tap()
     Thread.sleep(forTimeInterval: 1.5)
     
     // Label A
     navigateToLFUPad(app: app)
-    app.buttons["func_A"].tap()
+    app.buttons["alpha_A"].tap()
     app.otherElements["invisible_ENTER"].tap() // Accept label A
     Thread.sleep(forTimeInterval: 1.0)
     
     // X x^2
-    app.buttons["func_X"].tap()
+    app.buttons["alpha_X"].tap()
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_√𝑥"].tap()
+    app.buttons["op_sqrt"].tap()
     
     Thread.sleep(forTimeInterval: 1.0)
     snapshot("2-Equation")
@@ -756,7 +756,7 @@ import RPNCore
     }
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap() // PLOT
+    app.buttons["op_toggleSign"].tap() // PLOT
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
         app.buttons["btn_plot_execute"].tap()
     } else {
@@ -781,15 +781,15 @@ import RPNCore
     app.buttons["C"].tap()
     app.buttons["C"].tap()
     app.buttons["C"].tap()
-    app.buttons["btn_2"].tap()
-    app.buttons["btn_."].tap()
-    app.buttons["btn_1"].tap()
-    app.buttons["btn_2"].tap()
-    app.buttons["btn_5"].tap()
+    app.buttons["op_digit2"].tap()
+    app.buttons["op_decimal"].tap()
+    app.buttons["op_digit1"].tap()
+    app.buttons["op_digit2"].tap()
+    app.buttons["op_digit5"].tap()
     
     // Tap FDISP (Yellow Shift + .)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["btn_."].tap()
+    app.buttons["op_decimal"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     
     snapshot("4-Fractions")
@@ -801,7 +801,7 @@ import RPNCore
     app.buttons["C"].tap()
     navigateToNumericPad(app: app)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["btn_6"].tap() // SUMS menu
+    app.buttons["op_digit6"].tap() // SUMS menu
     Thread.sleep(forTimeInterval: 1.0)
     
     snapshot("5-Stats")
@@ -827,18 +827,18 @@ import RPNCore
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_XEQ"].tap()
+    app.buttons["op_xeq"].tap()
     // It should list equations
     XCTAssertTrue(app.cells.element(boundBy: 1).waitForExistence(timeout: 5))
     app.cells.element(boundBy: 1).tap()
     
     navigateToNumericPad(app: app)
-    app.buttons["btn_0"].tap()
+    app.buttons["op_digit0"].tap()
     app.otherElements["invisible_ENTER"].tap()
-    app.buttons["btn_2"].tap()
+    app.buttons["op_digit2"].tap()
     
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["btn_8"].tap() // Integrate
+    app.buttons["op_digit8"].tap() // Integrate
     if app.buttons["Evaluate"].waitForExistence(timeout: 5.0) {
         if !app.buttons["Evaluate"].isHittable {
             app.swipeUp()
@@ -880,7 +880,7 @@ import RPNCore
 
     // EQN is Blue Shift + STO
     slowTap(app.buttons["btn_blue_shift"])
-    slowTap(app.buttons["func_STO"])
+    slowTap(app.buttons["op_sto"])
     
     // Tap Add Equation button in the list view
     Thread.sleep(forTimeInterval: 1.0)
@@ -891,7 +891,7 @@ import RPNCore
     navigateToLFUPad(app: app) // Jump straight to Variables Pad
     Thread.sleep(forTimeInterval: 1.0)
     
-    slowTap(app.buttons["func_X"])
+    slowTap(app.buttons["alpha_X"])
     
     // Variables to Matrix3View (where x^2 is)
     navigateToNumericPad(app: app) // Numeric pad
@@ -899,54 +899,54 @@ import RPNCore
     Thread.sleep(forTimeInterval: 0.5)
     
     slowTap(app.buttons["btn_yellow_shift"])
-    slowTap(app.buttons["func_√𝑥"])
+    slowTap(app.buttons["op_sqrt"])
     
     // LFU to Numeric (Jump to Page 1)
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     
-    slowTap(app.buttons["btn_0"])
-    slowTap(app.buttons["btn_."])
-    slowTap(app.buttons["btn_5"])
-    slowTap(app.buttons["func_+/-"])
+    slowTap(app.buttons["op_digit0"])
+    slowTap(app.buttons["op_decimal"])
+    slowTap(app.buttons["op_digit5"])
+    slowTap(app.buttons["op_toggleSign"])
     
     // Numeric to Arithmetic
     navigateToArithmeticPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    slowTap(app.buttons["func_×"]) // wait, earlier it used element(boundBy: 1), I'll just use it directly
+    slowTap(app.buttons["op_multiply"]) // wait, earlier it used element(boundBy: 1), I'll just use it directly
     
     // Arithmetic to Matrix3View (where e^x is)
     navigateToNumericPad(app: app) // Numeric pad
     navigateToUpperMatrixPad(app: app) // Matrix3View
     Thread.sleep(forTimeInterval: 0.5)
     
-    slowTap(app.buttons["func_𝑒ˣ"])
+    slowTap(app.buttons["op_exp"])
     
     // LFU to Numeric
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    slowTap(app.buttons["btn_2"])
+    slowTap(app.buttons["op_digit2"])
     
     // Numeric to Matrix2View (where pi is)
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     slowTap(app.buttons["btn_blue_shift"])
-    slowTap(app.buttons["func_SIN"])
+    slowTap(app.buttons["op_sin"])
     
     // Jump to Arithmetic
     navigateToArithmeticPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    slowTap(app.buttons["func_×"])
+    slowTap(app.buttons["op_multiply"])
     
     // Jump to Matrix3View (where √x is)
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    slowTap(app.buttons["func_√𝑥"])
+    slowTap(app.buttons["op_sqrt"])
     
     // LFU to Arithmetic
     navigateToArithmeticPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    slowTap(app.buttons["func_÷"]) // This taps the ÷ button in the equation editor. Wait, is it func_÷?
+    slowTap(app.buttons["op_divide"]) // This taps the ÷ button in the equation editor. Wait, is it func_÷?
     
     slowTap(app.otherElements["invisible_ENTER"]) // Save Eqn
     
@@ -954,19 +954,19 @@ import RPNCore
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     
-    slowTap(app.buttons["btn_1"])
-    slowTap(app.buttons["btn_0"])
-    slowTap(app.buttons["func_+/-"])
+    slowTap(app.buttons["op_digit1"])
+    slowTap(app.buttons["op_digit0"])
+    slowTap(app.buttons["op_toggleSign"])
     slowTap(app.otherElements["invisible_ENTER"]) // Enter
-    slowTap(app.buttons["btn_0"])
+    slowTap(app.buttons["op_digit0"])
     
     slowTap(app.buttons["btn_yellow_shift"])
-    slowTap(app.buttons["btn_8"]) // Integrate
+    slowTap(app.buttons["op_digit8"]) // Integrate
     
     Thread.sleep(forTimeInterval: 3.0)
     
     slowTap(app.buttons["btn_yellow_shift"])
-    slowTap(app.buttons["func_+/-"])
+    slowTap(app.buttons["op_toggleSign"])
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
         if !app.buttons["btn_plot_execute"].isHittable {
             app.swipeUp()
@@ -990,22 +990,22 @@ import RPNCore
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter point 1 (1, 2)
-    app.buttons["btn_1"].tap()
+    app.buttons["op_digit1"].tap()
     app.otherElements["invisible_ENTER"].tap() // ENTER
-    app.buttons["btn_2"].tap()
+    app.buttons["op_digit2"].tap()
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["func_Σ+"].tap() // Σ+
+    app.buttons["op_statAdd"].tap() // Σ+
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
 
     // Enter point 2 (3, 4)
-    app.buttons["btn_3"].tap()
+    app.buttons["op_digit3"].tap()
     app.otherElements["invisible_ENTER"].tap() // ENTER
-    app.buttons["btn_4"].tap()
+    app.buttons["op_digit4"].tap()
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["func_Σ+"].tap() // Σ+
+    app.buttons["op_statAdd"].tap() // Σ+
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
 
@@ -1013,7 +1013,7 @@ import RPNCore
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_𝑦ˣ"].tap() // x-bar, y-bar menu
+    app.buttons["op_power"].tap() // x-bar, y-bar menu
     
     // Tap x-bar
     if app.buttons["x̄ (Mean of x)"].waitForExistence(timeout: 2.0) {
@@ -1032,7 +1032,7 @@ import RPNCore
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap() // PLOT
+    app.buttons["op_toggleSign"].tap() // PLOT
     
     // Wait for prompt to appear
     if app.buttons["Source"].waitForExistence(timeout: 2.0) {
@@ -1079,7 +1079,7 @@ import RPNCore
     // 1. Enter an equation: EQN, A, X^2, ENTER
     navigateToUpperMatrixPad(app: app)
     app.buttons["btn_blue_shift"].tap()
-    app.buttons["func_STO"].tap() // EQN
+    app.buttons["op_sto"].tap() // EQN
     Thread.sleep(forTimeInterval: 1.0)
     
     app.buttons["btn_add_eqn"].tap()
@@ -1087,25 +1087,25 @@ import RPNCore
     
     // Select label A
     navigateToLFUPad(app: app)
-    app.buttons["func_A"].tap()
+    app.buttons["alpha_A"].tap()
     app.otherElements["invisible_ENTER"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     
     // RPN sequence: X x^2
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap()
+    app.buttons["alpha_X"].tap()
     
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_√𝑥"].tap() // x^2
+    app.buttons["op_sqrt"].tap() // x^2
 
     app.otherElements["invisible_ENTER"].tap()
     
     // 2. Open plot menu
     navigateToNumericPad(app: app)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap() // PLOT
+    app.buttons["op_toggleSign"].tap() // PLOT
     
     // Wait for prompt
     if app.buttons["Source"].waitForExistence(timeout: 2.0) {
@@ -1132,12 +1132,12 @@ import RPNCore
     app.launch()
 
     // Plot a simple function: 1 ENTER X^2 PLOT
-    app.buttons["btn_1"].tap()
+    app.buttons["op_digit1"].tap()
     app.otherElements["invisible_ENTER"].tap()
     
     // Tap PLOT (yellow shift +/-)
     app.buttons["btn_yellow_shift"].tap()
-    app.buttons["func_+/-"].tap()
+    app.buttons["op_toggleSign"].tap()
     
     // Select Plot
     if app.buttons["btn_plot_execute"].waitForExistence(timeout: 5.0) {
@@ -1178,18 +1178,18 @@ import RPNCore
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
     // Enter a 12 digit number: 123456789012
-    app.buttons["btn_1"].tap()
-    app.buttons["btn_2"].tap()
-    app.buttons["btn_3"].tap()
-    app.buttons["btn_4"].tap()
-    app.buttons["btn_5"].tap()
-    app.buttons["btn_6"].tap()
-    app.buttons["btn_7"].tap()
-    app.buttons["btn_8"].tap()
-    app.buttons["btn_9"].tap()
-    app.buttons["btn_0"].tap()
-    app.buttons["btn_1"].tap()
-    app.buttons["btn_2"].tap()
+    app.buttons["op_digit1"].tap()
+    app.buttons["op_digit2"].tap()
+    app.buttons["op_digit3"].tap()
+    app.buttons["op_digit4"].tap()
+    app.buttons["op_digit5"].tap()
+    app.buttons["op_digit6"].tap()
+    app.buttons["op_digit7"].tap()
+    app.buttons["op_digit8"].tap()
+    app.buttons["op_digit9"].tap()
+    app.buttons["op_digit0"].tap()
+    app.buttons["op_digit1"].tap()
+    app.buttons["op_digit2"].tap()
     
     // The screen display holds the full string unformatted during entry
     XCTAssertTrue(display.label.contains("123456789012"))
@@ -1248,7 +1248,7 @@ import RPNCore
                 piText.tap()
                 XCTAssertTrue(display.waitForExistence(timeout: 2.0))
                 XCTAssertTrue(display.label.contains("3.1415"))
-                app.buttons["func_<-"].tap() // Clear for next
+                app.buttons["op_backspace"].tap() // Clear for next
             }
         } else {
             // Dismiss menu
@@ -1283,7 +1283,7 @@ import RPNCore
 
     // Open Flags Menu (Blue Shift -> ×)
     slowTap(app.buttons["btn_blue_shift"])
-    slowTap(app.buttons["func_×"])
+    slowTap(app.buttons["op_multiply"])
 
     // Toggle Exam Mode
     let examModeToggle = app.switches["Exam Mode"]
@@ -1299,13 +1299,13 @@ import RPNCore
 
     // Press a number (must be on numeric pad)
     navigateToNumericPad(app: app)
-    slowTap(app.buttons["btn_5"])
+    slowTap(app.buttons["op_digit5"])
     XCTAssertEqual(display.label, "5")
 
     // Open Flags Menu again
     navigateToArithmeticPad(app: app)
     slowTap(app.buttons["btn_blue_shift"])
-    slowTap(app.buttons["func_×"])
+    slowTap(app.buttons["op_multiply"])
 
     // Toggle Exam Mode OFF
     XCTAssertTrue(examModeToggle.waitForExistence(timeout: 5))

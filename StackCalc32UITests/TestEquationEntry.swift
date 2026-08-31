@@ -12,7 +12,7 @@ import XCTest
       app.buttons["btn_yellow_shift"].tap()
       navigateToArithmeticPad(app: app)
       Thread.sleep(forTimeInterval: 0.1)
-      app.buttons["func_<-"].tap()
+      app.buttons["op_backspace"].tap()
       app.swipeUp()
       app.buttons["Clear ALL"].firstMatch.tap()
       Thread.sleep(forTimeInterval: 1.5)
@@ -22,25 +22,25 @@ import XCTest
 
   private func navigateToNumericPad(app: XCUIApplication) {
     app.buttons["sim_reset_pads"].tap()
-    XCTAssertTrue(app.buttons["btn_5"].waitForExistence(timeout: 2.0))
+    XCTAssertTrue(app.buttons["op_digit5"].waitForExistence(timeout: 2.0))
   }
 
   private func navigateToArithmeticPad(app: XCUIApplication) {
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_left"].tap()
-    XCTAssertTrue(app.buttons["func_×"].waitForExistence(timeout: 2.0))
+    XCTAssertTrue(app.buttons["op_multiply"].waitForExistence(timeout: 2.0))
   }
 
   private func navigateToUpperMatrixPad(app: XCUIApplication) {
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_down"].tap()
-    XCTAssertTrue(app.buttons["func_STO"].waitForExistence(timeout: 2.0))
+    XCTAssertTrue(app.buttons["op_sto"].waitForExistence(timeout: 2.0))
   }
 
   private func navigateToLFUPad(app: XCUIApplication) {
     navigateToNumericPad(app: app)
     app.buttons["sim_swipe_right"].tap()
-    XCTAssertTrue(app.buttons["func_A"].waitForExistence(timeout: 2.0))
+    XCTAssertTrue(app.buttons["alpha_A"].waitForExistence(timeout: 2.0))
   }
 
   func testEquationEntry() throws {
@@ -56,7 +56,7 @@ import XCTest
     // Press EQN (blue shift STO)
     app.buttons["btn_blue_shift"].tap()
     navigateToUpperMatrixPad(app: app)
-    app.buttons["func_STO"].tap()
+    app.buttons["op_sto"].tap()
 
     // Wait for the Equation list sheet
     XCTAssertTrue(app.buttons["btn_add_eqn"].waitForExistence(timeout: 2.0))
@@ -65,35 +65,35 @@ import XCTest
     // Now we are in LBL _
     // Tap A
     navigateToLFUPad(app: app)
-    app.buttons["func_A"].tap()
+    app.buttons["alpha_A"].tap()
 
     // Now we are in PRGM mode editing equation A
     // Press 5, 6, ENTER
     navigateToNumericPad(app: app)
-    app.buttons["btn_5"].tap()
-    app.buttons["btn_6"].tap()
+    app.buttons["op_digit5"].tap()
+    app.buttons["op_digit6"].tap()
     
     // Tap invisible ENTER just in case, but let's tap the real ENTER on Arithmetic pad
     navigateToArithmeticPad(app: app)
-    app.buttons["btn_ENTER"].tap()
+    app.buttons["op_enter"].tap()
     
     // Press *
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
     
     // Press RCL X
     navigateToUpperMatrixPad(app: app)
-    app.buttons["func_RCL"].tap()
+    app.buttons["op_rcl"].tap()
     
     navigateToLFUPad(app: app)
-    app.buttons["func_X"].tap()
+    app.buttons["alpha_X"].tap()
     
     // Press +
     navigateToArithmeticPad(app: app)
-    app.buttons["func_+"].tap()
+    app.buttons["op_add"].tap()
     
     // Press 3
     navigateToNumericPad(app: app)
-    app.buttons["btn_3"].tap()
+    app.buttons["op_digit3"].tap()
     
     // Verify the display string!
     // The user says "the listing for the equation is still showing a line for ENTER after typing in '56'"

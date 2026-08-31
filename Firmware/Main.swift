@@ -256,7 +256,7 @@ struct WatchCalcFirmware {
 
 @inline(never)
 static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: CalculatorEngine, _ lfu: LFUManager) {
-    if isCommand(buf, len, "50") { // "C"
+    if isCommand(buf, len, "50") || isCommand(buf, len, "C") || isCommand(buf, len, "CLEAR") || isCommand(buf, len, "CLEAR_ALL") {
         WatchCalcFirmware.isSleeping = false
     }
     
@@ -264,26 +264,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
         return
     }
     
-    if engine.isWaitingForLabel || engine.isWaitingForAlpha {
-        if matchOpBytes(buf, len)?.stringValue.hasPrefix("LFU_") == true || (parseUIntBytes(buf, 0, len).flatMap { CalculatorOperation(rawValue: $0) })?.stringValue.hasPrefix("LFU_") == true {
-            // Do not intercept LFU commands as alpha input
-        } else if isCommand(buf, len, "<-") || isCommand(buf, len, "BACKSPACE") {
-            engine.submitAlpha("<-")
-        } else if isCommand(buf, len, "ENTER") {
-            engine.submitAlpha("ENTER")
-        } else {
-            var s = 0
-            var e = len
-            while s < e && buf[s] <= 32 { s += 1 }
-            while e > s && buf[e - 1] <= 32 { e -= 1 }
-            let trimmedLen = e - s
-            let str = trimmedLen > 0 ? String(decoding: UnsafeBufferPointer(start: buf + s, count: trimmedLen), as: UTF8.self) : ""
-            // print("SUBMIT ALPHA: \(str), isWaitingForLabel: \(engine.isWaitingForLabel)")
-            engine.submitAlpha(str)
-        }
-        needsDisplay = true
-        return
-    }
+
     
     if let op = matchOpBytes(buf, len) {
         if op == .off {
@@ -382,7 +363,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             if b == 13 || b == 10 {
                 if lineLen > 0 {
                     if isSleeping {
-                        if isCommand(lineBuf, lineLen, "C") || isCommand(lineBuf, lineLen, "50") || isCommand(lineBuf, lineLen, "CLEAR") {
+                        if isCommand(lineBuf, lineLen, "C") || isCommand(lineBuf, lineLen, "50") || isCommand(lineBuf, lineLen, "CLEAR") || isCommand(lineBuf, lineLen, "CLEAR_ALL") {
                             hw_display_wake_c()
                             isSleeping = false
                             needsDisplay = true

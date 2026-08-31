@@ -184,7 +184,7 @@ struct ContentView: View {
                 }
             }
             .buttonStyle(BezelButtonStyle(bgColor: themeManager.theme.yellowShiftColor, bottomLeadingRadius: 0))
-            .accessibilityIdentifier("btn_yellow_shift")
+            .accessibilityIdentifier("op_shiftYellow")
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
             
             // C / CLEAR
@@ -212,6 +212,7 @@ struct ContentView: View {
                     .foregroundColor(.white)
             }
             .buttonStyle(BezelButtonStyle(bgColor: Color(red: 0.5, green: 0.35, blue: 0.0)))
+            .accessibilityIdentifier("op_backspace")
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
             
             // Blue Shift
@@ -231,7 +232,7 @@ struct ContentView: View {
                 }
             }
             .buttonStyle(BezelButtonStyle(bgColor: themeManager.theme.blueShiftColor, bottomTrailingRadius: 0))
-            .accessibilityIdentifier("btn_blue_shift")
+            .accessibilityIdentifier("op_shiftBlue")
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
         }
     }

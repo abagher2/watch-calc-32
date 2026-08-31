@@ -38,6 +38,15 @@ struct CalcButton: View {
         self.action = action
     }
     
+    private var a11yID: String {
+        if title == " " { return "invisible_enter" }
+        let op = mapOp(title)
+        if op == .enter && title != "ENTER" {
+            return isAlpha ? "alpha_\(title)" : "ui_\(title)"
+        }
+        return "op_\(String(describing: op))"
+    }
+    
     var body: some View {
         Button {
             #if os(watchOS)
@@ -86,7 +95,7 @@ struct CalcButton: View {
             activeShift: engine.shiftState,
             fontSize: 14
         ))
-        .accessibilityIdentifier(isDigit ? "btn_\(title)" : (title == " " ? "btn_space" : "func_\(title)"))
+        .accessibilityIdentifier(a11yID)
     }
     
     // mapOp() and dispatchKey() live in Shared/KeyActionDispatcher.swift

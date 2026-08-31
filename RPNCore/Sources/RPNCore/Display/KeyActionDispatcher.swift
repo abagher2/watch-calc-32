@@ -68,7 +68,7 @@ public func mapOp(_ opToExecute: String) -> CalculatorOperation {
 /// platform menu handler rather than passed to engine.executeMath().
 public let menuCommands: Set<CalculatorOperation> = [
     .disp, .modes, .lr, .sums, .fnEq, .eqn,
-    .solve, .integrate, .show, .view, .clear,
+    .solve, .integrate, .plot, .show, .view, .clear,
     .testXY, .testX0, .base, .flags,
     .prob, .parts, .mem, .regs, .statMean, .statStdDev, .const,
     .lfu0, .lfu1, .lfu2, .lfu3, .lfu4, .lfu5

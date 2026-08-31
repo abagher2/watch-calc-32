@@ -1288,7 +1288,7 @@ public class CalculatorEngine {
                         }
                         stack[stackSizeLimit - 1] = CalculatorValue()
                     } else {
-                        stack[0] = CalculatorValue()
+                        // Do not clear stack[0]. It still holds the original value before we started building.
                     }
                     stackLiftEnabled = false
                 }
@@ -1405,6 +1405,14 @@ public class CalculatorEngine {
     
     
     public func executeMath(_ operation: String) {
+        var operation = operation
+        if operation == "1/x" { operation = "1/𝑥" }
+        if operation == "y^x" { operation = "𝑦ˣ" }
+        if operation == "e^x" { operation = "𝑒ˣ" }
+        if operation == "√x" { operation = "√𝑥" }
+        if operation == "x<>y" { operation = "x↔y" }
+
+
 
         if transientMessage != nil {
             transientMessage = nil
@@ -1414,12 +1422,45 @@ public class CalculatorEngine {
             }
         }
         
-        if isWaitingForLabel {
-            if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
+
+        if isWaitingForAlpha || isWaitingForLabel {
+            if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" || operation == "<-" {
                 cancelAlpha()
+                return
+            }
+            if operation == "ENTER" {
+                submitAlpha("ENTER")
+                return
+            }
+            if ["+", "-", "×", "÷"].contains(operation) {
+                submitAlpha(operation)
+                return
+            }
+            
+            // Map the operation string to its alpha label based on HP32KeyMap
+            var foundAlpha = false
+            for key in HP32KeyMap.standardGrid {
+                if key.label == operation || key.primaryAction?.stringValue == operation {
+                    if !key.alphaLabel.isEmpty {
+                        submitAlpha(key.alphaLabel)
+                        foundAlpha = true
+                        break
+                    }
+                }
+            }
+            
+            if !foundAlpha {
+                // If it's a direct letter like "A", just submit it
+                if operation.count == 1 {
+                    let char = operation.first!
+                    if (char >= "A" && char <= "Z") || (char >= "a" && char <= "z") {
+                        submitAlpha(String(char).uppercased())
+                    }
+                }
             }
             return
         }
+
         
         if operation == "↑" {
             scrollUp()
@@ -1468,12 +1509,45 @@ public class CalculatorEngine {
             }
         }
         
-        if isWaitingForLabel {
-            if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" {
+
+        if isWaitingForAlpha || isWaitingForLabel {
+            if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" || operation == "<-" {
                 cancelAlpha()
+                return
+            }
+            if operation == "ENTER" {
+                submitAlpha("ENTER")
+                return
+            }
+            if ["+", "-", "×", "÷"].contains(operation) {
+                submitAlpha(operation)
+                return
+            }
+            
+            // Map the operation string to its alpha label based on HP32KeyMap
+            var foundAlpha = false
+            for key in HP32KeyMap.standardGrid {
+                if key.label == operation || key.primaryAction?.stringValue == operation {
+                    if !key.alphaLabel.isEmpty {
+                        submitAlpha(key.alphaLabel)
+                        foundAlpha = true
+                        break
+                    }
+                }
+            }
+            
+            if !foundAlpha {
+                // If it's a direct letter like "A", just submit it
+                if operation.count == 1 {
+                    let char = operation.first!
+                    if (char >= "A" && char <= "Z") || (char >= "a" && char <= "z") {
+                        submitAlpha(String(char).uppercased())
+                    }
+                }
             }
             return
         }
+
         
         if operation == "↑" {
             scrollUp()
@@ -2192,7 +2266,9 @@ public class CalculatorEngine {
         case "ŷ,r": calculateCorrelation()
         case "x̂": calculateLinearEstimation()
         
-        case "PLOT": generatePlot()
+        case "PLOT":
+            requestPlotPrompt = true
+            
         case "STK4":
             stackSizeLimit = 4
             if stack.count > 4 { stack = Array(stack.prefix(4)) }

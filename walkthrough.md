@@ -25,3 +25,9 @@ I have implemented and verified the fixes for the remaining cross-surface UI par
 - **Fix**: `REGS` and `VIEW` commands are now fully routed to the engine and shared presentation sheets for parity.
 
 We are now ready to close out the remaining UI parity checklist. We can execute the UI Test harnesses against these flows to ensure no further regressions.
+
+## Fixes for STO Alpha Input Parity
+- Investigated a bug where the fuzzer generated the sequence `["5", "STO", "LFU_0"]` to type `STO A`, but the firmware simulator evaluated it to `SIN(5)` instead of storing the variable.
+- Found that `CalculatorEngine.swift:executeMath` did not correctly intercept alpha variables (it was only intercepting `isWaitingForLabel`). The iOS app bypassed this by mapping the keys to variables natively using `KeyActionDispatcher`, but `FuzzEvaluator` and `Firmware_Sim` passed raw key strings like `"√x"` to `executeMath`.
+- Fixed the disparity by moving the `HP32KeyMap` alpha interception logic directly into `CalculatorEngine.executeMath()`. Now, all interfaces correctly map physical calculator keys (e.g., `√x`) to their alpha counterparts (e.g., `"A"`) when the engine is waiting for variable inputs.
+- Rebuilt `FuzzEvaluator` (verified passing via `echo '["5", "STO", "√x", "1", "0", "STO", "+", "√x", "RCL", "√x"]' | ./scratch/FuzzEvaluator/.build/debug/FuzzEvaluator`) and re-triggered a clean Firmware compile.
