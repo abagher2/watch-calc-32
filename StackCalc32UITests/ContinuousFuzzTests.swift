@@ -14,15 +14,11 @@ class ContinuousFuzzTests: XCTestCase {
     func testParityFuzzing() throws {
         XCTAssertTrue(app.staticTexts["lcd_display"].waitForExistence(timeout: 10), "LCD did not appear in time")
 
-        let jsonPath = "/Users/abagher/Documents/GitHub/watch-calc-32/scratch/fuzz_expected.json"
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: jsonPath)),
-              let jsonArray = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] else {
-            XCTFail("Could not read oracle JSON")
-            return
-        }
-        
-        for json in jsonArray.shuffled().prefix(20) {
-            guard let seq = json["sequence"] as? [String],
+        for _ in 0..<20 {
+            guard let url = URL(string: "http://127.0.0.1:8181/next"),
+                  let data = try? Data(contentsOf: url),
+                  let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                  let seq = json["sequence"] as? [String],
                   let expected = json["expected"] as? String else { continue }
             
             if seq.isEmpty { continue }

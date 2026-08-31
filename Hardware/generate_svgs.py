@@ -8,8 +8,8 @@ with open("pcb_layout.json", "r") as f:
 # We will define a tuple: (Primary, Yellow_Shift, Blue_Shift)
 labels = [
     # Row 1 (Math functions)
-    [("SQRT", "x^2", "PARTS"), ("e^x", "10^x", "PROB"), ("LN", "LOG", "L.R."), 
-     ("y^x", "xRootY", "x_y_bar"), ("1/x", "x!", "s_sigma"), ("Sigma+", "Sigma-", "SUMS")],
+    [("√𝑥", "𝑥²", "PARTS"), ("𝑒ˣ", "10ˣ", "PROB"), ("LN", "LOG", "L.R."), 
+     ("𝑦ˣ", "xVy", "x_y_bar"), ("¹/𝑥", "𝑥!", "s_sigma"), ("Sigma+", "Sigma-", "SUMS")],
     
     # Row 2 (Trig / Store)
     [("STO", "CMPLX", "EQN"), ("RCL", "RND", "SCRL"), ("R_dn", "HYP", "R_up"),
@@ -57,7 +57,16 @@ font = {
     'Y': "M 2 2 L 5 5 L 8 2 M 5 5 V 8", 'Z': "M 2 2 H 8 L 2 8 H 8",
     '(': "M 6 2 L 3 5 L 6 8", ')': "M 4 2 L 7 5 L 4 8",
     '<': "M 8 2 L 2 5 L 8 8", '>': "M 2 2 L 8 5 L 2 8",
-    '|': "M 5 2 V 8"
+    '|': "M 5 2 V 8",
+
+        '√': "M 2 5 L 4 8 L 8 2",
+    '𝑥': "M 3 2 L 7 8 M 3 8 L 7 2",
+    '²': "M 3 2 H 7 V 4 H 3 V 5 H 7",
+    '𝑒': "M 3 5 H 7 L 7 2 H 3 V 8 H 7",
+    'ˣ': "M 3 2 L 7 5 M 3 5 L 7 2",
+    '𝑦': "M 3 2 L 5 5 L 7 2 M 5 5 L 4 8",
+    '¹': "M 5 2 L 5 5",
+
 }
 
 sunken_icons = {
@@ -84,8 +93,8 @@ def get_path(text, is_sunken=False):
     path = ""
     w = 10
     for i, char in enumerate(text):
-        if char.upper() in font:
-            p = font[char.upper()]
+        if char in font or char.upper() in font:
+            p = font.get(char, font.get(char.upper(), ""))
             # Translate path by i*w
             parts = p.split()
             for j in range(len(parts)):

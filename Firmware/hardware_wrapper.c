@@ -6,28 +6,11 @@
 
 
 
-#ifndef EMULATOR
 #include "pico/stdlib.h"
-#endif
-#ifndef EMULATOR
 #include "hardware/spi.h"
-#endif
-#ifndef EMULATOR
 #include "hardware/watchdog.h"
-#endif
-#ifndef EMULATOR
 #include "hardware/sync.h"
-#endif
-#ifndef EMULATOR
 #include "hardware/gpio.h"
-#endif
-#ifndef EMULATOR
-#include "hardware/watchdog.h"
-#endif
-
-#ifdef EMULATOR
-#include "missing_stubs.h"
-#endif
 #include <string.h>
 
 #include <stdio.h>
@@ -241,6 +224,25 @@ bool hw_scan_timer_callback(struct repeating_timer *t) {
     return true;
 }
 
+#include "hardware/uart.h"
+
+char* read_uart_action_c() {
+    static char buffer[32];
+    static int idx = 0;
+    while (uart_is_readable(uart0)) {
+        int ch = uart_getc(uart0);
+        uart_putc(uart0, ch); // echo it back for debugging!
+        if (ch == '\n' || ch == '\r') {
+            buffer[idx] = 0;
+            idx = 0;
+            return buffer;
+        } else if (idx < 31) {
+            buffer[idx++] = (char)ch;
+        }
+    }
+    return "";
+}
+
 uint64_t matrix_scan(void) {
     uint64_t state = 0;
     for (int r = 0; r < 8; r++) {
@@ -262,7 +264,19 @@ void sleep_ms_c(uint32_t ms) {
 
 int get_uart_char_c(void) {
     watchdog_update();
+#if EMULATOR
+    // UARTFR is at offset 0x18
+    volatile uint32_t *uart0_fr = (volatile uint32_t *)0x40034018;
+    // UARTDR is at offset 0x00
+    volatile uint32_t *uart0_dr = (volatile uint32_t *)0x40034000;
+
+    if ((*uart0_fr & (1 << 4)) == 0) { // If RXFE is 0 (not empty)
+        return *uart0_dr & 0xFF;
+    }
+    return PICO_ERROR_TIMEOUT;
+#else
     return getchar_timeout_us(0);
+#endif
 }
 
 uint64_t hw_time_us(void) {
@@ -271,7 +285,13 @@ uint64_t hw_time_us(void) {
 
 void hw_display_sleep_c(void) {
 #ifndef EMULATOR
-    // Clear display to white/black before sleep if desired, but Sharp Memory LCD is static
+    display_sleep();
+#endif
+}
+
+void putchar_direct_c(int ch) {
+#if EMULATOR
+    uart_putc_raw(uart0, (char)ch);
 #endif
 }
 

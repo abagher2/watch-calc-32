@@ -31,13 +31,16 @@ add_executable(WatchCalcFirmware
     hardware_wrapper.c
     ../RPNCore/Sources/RPNCoreC/format_double.c test_sub.c
     font_bitmaps.c
-    missing_stubs.c
+    atomic_stubs.c
     ${FIRMWARE_SOURCES}
     ${RPN_CORE_SOURCES}
     ${RATIONAL_SOURCES}
 )
 
 target_compile_definitions(WatchCalcFirmware PRIVATE EMULATOR=1)
+target_compile_options(WatchCalcFirmware PRIVATE
+    $<$<COMPILE_LANGUAGE:Swift>:-D;EMULATOR>
+)
 target_compile_options(WatchCalcFirmware PRIVATE $<$<COMPILE_LANGUAGE:Swift>:-DEMULATOR>)
 
 set_target_properties(WatchCalcFirmware PROPERTIES LINKER_LANGUAGE CXX)
@@ -64,6 +67,9 @@ function(gather_compile_definitions_recursive target)
     list(APPEND visited_targets ${target})
     set_property(GLOBAL PROPERTY visited_targets "${visited_targets}")
 
+    if (NOT TARGET ${target})
+        return()
+    endif()
     get_target_property(target_definitions ${target} INTERFACE_COMPILE_DEFINITIONS)
     if (target_definitions)
         get_property(compilerdefs_list GLOBAL PROPERTY compilerdefs_list)

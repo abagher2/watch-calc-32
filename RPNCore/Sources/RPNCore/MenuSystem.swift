@@ -155,8 +155,8 @@ public enum CalculatorMenu: String, CaseIterable, Identifiable {
         MenuItem(label: "EQN", action: "CLEQN", description: "Clear equations")
     ]
     public static let partsItems: [MenuItem] = [
-        MenuItem(label: "INT", action: "INTG", description: "Integer part"),
-        MenuItem(label: "FRAC", description: "Fractional part"),
+        MenuItem(label: "IP", action: "INTG", description: "Integer part"),
+        MenuItem(label: "FP", action: "FRAC", description: "Fractional part"),
         MenuItem(label: "ABS", description: "Absolute value"),
         MenuItem(label: "SGN", description: "Sign (-1, 0, 1)")
     ]
