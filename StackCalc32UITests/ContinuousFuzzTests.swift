@@ -42,10 +42,25 @@ class ContinuousFuzzTests: XCTestCase {
             let deviceName = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] ?? "Unknown"
             let lcd = app.staticTexts["lcd_display"].label
             var mismatch = false
+            func reportResult(device: String, seq: [String], expected: String, got: String, match: Bool, errorType: String = "") {
+                let dict: [String: Any] = [
+                    "device": device, "sequence": seq, "expected": expected, "got": got, "match": match, "errorType": errorType
+                ]
+                if let data = try? JSONSerialization.data(withJSONObject: dict) {
+                    var req = URLRequest(url: URL(string: "http://127.0.0.1:8181/report_result")!)
+                    req.httpMethod = "POST"
+                    req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    req.httpBody = data
+                    let sem = DispatchSemaphore(value: 0)
+                    URLSession.shared.dataTask(with: req) { _,_,_ in sem.signal() }.resume()
+                    sem.wait()
+                }
+            }
             
             if lcd != expected {
                 print("❌ PARITY MISMATCH on \(deviceName)! Expected LCD: \(expected), Got: \(lcd) for seq: \(seq)")
                 mismatch = true
+                reportResult(device: deviceName, seq: seq, expected: expected, got: lcd, match: false, errorType: "LCD")
             }
             
             let expectedAnns = json["annunciators"] as? [String] ?? []
@@ -89,6 +104,7 @@ class ContinuousFuzzTests: XCTestCase {
             
             if !mismatch {
                 print("✅ Parity Match (LCD, Annunciators, Stack & Plots): \(lcd) for \(seq)")
+                reportResult(device: deviceName, seq: seq, expected: expected, got: lcd, match: true)
             }
             
             
