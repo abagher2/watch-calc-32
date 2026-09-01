@@ -45,7 +45,7 @@ import RPNCore
     }
 
     private func clearAll(app: XCUIApplication) {
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_←"].tap()
         
         let clearAllButton = app.buttons["Clear ALL"]
@@ -72,9 +72,9 @@ import RPNCore
         for step in testCase.steps {
             let op = step.op
             if op == "SHIFT_YELLOW" {
-                app.buttons["btn_yellow_shift"].tap()
+                app.buttons["op_shiftYellow"].tap()
             } else if op == "SHIFT_BLUE" {
-                app.buttons["btn_blue_shift"].tap()
+                app.buttons["op_shiftBlue"].tap()
             } else if op == "ENTER" {
                 app.buttons["invisible_ENTER"].tap()
             } else if op == "<-" {
@@ -164,7 +164,7 @@ func testFractionEntry() throws {
         // clearAll(app: app)
 
         // Yellow shift + 7 = SOLVE
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["btn_7"].tap()
 
         // Just checking it didn't crash and accepted the input
@@ -187,7 +187,7 @@ func testFractionEntry() throws {
         app.buttons["btn_."].tap()
         app.buttons["btn_5"].tap()
         
-        app.buttons["btn_blue_shift"].tap()
+        app.buttons["op_shiftBlue"].tap()
         app.buttons["func_√𝑥"].tap() // PARTS
         Thread.sleep(forTimeInterval: 1.0) // Wait for menu
         
@@ -199,7 +199,7 @@ func testFractionEntry() throws {
         XCTAssertTrue(display.label.contains("1"), "Expected 1 but got \(display.label)")
         
         // Open MODES Menu (Yellow Shift + .)
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["btn_."].tap()
         Thread.sleep(forTimeInterval: 1.0) 
         
@@ -208,7 +208,7 @@ func testFractionEntry() throws {
         Thread.sleep(forTimeInterval: 0.5)
         
         // Open DISP Menu (Yellow Shift + E)
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_E"].tap()
         Thread.sleep(forTimeInterval: 1.0)
         
@@ -221,7 +221,7 @@ func testFractionEntry() throws {
         XCTAssertTrue(display.label.contains("1.00E0"), "Expected 1.00E0 but got \(display.label)")
         
         // Open CLEAR Menu (Yellow Shift + <-)
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_←"].tap()
         Thread.sleep(forTimeInterval: 1.0)
         
@@ -279,7 +279,7 @@ import XCTest
   }
 
   private func clearAll(app: XCUIApplication) {
-      app.buttons["btn_yellow_shift"].tap()
+      app.buttons["op_shiftYellow"].tap()
       app.buttons["func_←"].tap()
       let clearAllButton = app.buttons["Clear ALL"]
       if clearAllButton.waitForExistence(timeout: 2.0) {
@@ -371,7 +371,7 @@ import XCTest
     btn5.tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons.matching(identifier: "func_×").firstMatch.tap()
+    app.buttons.matching(identifier: "op_multiply").firstMatch.tap()
 
     XCTAssertEqual(display.label, "210")
   }
@@ -397,7 +397,7 @@ import XCTest
     btn5.tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
 
     // No longer auto-resets to numeric pad, so we explicitly navigate if needed
     navigateToNumericPad(app: app)
@@ -446,7 +446,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 0.5)
 
     // EQN is Blue Shift + STO
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["func_STO"].tap()
     
@@ -495,7 +495,7 @@ import XCTest
 
     // Enter equation mode using EQN (Blue Shift + STO)
     navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_STO"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["NEW"].tap()
@@ -518,7 +518,7 @@ import XCTest
     app.buttons["func_+/-"].tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
@@ -531,11 +531,11 @@ import XCTest
     navigateToNumericPad(app: app)
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_SIN"].tap()
 
     navigateToArithmeticPad(app: app)
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
 
     // √𝑥 is in Matrix3View
     navigateToUpperMatrixPad(app: app)
@@ -576,7 +576,7 @@ import XCTest
 
     // Enter equation mode using EQN (Blue Shift + STO)
     navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_STO"].tap()
     Thread.sleep(forTimeInterval: 1.0)
     app.buttons["NEW"].tap()
@@ -633,7 +633,7 @@ import XCTest
     let display = app.descendants(matching: .any)["lcd_display"]
     XCTAssertTrue(display.waitForExistence(timeout: 5))
 
-    app.buttons["btn_blue_shift"].tap()  // blue shift
+    app.buttons["op_shiftBlue"].tap()  // blue shift
     navigateToNumericPad(app: app)
     app.buttons["btn_0"].tap()  // VIEW
 
@@ -692,10 +692,10 @@ import XCTest
     // Set FN=
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_XEQ"].tap()
-    XCTAssertTrue(app.buttons["Evaluate"].waitForExistence(timeout: 5))
-    app.buttons["Evaluate"].tap()
+    XCTAssertTrue(app.buttons["btn_integrate_execute"].waitForExistence(timeout: 5))
+    app.buttons["btn_integrate_execute"].tap()
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 1.5) // Wait for sheet to fully dismiss
 
@@ -705,12 +705,12 @@ import XCTest
     app.buttons["btn_2"].tap()
 
     // Tap integrate (Blue shift + 8)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["btn_8"].tap()
 
     // Tap Evaluate in the IntegratePromptView
-    XCTAssertTrue(app.buttons["Evaluate"].waitForExistence(timeout: 5.0))
-    app.buttons["Evaluate"].tap()
+    XCTAssertTrue(app.buttons["btn_integrate_execute"].waitForExistence(timeout: 5.0))
+    app.buttons["btn_integrate_execute"].tap()
     
     // Wait a little for integration to run
     sleep(2)
@@ -736,7 +736,7 @@ import XCTest
     // Set FN=
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_XEQ"].tap()
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
     app.staticTexts["NPDF"].tap()
@@ -749,12 +749,12 @@ import XCTest
     app.buttons["btn_1"].tap()
 
     // Integrate (Blue shift + 8)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["btn_8"].tap()
     
     // Tap Evaluate in the IntegratePromptView
-    XCTAssertTrue(app.buttons["Evaluate"].waitForExistence(timeout: 5.0))
-    app.buttons["Evaluate"].tap()
+    XCTAssertTrue(app.buttons["btn_integrate_execute"].waitForExistence(timeout: 5.0))
+    app.buttons["btn_integrate_execute"].tap()
     
     // Wait a little for integration to run
     sleep(2)
@@ -798,7 +798,7 @@ import XCTest
     // FN=
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_XEQ"].tap()
 
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
@@ -813,7 +813,7 @@ import XCTest
     // Tap blue shift + XEQ (FN=)
     navigateToLFUPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_XEQ"].tap()
 
     XCTAssertTrue(app.staticTexts["NPDF"].waitForExistence(timeout: 5))
@@ -834,7 +834,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 0.5)
 
     // EQN is Blue Shift + STO
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     Thread.sleep(forTimeInterval: 0.5)
     app.buttons["func_STO"].tap()
     
@@ -866,7 +866,7 @@ import XCTest
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
     
-    app.buttons["btn_yellow_shift"].tap()
+    app.buttons["op_shiftYellow"].tap()
     app.buttons["func_←"].tap()
 
     // Should show Clear Menu
@@ -984,12 +984,10 @@ import XCTest
     }
 
     // Set Stack to 8 via FLAGS Menu to ensure it looks good
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
-    slowTap(app.buttons["func_×"], name: "FLAGS")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
+    slowTap(app.buttons["op_multiply"], name: "FLAGS")
     Thread.sleep(forTimeInterval: 1.0)
-    for _ in 0..<4 {
-        slowTap(app.steppers.buttons["Increment"], name: "Stack Size +1")
-    }
+    if app.buttons["8-Level"].exists { app.buttons["8-Level"].tap() }
     if app.buttons["Done"].exists {
         app.buttons["Done"].tap()
     } else {
@@ -998,7 +996,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 1.0)
 
     // Go to Add Equation
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
     slowTap(app.buttons["func_STO"], name: "EQN Mode")
     Thread.sleep(forTimeInterval: 1.0)
     slowTap(app.buttons["NEW"], name: "New Equation")
@@ -1024,7 +1022,7 @@ import XCTest
     slowTap(app.buttons["func_÷"], name: "÷")
     
     // x² (Yellow Shift + √x)
-    slowTap(app.buttons["btn_yellow_shift"], name: "Yellow Shift")
+    slowTap(app.buttons["op_shiftYellow"], name: "Yellow Shift")
     slowTap(app.buttons["func_√𝑥"], name: "x²")
     
     // 0.5
@@ -1036,7 +1034,7 @@ import XCTest
     slowTap(app.buttons["func_+/-"], name: "+/-")
     
     // ×
-    slowTap(app.buttons["func_×"], name: "×")
+    slowTap(app.buttons["op_multiply"], name: "×")
     
     // eˣ
     slowTap(app.buttons["func_𝑒ˣ"], name: "𝑒ˣ")
@@ -1052,11 +1050,11 @@ import XCTest
     slowTap(app.buttons["btn_2"], name: "2")
     
     // π (Blue Shift + SIN)
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
     slowTap(app.buttons["func_SIN"], name: "π")
     
     // ×
-    slowTap(app.buttons["func_×"], name: "×")
+    slowTap(app.buttons["op_multiply"], name: "×")
     
     // √x
     slowTap(app.buttons["func_√𝑥"], name: "√𝑥")
@@ -1069,7 +1067,7 @@ import XCTest
     
     // Screenshot 3: Plot
     // Save Eqn (RTN -> Blue Shift + +)
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
     slowTap(app.buttons["func_+"], name: "RTN")
     Thread.sleep(forTimeInterval: 1.0)
     
@@ -1111,9 +1109,9 @@ import XCTest
     XCTAssertTrue(app.descendants(matching: .any)["lcd_display"].waitForExistence(timeout: 5))
     
     // Open FLAGS menu (Blue Shift + ×)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     navigateToArithmeticPad(app: app)
-    app.buttons["func_×"].tap()
+    app.buttons["op_multiply"].tap()
     
     let examToggle = app.switches["Exam Mode"]
     if examToggle.waitForExistence(timeout: 2.0) {
@@ -1153,12 +1151,10 @@ import XCTest
     }
 
     // Set Stack to 8 via FLAGS Menu
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
-    slowTap(app.buttons["func_×"], name: "FLAGS")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
+    slowTap(app.buttons["op_multiply"], name: "FLAGS")
     Thread.sleep(forTimeInterval: 1.0)
-    for _ in 0..<4 {
-        slowTap(app.steppers.buttons["Increment"], name: "Stack Size +1")
-    }
+    if app.buttons["8-Level"].exists { app.buttons["8-Level"].tap() }
     if app.buttons["Done"].exists {
         app.buttons["Done"].tap()
     } else {
@@ -1167,7 +1163,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 1.0)
 
     // Go to Add Equation
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
     slowTap(app.buttons["func_STO"], name: "EQN Mode")
     Thread.sleep(forTimeInterval: 1.0)
     slowTap(app.buttons["NEW"], name: "New Equation")
@@ -1193,7 +1189,7 @@ import XCTest
     slowTap(app.buttons["func_÷"], name: "÷")
     
     // x² (Yellow Shift + √x)
-    slowTap(app.buttons["btn_yellow_shift"], name: "Yellow Shift")
+    slowTap(app.buttons["op_shiftYellow"], name: "Yellow Shift")
     slowTap(app.buttons["func_√𝑥"], name: "x²")
     
     // 0.5
@@ -1205,7 +1201,7 @@ import XCTest
     slowTap(app.buttons["func_+/-"], name: "+/-")
     
     // ×
-    slowTap(app.buttons["func_×"], name: "×")
+    slowTap(app.buttons["op_multiply"], name: "×")
     
     // eˣ
     slowTap(app.buttons["func_𝑒ˣ"], name: "𝑒ˣ")
@@ -1221,11 +1217,11 @@ import XCTest
     slowTap(app.buttons["btn_2"], name: "2")
     
     // π (Blue Shift + SIN)
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
     slowTap(app.buttons["func_SIN"], name: "π")
     
     // ×
-    slowTap(app.buttons["func_×"], name: "×")
+    slowTap(app.buttons["op_multiply"], name: "×")
     
     // √x
     slowTap(app.buttons["func_√𝑥"], name: "√𝑥")
@@ -1234,7 +1230,7 @@ import XCTest
     slowTap(app.buttons["func_÷"], name: "÷")
     
     // Save Eqn (RTN -> Blue Shift + +)
-    slowTap(app.buttons["btn_blue_shift"], name: "Blue Shift")
+    slowTap(app.buttons["op_shiftBlue"], name: "Blue Shift")
     slowTap(app.buttons["func_+"], name: "RTN")
     Thread.sleep(forTimeInterval: 1.0)
     
@@ -1279,7 +1275,7 @@ import XCTest
     Thread.sleep(forTimeInterval: 1.0)
     
     // Open REGS Menu
-    slowTap(app.buttons["btn_yellow_shift"], name: "Yellow Shift")
+    slowTap(app.buttons["op_shiftYellow"], name: "Yellow Shift")
     slowTap(app.buttons["btn_0"], name: "REGS")
     
     Thread.sleep(forTimeInterval: 3.0)
@@ -1317,7 +1313,7 @@ import XCTest
     // Calculate mean of X -> should be 2.
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.4)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_𝑦ˣ"].tap() // x-bar, y-bar menu
     
     // Tap x-bar
@@ -1368,7 +1364,7 @@ import XCTest
 
     // 1. Enter an equation: EQN -> Add -> Label "A" -> X -> x^2 -> Save
     navigateToUpperMatrixPad(app: app)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_STO"].tap() // EQN
     Thread.sleep(forTimeInterval: 1.0)
 
@@ -1380,11 +1376,11 @@ import XCTest
 
     navigateToUpperMatrixPad(app: app)
     Thread.sleep(forTimeInterval: 0.5)
-    app.buttons["btn_yellow_shift"].tap()
+    app.buttons["op_shiftYellow"].tap()
     app.buttons["func_√𝑥"].tap() // x^2
 
     // Save & Exit Programming Mode (Blue shift + +/RTN)
-    app.buttons["btn_blue_shift"].tap()
+    app.buttons["op_shiftBlue"].tap()
     app.buttons["func_+"].tap()
     Thread.sleep(forTimeInterval: 1.5) // Wait for state to settle
 
@@ -1526,7 +1522,7 @@ import XCTest
 #endif
         Thread.sleep(forTimeInterval: 0.2)
         
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_PLOT"].tap()
         
         #if os(watchOS)
@@ -1599,8 +1595,8 @@ import XCTest
         XCTAssertTrue(display.waitForExistence(timeout: 5))
 
         let pad = app.otherElements["numpad_bg"]
-        let yellow = app.buttons["btn_yellow_shift"]
-        let blue = app.buttons["btn_blue_shift"]
+        let yellow = app.buttons["op_shiftYellow"]
+        let blue = app.buttons["op_shiftBlue"]
 
         // We start on pad 1 (Numeric)
         XCTAssertTrue(app.buttons["btn_5"].waitForExistence(timeout: 2.0))
@@ -1797,7 +1793,7 @@ import XCTest
         app.launch()
         
         let predicate = NSPredicate(format: "existsNoRetry == 1")
-        expectation(for: predicate, evaluatedWith: app.buttons["btn_yellow_shift"], handler: nil)
+        expectation(for: predicate, evaluatedWith: app.buttons["op_shiftYellow"], handler: nil)
         waitForExpectations(timeout: 5.0, handler: nil)
         
         // Enter 1, ENTER, 2, SUMS
@@ -1819,7 +1815,7 @@ import XCTest
         app.buttons["func_Σ+"].tap()
         
         // Press PLOT (yellow shift + CONST)
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_PLOT"].tap()
         
         Thread.sleep(forTimeInterval: 2.0)
@@ -1843,7 +1839,7 @@ import XCTest
         app.launchArguments = ["-parityMode", "1", "-animations", "0", "-useRetroUI"]
         app.launch()
         
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_←"].tap()
         
         let predicate = NSPredicate(format: "existsNoRetry == 1")
@@ -1878,7 +1874,7 @@ import XCTest
 
     func testParityComplexEquation() throws {
         let app = setupApp()
-        app.buttons["btn_blue_shift"].tap()
+        app.buttons["op_shiftBlue"].tap()
         app.buttons["func_STO"].tap() // EQN
         app.buttons["func_SIN"].tap()
         app.buttons["btn_1"].tap() // Let's just do SIN 1 since there is no "(" key!
@@ -1891,7 +1887,7 @@ import XCTest
 
     func testParityMultiLineScroll() throws {
         let app = setupApp()
-        app.buttons["btn_blue_shift"].tap()
+        app.buttons["op_shiftBlue"].tap()
         app.buttons["func_STO"].tap() // EQN
         app.buttons["func_√𝑥"].tap() // A
         app.buttons["func_+"].tap()
@@ -1904,7 +1900,7 @@ import XCTest
         app.buttons["btn_3"].tap() // E
         Thread.sleep(forTimeInterval: 0.5)
         saveParityScreenshot(app: app, name: "parity_multiline_1")
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["btn_8"].tap() // UP ARROW
         Thread.sleep(forTimeInterval: 0.5)
         saveParityScreenshot(app: app, name: "parity_multiline_2")
@@ -1915,8 +1911,8 @@ import XCTest
         app.buttons["btn_1"].tap()
         app.buttons["btn_2"].tap()
         app.buttons["invisible_ENTER"].tap()
-        app.buttons["btn_yellow_shift"].tap()
-        app.buttons["func_×"].tap() // BASE
+        app.buttons["op_shiftYellow"].tap()
+        app.buttons["op_multiply"].tap() // BASE
         app.buttons["func_LFU_0"].tap() // Hex
         Thread.sleep(forTimeInterval: 0.5)
         saveParityScreenshot(app: app, name: "parity_base_mode")
@@ -1924,7 +1920,7 @@ import XCTest
 
     func testParitySoftkeyLFU() throws {
         let app = setupApp()
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_PLOT"].tap() // CONST
         Thread.sleep(forTimeInterval: 0.5)
         saveParityScreenshot(app: app, name: "parity_softkey_1")
@@ -1935,7 +1931,7 @@ import XCTest
 
     func testParityScientific() throws {
         let app = setupApp()
-        app.buttons["btn_yellow_shift"].tap()
+        app.buttons["op_shiftYellow"].tap()
         app.buttons["func_E"].tap() // DISP
         app.buttons["func_LFU_1"].tap() // SCI
         app.buttons["btn_4"].tap() // SCI 4
@@ -1959,7 +1955,7 @@ import XCTest
         XCTAssertTrue(display.waitForExistence(timeout: 5.0))
         
         // Go into Equation Mode
-        app.buttons["btn_blue_shift"].tap()
+        app.buttons["op_shiftBlue"].tap()
         app.buttons["func_STO"].tap()
         Thread.sleep(forTimeInterval: 1.0)
         

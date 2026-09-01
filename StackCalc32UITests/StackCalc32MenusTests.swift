@@ -10,7 +10,7 @@ class StackCalc32MenusTests: XCTestCase {
   private func navigateToArithmeticPad(app: XCUIApplication) {
     if app.buttons["op_multiply"].isHittable { return }
     navigateToNumericPad(app: app)
-    app.buttons["sim_swipe_left"].tap()
+    app.navigateAndTap("sim_swipe_left")
     Thread.sleep(forTimeInterval: 0.5)
     if !app.buttons["op_multiply"].waitForExistence(timeout: 2.0) {
       print("ARITHMETIC PAD DEBUG DESC:")
@@ -22,14 +22,14 @@ class StackCalc32MenusTests: XCTestCase {
   private func centerVertically(app: XCUIApplication) -> Bool {
     if app.buttons["op_digit5"].isHittable { return true }
     if app.buttons["op_sto"].isHittable {
-      app.buttons["sim_swipe_down"].tap()
+      app.navigateAndTap("sim_swipe_down")
       Thread.sleep(forTimeInterval: 0.5)
       if app.buttons["op_digit5"].isHittable { return true }
       
       // We might have gone in the wrong direction, try swiping up twice
-      app.buttons["sim_swipe_up"].tap()
+      app.navigateAndTap("sim_swipe_up")
       Thread.sleep(forTimeInterval: 0.5)
-      app.buttons["sim_swipe_up"].tap()
+      app.navigateAndTap("sim_swipe_up")
       Thread.sleep(forTimeInterval: 0.5)
       if app.buttons["op_digit5"].isHittable { return true }
     }
@@ -39,15 +39,15 @@ class StackCalc32MenusTests: XCTestCase {
   private func navigateToNumericPad(app: XCUIApplication) {
     if centerVertically(app: app) { return }
     
-    app.buttons["sim_swipe_right"].tap()
+    app.navigateAndTap("sim_swipe_right")
     Thread.sleep(forTimeInterval: 0.5)
     if centerVertically(app: app) { return }
     
-    app.buttons["sim_swipe_left"].tap()
+    app.navigateAndTap("sim_swipe_left")
     Thread.sleep(forTimeInterval: 0.5)
     if centerVertically(app: app) { return }
     
-    app.buttons["sim_swipe_left"].tap()
+    app.navigateAndTap("sim_swipe_left")
     Thread.sleep(forTimeInterval: 0.5)
     if centerVertically(app: app) { return }
   }
@@ -55,7 +55,7 @@ class StackCalc32MenusTests: XCTestCase {
   private func navigateToUpperMatrixPad(app: XCUIApplication) {
     if app.buttons["op_sto"].isHittable { return }
     navigateToNumericPad(app: app)
-    app.buttons["sim_swipe_down"].tap()
+    app.navigateAndTap("sim_swipe_down")
     Thread.sleep(forTimeInterval: 0.5)
     XCTAssertTrue(app.buttons["op_sto"].waitForExistence(timeout: 2.0))
   }
@@ -69,8 +69,8 @@ class StackCalc32MenusTests: XCTestCase {
         XCTAssertTrue(display.waitForExistence(timeout: 5))
 
         let pad = app.otherElements["numpad_bg"]
-        let yellow = app.buttons["btn_yellow_shift"]
-        let blue = app.buttons["btn_blue_shift"]
+        let yellow = app.buttons["op_shiftYellow"]
+        let blue = app.buttons["op_shiftBlue"]
 
         // We start on pad 1 (Numeric)
         XCTAssertTrue(app.buttons["op_digit5"].waitForExistence(timeout: 2.0))
@@ -88,16 +88,16 @@ class StackCalc32MenusTests: XCTestCase {
         for t in matrix1Triggers {
             navigateToArithmeticPad(app: app)
             if let s = t.shift { s.tap() }
-            app.buttons[t.btn].tap()
+            app.navigateAndTap(t.btn)
             
             if let title = t.title {
                 if app.staticTexts[title].waitForExistence(timeout: 2.0) {
                     if app.buttons["sheet_dismiss_btn"].exists {
-                        app.buttons["sheet_dismiss_btn"].firstMatch.tap()
+                        app.navigateAndTap("sheet_dismiss_btn")
                     } else if app.buttons["Cancel"].exists {
-                        app.buttons["Cancel"].firstMatch.tap()
+                        app.navigateAndTap("Cancel")
                     } else if app.buttons["Done"].exists {
-                        app.buttons["Done"].firstMatch.tap()
+                        app.navigateAndTap("Done")
                     } else {
                         app.staticTexts[title].swipeDown()
                     }
@@ -122,16 +122,16 @@ class StackCalc32MenusTests: XCTestCase {
             Thread.sleep(forTimeInterval: 0.5)
             
             if let s = t.shift { s.tap() }
-            app.buttons[t.btn].tap()
+            app.navigateAndTap(t.btn)
             
             if let title = t.title {
                 if app.staticTexts[title].waitForExistence(timeout: 2.0) {
                     if app.buttons["sheet_dismiss_btn"].exists {
-                        app.buttons["sheet_dismiss_btn"].firstMatch.tap()
+                        app.navigateAndTap("sheet_dismiss_btn")
                     } else if app.buttons["Cancel"].exists {
-                        app.buttons["Cancel"].firstMatch.tap()
+                        app.navigateAndTap("Cancel")
                     } else if app.buttons["Done"].exists {
-                        app.buttons["Done"].firstMatch.tap()
+                        app.navigateAndTap("Done")
                     } else {
                         app.staticTexts[title].swipeDown()
                     }
@@ -157,16 +157,16 @@ class StackCalc32MenusTests: XCTestCase {
             
             
             if let s = t.shift { s.tap() }
-            app.buttons[t.btn].tap()
+            app.navigateAndTap(t.btn)
             
             if let title = t.title {
                 if app.staticTexts[title].waitForExistence(timeout: 2.0) {
                     if app.buttons["sheet_dismiss_btn"].exists {
-                        app.buttons["sheet_dismiss_btn"].firstMatch.tap()
+                        app.navigateAndTap("sheet_dismiss_btn")
                     } else if app.buttons["Cancel"].exists {
-                        app.buttons["Cancel"].firstMatch.tap()
+                        app.navigateAndTap("Cancel")
                     } else if app.buttons["Done"].exists {
-                        app.buttons["Done"].firstMatch.tap()
+                        app.navigateAndTap("Done")
                     } else {
                         app.staticTexts[title].swipeDown()
                     }
@@ -187,19 +187,19 @@ class StackCalc32MenusTests: XCTestCase {
         XCTAssertTrue(display.waitForExistence(timeout: 5))
         
         // Push 5 to stack
-        app.buttons["op_digit5"].tap()
-        app.otherElements["invisible_ENTER"].tap() // ENTER
+        app.navigateAndTap("op_digit5")
+        app.tapEnter() // ENTER
         
         // STO is on Matrix2 (swipe up up)
         navigateToUpperMatrixPad(app: app)
         Thread.sleep(forTimeInterval: 1.0)
         
-        app.buttons["op_sto"].tap()
+        app.navigateAndTap("op_sto")
         // Should navigate to Alpha Entry pad
         XCTAssertTrue(app.buttons["alpha_A"].waitForExistence(timeout: 2.0), "Alpha pad should appear for STO")
         
         // Store in A
-        app.buttons["alpha_A"].tap()
+        app.navigateAndTap("alpha_A")
         Thread.sleep(forTimeInterval: 0.5)
         
         // Should auto-return
@@ -210,11 +210,11 @@ class StackCalc32MenusTests: XCTestCase {
         navigateToUpperMatrixPad(app: app)
         Thread.sleep(forTimeInterval: 1.0)
         
-        app.buttons["op_rcl"].tap()
+        app.navigateAndTap("op_rcl")
         XCTAssertTrue(app.buttons["alpha_A"].waitForExistence(timeout: 2.0), "Alpha pad should appear for RCL")
         
         // Recall A
-        app.buttons["alpha_A"].tap()
+        app.navigateAndTap("alpha_A")
         Thread.sleep(forTimeInterval: 1.0)
         
         XCTAssertFalse(app.buttons["alpha_A"].exists, "Alpha pad should dismiss after RCL")
@@ -223,7 +223,7 @@ class StackCalc32MenusTests: XCTestCase {
   private func navigateToLFUPad(app: XCUIApplication) {
     if app.buttons["alpha_A"].isHittable { return }
     navigateToNumericPad(app: app)
-    app.buttons["sim_swipe_right"].tap()
+    app.navigateAndTap("sim_swipe_right")
     Thread.sleep(forTimeInterval: 0.5)
     XCTAssertTrue(app.buttons["alpha_A"].waitForExistence(timeout: 2.0))
   }
@@ -238,57 +238,57 @@ class StackCalc32MenusTests: XCTestCase {
 
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.1)
-    app.buttons["btn_yellow_shift"].tap()
+    app.navigateAndTap("op_shiftYellow")
     navigateToArithmeticPad(app: app)
     Thread.sleep(forTimeInterval: 0.1)
-    app.buttons["op_backspace"].tap()
-    app.swipeUp()
-    app.buttons["Clear ALL"].firstMatch.tap()
+    app.navigateAndTap("op_backspace")
+    app.tapEnter()
+    app.navigateAndTap("Clear ALL")
     Thread.sleep(forTimeInterval: 1.5)
     navigateToNumericPad(app: app)
     Thread.sleep(forTimeInterval: 0.1)
 
     // Press EQN (blue shift STO)
-    app.buttons["btn_blue_shift"].tap()
+    app.navigateAndTap("op_shiftBlue")
     navigateToUpperMatrixPad(app: app)
-    app.buttons["op_sto"].tap()
+    app.navigateAndTap("op_sto")
 
     // Wait for the Equation list sheet
     XCTAssertTrue(app.buttons["btn_add_eqn"].waitForExistence(timeout: 2.0))
-    app.buttons["btn_add_eqn"].tap() // "New Equation"
+    app.navigateAndTap("btn_add_eqn") // "New Equation"
 
     // Now we are in LBL _
     // Tap A
     navigateToLFUPad(app: app)
-    app.buttons["alpha_A"].tap()
+    app.navigateAndTap("alpha_A")
 
     // Now we are in PRGM mode editing equation A
     // Press 5, 6, ENTER
     navigateToNumericPad(app: app)
-    app.buttons["op_digit5"].tap()
-    app.buttons["op_digit6"].tap()
+    app.navigateAndTap("op_digit5")
+    app.navigateAndTap("op_digit6")
     
     // Tap invisible ENTER just in case, but let's tap the real ENTER on Arithmetic pad
     navigateToArithmeticPad(app: app)
-    app.buttons["op_enter"].tap()
+    app.tapEnter()
     
     // Press *
-    app.buttons["op_multiply"].tap()
+    app.navigateAndTap("op_multiply")
     
     // Press RCL X
     navigateToUpperMatrixPad(app: app)
-    app.buttons["op_rcl"].tap()
+    app.navigateAndTap("op_rcl")
     
     navigateToLFUPad(app: app)
-    app.buttons["alpha_X"].tap()
+    app.navigateAndTap("alpha_X")
     
     // Press +
     navigateToArithmeticPad(app: app)
-    app.buttons["op_add"].tap()
+    app.navigateAndTap("op_add")
     
     // Press 3
     navigateToNumericPad(app: app)
-    app.buttons["op_digit3"].tap()
+    app.navigateAndTap("op_digit3")
     
     let displayLabel = display.label
     print("DISPLAY_LABEL_IS: \(displayLabel)")

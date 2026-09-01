@@ -17,7 +17,6 @@ struct HapticNumpadView: View {
     var onMenuAction: ((CalculatorOperation) -> Void)?
     var keys: [HP32Key] = HP32KeyMap.standardGrid
     
-
     var body: some View {
         let _ = engine.lfuManager.slots
         GeometryReader { geo in
@@ -77,12 +76,11 @@ struct HapticNumpadView: View {
     // MARK: - Helpers
 
     private func identifier(for key: HP32Key) -> String {
-        if key.primaryAction == .shiftYellow { return "btn_yellow_shift" }
-        if key.primaryAction == .shiftBlue   { return "btn_blue_shift" }
-        if key.primaryAction == .enter       { return "invisible_ENTER" }
-        let actStr = key.primaryAction?.stringValue ?? ""
-        if Int(actStr) != nil || actStr == "." { return "btn_\(actStr)" }
-        return "func_\(actStr)"
+        guard let op = key.primaryAction else { return key.label }
+        if op == .enter { return "invisible_ENTER" }
+        if op == .shiftYellow { return "op_shiftYellow" }
+        if op == .shiftBlue { return "op_shiftBlue" }
+        return "op_\(String(describing: op))"
     }
 
     private func handleDrag(location: CGPoint, size: CGSize) {
@@ -181,6 +179,11 @@ struct HapticNumpadView: View {
         } else if command == .shiftBlue {
             engine.shiftState = (engine.shiftState == 2) ? 0 : 2
         } else {
+            if command == .c && engine.isMenuOpen {
+                NotificationCenter.default.post(name: NSNotification.Name("iOSMenuTrigger"), object: nil, userInfo: ["command": command])
+                engine.shiftState = 0
+                return
+            }
             if themeManager.activeThemeType == .retro {
                 onMenuAction?(command)
             } else {

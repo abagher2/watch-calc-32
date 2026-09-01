@@ -185,7 +185,7 @@ public struct LCDAnnunciatorsView: View {
   }
   private var semanticStateJSON: String {
     let state: [String: Any] = [
-      "stack": engine.stack.map { $0.real.description },
+      "stack": engine.stack.map { engine.formatNumber($0.real) },
       "plotDataPointsCount": engine.plotDataPoints.count,
     ]
     if let data = try? JSONSerialization.data(withJSONObject: state, options: []),

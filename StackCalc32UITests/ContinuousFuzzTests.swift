@@ -53,18 +53,7 @@ class ContinuousFuzzTests: XCTestCase {
             
             for op in seq {
                 let key = self.mapOpToIdentifier(op)
-                if app.buttons[key].exists {
-                    app.buttons[key].firstMatch.tap()
-                } else if app.staticTexts[key].exists {
-                    app.staticTexts[key].firstMatch.tap()
-                } else {
-                    // Try to swipe!
-                    app.swipeLeft()
-                    if app.buttons[key].exists { app.buttons[key].firstMatch.tap() }
-                    else { app.swipeRight(); app.swipeRight() }
-                    if app.buttons[key].exists { app.buttons[key].firstMatch.tap() }
-                    else { app.swipeLeft() }
-                }
+                app.navigateAndTap(key)
             }
             
             let lcd = app.staticTexts["lcd_display"].label

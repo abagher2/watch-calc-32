@@ -9,8 +9,8 @@ final class TestBasicEnter: XCTestCase {
         let display = app.descendants(matching: .any)["lcd_display"]
         XCTAssertTrue(display.waitForExistence(timeout: 5))
         
-        app.buttons["op_digit1"].tap()
-        app.otherElements["invisible_ENTER"].tap()
+        app.navigateAndTap("op_digit1")
+        app.tapEnter()
         
         XCTAssertEqual(display.label, "1")
     }

@@ -150,19 +150,39 @@ class ContinuousFuzzTests: XCTestCase {
         }
     }
     func mapOpToIdentifiers(_ op: String) -> [String] {
+        if op.hasPrefix("op_digit") {
+            let digit = String(op.dropFirst(8))
+            return ["btn_\(digit)"]
+        }
         switch op {
         case "0"..."9": return ["btn_\(op)"]
-        case ".": return ["btn_."]
-        case "ENTER": return ["func_ENTER"]
-        case "C": return ["func_<-"]
-        case "+", "-", "×", "÷": return ["func_\(op)"]
-        case "√𝑥": return ["func_√𝑥"]
-        case "¹/𝑥": return ["func_¹/𝑥"]
-        case "SIN": return ["func_SIN"]
-        case "COS": return ["func_COS"]
-        case "TAN": return ["func_TAN"]
-        case "R↓": return ["func_R↓"]
-        case "x≷y": return ["func_𝑥≷𝑦"]
+        case "op_decimal", ".": return ["btn_."]
+        case "op_enter", "ENTER": return ["invisible_ENTER"]
+        case "op_backspace", "C": return ["func_<-"]
+        case "op_add", "+": return ["func_+"]
+        case "op_subtract", "-": return ["func_-"]
+        case "op_multiply", "×": return ["func_×"]
+        case "op_divide", "÷": return ["func_÷"]
+        case "op_sqrt", "√𝑥": return ["func_√𝑥"]
+        case "op_reciprocal", "¹/𝑥": return ["op_reciprocal"]
+        case "op_sin", "SIN": return ["func_SIN"]
+        case "op_cos", "COS": return ["func_COS"]
+        case "op_tan", "TAN": return ["func_TAN"]
+        case "op_rollDown", "R↓": return ["func_R↓"]
+        case "op_swapXY", "x≷y": return ["func_𝑥≷𝑦"]
+        
+        case "op_shiftYellow": return ["btn_yellow_shift"]
+        case "op_shiftBlue": return ["btn_blue_shift"]
+        case "op_e": return ["func_E"]
+        case "op_toggleSign": return ["func_+/-"]
+        case "op_lfu0": return ["func_A..Z"]
+        case "op_lfu1": return ["func_F0"]
+        case "op_lfu2": return ["func_F1"]
+        case "op_lfu3": return ["func_F2"]
+        case "op_lfu4": return ["func_F3"]
+        case "op_lfu5": return ["func_F4"]
+        
+        // Handling old string format just in case
         case "𝑥²": return ["btn_yellow_shift", "func_√𝑥"]
         case "ASIN": return ["btn_yellow_shift", "func_SIN"]
         case "ACOS": return ["btn_yellow_shift", "func_COS"]
@@ -173,7 +193,9 @@ class ContinuousFuzzTests: XCTestCase {
         case "ABS": return ["btn_blue_shift", "func_+/-"]
         case "IP": return ["btn_blue_shift", "func_√𝑥", "IP"]
         case "FP": return ["btn_blue_shift", "func_√𝑥", "FP"]
-        default: return ["func_\(op)"]
+        default: 
+            let stringVal = op.replacingOccurrences(of: "op_", with: "")
+            return ["func_\(stringVal.uppercased())"]
         }
     }
 

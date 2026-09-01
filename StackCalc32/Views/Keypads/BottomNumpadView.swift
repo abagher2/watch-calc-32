@@ -166,6 +166,7 @@ struct ArithmeticPadView: View {
                         engine.autoReturnToMainPad.toggle()
                     }
                 }
+                .accessibilityIdentifier("ui_STAY")
                 .gridCellColumns(2)
             }
         }

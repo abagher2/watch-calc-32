@@ -518,8 +518,8 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
     }
 
     static func main() {
-        // print("Booted!")
-        hw_init()
+        hw_init(); putchar_c(65); putchar_c(10);
+        for b in "Swift main started!\n".utf8 { putchar_c(Int32(b)) }
         
         // True hardware/firmware level interrupt polling for C and OFF
         engine.isInterrupted = {
@@ -556,7 +556,7 @@ static func dispatchUART(_ buf: UnsafePointer<UInt8>, _ len: Int, _ engine: Calc
             return String(decoding: UnsafeBufferPointer(start: WatchCalcFirmware.formatBuf, count: len), as: UTF8.self)
         }
         
-        while true {
+        for b in "Entering main loop!\n".utf8 { putchar_c(Int32(b)) }; while true {
             WatchCalcFirmware.loopIteration()
         }
     }

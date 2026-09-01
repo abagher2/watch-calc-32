@@ -113,6 +113,12 @@ void hw_init(void) {
 
 void display_send_buffer(const uint8_t* buffer) {
     watchdog_update();
+
+    // Always copy to emu_display so the Pico emulator (js) can scrape it via memory inspection
+    for (int i = 0; i < 1188; i++) {
+        emu_display.buffer[i] = buffer[i];
+    }
+
 #ifndef EMULATOR
     gpio_put(PIN_CS, 0);
     
@@ -126,12 +132,6 @@ void display_send_buffer(const uint8_t* buffer) {
     }
     
     gpio_put(PIN_CS, 1);
-#else
-    int nonZero = 0;
-    for (int i = 0; i < 1188; i++) {
-        emu_display.buffer[i] = buffer[i];
-        if (buffer[i] != 0) nonZero++;
-    }
 #endif
 }
 

@@ -382,6 +382,7 @@ public class CalculatorEngine {
     /// - iOS / watchOS: `CalculatorMenuPresenter` observes this to present a sheet.
     /// Set to `nil` to dismiss the active menu on any platform.
     public var activeMenu: CalculatorMenu? = nil
+    public var isMenuOpen: Bool = false
 
     // Exam Mode
     public var isExamMode: Bool = false {
@@ -778,7 +779,7 @@ public class CalculatorEngine {
     public func digit(_ d: Int) {
         if isWaitingForLabel { return }
         if transientMessage != nil { transientMessage = nil; updateDisplay() }
-        if errorMessage != nil { clearError(); return }
+        if errorMessage != nil { clearError() }
         
         if alphaAction != .promptVar {
             if isEquationEditMode {
@@ -845,7 +846,7 @@ public class CalculatorEngine {
     }
     
     public func startExponent() {
-        if errorMessage != nil { clearError(); return }
+        if errorMessage != nil { clearError() }
         if alphaAction != .promptVar {
             if isEquationEditMode {
                 if let last = currentEquationSteps.last, isEquationNumberStep(last) {
@@ -868,7 +869,7 @@ public class CalculatorEngine {
     }
     
     public func decimal() {
-        if errorMessage != nil { clearError(); return }
+        if errorMessage != nil { clearError() }
         
         if alphaAction != .promptVar {
             if isEquationEditMode {
@@ -919,7 +920,7 @@ public class CalculatorEngine {
     }
     
     public func toggleSign() {
-        if errorMessage != nil { clearError(); return }
+        if errorMessage != nil { clearError() }
         if alphaAction != .promptVar {
             if isEquationEditMode {
                 if let last = currentEquationSteps.last, isEquationNumberStep(last) {
@@ -1617,9 +1618,15 @@ public class CalculatorEngine {
             }
         }
         
+        if operation == "C" || operation == "CLEAR" || operation == "BACKSPACE" || operation == "<-" {
+            if errorMessage != nil {
+                clearError()
+                return
+            }
+        }
+        
         if errorMessage != nil {
             clearError()
-            return
         }
 
         if isAssigning {
@@ -1863,9 +1870,6 @@ public class CalculatorEngine {
         
         if operation == "XEQ" {
             print("DEBUG: XEQ handled, setting requestXEQ=true")
-            isWaitingForLabel = true
-            startAlpha()
-            alphaPrompt = "XEQ _"
             requestXEQ = true
             return
         }

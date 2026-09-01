@@ -190,13 +190,14 @@ public class RetroUIController {
         }
         
         // Advanced Modes
-        if finalOp == .solve || finalOp == .integrate || finalOp == .plot {
+        if finalOp == .solve || finalOp == .integrate || finalOp == .plot || finalOp == .xeq {
             if finalOp == .solve { retroUI.softkeyMode = .solve }
             if finalOp == .integrate { retroUI.softkeyMode = .integrate }
             if finalOp == .plot { retroUI.softkeyMode = .plot }
+            if finalOp == .xeq { retroUI.softkeyMode = .xeq }
             retroUI.softkeyProgram = nil
             engine.activeMenu = nil
-            if finalOp == .solve || finalOp == .integrate {
+            if finalOp == .solve || finalOp == .integrate || finalOp == .xeq {
                 engine.executeMath(finalOp.stringValue)
             }
             return
@@ -238,7 +239,14 @@ public class RetroUIController {
             
             if softkeyActionStr.hasPrefix("SOFTKEY_PRG_") {
                 let progLabel = String(softkeyActionStr.dropFirst(12))
-                retroUI.softkeyProgram = engine.equations.first(where: { $0.label == progLabel })
+                if retroUI.softkeyMode == .xeq {
+                    retroUI.softkeyMode = .none
+                    retroUI.softkeyProgram = nil
+                    engine.currentEvaluatingEquation = engine.equations.first(where: { $0.label == progLabel })
+                    engine.promptNextEquationVar()
+                } else {
+                    retroUI.softkeyProgram = engine.equations.first(where: { $0.label == progLabel })
+                }
                 return
             }
             

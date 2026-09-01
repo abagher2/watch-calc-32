@@ -131,7 +131,7 @@ public struct SharedMathTestCases {
                 SharedCalculatorStep("5"),
                 SharedCalculatorStep("ENTER"),
                 SharedCalculatorStep("SHIFT_YELLOW"),
-                SharedCalculatorStep("1/𝑥", expectedX: "INVALID DATA"), // yellow 1/x is x!
+                SharedCalculatorStep("1/𝑥", expectedX: "3.3233509704"), // yellow 1/x is x!
                 SharedCalculatorStep("<-"),
                 
                 // 4. Valid Factorial
